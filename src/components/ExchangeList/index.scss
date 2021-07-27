@@ -1,0 +1,129 @@
+.common-exchange-list-wrapper {
+  .common-exchange-list {
+    background: #fff;
+    padding: rem(15);
+    .exchange-list-title {
+      position: relative;
+      color: #333333;
+      font-weight: bolder;
+      font-size: rem(17);
+      padding-left: rem(10);
+    }
+    .exchange-list-title::before{
+      content: '';
+      width: rem(3);
+      height: rem(15);
+      background: #495ABE;
+      position: absolute;
+      top: rem(4);
+      left: rem(0);
+  
+    }
+    .exchange-list {
+      margin-top: rem(10);
+      &-item{
+        position: relative;
+        min-height: rem(80);
+        // border-bottom: 1px solid #F7F8F8;
+        div.mint-cell-wrapper{
+          min-height: rem(80);
+          padding: 0 rem(10) 0 0;
+        }
+        .mint-cell:first-child .mint-cell-wrapper{
+          background-image: none;
+        }
+        .mt10{
+          padding: rem(10) 0;
+        }
+      }
+      &-item::after{
+        content: '';
+        width: 95%;
+        height: 1px;
+        background: #F7F8F8;
+        // background: rebeccapurple;
+        position: absolute;
+        bottom: 0;
+        left: rem(10);
+      }
+      .exchange-status-icon {
+        width: rem(20);
+        height: rem(20);
+        vertical-align: middle;
+        margin-right: rem(13);
+      }
+      .status-transfer {
+        background: url('~@/assets/icon_transfer.png') center center no-repeat;
+        background-size: 100% 100%;
+      }
+      .status-withdraw {
+        background: url('~@/assets/icon_withdraw.png') center center no-repeat;
+        background-size: 100% 100%;
+      }
+      .status-wrong {
+        background: url('~@/assets/icon_wrong.png') center center no-repeat;
+        background-size: 100% 100%;
+      }
+      .status-recharge {
+        background: url('~@/assets/icon_recharge.png') center center no-repeat;
+        background-size: 100% 100%;
+      }
+      .exchange-status {
+        background: #EAA13B;
+        padding: rem(5);
+        color: #fff;
+        border-radius: rem(5);
+        width: rem(45);
+        font-size: rem(11);
+        text-align: center;
+        margin: rem(5) 0 0 rem(30);
+      }
+      .exchange-amount {
+        font-weight: bolder;
+        color: #333;
+        >span{
+          margin-left: rem(5);
+          font-size: rem(13);
+        }
+      }
+      .exchange-time {
+        color: #606265;
+        margin-top: rem(5);
+        font-size: rem(11);
+      }
+    }
+  }
+  .none-data {
+    color: #333333;
+    padding-top: rem(50);
+    img { width: rem(253); height: rem(150); }
+    span { margin: rem(13);}
+  }
+}
+
+
+// common bottom modal
+.common-bottom-popup{
+  width: 100%;
+  background: #FFFFFF;
+  border-radius: rem(20) rem(20) 0px 0px;
+  padding: rem(20);
+  .header{
+    height: rem(50);
+    margin-bottom: rem(20);
+    h3 {
+      font-size: rem(25);
+      color: #333;
+    }
+  }
+  // exchange detail
+  .common-exchange-detail-wrap {
+    .common-exchange-detail-item {
+      display: flex;
+      color: #606265;
+      margin: 0 0 rem(20);
+      font-size: rem(15);
+    }
+  
+  }
+}

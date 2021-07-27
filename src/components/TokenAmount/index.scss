@@ -1,0 +1,45 @@
+.token-amount-wrap {
+  background: #fff;
+  padding: rem(20) rem(20) 0;
+  &-inner{
+    padding: rem(20) rem(30);
+    border: rem(1) solid #F2F2F2;
+    margin-bottom: rem(40);
+    .slect-token-wrap{
+      .token,
+      .icon-selected{
+        display: inline-block;
+        width: rem(20);
+        height: rem(20);
+        vertical-align: middle;
+      }
+      .token-ETH{
+        background: url('~@/assets/icon_token_eth.png') center center no-repeat;
+        background-size: 100% 100%;
+        margin-right: rem(5);
+      }
+      .icon-selected{
+        background: url('~@/assets/icon_down.png') center center no-repeat;
+        background-size: 100% 100%;
+        margin: 0 rem(5);
+      }
+      .token-span{
+        font-size: rem(19);
+        font-weight: bolder;
+        vertical-align: bottom;
+      }
+    }
+    .slect-token-wrap + span,
+    .recharge-amount + span {
+      color: #606265;
+      font-size: rem(13);
+      display: block;
+      margin: rem(10) 0;
+    }
+    .recharge-amount{
+      font-size: rem(25);
+      font-weight: bolder;
+      color: #C0C4CC;
+    }
+  }
+}

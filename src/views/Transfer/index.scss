@@ -1,0 +1,72 @@
+@import '@/app.scss';
+.transfer-page {
+  font-size: rem(13);
+  background: #F7F8F8;
+  align-items: flex-start;
+  i.info_icon {
+    display: inline-block;
+    height: rem(20);
+    width: rem(20);
+    background: url('~@/assets/icon_notice.png') center center no-repeat;
+    vertical-align: middle;
+  }
+  .transfer-toL2-tip {
+    >div{
+      margin: rem(10);
+    }
+    .expand {
+      .expand-tip {
+        font-size: rem(11);
+        color: #606265;
+        height: rem(48);
+        line-height: rem(16);
+        @include text-more-ellipsis(2)
+      }
+    }
+  }
+  .transfer-opt-area {
+    background: #fff;
+    margin-bottom: rem(20);
+    min-height: rem(30);
+    padding: 0 0 rem(20);
+    .address-wrapper {
+      padding: rem(20) rem(20) 0;
+      .address-textarea {
+        border: rem(1) solid #F2F2F2;
+        border-radius: rem(5);
+        padding: rem(15);
+        color: #333;
+        font-size: rem(13);
+        min-width: 100%;
+        height: rem(66);
+        resize: none;
+      }
+    }
+    .tip {
+      display: block;
+      font-size: rem(11);
+      color: #606265;
+      margin: rem(13) 0 0 rem(20);
+    }
+  }
+  .safe-tip-toast {
+    background: #060E3D;
+    color: #fff;
+    font-size: rem(15);
+    padding: rem(16);
+    width: rem(300);
+    text-align: center;
+    width: 88%;
+    border-radius: rem(10);
+    opacity: 0.8;
+    i{
+      display: inline-block;
+      height: rem(20);
+      width: rem(20);
+      background: url('~@/assets/icon_safe.png') center center no-repeat;
+      vertical-align: middle;
+      margin-right: rem(10);
+    }
+  }
+  ::v-deep.noneOverlay{ display: none; }
+}
