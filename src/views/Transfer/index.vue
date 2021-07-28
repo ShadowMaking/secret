@@ -14,14 +14,20 @@
         <textarea placeholder="请输入转账地址" class="address-textarea"></textarea>
       </div>
       <span class="tip"><i class="info_icon"></i>请勿输入交易所地址</span>
-      <v-tokenAmount />
+      <v-tokenAmount key="tokenAmount-transfer" type="transfer" />
     </div>
     <v-exchangeList key="comon-exchangeList" type="transfer" />
     <van-popup v-model="tipShow" class="safe-tip-toast" overlay-class="noneOverlay">
       <i class=""></i>
       <span>您的交易地址和交易金额已被加密保护</span>
     </van-popup>
-    <v-statusPop :show="showStatusPop"></v-statusPop>
+    <v-statusPop
+      :status="popStatus"
+      title="您的转账已提交"
+      timeTxt="预计 1 分钟内完成资金变动"
+      tip="可以到“L2 钱包”对应资产的详情查看明细"
+      :show="showStatusPop"
+      @childEvent="changeVisible" />
   </div>
 </template>
 <script>
@@ -46,8 +52,14 @@ export default {
       TRANSFER_TIP,
       tipShow: true,
       showStatusPop: true,
+      popStatus: "success"
     }
-  }
+  },
+  methods: {
+    changeVisible(eventInfo) {
+      this.showStatusPop = eventInfo.show;
+    },
+  },
 }
 </script>
 <style lang="scss" scoped>

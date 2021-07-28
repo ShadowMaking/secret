@@ -12,7 +12,7 @@
     <div class="recharge-opt-area">
       <van-tabs v-model="activeName">
         <van-tab title="从L1 账户充值" name="fromL1">
-          <v-tokenAmount key="fromL1"/>
+          <v-tokenAmount key="tokenAmount-recharge" type="recharge"/>
         </van-tab>
         <van-tab title="从L2 账户充值" name="fromeL2">
           <div class="recharge-amount-wrap">
