@@ -4,19 +4,13 @@
   &-inner{
     padding: rem(20) rem(30);
     border: rem(1) solid #F2F2F2;
-    margin-bottom: rem(40);
+    // margin-bottom: rem(40);
     .slect-token-wrap{
-      .token,
       .icon-selected{
         display: inline-block;
         width: rem(20);
         height: rem(20);
         vertical-align: middle;
-      }
-      .token-ETH{
-        background: url('~@/assets/icon_token_eth.png') center center no-repeat;
-        background-size: 100% 100%;
-        margin-right: rem(5);
       }
       .icon-selected{
         background: url('~@/assets/icon_down.png') center center no-repeat;
@@ -36,10 +30,92 @@
       display: block;
       margin: rem(10) 0;
     }
-    .recharge-amount{
+    .recharge-amount-input {
       font-size: rem(25);
       font-weight: bolder;
       color: #C0C4CC;
+      padding: 0;
+      ::v-deep input{
+        text-align: right;
+      }
     }
+    ::v-deep .recharge-amount-input.van-cell::after {
+      border-bottom: none;
+    }
+  }
+  .amount-fee-tip {
+    .tip {
+      display: block;
+      font-size: rem(11);
+      color: #606265;
+      margin: rem(5) 0 0 0;
+    }
+  }
+  .opt-button {
+    margin-top: rem(20);
+  }
+  .token-select-wrap {
+    padding: rem(20);
+    h3 {
+      font-size: rem(25);
+      color: #333333;
+    }
+    .serach-token-input { padding: rem(10) 0; }
+    .common-base-token {
+      p{ font-size: rem(15); color: #333;}
+      p i {
+        width: rem(20);
+        height: rem(20);
+        display: inline-block;
+        background: url("~@/assets/icon_question.png") center center no-repeat;
+        background-size: 100% 100%;
+        vertical-align: middle;
+        margin-left: rem(5);
+      }
+    }
+    .common-bases-list {
+      margin: rem(15) 0 0;
+      padding-bottom: rem(15);
+      border-bottom: rem(1) solid #F7F8F8;
+      > span {
+        display: inline-block;
+        background: #F7F8F8;
+        color: #333;
+        padding: rem(10) rem(15);
+        margin-right: rem(10);
+        border-radius: rem(10);
+      }
+    }
+    .choose-token-list-ul {
+      padding: rem(10) 0;
+      li {
+        margin: 0 0 rem(20);
+        .token-name { font-size: rem(15); }
+        .token-name :nth-child(2){
+          display: block;
+          font-size: rem(11);
+          color: #C0C4CC;
+        }
+        .token-balance { color: #333333;}
+      }
+    }
+  }
+  
+  
+  .token{
+    display: inline-block;
+    width: rem(20);
+    height: rem(20);
+    vertical-align: middle;
+  }
+  .token-ETH{
+    background: url('~@/assets/icon_token_eth.png') center center no-repeat;
+    background-size: 100% 100%;
+    margin-right: rem(5);
+  }
+  .token-DAI{
+    background: url('~@/assets/icon_token_dai.png') center center no-repeat;
+    background-size: 100% 100%;
+    margin-right: rem(5);
   }
 }

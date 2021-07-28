@@ -1,0 +1,26 @@
+.withdraw-page {
+  background: #fff;
+  font-size: rem(13);
+  .top-address {
+    padding: rem(10) rem(20);
+  }
+  .withdraw-opt-area {
+    background: #fff;
+    margin-bottom: rem(20);
+    min-height: rem(30);
+    padding: 0 0 rem(20);
+    .address-wrapper {
+      padding: 0 rem(20) 0;
+      .address-textarea {
+        border: rem(1) solid #F2F2F2;
+        border-radius: rem(5);
+        padding: rem(15);
+        color: #333;
+        font-size: rem(13);
+        min-width: 100%;
+        height: rem(66);
+        resize: none;
+      }
+    }
+  }
+}

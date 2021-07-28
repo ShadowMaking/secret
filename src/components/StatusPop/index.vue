@@ -1,10 +1,11 @@
 <template>
   <van-popup v-model="show" class="status-popUp flex flex-center flex-column">
     <i class="icon icon-success"></i>
-    <span class="main-txt">您的转账已提交</span>
-    <span class="supplement-txt">预计 1 分钟内完成资金变动</span>
-    <span class="supplement-txt">可以到“L2 钱包”对应资产的详情查看明细</span>
-    <van-button block color="#495ABF" class="button">确认</van-button>
+    <i :class="{icon, 'icon-success':status==='success','icon-failed':status!=='success'}"></i>
+    <span class="main-txt">{{ title }}</span>
+    <span class="supplement-txt">{{ timeTxt }}</span>
+    <span class="supplement-txt">{{ tip }}</span>
+    <van-button block color="#495ABF" class="button" @click="submitOk">确认</van-button>
   </van-popup>
 </template>
 <script>
@@ -16,12 +17,18 @@ Vue.use(Button);
 
 export default {
   name: "StatusPop",
-  props: ['show'],
+  props: ['show', 'title', 'timeTxt', 'tip', 'status'],
   data() {
     return {
-      // show: false
+      
     }
-  }
+  },
+  methods: {
+    submitOk() {
+      this.show = false;
+      this.$emit('childEvent',{show: false});
+    },
+  },
 }
 </script>
 <style lang="scss" scoped>
