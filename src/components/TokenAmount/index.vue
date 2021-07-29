@@ -14,7 +14,7 @@
       </van-col>
       <van-col span="12" style="text-align:right">
         <div class="flex flex-column">
-          <van-field :v-model="number" type="number" label="" placeholder="0.0" class="recharge-amount-input"/>
+          <van-field v-model="number" type="number" label="" placeholder="0.0" class="recharge-amount-input"/>
           <span>{{typeTxt}}金额</span>
         </div>
       </van-col>
@@ -24,7 +24,7 @@
       <span class="tip"><i class="info_icon"></i>到账金额：3.678766 ZKS</span>
     </div>
     <!-- 请输入金额|金额过低|确定（color：#495ABE） -->
-    <van-button type="primary" block color="#A4ACDF" class="opt-button">请输入金额</van-button>
+    <van-button type="primary" block color="#A4ACDF" class="opt-button" @click="submitTranction">请输入金额</van-button>
     <van-popup v-model="showTokenSelect" round closeable position="bottom" :style="{ minHeight: '30%' }">
       <div class="token-select-wrap">
         <div class="header"><h3>选择通证</h3></div>
@@ -82,7 +82,7 @@ export default {
   props: ['type'],  // recharge | transfer | withdraw
   data() {
     return {
-      number: 0.0,
+      number: '',
       showTokenSelect: false,
       serchTokenValue: '',
     }
@@ -97,6 +97,9 @@ export default {
     choseToken() {
       this.showTokenSelect = true
     },
+    submitTranction() {
+      this.$emit('childEvent',{amount: this.number});
+    }
   },
 }
 </script>

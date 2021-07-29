@@ -35,7 +35,7 @@ export const checkMetamask = () => {
         ethereum: window.ethereum
       });
     } else {
-      reject({
+      resolve({
         installStatus: false
       })
     }
