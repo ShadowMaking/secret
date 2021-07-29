@@ -5,6 +5,7 @@ const metamask = {
     metamaskInstall: false,
     accountsArr: [],
     walletIsLock: true,
+    account: null,
   },
 
   mutations: {
@@ -16,6 +17,9 @@ const metamask = {
     },
     SET_WALLET_LOCK_STATUS: (state, status) => {
       state.walletIsLock = status;
+    },
+    SET_WALLET_ACCOUNT: (state, account) => {
+      state.account = account;
     },
   },
 
@@ -38,6 +42,13 @@ const metamask = {
     WalletLockStatus({ commit }, status) {
       return new Promise(resolve => {
         commit('SET_WALLET_LOCK_STATUS', status.isLock)
+        resolve()
+      })
+    },
+    // account
+    WalletAccount({ commit }, account) {
+      return new Promise(resolve => {
+        commit('SET_WALLET_ACCOUNT', account)
         resolve()
       })
     },

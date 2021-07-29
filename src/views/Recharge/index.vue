@@ -73,7 +73,7 @@ export default {
   },
   mounted() {
     window.addEventListener("load", async () => {
-console.log("store", this.$store.state.metamask.metamaskInstall)
+      console.log("store", this.$store.state.metamask.metamaskInstall)
     })
     
   },
