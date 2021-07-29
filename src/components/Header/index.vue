@@ -2,7 +2,7 @@
   <div style="width:100%">
     <mt-header title="" class="common-header">
       <img :src="DEFAULTIMG.LOGO" slot="left" class="logo"/>
-      <span slot="right" v-if="address!==''" class="header-address">{{ address }}</span>
+      <span slot="right" v-if="address!==''" class="header-address">{{ address.slice(0,8)+"..." }}</span>
       <a slot="right" @click="chooseWallet" v-else>链接钱包</a>
     </mt-header>
     <mt-popup
@@ -58,39 +58,31 @@ export default {
       installMetamask: false,
       installWalletModal: false,
       address: '',
+      addressArr: [],
+      walletIsLock: true,
     }
   },
   methods: {
-    chooseWallet() {
-      this.popupVisible = true;
-    },
-    connectWallet() {
+    chooseWallet() { this.popupVisible = true; },
+    async connectWallet() {
       this.popupVisible = false;
-      // ethereum.request({ method: 'eth_requestAccounts' });
-      checkMetamask().then(async res=> {
-        const wb3 = initWeb3();
-        const { installStatus, ethereum } = res;
-        this.installMetamask = installStatus;
-        this.web3 = wb3;
-        let allAccounts = await wb3.eth.getAccounts();
-        let address = await wb3.eth.getCoinbase();
-        if (!address) {
-          console.log('Please LOGIN MetaMask first.')
-          ethereum.enable();
-          return;
-        } else {
-          console.log('MetaMask is Login.')
-          this.address = address.slice(0,8)+"...";
-          // localstorage
-          setCookie('account',{
-            address
-          })
-        }
-      }).catch(err=>{
-        console.log('install metamask');
-        this.installMetamask = err.installStatus
+      if (!this.installMetamask) {
         this.installWalletModal = true;
-      })
+      } else {
+        await ethereum.request({ method: 'eth_requestAccounts' });
+        const accounts = await this.web3.eth.getAccounts();
+        // await ethereum.request({ method: 'eth_personalSign' });
+        const coinbaseAddress = this.web3.eth.coinbase;
+        const message = `
+          Access Eigen account.
+          Only sign this message for a trusted client!
+        `;
+        const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), accounts[0]);
+        // when signRes has value declare sign sucess
+        this.walletIsLock = true;
+        signRes && (this.walletIsLock = false)
+        this.$store.dispatch('WalletLockStatus', {lock: this.walletIsLock});
+      }
     },
     sendTrade() {
       // 如果from没有的话，他就会用当前的默认账号， 如果是转账to和value是必选的两个字段。
@@ -192,29 +184,50 @@ export default {
     const $this = this;
     // Wait for loading completion to avoid race conditions with web3 injection timing.
     window.addEventListener("load", async () => {
-      const accountInfo = getAccount();
-      if(accountInfo) {
-        const { address } = accountInfo;
-        this.address = address.slice(0,8)+"...";
+      // check metamask install status
+      const info = await checkMetamask();
+      const { installStatus } = info;
+      await this.$store.dispatch('MetamaskInstall', { metamaskInstall: installStatus });
+      // console.log("store", this.$store.state.metamask.metamaskInstall)
+      this.installMetamask = installStatus;
+
+      if (installStatus) {
+        const accounts = await this.web3.eth.getAccounts();
+        const address = await this.web3.eth.getCoinbase();
+        await this.$store.dispatch("WalletAccountsAddress", {accounts})
+        // console.log(this.$store.state.metamask)
+        this.addressArr = accounts;
+        this.address = accounts[0]||'';
       }
-      
+
+      if (window.ethereum) {
+        ethereum.on('connect',  (connectInfo) => {
+          if(window.ethereum.isConnected()){
+            console.log(1)
+          }
+        });
+        ethereum.on('disconnect', (error) => {
+          console.log(2)
+        });
+        ethereum.on('chainChanged', (chainId) => {
+          console.log(4, chainId)
+          // 需要重新解锁钱包
+          this.walletIsLock = true;
+          this.$store.dispatch('WalletLockStatus', {isLock: this.walletIsLock});
+        });
+        ethereum.on('accountsChanged', async (accounts) => {
+          await this.$store.dispatch("WalletAccountsAddress", {accounts})
+          if (accounts.length > 0) {
+            this.addressArr = accounts;
+            this.address = accounts[0]||'';
+          } else {
+            this.addressArr = [];
+            this.address = '';
+          }
+        });
+      }
     })
-    if (window.ethereum) {
-      ethereum.on('connect',  (connectInfo) => {
-        if(window.ethereum.isConnected()){
-          console.log(1)
-        }
-      });
-      ethereum.on('disconnect', (error) => {
-        console.log(2)
-      });
-      ethereum.on('chainChanged', (chainId) => {
-        console.log(4, chainId)
-      });
-      ethereum.on('accountsChanged', (accounts) => {
-        console.log(3, accounts)
-      });
-    }
+    
   },
 };
 </script>

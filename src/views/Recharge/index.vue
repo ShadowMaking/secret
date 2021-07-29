@@ -12,7 +12,7 @@
     <div class="recharge-opt-area">
       <van-tabs v-model="activeName">
         <van-tab title="从L1 账户充值" name="fromL1">
-          <v-tokenAmount key="tokenAmount-recharge" type="recharge"/>
+          <v-tokenAmount key="tokenAmount-recharge" type="recharge" @childEvent="submitRecharge"/>
         </van-tab>
         <van-tab title="从L2 账户充值" name="fromeL2">
           <div class="recharge-amount-wrap">
@@ -65,7 +65,19 @@ export default {
       RECHAERGE_TIP,
       activeName: 'fromL1', // fromL1 | fromeL2
     }
-  }
+  },
+  methods: {
+    submitRecharge(info) {
+      console.log('金额', info.amount)
+    },
+  },
+  mounted() {
+    window.addEventListener("load", async () => {
+console.log("store", this.$store.state.metamask.metamaskInstall)
+    })
+    
+  },
+  
 }
 </script>
 <style lang="scss" scoped>

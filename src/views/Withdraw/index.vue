@@ -12,7 +12,7 @@
       <div class="flex flex-center address-wrapper">
         <textarea placeholder="请输入提现地址" class="address-textarea"></textarea>
       </div>
-      <v-tokenAmount key="tokenAmount-withdraw" type="withdraw"/>
+      <v-tokenAmount key="tokenAmount-withdraw" type="withdraw" @childEvent="submitWithdraw"/>
     </div>
     <v-exchangeList key="comon-exchangeList" type="withdraw" />
     <v-statusPop
@@ -38,12 +38,16 @@ export default {
   data() {
     return {
       popStatus: 'sucess',
-      showStatusPop: true
+      showStatusPop: false
     }
   },
   methods: {
     setMyAddress() { },
     changeVisible() {},
+    submitWithdraw(info) {
+      this.showStatusPop = false;
+      console.log('金额', info.amount)
+    }
   },
 }
 </script>

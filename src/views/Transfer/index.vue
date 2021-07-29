@@ -14,7 +14,7 @@
         <textarea placeholder="请输入转账地址" class="address-textarea"></textarea>
       </div>
       <span class="tip"><i class="info_icon"></i>请勿输入交易所地址</span>
-      <v-tokenAmount key="tokenAmount-transfer" type="transfer" />
+      <v-tokenAmount key="tokenAmount-transfer" type="transfer" @childEvent="submitTransfer"/>
     </div>
     <v-exchangeList key="comon-exchangeList" type="transfer" />
     <van-popup v-model="tipShow" class="safe-tip-toast" overlay-class="noneOverlay">
@@ -51,7 +51,7 @@ export default {
     return {
       TRANSFER_TIP,
       tipShow: true,
-      showStatusPop: true,
+      showStatusPop: false,
       popStatus: "success"
     }
   },
@@ -59,6 +59,10 @@ export default {
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
     },
+    submitTransfer(info) {
+      this.showStatusPop = true;
+      console.log('金额', info.amount)
+    }
   },
 }
 </script>

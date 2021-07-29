@@ -12,11 +12,11 @@
         <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('withdraw')">提现到 L1</mt-button>
       </div>
     </div>
-    <div class="page-home-no-connect-wallet" v-if="exchangeListData.length===0">
-      <div class="flex flex-center"><img :src="DEFAULTIMG.TEST_QR" /></div>
-      <mt-button type="primary" size="large" class="button button-large">解锁钱包</mt-button>
+    <div class="page-home-no-connect-wallet" v-show="walletIsLock">
+      <div class="flex flex-center"><img :src="DEFAULTIMG.LOCK" /></div>
+      <mt-button type="primary" size="large" class="button button-large" @click="unlockWallet">解锁钱包</mt-button>
     </div>
-    <v-exchangeList key="comon-exchangeList" type="all" v-else />
+    <v-exchangeList key="comon-exchangeList" type="all" v-show="!walletIsLock" />
   </div>
 </template>
 
@@ -49,9 +49,24 @@ export default {
           title: '操作',
           value: '充值 54.6958 ZKS'
         },
-      ]
+      ],
+      // walletIsLock: true,
     }
   },
+  computed: {
+    walletIsLock() {
+      return this.$store.state.metamask.walletIsLock;
+    },
+    metamaskInstall() {
+      return this.$store.state.metamask.metamaskInstall;
+    },
+  },
+  watch: {
+    '$store.state.metamask.walletIsLock': function (res) {
+      console.log(res)
+    }
+  },
+  
   methods: {
     getExchangeDetail() {
       this.popupVisible = true;
@@ -71,9 +86,29 @@ export default {
           this.$router.push({ name: 'withdraw' })
           break;
       }
-    }
+    },
+    async unlockWallet() {
+      if (this.metamaskInstall) {
+        const message = `
+          Access Eigen account.
+          Only sign this message for a trusted client!
+        `;
+        const accounts = this.$store.state.metamask.accountsArr;
+        const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), accounts[0]);
+        let success = false;
+        signRes && (success = true);
+        this.walletIsLock = success;
+        await this.$store.dispatch('WalletLockStatus', {isLock: !success});
+        // console.log(this.$store.state.metamask.walletIsLock)
+      }
+    },
   },
-
+  mounted() {
+    window.addEventListener("load", async () => {
+      this.walletIsLock = this.$store.state.metamask.walletIsLock;
+    })
+  },
+  
 };
 </script>
 <style lang="scss" scoped>
