@@ -58,16 +58,22 @@ export default {
       address: '',
       addressArr: [],
       walletIsLock: true,
-      showAddress: '',
     }
   },
   components: {
     "v-walletstatus": WalletStatus,
   },
-  computed: { },
+  computed: {
+    showAddress() {
+      const address = this.$store.state.metamask.accountsArr[0]||'';
+      if (address) {
+        return address.slice(0,8)+"..."
+      }
+      return '';
+    },
+  },
   watch: {
-    '$store.state.metamask.accountsArr': function (res) {
-    }
+    '$store.state.metamask.accountsArr': function (res) { }
   },
   methods: {
     chooseWallet() { this.popupVisible = true; },
@@ -209,37 +215,8 @@ export default {
       const { installStatus } = info;
       await this.$store.dispatch('MetamaskInstall', { metamaskInstall: installStatus });
       this.installMetamask = installStatus;
-
       if (!installStatus) {
         await this.resetWalletStatus();
-      }
-
-      if (window.ethereum) {
-        ethereum.on('connect',  (connectInfo) => {
-          if(window.ethereum.isConnected()){
-            console.log('isConnected')
-          }
-        });
-        ethereum.on('disconnect', (error) => {
-          console.log('disconnect')
-        });
-        ethereum.on('chainChanged', (chainId) => {
-          console.log(4, chainId)
-          // 需要重新解锁钱包
-          this.walletIsLock = true;
-          this.$store.dispatch('WalletLockStatus', {isLock: this.walletIsLock});
-        });
-        ethereum.on('accountsChanged', async (accounts) => {
-          await this.$store.dispatch("WalletAccountsAddress", {accounts})
-          if (accounts.length > 0) {
-            this.addressArr = accounts;
-            this.address = accounts[0]||'';
-          } else {
-            await this.resetWalletStatus();
-            this.addressArr = [];
-            this.address = '';
-          }
-        });
       }
     })
     this.$eventBus.$on('updateAddress', this.updateAddress);
