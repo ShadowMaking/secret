@@ -1,6 +1,6 @@
 <template>
   <div class="page-home">
-    <div class="page-home-account flex flex-center flex-column">
+    <div class="page-home-account flex flex-center flex-column ">
       <a class="button button-with-radius button-update"><i class="icon ico-ipdate"></i>刷新</a>
       <div class="flex flex-column account-info">
         <span class="balance">4.22</span>
@@ -66,9 +66,9 @@ export default {
     },
   },
   watch: {
-    '$store.state.metamask.walletIsLock': function (res) {
+    /* '$store.state.metamask.walletIsLock': function (res) {
       this.walletIsLock = res;
-    }
+    } */
   },
   
   methods: {
@@ -91,15 +91,8 @@ export default {
           break;
       }
     },
-    updateWalletLockStatus(status) {
-      // const that = this;
-      // console.log(this.$store.state.metamask)
-      // this.walletIsLock = status
-      this.$store.dispatch('WalletLockStatus', {isLock: status});
-    },
     async unlockWallet() {
       if (this.metamaskInstall) {
-        
         const message = `
           Access Eigen account.
           Only sign this message for a trusted client!
@@ -108,34 +101,29 @@ export default {
         if (accounts.length === 0) { // 没有登录
           await ethereum.request({ method: 'eth_requestAccounts' });
           const accounts = await this.web3.eth.getAccounts();
-          const coinbaseAddress = this.web3.eth.coinbase;
+          const coinbaseAddress = await this.web3.eth.coinbase;
           const lockStatus = this.$store.state.metamask.walletIsLock;
-          console.log('钱包账户状态1', lockStatus)
+          await this.$store.dispatch("WalletAccountsAddress", {accounts})
           const message = `
             Access Eigen account.
             Only sign this message for a trusted client!
           `;
-          const signAdress = this.$store.state.metamask.accountsArr[0];
+          const signAdress = this.$store.state.metamask.accountsArr[0]||accounts[0];
           const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), signAdress);
           // when signRes has value declare sign sucess
           let _isLock = true;
           signRes!==undefined && (_isLock = false) 
           await this.$store.dispatch('WalletLockStatus', {isLock:_isLock});
-          console.log('钱包账户状态', this.$store.state.metamask.walletIsLock)
+          this.walletIsLock = _isLock;
+          this.$eventBus.$emit('updateAddress', {address: signAdress});
         }
       } else {
         this.installWalletModal = true;
       }
     },
   },
-  mounted() {
-    window.addEventListener("load", async () => {
-      // this.walletIsLock = this.$store.state.metamask.walletIsLock;
-      console.log('钱包账户是否锁定', this.$store.state.metamask.walletIsLock)
-      console.log('1111',this.$store.state.metamask)
-
-      this.$eventBus.$on('updateWalletLockStatus',this.updateWalletLockStatus);
-    })
+  async mounted() {
+    
   },
   
 };

@@ -2,7 +2,7 @@
   <div style="width:100%">
     <mt-header title="" class="common-header">
       <img :src="DEFAULTIMG.LOGO" slot="left" class="logo"/>
-      <span slot="right" v-if="address!==''" class="header-address">{{ address.slice(0,8)+"..." }}</span>
+      <span slot="right" v-if="showAddress!==''" class="header-address">{{ showAddress }}</span>
       <div slot="right" v-else >
         <a @click="chooseWallet" class="linkWallet">链接钱包</a>
         <i class="icon night"></i>
@@ -22,14 +22,6 @@
         </div>
       </div>
     </mt-popup>
-    <!-- <van-popup v-model="installWalletModal" closeable class="install-wallet-modal">
-      <div class="flex flex-center flex-column">
-        <a href="https://metamask.io/" target="_blank" class="install-button-outer">
-          <van-button class="install-button" color="#AA2E26" plain >安装metamask</van-button>
-        </a>
-        <span class="install-guid">请先安装<a href="https://metamask.io/" target="_blank" >Metamask</a></span>
-      </div>
-    </van-popup> -->
     <v-walletstatus :show="installWalletModal" key="installWalletModal" />
     <div style="font-size:13px; display:none">
       <a @click="sendTrade" style="display:block;margin-bottom:10px">发送交易</a>
@@ -66,13 +58,20 @@ export default {
       address: '',
       addressArr: [],
       walletIsLock: true,
+      showAddress: '',
     }
   },
   components: {
     "v-walletstatus": WalletStatus,
   },
+  computed: { },
+  watch: {
+    '$store.state.metamask.accountsArr': function (res) {
+    }
+  },
   methods: {
     chooseWallet() { this.popupVisible = true; },
+    // 解锁钱包，进行当前登录账户的授权签名
     async connectWallet() {
       this.popupVisible = false;
       if (!this.installMetamask) {
@@ -88,18 +87,22 @@ export default {
           Access Eigen account.
           Only sign this message for a trusted client!
         `;
-        const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), accounts[0]);
+        const signAdress = accounts[0];
+        const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), signAdress);
         // when signRes has value declare sign sucess
-        this.walletIsLock = true;
-        signRes && (this.walletIsLock = false)
-        await this.$store.dispatch('WalletLockStatus', {isLock: this.walletIsLock});
-        this.$eventBus.$emit('updateWalletLockStatus', {isLock: this.walletIsLock});
+        let _isLock = true;
+        signRes!==undefined && (_isLock = false);
+        this.walletIsLock = _isLock;
+        await this.$store.dispatch('WalletLockStatus', {isLock: _isLock});
+        this.$eventBus.$emit('updateAddress', {address: signAdress});
       }
     },
     async resetWalletStatus() {
-      await this.$store.dispatch("WalletAccountsAddress", {accounts:[]})
+      await this.$store.dispatch("WalletAccountsAddress", {accounts:[]});
       await this.$store.dispatch('WalletLockStatus', {isLock: true});
-      this.$eventBus.$emit('updateWalletLockStatus', {isLock: true});
+    },
+    updateAddress(info) {
+      this.showAddress = info.address.slice(0,8)+"...";
     },
     sendTrade() {
       // 如果from没有的话，他就会用当前的默认账号， 如果是转账to和value是必选的两个字段。
@@ -205,17 +208,9 @@ export default {
       const info = await checkMetamask();
       const { installStatus } = info;
       await this.$store.dispatch('MetamaskInstall', { metamaskInstall: installStatus });
-      // console.log("store", this.$store.state.metamask.metamaskInstall)
       this.installMetamask = installStatus;
 
-      if (installStatus) {
-        const accounts = await this.web3.eth.getAccounts();
-        const address = await this.web3.eth.getCoinbase();
-        await this.$store.dispatch("WalletAccountsAddress", {accounts})
-        // console.log(this.$store.state.metamask)
-        this.addressArr = accounts;
-        this.address = accounts[0]||'';
-      } else {
+      if (!installStatus) {
         await this.resetWalletStatus();
       }
 
@@ -247,7 +242,7 @@ export default {
         });
       }
     })
-    
+    this.$eventBus.$on('updateAddress', this.updateAddress);
   },
 };
 </script>

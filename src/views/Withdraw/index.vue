@@ -14,7 +14,7 @@
       </div>
       <v-tokenAmount key="tokenAmount-withdraw" type="withdraw" @childEvent="submitWithdraw"/>
     </div>
-    <v-exchangeList key="comon-exchangeList" type="withdraw" />
+    <v-exchangeList key="comon-exchangeList" type="withdraw" v-show="!walletIsLock"/>
     <v-statusPop
       :status="popStatus"
       title="您的提现已提交"
@@ -41,6 +41,14 @@ export default {
       showStatusPop: false
     }
   },
+  computed: {
+    walletIsLock() {
+      return this.$store.state.metamask.walletIsLock;
+    },
+    metamaskInstall() {
+      return this.$store.state.metamask.metamaskInstall;
+    },
+  },
   methods: {
     setMyAddress() { },
     changeVisible() {},
@@ -48,6 +56,10 @@ export default {
       this.showStatusPop = false;
       console.log('金额', info.amount)
     }
+  },
+  mounted() {
+    console.log("metamask是否安装", this.$store.state.metamask.metamaskInstall)
+    console.log('钱包账户是否锁定', this.$store.state.metamask.walletIsLock);
   },
 }
 </script>
