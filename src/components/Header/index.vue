@@ -96,6 +96,11 @@ export default {
         this.$eventBus.$emit('updateWalletLockStatus', {isLock: this.walletIsLock});
       }
     },
+    async resetWalletStatus() {
+      await this.$store.dispatch("WalletAccountsAddress", {accounts:[]})
+      await this.$store.dispatch('WalletLockStatus', {isLock: true});
+      this.$eventBus.$emit('updateWalletLockStatus', {isLock: true});
+    },
     sendTrade() {
       // 如果from没有的话，他就会用当前的默认账号， 如果是转账to和value是必选的两个字段。
       // 在发送交易的时候弹出来MetaMask的一个授权的窗口，如果我们gas和gasPrice没有设置的话，就可以在MetaMask里面去设置。如果这两个gas和gas Price设置了的话，MetaMask就会使用我们设置的gas。
@@ -210,6 +215,8 @@ export default {
         // console.log(this.$store.state.metamask)
         this.addressArr = accounts;
         this.address = accounts[0]||'';
+      } else {
+        await this.resetWalletStatus();
       }
 
       if (window.ethereum) {
@@ -233,6 +240,7 @@ export default {
             this.addressArr = accounts;
             this.address = accounts[0]||'';
           } else {
+            await this.resetWalletStatus();
             this.addressArr = [];
             this.address = '';
           }
