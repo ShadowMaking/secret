@@ -2,7 +2,7 @@
   <div class="common-exchange-list-wrapper">
     <div class="common-exchange-list">
       <h3 class="exchange-list-title">交易记录</h3>
-      <div class="exchange-list" v-if="detailList.length>0">
+      <div class="exchange-list" v-if="detailList.length>0 && !walletIsLock">
         <div @click="getExchangeDetail">
           <mt-cell is-link class="exchange-list-item" >
           <div slot="title" class="flex flex-column mt10">
@@ -15,7 +15,6 @@
           </div>
         </mt-cell>
         </div>
-        
         <mt-cell is-link class="exchange-list-item">
           <div slot="title" class="flex flex-column mt10">
             <span><i class="icon exchange-status-icon status-withdraw"></i>提现ZKS</span>
@@ -85,7 +84,7 @@ export default {
     return {
       DEFAULTIMG,
       popupVisible: false,
-      detailList: [],
+      detailList: [1],
       /* detailList: [
         {
           title: '时间',
@@ -98,6 +97,11 @@ export default {
       ] */
 
     }
+  },
+  computed: {
+    walletIsLock() {
+      return this.$store.state.metamask.walletIsLock;
+    },
   },
   methods: {
     getExchangeDetail() {

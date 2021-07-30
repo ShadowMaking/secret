@@ -3,7 +3,11 @@
     <mt-header title="" class="common-header">
       <img :src="DEFAULTIMG.LOGO" slot="left" class="logo"/>
       <span slot="right" v-if="address!==''" class="header-address">{{ address.slice(0,8)+"..." }}</span>
-      <a slot="right" @click="chooseWallet" v-else>链接钱包</a>
+      <div slot="right" v-else >
+        <a @click="chooseWallet" class="linkWallet">链接钱包</a>
+        <i class="icon night"></i>
+        <i class="icon language"></i>
+      </div>
     </mt-header>
     <mt-popup
       :visible.sync="popupVisible"
@@ -18,14 +22,15 @@
         </div>
       </div>
     </mt-popup>
-    <van-popup v-model="installWalletModal" closeable class="install-wallet-modal">
+    <!-- <van-popup v-model="installWalletModal" closeable class="install-wallet-modal">
       <div class="flex flex-center flex-column">
         <a href="https://metamask.io/" target="_blank" class="install-button-outer">
           <van-button class="install-button" color="#AA2E26" plain >安装metamask</van-button>
         </a>
         <span class="install-guid">请先安装<a href="https://metamask.io/" target="_blank" >Metamask</a></span>
       </div>
-    </van-popup>
+    </van-popup> -->
+    <v-walletstatus :show="installWalletModal" key="installWalletModal" />
     <div style="font-size:13px; display:none">
       <a @click="sendTrade" style="display:block;margin-bottom:10px">发送交易</a>
       <a @click="getTransiton">发送交易22</a>
@@ -42,6 +47,7 @@ import {
   checkMetamask, connectMetamask,
   setCookie, getCookie, getAccount } from "@/utils/auth";
 import { Popup, Button as VanButton } from 'vant';
+import WalletStatus from '@/components/WalletStatus';
 import ABI from './rnt.json'
 
 Vue.use(Popup);
@@ -62,6 +68,9 @@ export default {
       walletIsLock: true,
     }
   },
+  components: {
+    "v-walletstatus": WalletStatus,
+  },
   methods: {
     chooseWallet() { this.popupVisible = true; },
     async connectWallet() {
@@ -71,6 +80,8 @@ export default {
       } else {
         await ethereum.request({ method: 'eth_requestAccounts' });
         const accounts = await this.web3.eth.getAccounts();
+        const balance = await this.web3.eth.getBalance(accounts[0])
+        
         // await ethereum.request({ method: 'eth_personalSign' });
         const coinbaseAddress = this.web3.eth.coinbase;
         const message = `
@@ -81,8 +92,14 @@ export default {
         // when signRes has value declare sign sucess
         this.walletIsLock = true;
         signRes && (this.walletIsLock = false)
-        this.$store.dispatch('WalletLockStatus', {lock: this.walletIsLock});
+        await this.$store.dispatch('WalletLockStatus', {isLock: this.walletIsLock});
+        this.$eventBus.$emit('updateWalletLockStatus', {isLock: this.walletIsLock});
       }
+    },
+    async resetWalletStatus() {
+      await this.$store.dispatch("WalletAccountsAddress", {accounts:[]})
+      await this.$store.dispatch('WalletLockStatus', {isLock: true});
+      this.$eventBus.$emit('updateWalletLockStatus', {isLock: true});
     },
     sendTrade() {
       // 如果from没有的话，他就会用当前的默认账号， 如果是转账to和value是必选的两个字段。
@@ -198,16 +215,18 @@ export default {
         // console.log(this.$store.state.metamask)
         this.addressArr = accounts;
         this.address = accounts[0]||'';
+      } else {
+        await this.resetWalletStatus();
       }
 
       if (window.ethereum) {
         ethereum.on('connect',  (connectInfo) => {
           if(window.ethereum.isConnected()){
-            console.log(1)
+            console.log('isConnected')
           }
         });
         ethereum.on('disconnect', (error) => {
-          console.log(2)
+          console.log('disconnect')
         });
         ethereum.on('chainChanged', (chainId) => {
           console.log(4, chainId)
@@ -221,6 +240,7 @@ export default {
             this.addressArr = accounts;
             this.address = accounts[0]||'';
           } else {
+            await this.resetWalletStatus();
             this.addressArr = [];
             this.address = '';
           }

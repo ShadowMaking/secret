@@ -16,6 +16,7 @@
       <div class="flex flex-center"><img :src="DEFAULTIMG.LOCK" /></div>
       <mt-button type="primary" size="large" class="button button-large" @click="unlockWallet">解锁钱包</mt-button>
     </div>
+    <v-walletstatus :show="installWalletModal" key="installWalletModal" />
     <v-exchangeList key="comon-exchangeList" type="all" v-show="!walletIsLock" />
   </div>
 </template>
@@ -25,6 +26,7 @@ import Vue from 'vue';
 import { Button, Cell, Popup } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
 import ExchangeList from '@/components/ExchangeList';
+import WalletStatus from '@/components/WalletStatus';
 
 Vue.component(Button.name, Button)
 Vue.component(Cell.name, Cell)
@@ -33,13 +35,15 @@ Vue.component(Popup.name, Popup)
 export default {
   name: 'Home',
   components: {
-    'v-exchangeList': ExchangeList,
+    "v-exchangeList": ExchangeList,
+    "v-walletstatus": WalletStatus,
   },
   data() {
     return {
       DEFAULTIMG,
       popupVisible: false,
-      exchangeListData: [1],
+      installWalletModal: false,
+      exchangeListData: [],
       detailList: [
         {
           title: '时间',
@@ -63,7 +67,7 @@ export default {
   },
   watch: {
     '$store.state.metamask.walletIsLock': function (res) {
-      console.log(res)
+      this.walletIsLock = res;
     }
   },
   
@@ -87,25 +91,50 @@ export default {
           break;
       }
     },
+    updateWalletLockStatus(status) {
+      // const that = this;
+      // console.log(this.$store.state.metamask)
+      // this.walletIsLock = status
+      this.$store.dispatch('WalletLockStatus', {isLock: status});
+    },
     async unlockWallet() {
       if (this.metamaskInstall) {
+        
         const message = `
           Access Eigen account.
           Only sign this message for a trusted client!
         `;
         const accounts = this.$store.state.metamask.accountsArr;
-        const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), accounts[0]);
-        let success = false;
-        signRes && (success = true);
-        this.walletIsLock = success;
-        await this.$store.dispatch('WalletLockStatus', {isLock: !success});
-        // console.log(this.$store.state.metamask.walletIsLock)
+        if (accounts.length === 0) { // 没有登录
+          await ethereum.request({ method: 'eth_requestAccounts' });
+          const accounts = await this.web3.eth.getAccounts();
+          const coinbaseAddress = this.web3.eth.coinbase;
+          const lockStatus = this.$store.state.metamask.walletIsLock;
+          console.log('钱包账户状态1', lockStatus)
+          const message = `
+            Access Eigen account.
+            Only sign this message for a trusted client!
+          `;
+          const signAdress = this.$store.state.metamask.accountsArr[0];
+          const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), signAdress);
+          // when signRes has value declare sign sucess
+          let _isLock = true;
+          signRes!==undefined && (_isLock = false) 
+          await this.$store.dispatch('WalletLockStatus', {isLock:_isLock});
+          console.log('钱包账户状态', this.$store.state.metamask.walletIsLock)
+        }
+      } else {
+        this.installWalletModal = true;
       }
     },
   },
   mounted() {
     window.addEventListener("load", async () => {
-      this.walletIsLock = this.$store.state.metamask.walletIsLock;
+      // this.walletIsLock = this.$store.state.metamask.walletIsLock;
+      console.log('钱包账户是否锁定', this.$store.state.metamask.walletIsLock)
+      console.log('1111',this.$store.state.metamask)
+
+      this.$eventBus.$on('updateWalletLockStatus',this.updateWalletLockStatus);
     })
   },
   
