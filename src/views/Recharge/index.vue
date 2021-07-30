@@ -36,7 +36,7 @@
         </van-tab>
       </van-tabs>
     </div>
-    <v-exchangeList key="comon-exchangeList" type="recharge" v-show="activeName=='fromL1'"/>
+    <v-exchangeList key="comon-exchangeList" type="recharge" v-show="activeName=='fromL1'&&!walletIsLock" />
   </div>
 </template>
 <script>
@@ -66,16 +66,22 @@ export default {
       activeName: 'fromL1', // fromL1 | fromeL2
     }
   },
+  computed: {
+    walletIsLock() {
+      return this.$store.state.metamask.walletIsLock;
+    },
+    metamaskInstall() {
+      return this.$store.state.metamask.metamaskInstall;
+    },
+  },
   methods: {
     submitRecharge(info) {
       console.log('金额', info.amount)
     },
   },
   mounted() {
-    window.addEventListener("load", async () => {
-      console.log("store", this.$store.state.metamask.metamaskInstall)
-    })
-    
+    console.log("metamask是否安装", this.$store.state.metamask.metamaskInstall)
+    console.log('钱包账户是否锁定', this.$store.state.metamask.walletIsLock);
   },
   
 }

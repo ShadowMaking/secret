@@ -16,7 +16,7 @@
       <span class="tip"><i class="info_icon"></i>请勿输入交易所地址</span>
       <v-tokenAmount key="tokenAmount-transfer" type="transfer" @childEvent="submitTransfer"/>
     </div>
-    <v-exchangeList key="comon-exchangeList" type="transfer" />
+    <v-exchangeList key="comon-exchangeList" type="transfer" v-show="!walletIsLock" />
     <van-popup v-model="tipShow" class="safe-tip-toast" overlay-class="noneOverlay">
       <i class=""></i>
       <span>您的交易地址和交易金额已被加密保护</span>
@@ -55,6 +55,14 @@ export default {
       popStatus: "success"
     }
   },
+  computed: {
+    walletIsLock() {
+      return this.$store.state.metamask.walletIsLock;
+    },
+    metamaskInstall() {
+      return this.$store.state.metamask.metamaskInstall;
+    },
+  },
   methods: {
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
@@ -63,6 +71,10 @@ export default {
       this.showStatusPop = true;
       console.log('金额', info.amount)
     }
+  },
+  mounted() {
+    console.log("metamask是否安装", this.$store.state.metamask.metamaskInstall)
+    console.log('钱包账户是否锁定', this.$store.state.metamask.walletIsLock);
   },
 }
 </script>
