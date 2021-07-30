@@ -1,5 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
+import persistedState from 'vuex-persistedstate'
+
 import metamask from './modules/metamask';
 import getters from './getters'
 
@@ -20,7 +22,8 @@ const store = new Vuex.Store({
   modules: {
     metamask
   },
-  getters
+  getters,
+  // plugins: [persistedState()]
 })
 
 export default store
