@@ -26,6 +26,7 @@
     <div style="font-size:13px; display:none">
       <a @click="sendTrade" style="display:block;margin-bottom:10px">发送交易</a>
       <a @click="getTransiton">发送交易22</a>
+      <a @click="aboutContract">智能合约相关</a>
     </div>
   </div>
 </template>
@@ -41,6 +42,7 @@ import {
 import { Popup, Button as VanButton } from 'vant';
 import WalletStatus from '@/components/WalletStatus';
 import ABI from './rnt.json'
+import CABI from './MetaCoinABI.json'
 
 Vue.use(Popup);
 Vue.use(VanButton);
@@ -76,6 +78,48 @@ export default {
     '$store.state.metamask.accountsArr': function (res) { }
   },
   methods: {
+    aboutContract() {
+      const contractAddress = '0x8C7723d0791603849c166202162B2488fC0b8A23'; // ABI文件的合约地址
+      const abi = CABI.abi;
+      
+      const accountsAddress = this.web3.eth.accounts[0]||'0x0FC258b501aAEA2Cab330084484bB7Ec3ff81d36';
+      var myContract = new this.web3.eth.Contract(abi, contractAddress, {
+        from: accountsAddress,    // 交易地址
+        // to: "0xDCc1614667ECF280cb2938405f339bFbC3Ab833D",
+        gasPrice: '20000000000'   // 默认gas
+      });
+      
+      myContract.methods.getBalance(accountsAddress)
+        .send({ from: accountsAddress })
+        .on('transactionHash', function(hash){
+         
+        })
+        .on('receipt', function(receipt){
+         
+        })
+        .on('confirmation', function(confirmationNumber, receipt){
+          
+        })
+        .on('error', function(error, receipt) {
+           
+        });
+      
+      const receiveAddress = '0xDCc1614667ECF280cb2938405f339bFbC3Ab833D';
+      const value = 0
+      myContract.methods.sendCoin(receiveAddress, value)
+      .send({ from: accountsAddress })
+        .on('transactionHash', function(hash){
+         
+        })
+        .on('receipt', function(receipt){
+         
+        })
+        .on('confirmation', function(confirmationNumber, receipt){
+          
+        })
+        .on('error', function(error, receipt) {
+        });
+    },
     chooseWallet() { this.popupVisible = true; },
     // 解锁钱包，进行当前登录账户的授权签名
     async connectWallet() {
@@ -121,7 +165,8 @@ export default {
             // 发送交易的时候，关键是构造这样一个交易对象
             {
               // 就是从哪个账号发送金额
-              from: '0xDCc1614667ECF280cb2938405f339bFbC3Ab833D', // accounts[0]
+              // from: '0xDCc1614667ECF280cb2938405f339bFbC3Ab833D', // accounts[0]
+              from: '0x0FC258b501aAEA2Cab330084484bB7Ec3ff81d36', // accounts[0]
               // to : 发动到到哪个账号
               to: '0x2f318C334780961FB129D2a6c30D0763d9a5C970',
               // value 是发送的金额
