@@ -51,12 +51,7 @@
         <span>暂无交易记录</span>
       </div>
     </div>
-    <mt-popup
-      :visible.sync="popupVisible"
-      v-model="popupVisible"
-      position="bottom"
-      popup-transition="popup-fade"
-      class="common-bottom-popup exchange-detail-popup">
+    <van-popup v-model="popupVisible" round position="bottom" :style="{ minHeight: '30%' }" class="common-bottom-popup exchange-detail-popup">
       <div class="common-exchange-detail-wrap">
         <div class="header">
           <h3>交易详情</h3>
@@ -68,15 +63,15 @@
           </li>
         </ul>
       </div>
-    </mt-popup>
+    </van-popup>
   </div>
 </template>
 <script>
 import Vue from 'vue';
-import { Popup } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
+import { Popup } from 'vant';
 
-Vue.component(Popup.name, Popup)
+Vue.use(Popup);
 
 export default {
   name: 'Home',
@@ -84,8 +79,8 @@ export default {
     return {
       DEFAULTIMG,
       popupVisible: false,
-      detailList: [1],
-      /* detailList: [
+      // detailList: [],
+      detailList: [
         {
           title: '时间',
           value: '13/07/2021 12:54:35'
@@ -94,8 +89,7 @@ export default {
           title: '操作',
           value: '充值 54.6958 ZKS'
         },
-      ] */
-
+      ]
     }
   },
   computed: {
