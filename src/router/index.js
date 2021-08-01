@@ -4,6 +4,7 @@ import Home from '../views/Home/index';
 import Recharge from '../views/Recharge/index';
 import Transfer from '../views/Transfer/index';
 import Withdraw from '../views/Withdraw/index';
+import Test from '../views/Test/Test';
 
 
 Vue.use(VueRouter);
@@ -36,6 +37,14 @@ const routes = [
     component: Withdraw,
     meta: {
       title: "提现"
+    }
+  },
+  {
+    path: '/test',
+    name: 'test',
+    component: Test,
+    meta: {
+      title: "测试页面"
     }
   },
   {

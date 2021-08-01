@@ -20,7 +20,7 @@
             label=""
             placeholder="0.0"
             class="recharge-amount-input"
-            disabled="this.walletIsLock" />
+            :disabled="this.walletIsLock" />
           <span>{{typeTxt}}金额</span>
         </div>
       </van-col>

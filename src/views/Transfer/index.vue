@@ -73,8 +73,8 @@ export default {
     }
   },
   mounted() {
-    console.log("metamask是否安装", this.$store.state.metamask.metamaskInstall)
-    console.log('钱包账户是否锁定', this.$store.state.metamask.walletIsLock);
+    console.log("metamask是否安装-transfer", this.$store.state.metamask.metamaskInstall)
+    console.log('钱包账户是否锁定-transfer', this.$store.state.metamask.walletIsLock);
   },
 }
 </script>
