@@ -12,11 +12,7 @@
         <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('withdraw')">提现到 L1</mt-button>
       </div>
     </div>
-    <div class="page-home-no-connect-wallet" v-show="walletIsLock">
-      <div class="flex flex-center"><img :src="DEFAULTIMG.LOCK" /></div>
-      <mt-button type="primary" size="large" class="button button-large" @click="unlockWallet">解锁钱包</mt-button>
-    </div>
-    <v-walletstatus :show="installWalletModal" key="installWalletModal" />
+    <v-unlockwallet :show="showUnlockWalletButton" key="unlockWalletButton" />
     <v-exchangeList key="comon-exchangeList" type="all" v-show="!walletIsLock" />
   </div>
 </template>
@@ -26,7 +22,7 @@ import Vue from 'vue';
 import { Button, Cell, Popup } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
 import ExchangeList from '@/components/ExchangeList';
-import WalletStatus from '@/components/WalletStatus';
+import UnlockWallet from '@/components/UnlockWallet';
 
 Vue.component(Button.name, Button)
 Vue.component(Cell.name, Cell)
@@ -36,7 +32,7 @@ export default {
   name: 'Home',
   components: {
     "v-exchangeList": ExchangeList,
-    "v-walletstatus": WalletStatus,
+    "v-unlockwallet": UnlockWallet,
   },
   data() {
     return {
@@ -54,7 +50,6 @@ export default {
           value: '充值 54.6958 ZKS'
         },
       ],
-      // walletIsLock: true,
     }
   },
   computed: {
@@ -63,6 +58,9 @@ export default {
     },
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
+    },
+    showUnlockWalletButton() {
+      return !this.metamaskInstall || walletIsLock;
     },
   },
   watch: {

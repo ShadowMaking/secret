@@ -31,7 +31,7 @@
     </div>
     <!-- 请输入金额|金额过低|确定（color：#495ABE） -->
     <van-button type="primary" block color="#A4ACDF" class="opt-button" @click="submitTranction" v-show="!walletIsLock">请输入金额</van-button>
-    <mt-button type="primary" size="large" class="button button-large opt-button" @click="unlockWallet" v-show="walletIsLock">解锁钱包</mt-button>
+    <v-unlockwallet :show="showUnlockWalletButton" :showLockIcon="false" key="unlockWalletButton" />
     <van-popup v-model="showTokenSelect" round closeable position="bottom" :style="{ minHeight: '30%' }">
       <div class="token-select-wrap">
         <div class="header"><h3>选择通证</h3></div>
@@ -71,13 +71,12 @@
         </div>
       </div>
     </van-popup>
-    <v-walletstatus :show="installWalletModal" key="installWalletModal" />
   </div>
 </template>
 <script>
 import Vue from 'vue';
 import { Button, Col, Row, Field, Popup, Search } from 'vant';
-import WalletStatus from '@/components/WalletStatus';
+import UnlockWallet from '@/components/UnlockWallet';
 
 Vue.use(Button);
 Vue.use(Col);
@@ -90,14 +89,13 @@ export default {
   name: "common-recharge-amount",
   props: ['type'],  // recharge | transfer | withdraw
   components: {
-    "v-walletstatus": WalletStatus,
+    "v-unlockwallet": UnlockWallet,
   },
   data() {
     return {
       number: '',
       showTokenSelect: false,
       serchTokenValue: '',
-      installWalletModal: false
     }
   },
   computed: {
@@ -106,6 +104,9 @@ export default {
     },
     walletIsLock() {
       return this.$store.state.metamask.walletIsLock;
+    },
+    showUnlockWalletButton() {
+      return !this.metamaskInstall || walletIsLock;
     },
     typeTxt() {
       const erum = { recharge: '充值', transfer: '转账', withdraw: '提现' };
@@ -120,37 +121,6 @@ export default {
     submitTranction() {
       this.$emit('childEvent',{amount: this.number});
     },
-    async unlockWallet() {
-      if (this.metamaskInstall) {
-        const message = `
-          Access Eigen account.
-          Only sign this message for a trusted client!
-        `;
-        const accounts = this.$store.state.metamask.accountsArr;
-        if (accounts.length === 0) { // 没有登录
-          await ethereum.request({ method: 'eth_requestAccounts' });
-          const accounts = await this.web3.eth.getAccounts();
-          const coinbaseAddress = await this.web3.eth.coinbase;
-          const lockStatus = this.$store.state.metamask.walletIsLock;
-          await this.$store.dispatch("WalletAccountsAddress", {accounts})
-          const message = `
-            Access Eigen account.
-            Only sign this message for a trusted client!
-          `;
-          const signAdress = this.$store.state.metamask.accountsArr[0]||accounts[0];
-          const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), signAdress);
-          // when signRes has value declare sign sucess
-          let _isLock = true;
-          signRes!==undefined && (_isLock = false) 
-          await this.$store.dispatch('WalletLockStatus', {isLock:_isLock});
-          this.walletIsLock = _isLock;
-          this.$eventBus.$emit('updateAddress', {address: signAdress});
-
-        }
-      } else {
-        this.installWalletModal = true;
-      }
-    }
   },
 }
 </script>
