@@ -9,25 +9,15 @@
         <i class="icon language"></i>
       </div>
     </mt-header>
-    <mt-popup
-      :visible.sync="popupVisible"
-      v-model="popupVisible"
-      position="bottom"
-      popup-transition="popup-fade"
-      class="common-bottom-popup">
+    <van-popup v-model="popupVisible" round position="bottom" :style="{ minHeight: '30%' }" class="common-bottom-popup">
       <div class="common-exchange-detail-wrap choose-wallet-popup">
         <div class="header"><h3>选择钱包</h3></div>
         <div class="choose-wallet" @click="connectWallet">
           <i></i><span>metamask</span>
         </div>
       </div>
-    </mt-popup>
+    </van-popup>
     <v-walletstatus :show="installWalletModal" key="installWalletModal" />
-    <div style="font-size:13px; display:none">
-      <a @click="sendTrade" style="display:block;margin-bottom:10px">发送交易</a>
-      <a @click="getTransiton">发送交易22</a>
-      <a @click="aboutContract">智能合约相关</a>
-    </div>
   </div>
 </template>
 
@@ -41,8 +31,6 @@ import {
   setCookie, getCookie, getAccount } from "@/utils/auth";
 import { Popup, Button as VanButton } from 'vant';
 import WalletStatus from '@/components/WalletStatus';
-import ABI from './rnt.json'
-import CABI from './MetaCoinABI.json'
 
 Vue.use(Popup);
 Vue.use(VanButton);
@@ -50,12 +38,11 @@ Vue.component(Header.name, Header)
 Vue.component(Button.name, Button)
 
 export default {
-  name: 'header',
+  name: 'Header',
   data() {
     return {
       DEFAULTIMG,
       popupVisible: false,
-      installMetamask: false,
       installWalletModal: false,
       address: '',
       addressArr: [],
@@ -73,58 +60,23 @@ export default {
       }
       return '';
     },
+    metamaskInstall() {
+      return this.$store.state.metamask.metamaskInstall
+    }
   },
   watch: {
     '$store.state.metamask.accountsArr': function (res) { }
   },
   methods: {
-    aboutContract() {
-      const contractAddress = '0x8C7723d0791603849c166202162B2488fC0b8A23'; // ABI文件的合约地址
-      const abi = CABI.abi;
-      
-      const accountsAddress = this.web3.eth.accounts[0]||'0x0FC258b501aAEA2Cab330084484bB7Ec3ff81d36';
-      var myContract = new this.web3.eth.Contract(abi, contractAddress, {
-        from: accountsAddress,    // 交易地址
-        // to: "0xDCc1614667ECF280cb2938405f339bFbC3Ab833D",
-        gasPrice: '20000000000'   // 默认gas
-      });
-      
-      myContract.methods.getBalance(accountsAddress)
-        .send({ from: accountsAddress })
-        .on('transactionHash', function(hash){
-         
-        })
-        .on('receipt', function(receipt){
-         
-        })
-        .on('confirmation', function(confirmationNumber, receipt){
-          
-        })
-        .on('error', function(error, receipt) {
-           
-        });
-      
-      const receiveAddress = '0xDCc1614667ECF280cb2938405f339bFbC3Ab833D';
-      const value = 0
-      myContract.methods.sendCoin(receiveAddress, value)
-      .send({ from: accountsAddress })
-        .on('transactionHash', function(hash){
-         
-        })
-        .on('receipt', function(receipt){
-         
-        })
-        .on('confirmation', function(confirmationNumber, receipt){
-          
-        })
-        .on('error', function(error, receipt) {
-        });
+    chooseWallet() {
+      this.popupVisible = true;
+      this.installWalletModal = false;
     },
-    chooseWallet() { this.popupVisible = true; },
+
     // 解锁钱包，进行当前登录账户的授权签名
     async connectWallet() {
       this.popupVisible = false;
-      if (!this.installMetamask) {
+      if (!this.metamaskInstall) {
         this.installWalletModal = true;
       } else {
         await ethereum.request({ method: 'eth_requestAccounts' });
@@ -147,124 +99,18 @@ export default {
         this.$eventBus.$emit('updateAddress', {address: signAdress});
       }
     },
-    async resetWalletStatus() {
-      await this.$store.dispatch("WalletAccountsAddress", {accounts:[]});
-      await this.$store.dispatch('WalletLockStatus', {isLock: true});
-    },
     updateAddress(info) {
       this.showAddress = info.address.slice(0,8)+"...";
     },
-    sendTrade() {
-      // 如果from没有的话，他就会用当前的默认账号， 如果是转账to和value是必选的两个字段。
-      // 在发送交易的时候弹出来MetaMask的一个授权的窗口，如果我们gas和gasPrice没有设置的话，就可以在MetaMask里面去设置。如果这两个gas和gas Price设置了的话，MetaMask就会使用我们设置的gas。
-      if (!window.ethereum) { return }
-      ethereum
-        .request({
-          method: 'eth_sendTransaction',
-          params: [
-            // 发送交易的时候，关键是构造这样一个交易对象
-            {
-              // 就是从哪个账号发送金额
-              // from: '0xDCc1614667ECF280cb2938405f339bFbC3Ab833D', // accounts[0]
-              from: '0x0FC258b501aAEA2Cab330084484bB7Ec3ff81d36', // accounts[0]
-              // to : 发动到到哪个账号
-              to: '0x2f318C334780961FB129D2a6c30D0763d9a5C970',
-              // value 是发送的金额
-              // value: '0x29a2241af62c0000',
-              value: 'a',
-              // gasPrice: 设置gas 价格
-              gasPrice: '0x09184e72a000',
-              // gas: 设置gas limit
-              gas: '0x2710',
-            },
-          ],
-        })
-        .then((txHash) => console.log(txHash))
-        .catch((error) => console.error);
-    },
-    getTransiton() {
-      /* const wb3 = initWeb3();
-      var addr = "0xbfb2e296d9cf3e593e79981235aed29ab9984c0f"
-      var filter = wb3.eth.filter({fromBlock:0, toBlock:'latest', address: addr});
-      filter.get(function (err, transactions) {
-        transactions.forEach(function (tx) {
-          var txInfo = wb3.eth.getTransaction(tx.transactionHash);
-          //这时可以将交易信息txInfo存入数据库
-        });
-      }); */
-
-      // var abi = require("./rnt.json");
-      /* const wb3 = initWeb3();
-      var abi = ABI;
-      var address = "0xff603f43946a3a28df5e6a73172555d8c8b02386";
-      var contract = new wb3.eth.Contract(abi,address); //合约实例
-      //查询合约名称
-      contract.methods.name().call().then(
-          function(result){
-              console.log(result);
-          }
-      );
-      //查询某一地址交易记录
-      contract.getPastEvents('Transfer', {
-          filter: {_from: '0x6cc5f688a315f3dc28a7781717a9a798a59fda7b'},
-          // fromBlock: 230813,
-          fromBlock: 0,
-          toBlock: 'latest'
-      }, (error, events) => { console.log(events); }); */
-
-      const wb3 = initWeb3();
-
-      // wb3.eth.personal.unlockAccount("0xDCc1614667ECF280cb2938405f339bFbC3Ab833D", "metamasktest", 600)
-      // .then(console.log('Account unlocked!'));
-      
-      wb3.eth.getTransactionCount("0x961356cff29d8ad65417a7592d0d90b1cdd6b4e5")
-      .then(res=>{
-        console.log('交易数量',res)
-      });
-
-      wb3.eth.getPastLogs({
-        address: "0x961356cff29d8ad65417a7592d0d90b1cdd6b4e5",
-        // topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
-        // "topics": [
-        //   "0xf63780e752c6a54a94fc52715dbc5518a3b4c3c2833d301a204226548a2a8545",
-        //   "0x72657075746174696f6e00000000000000000000000000000000000000000000",
-        //   "0x000000000000000000000000d9b2f59f3b5c7b3c67047d2f03c3e8052470be92"
-        // ],
-        // topics: [],
-      }).then(res=>{
-        console.log(res)
-      });
-
-      wb3.eth.subscribe('logs', {
-          // address: '0xDAd3EEc06A36e6f45815D453e33E2D25AE6C279F',
-          address: '0x961356cff29d8ad65417a7592d0d90b1cdd6b4e5',
-          // topics: ['0x12345...']
-          topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef", "0x000000000000000000000000076979a0b3c87334e5d72e3afcafaa80f7888cac", "0x000000000000000000000000cd9f286ba6a3d2df7885f4a2be267fc524d32bd3"],
-      }, function(error, result){
-          if (!error)
-              console.log(log);
-      }).on("data", function(log){
-          console.log(log);
-      })
-      .on("changed", function(log){
-        console.log(log);
-      });;
-    },
   },
   async mounted() {
-    const $this = this;
-    // Wait for loading completion to avoid race conditions with web3 injection timing.
-    window.addEventListener("load", async () => {
-      // check metamask install status
-      const info = await checkMetamask();
-      const { installStatus } = info;
-      await this.$store.dispatch('MetamaskInstall', { metamaskInstall: installStatus });
-      this.installMetamask = installStatus;
-      if (!installStatus) {
-        await this.resetWalletStatus();
-      }
-    })
-    this.$eventBus.$on('updateAddress', this.updateAddress);
+    console.log("metamask是否安装-header", this.$store.state.metamask.metamaskInstall)
+    console.log('钱包账户是否锁定-header', this.$store.state.metamask.walletIsLock);
+
+    // test
+    // let currentProvider = new this.web3.providers.HttpProvider('http://localhost:8545');
+    // let customHttpProvider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
+    
   },
 };
 </script>

@@ -8,8 +8,10 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "arb-bridge-peripherals": "^1.0.0",
+    "arb-ts": "0.0.13",
     "core-js": "^3.6.5",
-    "ethers": "^5.4.3",
+    "ethers": "^5.0.24",
     "js-cookie": "^2.2.0",
     "lodash": "^4.17.21",
     "mint-ui": "^2.2.13",

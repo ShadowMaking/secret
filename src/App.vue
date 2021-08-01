@@ -12,15 +12,23 @@
 <script>
   import _ from 'lodash';
   import header from '@/components/Header/index';
+  import {
+    checkMetamask, connectMetamask,
+    setCookie, getCookie, getAccount } from "@/utils/auth";
+
   export default {
     name: 'APP',
     data() {
-      return {
-        
-      };
+      return { };
     },
     components: {
       'v-header': header,
+    },
+    methods: {
+      async resetWalletStatus() {
+        await this.$store.dispatch("WalletAccountsAddress", {accounts:[]});
+        await this.$store.dispatch('WalletLockStatus', {isLock: true});
+      },
     },
     created () {
       //在页面加载时读取sessionStorage里的状态信息
@@ -41,7 +49,17 @@
         sessionStorage.setItem("store", JSON.stringify(this.$store.state))
       }) */
     },
-    mounted() {
+    async mounted() {
+      // Wait for loading completion to avoid race conditions with web3 injection timing.
+      window.addEventListener("load", async () => {
+        // check metamask install status
+        const info = await checkMetamask();
+        const { installStatus } = info;
+        await this.$store.dispatch('MetamaskInstall', { metamaskInstall: installStatus });
+        if (!installStatus) {
+          await this.resetWalletStatus();
+        }
+      })
       if (window.ethereum) {
         ethereum.on('connect', async (connectInfo) => {
           if(window.ethereum.isConnected()){
