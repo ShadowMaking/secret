@@ -134,6 +134,9 @@ export default {
       await this.wait()
       console.log('testWalletL2EthBalance', testWalletL2EthBalance)
 
+      this.prettyLog('交易正在进行，请耐心等待10s....')
+      await this.wait(10000);
+
       this.$router.push({ name: 'Home' })
     },
   },

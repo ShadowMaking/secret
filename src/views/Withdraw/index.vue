@@ -116,6 +116,9 @@ export default {
       const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
       console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString())
 
+      this.prettyLog('交易正在进行，请耐心等待10s....')
+      await this.wait(10000);
+    
       this.$router.push({ name: 'Home' })
     }
   },

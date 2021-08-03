@@ -30,8 +30,8 @@ const address = {
 // const ethRPC = 'http://43.128.80.242:7545';
 // const arbRPC = 'http://43.128.80.242:8547';
 
-const ethRPC = 'http://192.168.0.194:7545/';
-const arbRPC = 'http://192.168.0.194:8547/';
+const ethRPC = 'http://192.168.0.194:7545';
+const arbRPC = 'http://192.168.0.194:8547';
 
 const mnemonic = 'jar deny prosper gasp flush glass core corn alarm treat leg smart';
 

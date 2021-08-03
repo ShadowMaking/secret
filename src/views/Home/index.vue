@@ -76,7 +76,7 @@ export default {
   },
   
   methods: {
-    async getBanlance() {
+    async getBanlance(plg) {
       // ------------------------ 公用数据 ------------------------------//
 
       const ethProvider = new providers.JsonRpcProvider(ethRPC)
@@ -90,8 +90,11 @@ export default {
       const l1TestWallet= new Wallet(testPk, ethProvider)
       const l2TestWallet = new Wallet(testPk, arbProvider)
       
-      console.log(address.ethERC20Bridge)
-      console.log(address.arbTokenBridge)
+      if (!plg) {
+        console.log(address.ethERC20Bridge)
+        console.log(address.arbTokenBridge)
+      }
+      
 
       const testBridge = new Bridge(
         address.ethERC20Bridge,
@@ -130,7 +133,9 @@ export default {
 
       const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
       const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
+      if (!plg) {
       console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString()) 
+      }
 
       // this.balance = this.walletIsLock?0:utils.formatEther(testWalletL2EthBalance);
       const _balance = utils.formatEther(testWalletL2EthBalance);
@@ -210,14 +215,19 @@ export default {
       }
     },
     async updateBalance () {
-      const balance = await this.getBanlance()
+      const balance = await this.getBanlance(true)
       console.log('balance',balance, this.balance)
       this.balance = balance;
     },
   },
   async mounted() {
-    await this.getBanlance()
+    const balance = await this.getBanlance()
+    console.log('balance', balance);
+    /* window.setInterval(()=>{
+      this.$eventBus.$on('updateBalance', this.updateBalance);
+    },0) */
     this.$eventBus.$on('updateBalance', this.updateBalance);
+    this.balance = this.walletIsLock?0:balance
   },
   
 };
