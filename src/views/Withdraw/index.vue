@@ -75,19 +75,16 @@ export default {
     },
     async submitWithdraw(info) {
       this.showStatusPop = false;
-      // console.log('金额', info.amount)
       // ------------------------ 公用数据 ------------------------------//
 
       const ethProvider = new providers.JsonRpcProvider(ethRPC)
       const arbProvider = new providers.JsonRpcProvider(arbRPC)
 
-      const ethToL2DepositAmount = parseEther('0.0001')
-      const ethFromL2WithdrawAmount = parseEther('0.00001')
+      // const ethFromL2WithdrawAmount = parseEther('0.00001')
+      const ethFromL2WithdrawAmount = parseEther(info.amount)
       
-      const testPk = DEVNET_PRIVKEY;
-
-      const l1TestWallet= new Wallet(testPk, ethProvider)
-      const l2TestWallet = new Wallet(testPk, arbProvider)
+      const l1TestWallet= new Wallet(DEVNET_PRIVKEY, ethProvider)
+      const l2TestWallet = new Wallet(DEVNET_PRIVKEY, arbProvider)
       const testBridge = new Bridge(
         address.ethERC20Bridge,
         address.arbTokenBridge,
@@ -96,7 +93,7 @@ export default {
       )
 
       // const preFundedSignerPK = process.env['DEVNET_PRIVKEY']
-      const preFundedSignerPK = testPk;
+      const preFundedSignerPK = DEVNET_PRIVKEY;
       if (!preFundedSignerPK) throw new Error('Missing l2 priv key')
       const preFundedWallet = new Wallet(preFundedSignerPK, ethProvider)
 
