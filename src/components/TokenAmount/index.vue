@@ -10,7 +10,7 @@
             <span slots="default" style="color:#495ABE">最大值</span>
           </van-button>
         </div>
-        <span>可用：0.005965 ETH</span>
+        <span>可用：{{ availableBanlance }} ETH</span>
       </van-col>
       <van-col span="12" style="text-align:right">
         <div class="flex flex-column">
@@ -78,6 +78,18 @@ import Vue from 'vue';
 import { Button, Col, Row, Field, Popup, Search } from 'vant';
 import UnlockWallet from '@/components/UnlockWallet';
 
+import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
+import { Bridge } from 'arb-ts';
+import {
+  DEFAULTIMG,
+  address,
+  DEVNET_PRIVKEY,
+  ethRPC,
+  arbRPC
+} from '@/utils/global';
+
+const { parseEther } = utils;
+
 Vue.use(Button);
 Vue.use(Col);
 Vue.use(Row);
@@ -96,6 +108,7 @@ export default {
       number: '0.0001',
       showTokenSelect: false,
       serchTokenValue: '',
+      availableBanlance: '0.005965'
     }
   },
   computed: {
@@ -114,6 +127,14 @@ export default {
     },
   },
   methods: {
+    wait(ms) {
+      return new Promise(res => setTimeout(res, ms || this.defaultWait))
+    },
+    prettyLog(text) {
+      // console.log(chalk.blue(`    *** ${text}`))
+      console.log(`%c------------- ${text} ------------- \n`, 'background: #333; color: #8dc63f');
+      console.log()
+    },
     choseToken() {
       if (this.walletIsLock) { return }
       this.showTokenSelect = true
@@ -122,6 +143,64 @@ export default {
       this.$emit('childEvent',{amount: this.number});
     },
   },
+  async mounted() {
+    // ------------------------ 公用数据 ------------------------------//
+
+      const ethProvider = new providers.JsonRpcProvider(ethRPC)
+      const arbProvider = new providers.JsonRpcProvider(arbRPC)
+
+      const ethToL2DepositAmount = parseEther('0.0001')
+      const ethFromL2WithdrawAmount = parseEther('0.00001')
+      
+      const testPk = DEVNET_PRIVKEY;
+
+      const l1TestWallet= new Wallet(testPk, ethProvider)
+      const l2TestWallet = new Wallet(testPk, arbProvider)
+      
+      console.log(address.ethERC20Bridge)
+      console.log(address.arbTokenBridge)
+
+      const testBridge = new Bridge(
+        address.ethERC20Bridge,
+        address.arbTokenBridge,
+        l1TestWallet,
+        l2TestWallet
+      )
+
+      // const preFundedSignerPK = process.env['DEVNET_PRIVKEY']
+      const preFundedSignerPK = testPk;
+      if (!preFundedSignerPK) throw new Error('Missing l2 priv key')
+      const preFundedWallet = new Wallet(preFundedSignerPK, ethProvider)
+
+      // ------------------------ 公用数据 ------------------------------//
+
+      // 判断账户是否有余额
+      // const accounts = await ethers.getSigners();
+      // accounts.forEach(function(acc,index){
+      //   console.log(index, acc.address)
+      // })
+
+      const balance = await preFundedWallet.getBalance()
+      const depositAmount = '0.01';
+      const hasBalance = balance.gt(utils.parseEther(depositAmount))
+
+      if (!hasBalance) {
+        this.prettyLog(
+          `${preFundedWallet.address} 
+          not pre-funded; set a funded wallet via env-var DEVNET_PRIVKEY. exiting.`)
+        return
+      }
+
+      this.prettyLog('Using preFundedWallet: ' + preFundedWallet.address);
+      this.prettyLog('Randomly generated test wallet: ' + l1TestWallet.address);
+
+
+      const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
+      const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
+      console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString()) 
+
+      this.availableBanlance = utils.formatEther(testWalletL1EthBalance);
+  }
 }
 </script>
 <style lang="scss" scoped>
