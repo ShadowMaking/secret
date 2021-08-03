@@ -44,8 +44,21 @@ import Vue from 'vue';
 import { RECHAERGE_TIP } from '@/utils/global';
 import ExchangeList from '@/components/ExchangeList';
 import TokenAmount from '@/components/TokenAmount';
-import { DEFAULTIMG } from '@/utils/global';
+// import { DEFAULTIMG } from '@/utils/global';
 import { Tab, Tabs, Button, Col, Row } from 'vant';
+
+import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
+import { Bridge } from 'arb-ts';
+import {
+  DEFAULTIMG,
+  address,
+  DEVNET_PRIVKEY,
+  ethRPC,
+  arbRPC
+} from '@/utils/global';
+
+const { parseEther } = utils;
+
 
 Vue.use(Tab);
 Vue.use(Tabs);
@@ -75,8 +88,53 @@ export default {
     },
   },
   methods: {
-    submitRecharge(info) {
-      console.log('金额', info.amount)
+    wait(ms) {
+      return new Promise(res => setTimeout(res, ms || this.defaultWait))
+    },
+    prettyLog(text) {
+      // console.log(chalk.blue(`    *** ${text}`))
+      console.log(`%c------------- ${text} ------------- \n`, 'background: #333; color: #8dc63f');
+      console.log()
+    },
+    async submitRecharge(info) {
+      const ethProvider = new providers.JsonRpcProvider(ethRPC)
+      const arbProvider = new providers.JsonRpcProvider(arbRPC)
+
+      const ethToL2DepositAmount = parseEther(info.amount)
+      // const ethFromL2WithdrawAmount = parseEther('0.00001')
+      
+      const testPk = DEVNET_PRIVKEY;
+
+      const l1TestWallet= new Wallet(testPk, ethProvider)
+      const l2TestWallet = new Wallet(testPk, arbProvider)
+      const testBridge = new Bridge(
+        address.ethERC20Bridge,
+        address.arbTokenBridge,
+        l1TestWallet,
+        l2TestWallet
+      )
+
+      // const preFundedSignerPK = process.env['DEVNET_PRIVKEY']
+      const preFundedSignerPK = testPk;
+      if (!preFundedSignerPK) throw new Error('Missing l2 priv key')
+      const preFundedWallet = new Wallet(preFundedSignerPK, ethProvider)
+
+      // ------------------------ 公用数据 ------------------------------//
+
+      const inbox = await testBridge.l1Bridge.getInbox()
+      const initialInboxBalance = await ethProvider.getBalance(inbox.address)
+      console.log('initialInboxBalance', initialInboxBalance.toNumber())
+      let res = await testBridge.depositETH(ethToL2DepositAmount)
+      let rec = await res.wait()
+      const finalInboxBalance = await ethProvider.getBalance(inbox.address)
+      await this.wait()
+      const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
+      const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
+      console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString())
+      await this.wait()
+      console.log('testWalletL2EthBalance', testWalletL2EthBalance)
+
+      this.$router.push({ name: 'Home' })
     },
   },
   mounted() {

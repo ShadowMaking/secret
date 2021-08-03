@@ -29,9 +29,9 @@
       <span class="tip"><i class="info_icon"></i>提现手续费：0.000002 ZKS($5.00)</span>
       <span class="tip"><i class="info_icon"></i>到账金额：3.678766 ZKS</span>
     </div>
-    <!-- 请输入金额|金额过低|确定（color：#495ABE） -->
-    <van-button type="primary" block color="#A4ACDF" class="opt-button" @click="submitTranction" v-show="!walletIsLock">请输入金额</van-button>
-    <v-unlockwallet :show="showUnlockWalletButton" :showLockIcon="false" key="unlockWalletButton" />
+    <!-- 请输入金额|金额过低|确定（color：#495ABE  #A4ACDF） -->
+    <van-button type="primary" block color="#495ABE" class="opt-button" @click="submitTranction" v-show="!walletIsLock">请输入金额</van-button>
+    <v-unlockwallet :show="showUnlockWalletButton" :showLockIcon="false" key="unlockWalletButton"  v-show="walletIsLock"/>
     <van-popup v-model="showTokenSelect" round closeable position="bottom" :style="{ minHeight: '30%' }">
       <div class="token-select-wrap">
         <div class="header"><h3>选择通证</h3></div>
@@ -93,7 +93,7 @@ export default {
   },
   data() {
     return {
-      number: '',
+      number: '0.0001',
       showTokenSelect: false,
       serchTokenValue: '',
     }
@@ -106,7 +106,7 @@ export default {
       return this.$store.state.metamask.walletIsLock;
     },
     showUnlockWalletButton() {
-      return !this.metamaskInstall || walletIsLock;
+      return !this.metamaskInstall || this.walletIsLock;
     },
     typeTxt() {
       const erum = { recharge: '充值', transfer: '转账', withdraw: '提现' };

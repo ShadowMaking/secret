@@ -14,7 +14,7 @@
         <textarea placeholder="请输入转账地址" class="address-textarea"></textarea>
       </div>
       <span class="tip"><i class="info_icon"></i>请勿输入交易所地址</span>
-      <v-tokenAmount key="tokenAmount-transfer" type="transfer" @childEvent="submitTransfer"/>
+      <v-tokenAmount key="tokenAmount-transfer" type="transfer" @childEvent="submitTransfer" />
     </div>
     <v-exchangeList key="comon-exchangeList" type="transfer" v-show="!walletIsLock" />
     <van-popup v-model="tipShow" class="safe-tip-toast" overlay-class="noneOverlay">

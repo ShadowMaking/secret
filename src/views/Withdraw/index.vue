@@ -28,6 +28,19 @@
 import TokenAmount from '@/components/TokenAmount';
 import ExchangeList from '@/components/ExchangeList';
 import StatusPop from '@/components/StatusPop';
+
+import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
+import { Bridge } from 'arb-ts';
+import {
+  // DEFAULTIMG,
+  address,
+  DEVNET_PRIVKEY,
+  ethRPC,
+  arbRPC
+} from '@/utils/global';
+
+const { parseEther } = utils;
+
 export default {
   name: "withdraw",
   components: {
@@ -52,9 +65,58 @@ export default {
   methods: {
     setMyAddress() { },
     changeVisible() {},
-    submitWithdraw(info) {
+    wait(ms) {
+      return new Promise(res => setTimeout(res, ms || this.defaultWait))
+    },
+    prettyLog(text) {
+      // console.log(chalk.blue(`    *** ${text}`))
+      console.log(`%c------------- ${text} ------------- \n`, 'background: #333; color: #8dc63f');
+      console.log()
+    },
+    async submitWithdraw(info) {
       this.showStatusPop = false;
-      console.log('金额', info.amount)
+      // console.log('金额', info.amount)
+      // ------------------------ 公用数据 ------------------------------//
+
+      const ethProvider = new providers.JsonRpcProvider(ethRPC)
+      const arbProvider = new providers.JsonRpcProvider(arbRPC)
+
+      const ethToL2DepositAmount = parseEther('0.0001')
+      const ethFromL2WithdrawAmount = parseEther('0.00001')
+      
+      const testPk = DEVNET_PRIVKEY;
+
+      const l1TestWallet= new Wallet(testPk, ethProvider)
+      const l2TestWallet = new Wallet(testPk, arbProvider)
+      const testBridge = new Bridge(
+        address.ethERC20Bridge,
+        address.arbTokenBridge,
+        l1TestWallet,
+        l2TestWallet
+      )
+
+      // const preFundedSignerPK = process.env['DEVNET_PRIVKEY']
+      const preFundedSignerPK = testPk;
+      if (!preFundedSignerPK) throw new Error('Missing l2 priv key')
+      const preFundedWallet = new Wallet(preFundedSignerPK, ethProvider)
+
+      // ------------------------ 公用数据 ------------------------------//
+
+      const withdrawEthRes = await testBridge.withdrawETH(ethFromL2WithdrawAmount)
+      const withdrawEthRec = await withdrawEthRes.wait()
+
+      // expect(withdrawEthRec.status).to.equal(1)
+      const withdrawEventData = (
+        await testBridge.getWithdrawalsInL2Transaction(withdrawEthRec)
+      )[0]
+      // expect(withdrawEventData).to.exist
+
+      await this.wait();
+      const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
+      const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
+      console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString())
+
+      this.$router.push({ name: 'Home' })
     }
   },
   mounted() {

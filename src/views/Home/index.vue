@@ -3,7 +3,7 @@
     <div class="page-home-account flex flex-center flex-column ">
       <a class="button button-with-radius button-update"><i class="icon ico-ipdate"></i>刷新</a>
       <div class="flex flex-column account-info">
-        <span class="balance">4.22</span>
+        <span class="balance">{{ balance }}</span>
         <span class="tip">L2 资产总额($)</span>
       </div>
       <div class="flex page-home-opt-wrap">
@@ -12,7 +12,7 @@
         <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('withdraw')">提现到 L1</mt-button>
       </div>
     </div>
-    <v-unlockwallet :show="showUnlockWalletButton" key="unlockWalletButton" />
+    <v-unlockwallet :show="showUnlockWalletButton" key="unlockWalletButton" v-show="walletIsLock" />
     <v-exchangeList key="comon-exchangeList" type="all" v-show="!walletIsLock" />
   </div>
 </template>
@@ -40,16 +40,7 @@ export default {
       popupVisible: false,
       installWalletModal: false,
       exchangeListData: [],
-      detailList: [
-        {
-          title: '时间',
-          value: '13/07/2021 12:54:35'
-        },
-        {
-          title: '操作',
-          value: '充值 54.6958 ZKS'
-        },
-      ],
+      balance: '0'
     }
   },
   computed: {
@@ -60,7 +51,7 @@ export default {
       return this.$store.state.metamask.metamaskInstall;
     },
     showUnlockWalletButton() {
-      return !this.metamaskInstall || walletIsLock;
+      return !this.metamaskInstall || this.walletIsLock;
     },
   },
   watch: {
