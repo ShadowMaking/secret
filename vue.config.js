@@ -8,6 +8,7 @@ var publicPath = path.join(rootPath, 'public')
 
 module.exports = {
   devServer: {
+    disableHostCheck: true,
     open: process.platform === "darwin",
     host: "dev-deliver-secret.eigen.com", // localhost
     port: "8090",
