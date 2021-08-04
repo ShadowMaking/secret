@@ -79,8 +79,8 @@ export default {
     return {
       DEFAULTIMG,
       popupVisible: false,
-      // detailList: [],
-      detailList: [
+      detailList: [],
+      /* detailList: [
         {
           title: '时间',
           value: '13/07/2021 12:54:35'
@@ -89,7 +89,7 @@ export default {
           title: '操作',
           value: '充值 54.6958 ZKS'
         },
-      ]
+      ] */
     }
   },
   computed: {

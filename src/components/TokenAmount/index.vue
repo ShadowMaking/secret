@@ -10,7 +10,7 @@
             <span slots="default" style="color:#495ABE">最大值</span>
           </van-button>
         </div>
-        <span>可用：0.005965 ETH</span>
+        <span>可用：{{ availableBanlance }} ETH</span>
       </van-col>
       <van-col span="12" style="text-align:right">
         <div class="flex flex-column">
@@ -29,9 +29,9 @@
       <span class="tip"><i class="info_icon"></i>提现手续费：0.000002 ZKS($5.00)</span>
       <span class="tip"><i class="info_icon"></i>到账金额：3.678766 ZKS</span>
     </div>
-    <!-- 请输入金额|金额过低|确定（color：#495ABE） -->
-    <van-button type="primary" block color="#A4ACDF" class="opt-button" @click="submitTranction" v-show="!walletIsLock">请输入金额</van-button>
-    <mt-button type="primary" size="large" class="button button-large opt-button" @click="unlockWallet" v-show="walletIsLock">解锁钱包</mt-button>
+    <!-- 请输入金额|金额过低|确定（color：#495ABE  #A4ACDF） -->
+    <van-button type="primary" block color="#495ABE" class="opt-button" @click="submitTranction" v-show="!walletIsLock">请输入金额</van-button>
+    <v-unlockwallet :show="showUnlockWalletButton" :showLockIcon="false" key="unlockWalletButton"  v-show="walletIsLock"/>
     <van-popup v-model="showTokenSelect" round closeable position="bottom" :style="{ minHeight: '30%' }">
       <div class="token-select-wrap">
         <div class="header"><h3>选择通证</h3></div>
@@ -71,13 +71,24 @@
         </div>
       </div>
     </van-popup>
-    <v-walletstatus :show="installWalletModal" key="installWalletModal" />
   </div>
 </template>
 <script>
 import Vue from 'vue';
 import { Button, Col, Row, Field, Popup, Search } from 'vant';
-import WalletStatus from '@/components/WalletStatus';
+import UnlockWallet from '@/components/UnlockWallet';
+
+import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
+import { Bridge } from 'arb-ts';
+import {
+  DEFAULTIMG,
+  address,
+  DEVNET_PRIVKEY,
+  ethRPC,
+  arbRPC
+} from '@/utils/global';
+
+const { parseEther } = utils;
 
 Vue.use(Button);
 Vue.use(Col);
@@ -90,14 +101,14 @@ export default {
   name: "common-recharge-amount",
   props: ['type'],  // recharge | transfer | withdraw
   components: {
-    "v-walletstatus": WalletStatus,
+    "v-unlockwallet": UnlockWallet,
   },
   data() {
     return {
-      number: '',
+      number: '0.0001',
       showTokenSelect: false,
       serchTokenValue: '',
-      installWalletModal: false
+      availableBanlance: '0.005965'
     }
   },
   computed: {
@@ -107,12 +118,23 @@ export default {
     walletIsLock() {
       return this.$store.state.metamask.walletIsLock;
     },
+    showUnlockWalletButton() {
+      return !this.metamaskInstall || this.walletIsLock;
+    },
     typeTxt() {
       const erum = { recharge: '充值', transfer: '转账', withdraw: '提现' };
       return erum[this.type];
     },
   },
   methods: {
+    wait(ms) {
+      return new Promise(res => setTimeout(res, ms || this.defaultWait))
+    },
+    prettyLog(text) {
+      // console.log(chalk.blue(`    *** ${text}`))
+      console.log(`%c------------- ${text} ------------- \n`, 'background: #333; color: #8dc63f');
+      console.log()
+    },
     choseToken() {
       if (this.walletIsLock) { return }
       this.showTokenSelect = true
@@ -120,38 +142,65 @@ export default {
     submitTranction() {
       this.$emit('childEvent',{amount: this.number});
     },
-    async unlockWallet() {
-      if (this.metamaskInstall) {
-        const message = `
-          Access Eigen account.
-          Only sign this message for a trusted client!
-        `;
-        const accounts = this.$store.state.metamask.accountsArr;
-        if (accounts.length === 0) { // 没有登录
-          await ethereum.request({ method: 'eth_requestAccounts' });
-          const accounts = await this.web3.eth.getAccounts();
-          const coinbaseAddress = await this.web3.eth.coinbase;
-          const lockStatus = this.$store.state.metamask.walletIsLock;
-          await this.$store.dispatch("WalletAccountsAddress", {accounts})
-          const message = `
-            Access Eigen account.
-            Only sign this message for a trusted client!
-          `;
-          const signAdress = this.$store.state.metamask.accountsArr[0]||accounts[0];
-          const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), signAdress);
-          // when signRes has value declare sign sucess
-          let _isLock = true;
-          signRes!==undefined && (_isLock = false) 
-          await this.$store.dispatch('WalletLockStatus', {isLock:_isLock});
-          this.walletIsLock = _isLock;
-          this.$eventBus.$emit('updateAddress', {address: signAdress});
-
-        }
-      } else {
-        this.installWalletModal = true;
-      }
-    }
   },
+  async mounted() {
+    // ------------------------ 公用数据 ------------------------------//
+
+      const ethProvider = new providers.JsonRpcProvider(ethRPC)
+      const arbProvider = new providers.JsonRpcProvider(arbRPC)
+
+      const ethToL2DepositAmount = parseEther('0.0001')
+      const ethFromL2WithdrawAmount = parseEther('0.00001')
+      
+      const testPk = DEVNET_PRIVKEY;
+
+      const l1TestWallet= new Wallet(testPk, ethProvider)
+      const l2TestWallet = new Wallet(testPk, arbProvider)
+      
+      console.log(address.ethERC20Bridge)
+      console.log(address.arbTokenBridge)
+
+      const testBridge = new Bridge(
+        address.ethERC20Bridge,
+        address.arbTokenBridge,
+        l1TestWallet,
+        l2TestWallet
+      )
+
+      // const preFundedSignerPK = process.env['DEVNET_PRIVKEY']
+      const preFundedSignerPK = testPk;
+      if (!preFundedSignerPK) throw new Error('Missing l2 priv key')
+      const preFundedWallet = new Wallet(preFundedSignerPK, ethProvider)
+
+      // ------------------------ 公用数据 ------------------------------//
+
+      // 判断账户是否有余额
+      // const accounts = await ethers.getSigners();
+      // accounts.forEach(function(acc,index){
+      //   console.log(index, acc.address)
+      // })
+
+      const balance = await preFundedWallet.getBalance()
+      const depositAmount = '0.01';
+      const hasBalance = balance.gt(utils.parseEther(depositAmount))
+
+      if (!hasBalance) {
+        this.prettyLog(
+          `${preFundedWallet.address} 
+          not pre-funded; set a funded wallet via env-var DEVNET_PRIVKEY. exiting.`)
+        return
+      }
+
+      this.prettyLog('Using preFundedWallet: ' + preFundedWallet.address);
+      this.prettyLog('Randomly generated test wallet: ' + l1TestWallet.address);
+
+
+      const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
+      const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
+      console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString()) 
+
+      this.availableBanlance = utils.formatEther(testWalletL1EthBalance);
+  }
 }
 </script>
 <style lang="scss" scoped>

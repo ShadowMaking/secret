@@ -11,9 +11,6 @@
 
 <script>
 import Vue from 'vue';
-import {
-  checkMetamask, connectMetamask,
-  setCookie, getCookie, getAccount } from "@/utils/auth";
 import { Popup } from 'vant';
 
 Vue.use(Popup);

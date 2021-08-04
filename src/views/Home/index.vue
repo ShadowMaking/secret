@@ -3,7 +3,7 @@
     <div class="page-home-account flex flex-center flex-column ">
       <a class="button button-with-radius button-update"><i class="icon ico-ipdate"></i>刷新</a>
       <div class="flex flex-column account-info">
-        <span class="balance">4.22</span>
+        <span class="balance">{{ balance }}</span>
         <span class="tip">L2 资产总额($)</span>
       </div>
       <div class="flex page-home-opt-wrap">
@@ -12,11 +12,7 @@
         <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('withdraw')">提现到 L1</mt-button>
       </div>
     </div>
-    <div class="page-home-no-connect-wallet" v-show="walletIsLock">
-      <div class="flex flex-center"><img :src="DEFAULTIMG.LOCK" /></div>
-      <mt-button type="primary" size="large" class="button button-large" @click="unlockWallet">解锁钱包</mt-button>
-    </div>
-    <v-walletstatus :show="installWalletModal" key="installWalletModal" />
+    <v-unlockwallet :show="showUnlockWalletButton" key="unlockWalletButton" v-show="walletIsLock" />
     <v-exchangeList key="comon-exchangeList" type="all" v-show="!walletIsLock" />
   </div>
 </template>
@@ -26,7 +22,20 @@ import Vue from 'vue';
 import { Button, Cell, Popup } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
 import ExchangeList from '@/components/ExchangeList';
-import WalletStatus from '@/components/WalletStatus';
+import UnlockWallet from '@/components/UnlockWallet';
+
+import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
+import { Bridge } from 'arb-ts';
+import {
+  // DEFAULTIMG,
+  address,
+  DEVNET_PRIVKEY,
+  ethRPC,
+  arbRPC
+} from '@/utils/global';
+
+const { parseEther } = utils;
+
 
 Vue.component(Button.name, Button)
 Vue.component(Cell.name, Cell)
@@ -36,7 +45,7 @@ export default {
   name: 'Home',
   components: {
     "v-exchangeList": ExchangeList,
-    "v-walletstatus": WalletStatus,
+    "v-unlockwallet": UnlockWallet,
   },
   data() {
     return {
@@ -44,17 +53,7 @@ export default {
       popupVisible: false,
       installWalletModal: false,
       exchangeListData: [],
-      detailList: [
-        {
-          title: '时间',
-          value: '13/07/2021 12:54:35'
-        },
-        {
-          title: '操作',
-          value: '充值 54.6958 ZKS'
-        },
-      ],
-      // walletIsLock: true,
+      balance: '0'
     }
   },
   computed: {
@@ -64,14 +63,103 @@ export default {
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
     },
+    showUnlockWalletButton() {
+      return !this.metamaskInstall || this.walletIsLock;
+    },
   },
   watch: {
-    /* '$store.state.metamask.walletIsLock': function (res) {
-      this.walletIsLock = res;
-    } */
+    '$store.state.metamask.walletIsLock': function (res) {
+      if (!this.walletIsLock) {
+        this.$eventBus.$emit('updateBalance');
+      }
+    }
   },
   
   methods: {
+    async getBanlance() {
+      // ------------------------ 公用数据 ------------------------------//
+
+      const ethProvider = new providers.JsonRpcProvider(ethRPC)
+      const arbProvider = new providers.JsonRpcProvider(arbRPC)
+
+      const ethToL2DepositAmount = parseEther('0.0001')
+      const ethFromL2WithdrawAmount = parseEther('0.00001')
+      
+      const testPk = DEVNET_PRIVKEY;
+
+      const l1TestWallet= new Wallet(testPk, ethProvider)
+      const l2TestWallet = new Wallet(testPk, arbProvider)
+      
+      console.log(address.ethERC20Bridge)
+      console.log(address.arbTokenBridge)
+
+      const testBridge = new Bridge(
+        address.ethERC20Bridge,
+        address.arbTokenBridge,
+        l1TestWallet,
+        l2TestWallet
+      )
+
+      // const preFundedSignerPK = process.env['DEVNET_PRIVKEY']
+      const preFundedSignerPK = testPk;
+      if (!preFundedSignerPK) throw new Error('Missing l2 priv key')
+      const preFundedWallet = new Wallet(preFundedSignerPK, ethProvider)
+
+      // ------------------------ 公用数据 ------------------------------//
+
+      // 判断账户是否有余额
+      // const accounts = await ethers.getSigners();
+      // accounts.forEach(function(acc,index){
+      //   console.log(index, acc.address)
+      // })
+
+      const balance = await preFundedWallet.getBalance()
+      const depositAmount = '0.01';
+      const hasBalance = balance.gt(utils.parseEther(depositAmount))
+
+      if (!hasBalance) {
+        this.prettyLog(
+          `${preFundedWallet.address} 
+          not pre-funded; set a funded wallet via env-var DEVNET_PRIVKEY. exiting.`)
+        return
+      }
+
+      this.prettyLog('Using preFundedWallet: ' + preFundedWallet.address);
+      this.prettyLog('Randomly generated test wallet: ' + l1TestWallet.address);
+
+
+      const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
+      const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
+      console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString()) 
+
+      // this.balance = this.walletIsLock?0:utils.formatEther(testWalletL2EthBalance);
+      const _balance = utils.formatEther(testWalletL2EthBalance);
+        
+      /* const res = await preFundedWallet.sendTransaction({
+        to: l1TestWallet.address,
+        value: utils.parseEther(depositAmount),
+      })
+      const rec = await res.wait()
+      const testWalletBalance = await l1TestWallet.getBalance()
+      console.log(testWalletBalance.toString())
+
+      this.wait(10000 * 5);
+      const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
+      const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
+      console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString()) */
+
+      //expect(testWalletL1EthBalance.eq(parseEther(depositAmount))).to.be.true
+      //expect(testWalletL2EthBalance.eq(Zero)).to.be.true
+      return _balance
+    },
+    wait(ms) {
+      return new Promise(res => setTimeout(res, ms || this.defaultWait))
+    },
+    prettyLog(text) {
+      // console.log(chalk.blue(`    *** ${text}`))
+      console.log(`%c------------- ${text} ------------- \n`, 'background: #333; color: #8dc63f');
+      console.log()
+    },
     getExchangeDetail() {
       this.popupVisible = true;
     },
@@ -121,9 +209,19 @@ export default {
         this.installWalletModal = true;
       }
     },
+    async updateBalance () {
+      const balance = await this.getBanlance()
+      console.log('balance',balance, this.balance)
+      if (balance) {
+        this.balance = balance;
+      }
+    },
   },
   async mounted() {
-    
+    const balance = await this.getBanlance()
+    console.log('balance', balance);
+    this.$eventBus.$on('updateBalance', this.updateBalance);
+    this.balance = this.walletIsLock?0:balance
   },
   
 };

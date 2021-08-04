@@ -4,7 +4,7 @@ import Home from '../views/Home/index';
 import Recharge from '../views/Recharge/index';
 import Transfer from '../views/Transfer/index';
 import Withdraw from '../views/Withdraw/index';
-import Test from '../views/Test/Test';
+import Test from '../views/Test/Test1';
 
 
 Vue.use(VueRouter);

@@ -1,5 +1,7 @@
-# secret
+# Eigen Secret
 
+## host
+127.0.0.1  dev-deliver-secret.eigen.com
 ## Project setup
 ```
 npm install
@@ -20,5 +22,3 @@ npm run build
 npm run lint
 ```
 
-### Customize configuration
-See [Configuration  Reference](https://cli.vuejs.org/config/).
