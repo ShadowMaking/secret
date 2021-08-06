@@ -13,6 +13,7 @@ import Vue from 'vue';
 import { Button } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
 import WalletStatus from '@/components/WalletStatus';
+import { utils } from 'ethers';
 
 Vue.component(Button.name, Button)
 
@@ -69,8 +70,10 @@ export default {
           let _isLock = true;
           signRes!==undefined && (_isLock = false) 
           await this.$store.dispatch('WalletLockStatus', {isLock:_isLock});
+          const balance = await this.web3.eth.getBalance(signAdress);
           this.walletIsLock = _isLock;
           this.$eventBus.$emit('updateAddress', {address: signAdress});
+          this.$eventBus.$emit('updateAvailableBanlance', {balance: utils.formatEther(balance)});
         }
       } else {
         this.installWalletModal = true;

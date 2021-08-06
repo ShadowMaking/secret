@@ -70,7 +70,7 @@ export default {
   watch: {
     '$store.state.metamask.walletIsLock': function (res) {
       if (!this.walletIsLock) {
-        this.$eventBus.$emit('updateBalance');
+        this.$eventBus.$emit('updateAvailableBanlance');
       }
     }
   },
@@ -209,19 +209,25 @@ export default {
         this.installWalletModal = true;
       }
     },
-    async updateBalance () {
-      const balance = await this.getBanlance()
-      console.log('balance',balance, this.balance)
-      if (balance) {
-        this.balance = balance;
+    async updateAvailableBanlance (balanceObj) {
+      let balance = this.balance;
+      if (balanceObj) {
+        balance = balanceObj.balance;
+      } else {
+        const address = this.$store.state.metamask.accountsArr[0]
+        if (address) {
+          const _balance = await this.web3.eth.getBalance(address);
+          if (_balance) {
+            balance = utils.formatEther(_balance);
+          }
+        }
       }
+      this.balance = balance
     },
   },
   async mounted() {
-    const balance = await this.getBanlance()
-    console.log('balance', balance);
-    this.$eventBus.$on('updateBalance', this.updateBalance);
-    this.balance = this.walletIsLock?0:balance
+    const balance = await this.updateAvailableBanlance();
+    this.$eventBus.$on('updateAvailableBanlance', this.updateAvailableBanlance);
   },
   
 };

@@ -123,7 +123,7 @@ export default {
       number: '0.0001',
       showTokenSelect: false,
       serchTokenValue: '',
-      availableBanlance: '0.005965',
+      availableBanlance: '0.0',
       buttonColor: '#A4ACDF',
       buttonDisabled: false,
     }
@@ -202,64 +202,26 @@ export default {
       console.log('1', this.$props.buttonTxt)
       return '请输入金额'
     },
+    async updateAvailableBanlance (balanceObj) {
+      let balance = this.balance;
+      if (balanceObj) {
+        balance = balanceObj.balance;
+      } else {
+        const address = this.$store.state.metamask.accountsArr[0]
+        if (address) {
+          const _balance = await this.web3.eth.getBalance(address);
+          if (_balance) {
+            balance = utils.formatEther(_balance);
+          }
+        }
+      }
+      this.availableBanlance = balance
+    },
   },
   async mounted() {
-    // ------------------------ 公用数据 ------------------------------//
-
-      const ethProvider = new providers.JsonRpcProvider(ethRPC)
-      const arbProvider = new providers.JsonRpcProvider(arbRPC)
-
-      const ethToL2DepositAmount = parseEther('0.0001')
-      const ethFromL2WithdrawAmount = parseEther('0.00001')
-      
-      const testPk = DEVNET_PRIVKEY;
-
-      const l1TestWallet= new Wallet(testPk, ethProvider)
-      const l2TestWallet = new Wallet(testPk, arbProvider)
-      
-      console.log(address.ethERC20Bridge)
-      console.log(address.arbTokenBridge)
-
-      const testBridge = new Bridge(
-        address.ethERC20Bridge,
-        address.arbTokenBridge,
-        l1TestWallet,
-        l2TestWallet
-      )
-
-      // const preFundedSignerPK = process.env['DEVNET_PRIVKEY']
-      const preFundedSignerPK = testPk;
-      if (!preFundedSignerPK) throw new Error('Missing l2 priv key')
-      const preFundedWallet = new Wallet(preFundedSignerPK, ethProvider)
-
-      // ------------------------ 公用数据 ------------------------------//
-
-      // 判断账户是否有余额
-      // const accounts = await ethers.getSigners();
-      // accounts.forEach(function(acc,index){
-      //   console.log(index, acc.address)
-      // })
-
-      const balance = await preFundedWallet.getBalance()
-      const depositAmount = '0.01';
-      const hasBalance = balance.gt(utils.parseEther(depositAmount))
-
-      if (!hasBalance) {
-        this.prettyLog(
-          `${preFundedWallet.address} 
-          not pre-funded; set a funded wallet via env-var DEVNET_PRIVKEY. exiting.`)
-        return
-      }
-
-      this.prettyLog('Using preFundedWallet: ' + preFundedWallet.address);
-      this.prettyLog('Randomly generated test wallet: ' + l1TestWallet.address);
-
-
-      const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
-      const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
-      console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString()) 
-
-      this.availableBanlance = utils.formatEther(testWalletL1EthBalance);
+    const balance = await this.updateAvailableBanlance();
+    this.$eventBus.$on('updateAvailableBanlance', this.updateAvailableBanlance);
+    balance && (this.availableBanlance = utils.formatEther(balance));
   }
 }
 </script>
