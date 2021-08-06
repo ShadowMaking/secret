@@ -50,7 +50,11 @@ export default {
         `;
         const accounts = this.$store.state.metamask.accountsArr;
         if (accounts.length === 0) { // 没有登录
-          await ethereum.request({ method: 'eth_requestAccounts' });
+          // await ethereum.request({ method: 'eth_requestAccounts' });
+          await ethereum.request({
+            method: 'wallet_requestPermissions',
+            params:  [{ "eth_accounts": {} }]
+          });
           const accounts = await this.web3.eth.getAccounts();
           const coinbaseAddress = await this.web3.eth.coinbase;
           const lockStatus = this.$store.state.metamask.walletIsLock;
