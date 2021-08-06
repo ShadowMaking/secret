@@ -37,6 +37,10 @@
       </van-tabs>
     </div>
     <v-exchangeList key="comon-exchangeList" type="recharge" v-show="activeName=='fromL1'&&!walletIsLock" />
+    <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+      <div>交易正在进行</div>
+      <div>请耐心等待<van-count-down :time="time" /></div>
+    </van-popup>
   </div>
 </template>
 <script>
@@ -44,8 +48,7 @@ import Vue from 'vue';
 import { RECHAERGE_TIP } from '@/utils/global';
 import ExchangeList from '@/components/ExchangeList';
 import TokenAmount from '@/components/TokenAmount';
-// import { DEFAULTIMG } from '@/utils/global';
-import { Tab, Tabs, Button, Col, Row } from 'vant';
+import { Tab, Tabs, Button, Col, Row, Toast, Popup, CountDown } from 'vant';
 
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
 import { Bridge } from 'arb-ts';
@@ -65,6 +68,9 @@ Vue.use(Tabs);
 Vue.use(Button);
 Vue.use(Col);
 Vue.use(Row);
+Vue.use(Toast);
+Vue.use(Popup);
+Vue.use(CountDown);
 
 export default {
   name: "Recharge",
@@ -77,6 +83,8 @@ export default {
       DEFAULTIMG,
       RECHAERGE_TIP,
       activeName: 'fromL1', // fromL1 | fromeL2
+      show: false,
+      time: 10 * 1000,
     }
   },
   computed: {
@@ -86,58 +94,67 @@ export default {
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
     },
+    defaultAddress() {
+      return this.$store.state.metamask.accountsArr[0] || ''
+    },
   },
   methods: {
     wait(ms) {
       return new Promise(res => setTimeout(res, ms || this.defaultWait))
     },
     prettyLog(text) {
-      // console.log(chalk.blue(`    *** ${text}`))
       console.log(`%c------------- ${text} ------------- \n`, 'background: #333; color: #8dc63f');
       console.log()
     },
     async submitRecharge(info) {
-      const ethProvider = new providers.JsonRpcProvider(ethRPC)
-      const arbProvider = new providers.JsonRpcProvider(arbRPC)
-
-      const ethToL2DepositAmount = parseEther(info.amount)
-      // const ethFromL2WithdrawAmount = parseEther('0.00001')
-      
-      const testPk = DEVNET_PRIVKEY;
-
-      const l1TestWallet= new Wallet(testPk, ethProvider)
-      const l2TestWallet = new Wallet(testPk, arbProvider)
-      const testBridge = new Bridge(
-        address.ethERC20Bridge,
-        address.arbTokenBridge,
-        l1TestWallet,
-        l2TestWallet
-      )
-
-      // const preFundedSignerPK = process.env['DEVNET_PRIVKEY']
-      const preFundedSignerPK = testPk;
-      if (!preFundedSignerPK) throw new Error('Missing l2 priv key')
-      const preFundedWallet = new Wallet(preFundedSignerPK, ethProvider)
-
-      // ------------------------ 公用数据 ------------------------------//
-
-      const inbox = await testBridge.l1Bridge.getInbox()
-      const initialInboxBalance = await ethProvider.getBalance(inbox.address)
-      console.log('initialInboxBalance', initialInboxBalance.toNumber())
-      let res = await testBridge.depositETH(ethToL2DepositAmount)
-      let rec = await res.wait()
-      const finalInboxBalance = await ethProvider.getBalance(inbox.address)
-      await this.wait()
-      const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
-      const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
-      console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString())
-      await this.wait()
-      console.log('testWalletL2EthBalance', testWalletL2EthBalance)
-
+      const accountAddress = this.defaultAddress; // 0x81183C9C61bdf79DB7330BBcda47Be30c0a85064
+      const ethERC20BridgeAddress = address.ethERC20Bridge; // 0x9B0bbB332c01F3c81C1Bdd6AbB17649528f198D2
+      // 转换充值金额
+      const ethToL2DepositAmount = parseEther(info.amount);
+      if (!utils.isAddress(accountAddress)) {
+        Toast.fail(`账户地址有误,无法进行交易`);
+        return;
+      }
+      // 交易对象
+      const params= [{
+        from: accountAddress,
+        to: ethERC20BridgeAddress,
+        // gas: '0x76c0',              // 30400
+        // gasPrice: '0x9184e72a000',  // 10000000000000
+        // value: '0x9184e72a',     // 2441406250
+        value: ethToL2DepositAmount.toString(),
+        // data:'0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675',
+      }];
+      let transactionStatus = false;
+      let errorTxt = '未知错误';
+      await ethereum.request({
+        method: 'eth_sendTransaction',
+        params,
+      })
+      .then((result) => {
+        transactionStatus = true;
+      })
+      .catch((error) => {
+        switch(error.code) {
+          case 4001:
+            errorTxt = '交易已取消'
+            break;
+          default:
+            errorTxt = '未知错误'
+            break;
+        }
+        console.log('transaction-error', error)
+      });
+      if (!transactionStatus) {
+        Toast.fail(`${errorTxt}`);
+        return
+      }
+      await this.wait();
+      this.show = true;
       this.prettyLog('交易正在进行，请耐心等待10s....')
       await this.wait(10000);
-
-      this.$router.push({ name: 'Home' })
+      this.show = false;
+      this.$router.push({ name: 'Home' });
     },
   },
   mounted() {

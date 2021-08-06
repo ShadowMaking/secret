@@ -118,9 +118,9 @@ export default {
       const hasBalance = balance.gt(utils.parseEther(depositAmount))
 
       if (!hasBalance) {
-        this.prettyLog(
-          `${preFundedWallet.address} 
-          not pre-funded; set a funded wallet via env-var DEVNET_PRIVKEY. exiting.`)
+        // this.prettyLog(
+        //   `${preFundedWallet.address} 
+        //   not pre-funded; set a funded wallet via env-var DEVNET_PRIVKEY. exiting.`)
         return
       }
 

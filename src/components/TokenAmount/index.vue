@@ -30,7 +30,16 @@
       <span class="tip"><i class="info_icon"></i>到账金额：3.678766 ZKS</span>
     </div>
     <!-- 请输入金额|金额过低|确定（color：#495ABE  #A4ACDF） -->
-    <van-button type="primary" block color="#495ABE" class="opt-button" @click="submitTranction" v-show="!walletIsLock">请输入金额</van-button>
+    <van-button
+      type="primary"
+      block
+      :color="buttonColor"
+      class="opt-button"
+      @click="submitTranction"
+      :disabled="buttonDisabled"
+      v-show="!walletIsLock">
+      {{ dynamicButtonTxt }}
+    </van-button>
     <v-unlockwallet :show="showUnlockWalletButton" :showLockIcon="false" key="unlockWalletButton"  v-show="walletIsLock"/>
     <van-popup v-model="showTokenSelect" round closeable position="bottom" :style="{ minHeight: '30%' }">
       <div class="token-select-wrap">
@@ -99,7 +108,13 @@ Vue.use(Search);
 
 export default {
   name: "common-recharge-amount",
-  props: ['type'],  // recharge | transfer | withdraw
+  // props: ['type', 'buttonTxt', 'disabled'],  // recharge | transfer | withdraw
+  props: {
+    'type': String, // recharge | transfer | withdraw
+    'buttonCode': Number,
+    'buttonTxt': String,
+    'disabled': Boolean,
+  },
   components: {
     "v-unlockwallet": UnlockWallet,
   },
@@ -108,10 +123,47 @@ export default {
       number: '0.0001',
       showTokenSelect: false,
       serchTokenValue: '',
-      availableBanlance: '0.005965'
+      availableBanlance: '0.005965',
+      buttonColor: '#A4ACDF',
+      buttonDisabled: false,
     }
   },
+  watch: {
+    buttonCode: {
+      handler(newV, oldV) {
+         /* const config = {
+          1: '请输入金额',
+          2: '地址无效',
+        } */
+        switch(newV) {
+          case 1:
+            this.buttonColor = '#495ABE'
+            // this.buttonDisabled = false;
+            break;
+          case 2:
+            this.buttonColor = '#A4ACDF'
+            // this.buttonDisabled = true;
+            break;
+          default:
+            this.buttonColor = '#495ABE'
+            // this.buttonDisabled = false;
+            break;
+        }
+      },
+      deep: true,
+    },
+    dynamicButtonTxt: {
+      // 深度监听，可监听到对象、数组的变化
+      handler(newV, oldV) {
+        console.log(newV, oldV)
+      },
+      deep: true,
+    },
+  },
   computed: {
+    dynamicButtonTxt() {
+      return this.buttonTxt;
+    },
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
     },
@@ -125,6 +177,10 @@ export default {
       const erum = { recharge: '充值', transfer: '转账', withdraw: '提现' };
       return erum[this.type];
     },
+    /* buttonTxt() {
+      console.log(1, this.$props.buttonTxt)
+      return '请输入金额'
+    }, */
   },
   methods: {
     wait(ms) {
@@ -141,6 +197,10 @@ export default {
     },
     submitTranction() {
       this.$emit('childEvent',{amount: this.number});
+    },
+    getbuttonTxt() {
+      console.log('1', this.$props.buttonTxt)
+      return '请输入金额'
     },
   },
   async mounted() {
