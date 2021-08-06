@@ -74,6 +74,7 @@
           // 需要重置钱包相关状态
           await this.$store.dispatch("WalletAccountsAddress", {accounts:[]})
           await this.$store.dispatch('WalletLockStatus', {isLock: true});
+          this.$eventBus.$emit('updateAvailableBanlance', {balance: 0});
         });
         ethereum.on('accountsChanged', async (accounts) => {
           await this.$store.dispatch("WalletAccountsAddress", {accounts})
