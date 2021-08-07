@@ -74,12 +74,14 @@
           // 需要重置钱包相关状态
           await this.$store.dispatch("WalletAccountsAddress", {accounts:[]})
           await this.$store.dispatch('WalletLockStatus', {isLock: true});
-          this.$eventBus.$emit('updateAvailableBanlance', {balance: 0});
+          // this.$eventBus.$emit('updateAvailableBanlance', {balance: 0});
+          this.$eventBus.$emit('resetStatus');
         });
         ethereum.on('accountsChanged', async (accounts) => {
           await this.$store.dispatch("WalletAccountsAddress", {accounts})
           if (accounts.length === 0) { // 断开了链接
             await this.$store.dispatch('WalletLockStatus', {isLock: true});
+            this.$eventBus.$emit('resetStatus');
           }
         });
       }

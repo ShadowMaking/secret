@@ -20,14 +20,16 @@
 <script>
 import Vue from 'vue';
 import { Button, Cell, Popup } from 'mint-ui';
-import { DEFAULTIMG } from '@/utils/global';
 import ExchangeList from '@/components/ExchangeList';
 import UnlockWallet from '@/components/UnlockWallet';
+import {
+  getAvailableBalanceByAddress,
+  getAvailableBalanceByAddressFromProvider } from '@/utils/auth';
 
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
 import { Bridge } from 'arb-ts';
 import {
-  // DEFAULTIMG,
+  DEFAULTIMG,
   address,
   DEVNET_PRIVKEY,
   ethRPC,
@@ -76,90 +78,6 @@ export default {
   },
   
   methods: {
-    async getBanlance() {
-      // ------------------------ 公用数据 ------------------------------//
-
-      const ethProvider = new providers.JsonRpcProvider(ethRPC)
-      const arbProvider = new providers.JsonRpcProvider(arbRPC)
-
-      const ethToL2DepositAmount = parseEther('0.0001')
-      const ethFromL2WithdrawAmount = parseEther('0.00001')
-      
-      const testPk = DEVNET_PRIVKEY;
-
-      const l1TestWallet= new Wallet(testPk, ethProvider)
-      const l2TestWallet = new Wallet(testPk, arbProvider)
-      
-      console.log(address.ethERC20Bridge)
-      console.log(address.arbTokenBridge)
-
-      const testBridge = new Bridge(
-        address.ethERC20Bridge,
-        address.arbTokenBridge,
-        l1TestWallet,
-        l2TestWallet
-      )
-
-      // const preFundedSignerPK = process.env['DEVNET_PRIVKEY']
-      const preFundedSignerPK = testPk;
-      if (!preFundedSignerPK) throw new Error('Missing l2 priv key')
-      const preFundedWallet = new Wallet(preFundedSignerPK, ethProvider)
-
-      // ------------------------ 公用数据 ------------------------------//
-
-      // 判断账户是否有余额
-      // const accounts = await ethers.getSigners();
-      // accounts.forEach(function(acc,index){
-      //   console.log(index, acc.address)
-      // })
-
-      const balance = await preFundedWallet.getBalance()
-      const depositAmount = '0.01';
-      const hasBalance = balance.gt(utils.parseEther(depositAmount))
-
-      if (!hasBalance) {
-        // this.prettyLog(
-        //   `${preFundedWallet.address} 
-        //   not pre-funded; set a funded wallet via env-var DEVNET_PRIVKEY. exiting.`)
-        return
-      }
-
-      this.prettyLog('Using preFundedWallet: ' + preFundedWallet.address);
-      this.prettyLog('Randomly generated test wallet: ' + l1TestWallet.address);
-
-
-      const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
-      const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
-      console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString()) 
-
-      // this.balance = this.walletIsLock?0:utils.formatEther(testWalletL2EthBalance);
-      const _balance = utils.formatEther(testWalletL2EthBalance);
-        
-      /* const res = await preFundedWallet.sendTransaction({
-        to: l1TestWallet.address,
-        value: utils.parseEther(depositAmount),
-      })
-      const rec = await res.wait()
-      const testWalletBalance = await l1TestWallet.getBalance()
-      console.log(testWalletBalance.toString())
-
-      this.wait(10000 * 5);
-      const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
-      const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
-      console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString()) */
-
-      //expect(testWalletL1EthBalance.eq(parseEther(depositAmount))).to.be.true
-      //expect(testWalletL2EthBalance.eq(Zero)).to.be.true
-      return _balance
-    },
-    wait(ms) {
-      return new Promise(res => setTimeout(res, ms || this.defaultWait))
-    },
-    prettyLog(text) {
-      // console.log(chalk.blue(`    *** ${text}`))
-      console.log(`%c------------- ${text} ------------- \n`, 'background: #333; color: #8dc63f');
-      console.log()
-    },
     getExchangeDetail() {
       this.popupVisible = true;
     },
@@ -210,19 +128,15 @@ export default {
       }
     },
     async updateAvailableBanlance (balanceObj) {
-      let balance = this.balance;
+      let balanceForL2 = this.balance;
       if (balanceObj) {
-        balance = balanceObj.balance;
+        balanceForL2 = balanceObj.balance;
       } else {
-        const address = this.$store.state.metamask.accountsArr[0]
-        if (address) {
-          const _balance = await this.web3.eth.getBalance(address);
-          if (_balance) {
-            balance = utils.formatEther(_balance);
-          }
-        }
+        const addressForL2 = address.arbTokenBridge;
+        balanceForL2 = await getAvailableBalanceByAddress(addressForL2, this);  // 获得L2的资产
+        // balanceForL2 = await getAvailableBalanceByAddressFromProvider(addressForL2, this);  // 获得L2的资产
       }
-      this.balance = balance
+      this.balance = utils.formatEther(balanceForL2)
     },
   },
   async mounted() {

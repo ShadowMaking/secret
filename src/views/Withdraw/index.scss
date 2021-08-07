@@ -13,8 +13,10 @@
       padding: 0 rem(20) 0;
       .address-wrapper-inner{
         width: 100%;
-        border-radius: rem(3);
+        border-radius: rem(5);
         border: rem(1) solid #f2f2f2;
+        color: #333;
+        font-size: rem(13);
       }
       .address-textarea {
         border: rem(1) solid #F2F2F2;

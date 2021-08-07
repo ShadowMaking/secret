@@ -11,7 +11,19 @@
     </div>
     <div class="transfer-opt-area">
       <div class="flex flex-center address-wrapper">
-        <textarea placeholder="请输入转账地址" class="address-textarea"></textarea>
+        <div class="address-wrapper-inner">
+          <van-field
+            v-model="transferAddress"
+            rows="2"
+            autosize
+            label=""
+            type="textarea"
+            :disabled="walletIsLock"
+            placeholder="请输入转账地址"
+            @input="handleAddressInputChange"
+            @focus="handleAddressInputFocus"
+          />
+        </div>
       </div>
       <span class="tip"><i class="info_icon"></i>请勿输入交易所地址</span>
       <v-tokenAmount key="tokenAmount-transfer" type="transfer" @childEvent="submitTransfer" />
@@ -36,9 +48,10 @@ import { TRANSFER_TIP } from '@/utils/global';
 import ExchangeList from '@/components/ExchangeList';
 import TokenAmount from '@/components/TokenAmount';
 import StatusPop from '@/components/StatusPop';
-import { Popup } from 'vant';
+import { Popup, Field } from 'vant';
 
 Vue.use(Popup);
+Vue.use(Field);
 
 export default {
   name: "Transfer",
@@ -50,9 +63,10 @@ export default {
   data() {
     return {
       TRANSFER_TIP,
-      tipShow: true,
+      tipShow: false,
       showStatusPop: false,
-      popStatus: "success"
+      popStatus: "success",
+      transferAddress: '',
     }
   },
   computed: {
@@ -70,7 +84,16 @@ export default {
     submitTransfer(info) {
       this.showStatusPop = true;
       console.log('金额', info.amount)
-    }
+    },
+    handleAddressInputChange(value) {
+
+    },
+    handleAddressInputFocus() {
+      this.tipShow = true;
+      setTimeout(()=>{
+        this.tipShow = false;
+      }, 2000)
+    },
   },
   mounted() {
     console.log("metamask是否安装-transfer", this.$store.state.metamask.metamaskInstall)

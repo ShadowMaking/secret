@@ -10,6 +10,7 @@
   "dependencies": {
     "arb-bridge-peripherals": "^1.0.0",
     "arb-ts": "0.0.13",
+    "big.js": "^6.1.1",
     "core-js": "^3.6.5",
     "ethers": "^5.0.24",
     "js-cookie": "^2.2.0",

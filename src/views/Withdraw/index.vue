@@ -10,7 +10,6 @@
     </van-row>
     <div class="withdraw-opt-area">
       <div class="flex flex-center address-wrapper">
-        <!-- <textarea placeholder="请输入提现地址" class="address-textarea" :@input="changeAddress($event)"></textarea> -->
         <div class="address-wrapper-inner">
           <van-field
             v-model="withDrawAddress"
@@ -18,9 +17,9 @@
             autosize
             label=""
             type="textarea"
-            maxlength="50"
+            :disabled="walletIsLock"
             placeholder="请输入提现地址"
-            @input="handleInputAddressInputChange"
+            @input="handleAddressInputChange"
           />
         </div>
       </div>
@@ -28,7 +27,6 @@
         key="tokenAmount-withdraw"
         type="withdraw"
         @childEvent="submitWithdraw"
-        :disabled="tokenAmountDisabled"
         :buttonCode="tokenAmountButtonTxtCode"
         :buttonTxt="tokenAmountButtonTxt" />
     </div>
@@ -52,6 +50,8 @@ import { Popup, CountDown, Field, Toast } from 'vant';
 import TokenAmount from '@/components/TokenAmount';
 import ExchangeList from '@/components/ExchangeList';
 import StatusPop from '@/components/StatusPop';
+import { wait, prettyLog } from '@/utils/index'
+import { getDefaultAddress } from '@/utils/auth'
 
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
 import { Bridge } from 'arb-ts';
@@ -82,9 +82,9 @@ export default {
       showStatusPop: false,
       show: false,
       time: 10 * 1000,
-      tokenAmountDisabled: false,
       tokenAmountButtonTxtCode: 1,
       tokenAmountButtonTxt: '请输入金额',
+      withDrawAddress: getDefaultAddress(this.$store),
     }
   },
   
@@ -95,21 +95,16 @@ export default {
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
     },
-    withDrawAddress() {
-      return this.$store.state.metamask.accountsArr[0] || ''
+  },
+  watch: {
+    walletIsLock(newValue, oldValue) {
+      !newValue && (this.withDrawAddress = getDefaultAddress(this.$store));
     },
   },
   methods: {
     setMyAddress() { },
     changeVisible() {},
-    wait(ms) {
-      return new Promise(res => setTimeout(res, ms || this.defaultWait))
-    },
-    prettyLog(text) {
-      console.log(`%c------------- ${text} ------------- \n`, 'background: #333; color: #8dc63f');
-      console.log()
-    },
-    handleInputAddressInputChange(value) {
+    handleAddressInputChange(value) {
       this.withDrawAddress = value;
       if (!utils.isAddress(value)) {
         this.tokenAmountButtonTxt = '地址无效'
@@ -163,10 +158,10 @@ export default {
         Toast.fail(`${errorTxt}`);
         return
       }
-      await this.wait();
+      await wait();
       this.show = true;
-      this.prettyLog('交易正在进行，请耐心等待10s....')
-      await this.wait(10000);
+      prettyLog('交易正在进行，请耐心等待10s....')
+      await wait(10000);
       this.show = false;
       this.$router.push({ name: 'Home' });
     }

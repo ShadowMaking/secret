@@ -11,15 +11,15 @@
 <script>
 import Vue from 'vue';
 import { Button } from 'mint-ui';
-import { DEFAULTIMG } from '@/utils/global';
+import { DEFAULTIMG, address } from '@/utils/global';
 import WalletStatus from '@/components/WalletStatus';
+import { getAvailableBalanceByAddress } from '@/utils/auth';
 import { utils } from 'ethers';
 
 Vue.component(Button.name, Button)
 
 export default {
   name: 'ComponentForUnlockWallet',
-  // props: ['showLockIcon'],
   props: {
     showLockIcon: {
       default: true
@@ -70,10 +70,12 @@ export default {
           let _isLock = true;
           signRes!==undefined && (_isLock = false) 
           await this.$store.dispatch('WalletLockStatus', {isLock:_isLock});
-          const balance = await this.web3.eth.getBalance(signAdress);
+          
+          const addressForL2 = address.arbTokenBridge;
+          const balanceForL2 = await getAvailableBalanceByAddress(addressForL2, this);  // 获得L2的资产
           this.walletIsLock = _isLock;
           this.$eventBus.$emit('updateAddress', {address: signAdress});
-          this.$eventBus.$emit('updateAvailableBanlance', {balance: utils.formatEther(balance)});
+          this.$eventBus.$emit('updateAvailableBanlance', {balance: balanceForL2});
         }
       } else {
         this.installWalletModal = true;
