@@ -1,7 +1,7 @@
 <template>
   <div class="page-home">
     <div class="page-home-account flex flex-center flex-column ">
-      <a class="button button-with-radius button-update"><i class="icon ico-ipdate"></i>刷新</a>
+      <a class="button button-with-radius button-update" @click="refresh"><i class="icon ico-ipdate"></i>刷新</a>
       <div class="flex flex-column account-info">
         <span class="balance">{{ balance }}</span>
         <span class="tip">L2 资产总额($)</span>
@@ -99,6 +99,9 @@ export default {
           break;
       }
     },
+    refresh() {
+
+    },
     async unlockWallet() {
       if (this.metamaskInstall) {
         const message = `
@@ -140,7 +143,9 @@ export default {
     },
   },
   async mounted() {
-    const balance = await this.updateAvailableBanlanceForL2();
+    if (!this.walletIsLock) {
+      await this.updateAvailableBanlanceForL2();
+    }
     this.$eventBus.$on('updateAvailableBanlanceForL2', this.updateAvailableBanlanceForL2);
   },
   

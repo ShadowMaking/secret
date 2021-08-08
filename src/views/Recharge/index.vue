@@ -129,6 +129,7 @@ export default {
       console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString())
     },
     async submitRecharge(info) {
+      this.show = true;
       const { ethProvider } = this.provider;
       const bridge = this.bridge;
       const inbox = await bridge.l1Bridge.getInbox();  // 这个inbox (address)的作用？
@@ -152,7 +153,6 @@ export default {
       // let res = await bridge.depositETH(ethToL2DepositAmount)
       // let rec = await res.wait()
 
-      this.show = true;
       bridge.depositETH(ethToL2DepositAmount)
       .then(async res=>{ // TODO 
         // Toast.fail(`交易已取消`);

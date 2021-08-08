@@ -135,6 +135,7 @@ export default {
       this.tokenAmountButtonTxtCode = 1
     },
     async submitWithdraw(info) {
+      this.show = true;
       const { ethProvider } = this.provider;
       const bridge = this.bridge;
       const inbox = await bridge.l1Bridge.getInbox();  // 这个inbox (address)的作用？
@@ -149,7 +150,6 @@ export default {
       // const withdrawEthRes = await testBridge.withdrawETH(ethFromL2WithdrawAmount)
       // const withdrawEthRec = await withdrawEthRes.wait()
 
-      this.show = true;
       bridge.withdrawETH(ethFromL2WithdrawAmount)
       .then(async res=>{
         // Toast.fail(`交易已取消`);

@@ -10,7 +10,7 @@
             <span slots="default" style="color:#495ABE">最大值</span>
           </van-button>
         </div>
-        <span>可用：{{ availableBalanceForL1 }} ETH</span>
+        <span>可用：{{ availableBalance }} ETH</span>
       </van-col>
       <van-col span="12" style="text-align:right">
         <div class="flex flex-column">
@@ -91,7 +91,6 @@
 import Vue from 'vue';
 import { Button, Col, Row, Field, Popup, Search } from 'vant';
 import UnlockWallet from '@/components/UnlockWallet';
-import { getAvailableBalanceByAddress } from '@/utils/auth'
 import { minus, lteZero, isZero } from '@/utils/number'
 import { getAvailableBalanceForL1, getAvailableBalanceForL2 } from '@/utils/walletBridge'
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
@@ -123,7 +122,7 @@ export default {
       number: '',
       showTokenSelect: false,
       serchTokenValue: '',
-      availableBalanceForL1: '0.0',
+      availableBalance: '0.0',
       buttonColor: '#A4ACDF',
       buttonDisabled: true,
     }
@@ -155,8 +154,8 @@ export default {
     },
     '$store.state.metamask.walletIsLock': async function (res) {
       if (!this.walletIsLock) {
-        const balance = await getAvailableBalanceForL1();
-        this.availableBalanceForL1 = balance && (formatEther(balance)) || 0;
+        const balance = await this.getAvailableBalance()
+        this.availableBalance = balance && (formatEther(balance)) || 0;
       }
     }
   },
@@ -188,9 +187,24 @@ export default {
     },
     handleWatchResetStatus() {
       this.number = '';
-      this.availableBalanceForL1 = '0.0';
+      this.availableBalance = '0.0';
       this.buttonColor = '#A4ACDF';
       this.buttonDisabled = true;
+    },
+    async getAvailableBalance() {
+      const type = this.type
+      let balance;
+      switch(type) {
+        case 'recharge':
+          balance = await getAvailableBalanceForL1();
+          break;
+        case 'withdraw':
+          balance = await getAvailableBalanceForL2();
+          break;
+        case 'transfer':
+          break;
+      }
+      return balance;
     },
     async handleInputTokenAmountChange(tokenAmount) {
       if (!tokenAmount || isZero(tokenAmount)) {
@@ -199,9 +213,9 @@ export default {
         this.buttonDisabled = true;
         return;
       }
-      let availableBalance = this.availableBalanceForL1;
+      let availableBalance = this.availableBalance;
       if (!availableBalance) {
-        let _availableBalance = await getAvailableBalanceForL1();
+        let _availableBalance = await this.getAvailableBalance();
         availableBalance = formatEther(_availableBalance);
       }
       const formatAmount = parseEther(tokenAmount);
@@ -220,9 +234,9 @@ export default {
   },
   async mounted() {
     if (!this.walletIsLock) {
-      const balance = await getAvailableBalanceForL1();
+      const balance = await this.getAvailableBalance();
       if (BigNumber.isBigNumber(balance)) {
-        this.availableBalanceForL1 = formatEther(balance)
+        this.availableBalance = formatEther(balance);
       }
     }
     this.$eventBus.$on('resetStatus', this.handleWatchResetStatus);
