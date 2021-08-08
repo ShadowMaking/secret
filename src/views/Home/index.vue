@@ -36,6 +36,8 @@ import {
   arbRPC
 } from '@/utils/global';
 
+import { getAvailableBalanceForL2 } from '@/utils/walletBridge';
+
 const { parseEther } = utils;
 
 
@@ -55,7 +57,7 @@ export default {
       popupVisible: false,
       installWalletModal: false,
       exchangeListData: [],
-      balance: '0'
+      balance: '0.0'
     }
   },
   computed: {
@@ -72,7 +74,7 @@ export default {
   watch: {
     '$store.state.metamask.walletIsLock': function (res) {
       if (!this.walletIsLock) {
-        this.$eventBus.$emit('updateAvailableBanlance');
+        this.$eventBus.$emit('updateAvailableBanlanceForL2');
       }
     }
   },
@@ -127,21 +129,19 @@ export default {
         this.installWalletModal = true;
       }
     },
-    async updateAvailableBanlance (balanceObj) {
+    async updateAvailableBanlanceForL2 (balanceObj) {
       let balanceForL2 = this.balance;
       if (balanceObj) {
         balanceForL2 = balanceObj.balance;
-      } else {
-        const addressForL2 = address.arbTokenBridge;
-        balanceForL2 = await getAvailableBalanceByAddress(addressForL2, this);  // 获得L2的资产
-        // balanceForL2 = await getAvailableBalanceByAddressFromProvider(addressForL2, this);  // 获得L2的资产
+      } else { 
+        balanceForL2 = await getAvailableBalanceForL2(); // 获得L2的资产
       }
       this.balance = utils.formatEther(balanceForL2)
     },
   },
   async mounted() {
-    const balance = await this.updateAvailableBanlance();
-    this.$eventBus.$on('updateAvailableBanlance', this.updateAvailableBanlance);
+    const balance = await this.updateAvailableBanlanceForL2();
+    this.$eventBus.$on('updateAvailableBanlanceForL2', this.updateAvailableBanlanceForL2);
   },
   
 };

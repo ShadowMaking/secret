@@ -1,10 +1,9 @@
 <template>
   <van-popup v-model="show" class="status-popUp flex flex-center flex-column">
-    <i class="icon icon-success"></i>
     <i :class="['icon', {'icon-success':status==='success','icon-failed':status!=='success'}]"></i>
     <span class="main-txt">{{ title }}</span>
-    <span class="supplement-txt">{{ timeTxt }}</span>
-    <span class="supplement-txt">{{ tip }}</span>
+    <span class="supplement-txt" v-show="status==='success'">{{ timeTxt }}</span>
+    <span class="supplement-txt" v-show="status==='success'">{{ tip }}</span>
     <van-button block color="#495ABF" class="button" @click="submitOk">确认</van-button>
   </van-popup>
 </template>

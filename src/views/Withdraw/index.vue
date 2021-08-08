@@ -38,9 +38,13 @@
       tip="请在链上钱包中查看到账情况"
       :show="showStatusPop"
       @childEvent="changeVisible" />
-    <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+    <!-- <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
       <div>交易正在进行</div>
       <div>请耐心等待<van-count-down :time="time" /></div>
+    </van-popup> -->
+    <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+      <div>交易正在进行</div>
+      <div>请耐心等待</div>
     </van-popup>
   </div>
 </template>
@@ -52,6 +56,10 @@ import ExchangeList from '@/components/ExchangeList';
 import StatusPop from '@/components/StatusPop';
 import { wait, prettyLog } from '@/utils/index'
 import { getDefaultAddress } from '@/utils/auth'
+
+import {
+  rpcProvider, walletForRPC, bridgeAboutWalletForRPC,
+  getAvailableBalanceForL1,getAvailableBalanceForL2, } from '@/utils/walletBridge'
 
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
 import { Bridge } from 'arb-ts';
@@ -98,6 +106,15 @@ export default {
     defaultAddress() {
       return this.$store.state.metamask.accountsArr[0] || ''
     },
+    provider() {
+      return rpcProvider()
+    },
+    wallet() {
+      return walletForRPC()
+    },
+    bridge() {
+      return bridgeAboutWalletForRPC()
+    },
   },
   watch: {
     walletIsLock(newValue, oldValue) {
@@ -118,57 +135,40 @@ export default {
       this.tokenAmountButtonTxtCode = 1
     },
     async submitWithdraw(info) {
-      this.showStatusPop = false;
-      const accountAddress = this.defaultAddress;           // 0x81183C9C61bdf79DB7330BBcda47Be30c0a85064
-      const arbTokenBridgeAddress = address.arbTokenBridge; // 0x2EEBB8EE9c377caBC476654ca4aba016ECA1B9fc
-      // 转换充值金额
-      const ethFromL2WithdrawAmount = parseEther(info.amount);
-      if (!utils.isAddress(accountAddress)) {
-        Toast.fail(`账户地址有误,无法进行交易`);
+      const { ethProvider } = this.provider;
+      const bridge = this.bridge;
+      const inbox = await bridge.l1Bridge.getInbox();  // 这个inbox (address)的作用？
+      const inboxAddress = inbox.address;
+      if (!utils.isAddress(inboxAddress)) {
+        Toast.fail(`账户地址有误，无法进行交易`);
         return;
       }
-      // 交易对象
-      const params= [{
-        from: accountAddress,
-        to: arbTokenBridgeAddress,
-        // gas: '0x76c0',              // 30400
-        // gasPrice: '0x9184e72a000',  // 10000000000000
-        // value: '0x9184e72a',     // 2441406250
-        gas: '0',  // wei
-        gasPrice: '10', // wei
-        value: ethFromL2WithdrawAmount.toHexString(), // wei
-        // data:'0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675',
-      }];
-      let transactionStatus = false;
-      let errorTxt = '未知错误';
-      await ethereum.request({
-        method: 'eth_sendTransaction',
-        params,
-      })
-      .then((result) => {
-        transactionStatus = true;
-      })
-      .catch((error) => {
-        switch(error.code) {
-          case 4001:
-            errorTxt = '交易已取消'
-            break;
-          default:
-            errorTxt = '未知错误'
-            break;
-        }
-        console.log('transaction-error', error)
-      });
-      if (!transactionStatus) {
-        Toast.fail(`${errorTxt}`);
-        return
-      }
-      await wait();
+
+      // 转换充值金额
+      const ethFromL2WithdrawAmount = parseEther(info.amount);
+      // const withdrawEthRes = await testBridge.withdrawETH(ethFromL2WithdrawAmount)
+      // const withdrawEthRec = await withdrawEthRes.wait()
+
       this.show = true;
-      prettyLog('交易正在进行，请耐心等待10s....')
-      await wait(10000);
-      this.show = false;
-      this.$router.push({ name: 'Home' });
+      bridge.withdrawETH(ethFromL2WithdrawAmount)
+      .then(async res=>{
+        // Toast.fail(`交易已取消`);
+        const walletL1EthBalance = await getAvailableBalanceForL1()
+        const walletL2EthBalance = await getAvailableBalanceForL2()
+        console.log('交易进行完成后获取L1和L2余额', walletL1EthBalance.toString(), walletL2EthBalance.toString())
+        await wait()
+        // this.showStatusPop = true;
+        prettyLog('交易正在进行，请耐心等待10s....')
+        await wait(10000);
+        this.show = false;
+        // this.showStatusPop = false;
+        this.$router.push({ name: 'Home' });
+      })
+      .catch(error => {
+        Toast.fail(`未知错误`);
+        // this.showStatusPop = true;
+        console.log(error)
+      })
     }
   },
   mounted() {

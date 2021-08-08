@@ -15,6 +15,9 @@ import { DEFAULTIMG, address } from '@/utils/global';
 import WalletStatus from '@/components/WalletStatus';
 import { getAvailableBalanceByAddress } from '@/utils/auth';
 import { utils } from 'ethers';
+import {
+  rpcProvider, walletForRPC, bridgeAboutWalletForRPC,
+  getAvailableBalanceForL2, } from '@/utils/walletBridge'
 
 Vue.component(Button.name, Button)
 
@@ -40,6 +43,15 @@ export default {
     },
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
+    },
+    provider() {
+      return rpcProvider()
+    },
+    wallet() {
+      return walletForRPC()
+    },
+    bridge() {
+      return bridgeAboutWalletForRPC()
     },
   },
   methods: {
@@ -71,11 +83,19 @@ export default {
           signRes!==undefined && (_isLock = false) 
           await this.$store.dispatch('WalletLockStatus', {isLock:_isLock});
           
-          const addressForL2 = address.arbTokenBridge;
-          const balanceForL2 = await getAvailableBalanceByAddress(addressForL2, this);  // 获得L2的资产
+          // const addressForL2 = address.arbTokenBridge;
+          // const balanceForL2 = await getAvailableBalanceByAddress(addressForL2, this);  // 获得L2的资产
+
+          let balanceForL2 = await getAvailableBalanceForL2();
+          if (this.ethers.BigNumber.isBigNumber(balanceForL2)) {
+            balanceForL2 = balanceForL2.toString()
+          } else {
+            balanceForL2 = 0;
+          }
+          
           this.walletIsLock = _isLock;
           this.$eventBus.$emit('updateAddress', {address: signAdress});
-          this.$eventBus.$emit('updateAvailableBanlance', {balance: balanceForL2});
+          this.$eventBus.$emit('updateAvailableBanlanceForL2', {balance: balanceForL2});
         }
       } else {
         this.installWalletModal = true;
