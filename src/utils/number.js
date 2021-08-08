@@ -14,3 +14,7 @@ export const lteZero = (num, containZero=true) => {
 export const isZero = (num) => {
   return new Big(num).eq(new Big(0))
 }
+
+export const createBigNumber = (num=0) => {
+  return new Big(num);
+}

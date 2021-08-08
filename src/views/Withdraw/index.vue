@@ -134,9 +134,9 @@ export default {
         // gas: '0x76c0',              // 30400
         // gasPrice: '0x9184e72a000',  // 10000000000000
         // value: '0x9184e72a',     // 2441406250
-        gas: '0',
-        gasPrice: '1',
-        value: ethFromL2WithdrawAmount.toHexString(),
+        gas: '0',  // wei
+        gasPrice: '10', // wei
+        value: ethFromL2WithdrawAmount.toHexString(), // wei
         // data:'0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675',
       }];
       let transactionStatus = false;

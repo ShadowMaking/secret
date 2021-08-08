@@ -24,9 +24,7 @@
             </div>
             <div class="recharge-address-wrapper">
               <h3>充币地址</h3>
-              <div class="address">
-                lkkdkjkdfjkdfjkdjfiejijriejckdcdncjdn
-              </div>
+              <div class="address">{{ defaultAddress }}</div>
               <van-button color="#ECEEF8" class="copy-address">
                 <span slots="default" style="color:#495ABE">复制地址</span>
               </van-button>
