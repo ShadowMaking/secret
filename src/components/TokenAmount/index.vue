@@ -219,7 +219,6 @@ export default {
       }
       const availableBalance = await this.getAvailableBalanceByToken();
       const formatAmount = utils.parseEther(tokenAmount);
-      console.log('availableBalance', availableBalance, formatAmount.toString())
       const _minus  = minus(availableBalance, formatAmount.toString())
       if (lteZero(_minus, false)) {
         this.buttonTxt = '余额不足';
@@ -230,6 +229,7 @@ export default {
         this.buttonColor = '#495ABE';
         this.buttonDisabled = false;
       }
+      console.log(`ETH余额-${availableBalance}；输入余额换成ETH为-${formatAmount.toString()}`)
     },
   },
   async mounted() {

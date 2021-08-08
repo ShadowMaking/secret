@@ -95,6 +95,9 @@ export default {
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
     },
+    defaultAddress() {
+      return this.$store.state.metamask.accountsArr[0] || ''
+    },
   },
   watch: {
     walletIsLock(newValue, oldValue) {
@@ -131,7 +134,9 @@ export default {
         // gas: '0x76c0',              // 30400
         // gasPrice: '0x9184e72a000',  // 10000000000000
         // value: '0x9184e72a',     // 2441406250
-        value: ethFromL2WithdrawAmount.toString(),
+        gas: '0',
+        gasPrice: '1',
+        value: ethFromL2WithdrawAmount.toHexString(),
         // data:'0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675',
       }];
       let transactionStatus = false;

@@ -104,7 +104,6 @@ export default {
   },
   methods: {
     async submitRecharge(info) {
-      debugger
       const accountAddress = this.defaultAddress; // 0x81183C9C61bdf79DB7330BBcda47Be30c0a85064
       const ethERC20BridgeAddress = address.ethERC20Bridge; // 0x9B0bbB332c01F3c81C1Bdd6AbB17649528f198D2
       // 转换充值金额
@@ -122,8 +121,7 @@ export default {
         // gasPrice: '0x9184e72a000',  // 10000000000000
         gas: '0',       // 30400
         gasPrice: '1',  // 10000000000000
-        // value: ethToL2DepositAmount.toString(),
-        value: info.amount,
+        value: ethToL2DepositAmount.toHexString(),  // 注意单位 此处ethToL2DepositAmount.toString()就不对！！！
         // data:'0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675',
       }];
       
