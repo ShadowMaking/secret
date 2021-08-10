@@ -102,6 +102,9 @@ export default {
     refresh() {
 
     },
+    handleWatchResetStatus() {
+      this.balance = '0.0'
+    },
     async unlockWallet() {
       if (this.metamaskInstall) {
         const message = `
@@ -147,6 +150,7 @@ export default {
       await this.updateAvailableBanlanceForL2();
     }
     this.$eventBus.$on('updateAvailableBanlanceForL2', this.updateAvailableBanlanceForL2);
+    this.$eventBus.$on('resetStatus', this.handleWatchResetStatus);
   },
   
 };
