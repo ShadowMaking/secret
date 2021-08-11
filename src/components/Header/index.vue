@@ -80,6 +80,10 @@ export default {
         this.installWalletModal = true;
       } else {
         await ethereum.request({ method: 'eth_requestAccounts' });
+        await ethereum.request({
+          method: 'wallet_requestPermissions',
+          params:  [{ "eth_accounts": {} }]
+        });
         const accounts = await this.web3.eth.getAccounts();
         const balance = await this.web3.eth.getBalance(accounts[0])
         
@@ -90,6 +94,7 @@ export default {
           Only sign this message for a trusted client!
         `;
         const signAdress = accounts[0];
+        
         const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), signAdress);
         // when signRes has value declare sign sucess
         let _isLock = true;

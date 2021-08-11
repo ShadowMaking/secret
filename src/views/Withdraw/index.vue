@@ -10,9 +10,25 @@
     </van-row>
     <div class="withdraw-opt-area">
       <div class="flex flex-center address-wrapper">
-        <textarea placeholder="请输入提现地址" class="address-textarea"></textarea>
+        <div class="address-wrapper-inner">
+          <van-field
+            v-model="withDrawAddress"
+            rows="2"
+            autosize
+            label=""
+            type="textarea"
+            :disabled="walletIsLock"
+            placeholder="请输入提现地址"
+            @input="handleAddressInputChange"
+          />
+        </div>
       </div>
-      <v-tokenAmount key="tokenAmount-withdraw" type="withdraw" @childEvent="submitWithdraw"/>
+      <v-tokenAmount
+        key="tokenAmount-withdraw"
+        type="withdraw"
+        @childEvent="submitWithdraw"
+        :buttonCode="tokenAmountButtonTxtCode"
+        :buttonTxt="tokenAmountButtonTxt" />
     </div>
     <v-exchangeList key="comon-exchangeList" type="withdraw" v-show="!walletIsLock"/>
     <v-statusPop
@@ -22,22 +38,42 @@
       tip="请在链上钱包中查看到账情况"
       :show="showStatusPop"
       @childEvent="changeVisible" />
+    <!-- <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+      <div>交易正在进行</div>
+      <div>请耐心等待<van-count-down :time="time" /></div>
+    </van-popup> -->
+    <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+      <div>交易正在进行</div>
+      <div>请耐心等待</div>
+    </van-popup>
   </div>
 </template>
 <script>
+import Vue from 'vue';
+import { Popup, CountDown, Field, Toast } from 'vant';
 import TokenAmount from '@/components/TokenAmount';
 import ExchangeList from '@/components/ExchangeList';
 import StatusPop from '@/components/StatusPop';
+import { wait, prettyLog } from '@/utils/index'
+import { getDefaultAddress } from '@/utils/auth'
+
+import {
+  rpcProvider, walletForRPC, bridgeAboutWalletForRPC,
+  getAvailableBalanceForL1,getAvailableBalanceForL2, } from '@/utils/walletBridge'
 
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
 import { Bridge } from 'arb-ts';
 import {
-  // DEFAULTIMG,
   address,
   DEVNET_PRIVKEY,
   ethRPC,
   arbRPC
 } from '@/utils/global';
+
+Vue.use(Popup);
+Vue.use(CountDown);
+Vue.use(Field);
+Vue.use(Toast);
 
 const { parseEther } = utils;
 
@@ -51,9 +87,15 @@ export default {
   data() {
     return {
       popStatus: 'sucess',
-      showStatusPop: false
+      showStatusPop: false,
+      show: false,
+      time: 10 * 1000,
+      tokenAmountButtonTxtCode: 1,
+      tokenAmountButtonTxt: '请输入金额',
+      withDrawAddress: getDefaultAddress(this.$store),
     }
   },
+  
   computed: {
     walletIsLock() {
       return this.$store.state.metamask.walletIsLock;
@@ -61,62 +103,72 @@ export default {
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
     },
+    defaultAddress() {
+      return this.$store.state.metamask.accountsArr[0] || ''
+    },
+    provider() {
+      return rpcProvider()
+    },
+    wallet() {
+      return walletForRPC()
+    },
+    bridge() {
+      return bridgeAboutWalletForRPC()
+    },
+  },
+  watch: {
+    walletIsLock(newValue, oldValue) {
+      !newValue && (this.withDrawAddress = getDefaultAddress(this.$store));
+    },
   },
   methods: {
     setMyAddress() { },
     changeVisible() {},
-    wait(ms) {
-      return new Promise(res => setTimeout(res, ms || this.defaultWait))
-    },
-    prettyLog(text) {
-      // console.log(chalk.blue(`    *** ${text}`))
-      console.log(`%c------------- ${text} ------------- \n`, 'background: #333; color: #8dc63f');
-      console.log()
+    handleAddressInputChange(value) {
+      this.withDrawAddress = value;
+      if (!utils.isAddress(value)) {
+        this.tokenAmountButtonTxt = '地址无效'
+        this.tokenAmountButtonTxtCode = 2
+        return;
+      }
+      this.tokenAmountButtonTxt = '请输入金额'
+      this.tokenAmountButtonTxtCode = 1
     },
     async submitWithdraw(info) {
-      this.showStatusPop = false;
-      // ------------------------ 公用数据 ------------------------------//
+      this.show = true;
+      const { ethProvider } = this.provider;
+      const bridge = this.bridge;
+      const inbox = await bridge.l1Bridge.getInbox();  // 这个inbox (address)的作用？
+      const inboxAddress = inbox.address;
+      if (!utils.isAddress(inboxAddress)) {
+        Toast.fail(`账户地址有误，无法进行交易`);
+        return;
+      }
 
-      const ethProvider = new providers.JsonRpcProvider(ethRPC)
-      const arbProvider = new providers.JsonRpcProvider(arbRPC)
+      // 转换充值金额
+      const ethFromL2WithdrawAmount = parseEther(info.amount);
+      // const withdrawEthRes = await testBridge.withdrawETH(ethFromL2WithdrawAmount)
+      // const withdrawEthRec = await withdrawEthRes.wait()
 
-      // const ethFromL2WithdrawAmount = parseEther('0.00001')
-      const ethFromL2WithdrawAmount = parseEther(info.amount)
-      
-      const l1TestWallet= new Wallet(DEVNET_PRIVKEY, ethProvider)
-      const l2TestWallet = new Wallet(DEVNET_PRIVKEY, arbProvider)
-      const testBridge = new Bridge(
-        address.ethERC20Bridge,
-        address.arbTokenBridge,
-        l1TestWallet,
-        l2TestWallet
-      )
-
-      // const preFundedSignerPK = process.env['DEVNET_PRIVKEY']
-      const preFundedSignerPK = DEVNET_PRIVKEY;
-      if (!preFundedSignerPK) throw new Error('Missing l2 priv key')
-      const preFundedWallet = new Wallet(preFundedSignerPK, ethProvider)
-
-      // ------------------------ 公用数据 ------------------------------//
-
-      const withdrawEthRes = await testBridge.withdrawETH(ethFromL2WithdrawAmount)
-      const withdrawEthRec = await withdrawEthRes.wait()
-
-      // expect(withdrawEthRec.status).to.equal(1)
-      const withdrawEventData = (
-        await testBridge.getWithdrawalsInL2Transaction(withdrawEthRec)
-      )[0]
-      // expect(withdrawEventData).to.exist
-
-      await this.wait();
-      const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
-      const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
-      console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString())
-
-      this.prettyLog('交易正在进行，请耐心等待10s....')
-      await this.wait(10000);
-    
-      this.$router.push({ name: 'Home' })
+      bridge.withdrawETH(ethFromL2WithdrawAmount)
+      .then(async res=>{
+        // Toast.fail(`交易已取消`);
+        const walletL1EthBalance = await getAvailableBalanceForL1()
+        const walletL2EthBalance = await getAvailableBalanceForL2()
+        console.log('交易进行完成后获取L1和L2余额', walletL1EthBalance.toString(), walletL2EthBalance.toString())
+        await wait()
+        // this.showStatusPop = true;
+        prettyLog('交易正在进行，请耐心等待10s....')
+        await wait(10000);
+        this.show = false;
+        // this.showStatusPop = false;
+        this.$router.push({ name: 'Home' });
+      })
+      .catch(error => {
+        Toast.fail(`未知错误`);
+        // this.showStatusPop = true;
+        console.log(error)
+      })
     }
   },
   mounted() {

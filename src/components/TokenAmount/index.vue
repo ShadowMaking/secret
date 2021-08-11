@@ -10,7 +10,7 @@
             <span slots="default" style="color:#495ABE">最大值</span>
           </van-button>
         </div>
-        <span>可用：{{ availableBanlance }} ETH</span>
+        <span>可用：{{ availableBalance }} ETH</span>
       </van-col>
       <van-col span="12" style="text-align:right">
         <div class="flex flex-column">
@@ -20,7 +20,8 @@
             label=""
             placeholder="0.0"
             class="recharge-amount-input"
-            :disabled="this.walletIsLock" />
+            :disabled="this.walletIsLock"
+            @input="handleInputTokenAmountChange" />
           <span>{{typeTxt}}金额</span>
         </div>
       </van-col>
@@ -30,9 +31,22 @@
       <span class="tip"><i class="info_icon"></i>到账金额：3.678766 ZKS</span>
     </div>
     <!-- 请输入金额|金额过低|确定（color：#495ABE  #A4ACDF） -->
-    <van-button type="primary" block color="#495ABE" class="opt-button" @click="submitTranction" v-show="!walletIsLock">请输入金额</van-button>
-    <v-unlockwallet :show="showUnlockWalletButton" :showLockIcon="false" key="unlockWalletButton"  v-show="walletIsLock"/>
-    <van-popup v-model="showTokenSelect" round closeable position="bottom" :style="{ minHeight: '30%' }">
+    <van-button
+      type="primary"
+      block
+      :color="buttonColor"
+      class="opt-button"
+      @click="submitTranction"
+      :disabled="buttonDisabled"
+      v-show="!walletIsLock">
+      {{ dynamicButtonTxt }}
+    </van-button>
+    <v-unlockwallet
+      key="unlockWalletButton"
+      :show="showUnlockWalletButton"
+      :showLockIcon="false"
+      v-show="walletIsLock" />
+    <van-popup round closeable v-model="showTokenSelect" position="bottom" :style="{ minHeight: '30%' }">
       <div class="token-select-wrap">
         <div class="header"><h3>选择通证</h3></div>
         <div class="choose-token-list">
@@ -77,18 +91,10 @@
 import Vue from 'vue';
 import { Button, Col, Row, Field, Popup, Search } from 'vant';
 import UnlockWallet from '@/components/UnlockWallet';
-
+import { minus, lteZero, isZero } from '@/utils/number'
+import { getAvailableBalanceForL1, getAvailableBalanceForL2 } from '@/utils/walletBridge'
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
-import { Bridge } from 'arb-ts';
-import {
-  DEFAULTIMG,
-  address,
-  DEVNET_PRIVKEY,
-  ethRPC,
-  arbRPC
-} from '@/utils/global';
-
-const { parseEther } = utils;
+const { parseEther, formatEther } = utils;
 
 Vue.use(Button);
 Vue.use(Col);
@@ -99,19 +105,64 @@ Vue.use(Search);
 
 export default {
   name: "common-recharge-amount",
-  props: ['type'],  // recharge | transfer | withdraw
+  props: {
+    'type': String, // recharge | transfer | withdraw
+    'buttonCode': Number,
+    'buttonTxt': {
+      type: String,
+      default: '请输入金额'
+    },
+    'disabled': Boolean,
+  },
   components: {
     "v-unlockwallet": UnlockWallet,
   },
   data() {
     return {
-      number: '0.0001',
+      number: '',
       showTokenSelect: false,
       serchTokenValue: '',
-      availableBanlance: '0.005965'
+      availableBalance: '0.0',
+      buttonColor: '#A4ACDF',
+      buttonDisabled: true,
+    }
+  },
+  watch: {
+    buttonCode: {
+      handler(newV, oldV) {
+        let buttonColor = this.buttonColor;
+        let buttonDisabled = this.buttonDisabled;
+        switch(newV) {
+          case 1: // 1: '请输入金额'
+          case 2: // 2: '地址无效'
+          default:
+            buttonColor = 'A4ACDF'
+            buttonDisabled = true;
+            break;
+        }
+        this.buttonColor = buttonColor;
+        this.buttonDisabled = buttonDisabled;
+      },
+      deep: true,
+    },
+    dynamicButtonTxt: {
+      // 深度监听，可监听到对象、数组的变化
+      handler(newV, oldV) {
+        // console.log(newV, oldV)
+      },
+      deep: true,
+    },
+    '$store.state.metamask.walletIsLock': async function (res) {
+      if (!this.walletIsLock) {
+        const balance = await this.getAvailableBalance()
+        this.availableBalance = balance && (formatEther(balance)) || 0;
+      }
     }
   },
   computed: {
+    dynamicButtonTxt() {
+      return this.buttonTxt;
+    },
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
     },
@@ -127,14 +178,6 @@ export default {
     },
   },
   methods: {
-    wait(ms) {
-      return new Promise(res => setTimeout(res, ms || this.defaultWait))
-    },
-    prettyLog(text) {
-      // console.log(chalk.blue(`    *** ${text}`))
-      console.log(`%c------------- ${text} ------------- \n`, 'background: #333; color: #8dc63f');
-      console.log()
-    },
     choseToken() {
       if (this.walletIsLock) { return }
       this.showTokenSelect = true
@@ -142,64 +185,61 @@ export default {
     submitTranction() {
       this.$emit('childEvent',{amount: this.number});
     },
+    handleWatchResetStatus() {
+      this.number = '';
+      this.availableBalance = '0.0';
+      this.buttonColor = '#A4ACDF';
+      this.buttonDisabled = true;
+    },
+    async getAvailableBalance() {
+      const type = this.type
+      let balance;
+      switch(type) {
+        case 'recharge':
+          balance = await getAvailableBalanceForL1();
+          break;
+        case 'withdraw':
+          balance = await getAvailableBalanceForL2();
+          break;
+        case 'transfer':
+          break;
+      }
+      return balance;
+    },
+    async handleInputTokenAmountChange(tokenAmount) {
+      if (!tokenAmount || isZero(tokenAmount)) {
+        this.buttonTxt = '请输入金额';
+        this.buttonColor = '#A4ACDF';
+        this.buttonDisabled = true;
+        return;
+      }
+      let availableBalance = this.availableBalance;
+      if (!availableBalance) {
+        let _availableBalance = await this.getAvailableBalance();
+        availableBalance = formatEther(_availableBalance);
+      }
+      const formatAmount = parseEther(tokenAmount);
+      const _minus  = minus(parseEther(availableBalance).toString(), formatAmount.toString())
+      if (lteZero(_minus, false)) {
+        this.buttonTxt = '余额不足';
+        this.buttonColor = '#A4ACDF';
+        this.buttonDisabled = true;
+      } else {
+        this.buttonTxt = '确定';
+        this.buttonColor = '#495ABE';
+        this.buttonDisabled = false;
+      }
+      console.log(`ETH余额-${availableBalance}；输入余额换成ETH为-${formatEther(formatAmount)}`)
+    },
   },
   async mounted() {
-    // ------------------------ 公用数据 ------------------------------//
-
-      const ethProvider = new providers.JsonRpcProvider(ethRPC)
-      const arbProvider = new providers.JsonRpcProvider(arbRPC)
-
-      const ethToL2DepositAmount = parseEther('0.0001')
-      const ethFromL2WithdrawAmount = parseEther('0.00001')
-      
-      const testPk = DEVNET_PRIVKEY;
-
-      const l1TestWallet= new Wallet(testPk, ethProvider)
-      const l2TestWallet = new Wallet(testPk, arbProvider)
-      
-      console.log(address.ethERC20Bridge)
-      console.log(address.arbTokenBridge)
-
-      const testBridge = new Bridge(
-        address.ethERC20Bridge,
-        address.arbTokenBridge,
-        l1TestWallet,
-        l2TestWallet
-      )
-
-      // const preFundedSignerPK = process.env['DEVNET_PRIVKEY']
-      const preFundedSignerPK = testPk;
-      if (!preFundedSignerPK) throw new Error('Missing l2 priv key')
-      const preFundedWallet = new Wallet(preFundedSignerPK, ethProvider)
-
-      // ------------------------ 公用数据 ------------------------------//
-
-      // 判断账户是否有余额
-      // const accounts = await ethers.getSigners();
-      // accounts.forEach(function(acc,index){
-      //   console.log(index, acc.address)
-      // })
-
-      const balance = await preFundedWallet.getBalance()
-      const depositAmount = '0.01';
-      const hasBalance = balance.gt(utils.parseEther(depositAmount))
-
-      if (!hasBalance) {
-        this.prettyLog(
-          `${preFundedWallet.address} 
-          not pre-funded; set a funded wallet via env-var DEVNET_PRIVKEY. exiting.`)
-        return
+    if (!this.walletIsLock) {
+      const balance = await this.getAvailableBalance();
+      if (BigNumber.isBigNumber(balance)) {
+        this.availableBalance = formatEther(balance);
       }
-
-      this.prettyLog('Using preFundedWallet: ' + preFundedWallet.address);
-      this.prettyLog('Randomly generated test wallet: ' + l1TestWallet.address);
-
-
-      const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
-      const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
-      console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString()) 
-
-      this.availableBanlance = utils.formatEther(testWalletL1EthBalance);
+    }
+    this.$eventBus.$on('resetStatus', this.handleWatchResetStatus);
   }
 }
 </script>

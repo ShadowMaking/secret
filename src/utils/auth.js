@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie';
 import { DOMAIN } from '@/utils/global';
+import { utils} from 'ethers'
 
 export const getCookie = (key) => {
   return Cookies.get(key) || Cookies.get(key, {
@@ -47,4 +48,20 @@ export async function connectMetamask () {
   const { installStatus } = awaitFun
   installStatus && awaitFun.ethereum.enable();
 }
+
+// 获取默认账户地址，
+export const getDefaultAddress = (store) => {
+  return store.state.metamask.accountsArr[0] || ''
+}
+
+// 根据address获取可用余额
+export async function getAvailableBalanceByAddress (address, self) {
+  // 其解析值为指定账户地址的余额字符串，以wei为单位
+  const balance = await self.web3.eth.getBalance(address);
+  return balance || 0;
+}
+export async function getAvailableBalanceByAddressFromProvider (address, self) {
+  
+}
+
 
