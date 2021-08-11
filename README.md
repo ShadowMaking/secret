@@ -22,3 +22,11 @@ npm run build
 npm run lint
 ```
 
+
+## Deploy
+
+```
+docker build -t secret:v1 . 
+docker run -p 8090:80 -d --name secret secret:v1 
+```
+then access `http://$IP:8090` on your browser
