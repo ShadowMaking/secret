@@ -6,6 +6,7 @@ import Transfer from '../views/Transfer/index';
 import Withdraw from '../views/Withdraw/index';
 // import Test from '../views/Test/Test1';
 import Test from '../views/Test/Transaction';
+import FirstIntoWallet from '../views/Wallet/FirstIntoWallet';
 
 
 Vue.use(VueRouter);
@@ -15,6 +16,11 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home,
+  },
+  {
+    path: '/walletguide',
+    name: 'FirstIntoWallet',
+    component: FirstIntoWallet,
   },
   {
     path: '/recharge',

@@ -60,8 +60,10 @@ const arbRPC = `http://${HOST_CLOUD}:8547`;
 const mnemonic = 'jar deny prosper gasp flush glass core corn alarm treat leg smart'; // 用户助记词
 
 // const DEVNET_PRIVKEY = '0x302e383630333233363431323935353034390000000000000000000000000000' // 私钥
-const DEVNET_PRIVKEY = '0xffb2b26161e081f0cdf9db67200ee0ce25499d5ee683180a9781e6cceb791c39' // 私钥
+// const DEVNET_PRIVKEY = '0xffb2b26161e081f0cdf9db67200ee0ce25499d5ee683180a9781e6cceb791c39' // 私钥 address = 0x81183C9C61bdf79DB7330BBcda47Be30c0a85064
+const DEVNET_PRIVKEY = '0xd26e62d7726062e735d6d130b3c624e97921eecc3bde9263b404121f6f0dccc4' // 私钥  address = 0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9
 
+const ACCOUNT_LIMIT = 1;  // 可创建钱包账户的最大值
 export {
   DEFAULTIMG,
   RECHAERGE_TIP,
@@ -73,4 +75,5 @@ export {
   ethRPC,
   arbRPC,
   DEVNET_PRIVKEY,
+  ACCOUNT_LIMIT,
 }

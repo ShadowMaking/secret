@@ -1,0 +1,118 @@
+// 创建密码
+.create-wallet-step1{
+  padding: rem(20) 0;
+}
+// 备份助记词
+.create-wallet-step2{
+  padding: rem(20) 0;
+  background-color: #fff;
+  .mb10{ margin-bottom: rem(10);}
+  .backup-tip{
+    .tip-icon{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .tip-info {
+      font-size: rem(14);
+      color: #9e9e9e;
+      padding: rem(10);
+      h4{
+        font-size: rem(15);
+        font-weight: bolder;
+        color: #333;
+      }
+      p{
+        padding-bottom: rem(10);
+        margin: rem(10) 0 rem(25);
+        border-bottom: rem(1) solid #ebedf0;
+      }
+      ul {
+        list-style: disc;
+        padding: 0 rem(20);
+      }
+    }
+  }
+  .backup-menonic {
+    .tip {
+      font-size: rem(14);
+      color: #9e9e9e;
+      padding: rem(10);
+    }
+    .menonic {
+      border: rem(1) solid #ccc;
+      border-radius: rem(5);
+      padding: rem(10);
+      margin: rem(20) 0;
+      ul {
+        display: flex;
+        li {
+          margin: rem(5);
+          
+        }
+      }
+    }
+    .tip-info-ul {
+      font-size: rem(14);
+      color: #9e9e9e;
+      list-style: disc;
+      padding: 0 rem(20);
+    }
+  }
+}
+// 助记词验证
+.create-wallet-step3{
+  .conform-menonic{
+    .tip {
+      font-size: rem(14);
+      color: #9e9e9e;
+      padding: rem(10);
+    }
+    .menonic-selected{
+      border-radius: rem(5);
+      border: rem(1) solid #ccc;
+      padding: rem(10);
+      min-height: rem(100);
+      margin: rem(10) 0;
+      ul {
+        display: flex;
+        li {
+          margin: rem(5);
+        }
+      }
+    }
+    .menonic-messy {
+      margin: rem(10) 0;
+      ul{
+        display: flex;
+        li{
+          margin: rem(5);
+        }
+      }
+    }
+  }
+}
+.create-wallet-step4 {
+  .icon-success{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: rem(20) 0;
+  }
+  .success-tip {
+    font-size: rem(15);
+    color: #333;
+    text-align: center;
+    margin: rem(10);
+    span{ display: block;}
+  }
+}
+
+.create-wallet-step1,
+.create-wallet-step2 {
+  .opt-wrapper {
+    margin: rem(60) 0 rem(30);
+  }
+}
+

@@ -3,7 +3,8 @@
     <a @click="before">获取余额等信息</a>
     <a @click="depositEth">depositEth</a>
     <a @click="withDrawEth">withDrawEth</a>
-    <a @click="result">结果</a>
+    <a @click="testResult">测试</a>
+    <a @click="provider">结果</a>
   </div>
 </template>
 
@@ -131,6 +132,32 @@ export default {
     },
     async result() {
       
+    },
+    async testResult() {
+      console.log('testResult');
+      const path = "m/44'/60'/0'/0/0";
+      const yy = await ethers.Wallet.fromMnemonic('jealous athlete kitchen what silly silk weapon casual tortoise hotel more surprise', path);
+      console.log(yy.address)
+    },
+    async provider() {
+      // 以metamask当前链接的network作为provider
+      const provider = new this.ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner()
+      console.log(provider, signer)
+      const balance = await signer.getBalance() // 获取当前provider下的账户余额。
+      console.log(utils.formatEther(balance.toString()))
+      signer.sendTransaction({
+        // "from": signer.getAddress(),
+        "value": utils.parseEther('0.0001'),
+        "to": '0xE68b0998d9Ff5009f18a57C89E3303a273f52BD1',
+        // "chainId": signer.getChainId(),// 45111017757781
+        "chainId": '45111017757781',// 45111017757781
+        "gasLimit": utils.parseEther('21000'),
+        // "maxFeePerGas": 0,
+        "gasPrice": 0,
+      }).then(res=>{
+        debugger
+      })
     },
   },
   async mounted() {

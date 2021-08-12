@@ -4,7 +4,8 @@
       <img :src="DEFAULTIMG.LOGO" slot="left" class="logo"/>
       <span slot="right" v-if="showAddress!==''" class="header-address">{{ showAddress }}</span>
       <div slot="right" v-else >
-        <a @click="chooseWallet" class="linkWallet">链接钱包</a>
+        <!-- <a @click="chooseWallet" class="linkWallet">链接钱包</a> -->
+        <a @click="myWallet" class="linkWallet">我的钱包</a>
         <i class="icon night"></i>
         <i class="icon language"></i>
       </div>
@@ -71,6 +72,10 @@ export default {
     chooseWallet() {
       this.popupVisible = true;
       this.installWalletModal = false;
+    },
+    myWallet() {
+      if (this.$route.name === 'FirstIntoWallet') { return ;}
+      this.$router.push({ name: 'FirstIntoWallet' });
     },
 
     // 解锁钱包，进行当前登录账户的授权签名

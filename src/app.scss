@@ -19,6 +19,7 @@ $footerHeight: 270px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
+  margin: 0 auto;
 
 }
 .main-page {
@@ -29,6 +30,13 @@ $footerHeight: 270px;
   min-height: calc(100vh - #{$headerHeight} - #{$footerHeight});
   padding-bottom: 50px;
   overflow: hidden;
+}
+
+@media screen and (min-width: 768px) {
+  #app {
+    width: rem(300);
+    border: rem(1) solid #eee;
+  }
 }
 
 $main-color: #5474CE;
@@ -203,5 +211,6 @@ a{
 .textTransparent { color: transparent!important; }
 .textAlignLeft { text-align: left;}
 .textAlignRight { text-align: right;}
+
 
 
