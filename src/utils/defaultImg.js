@@ -8,6 +8,7 @@
  import LOGO from '../assets/logo.png';                  // LOGO
  import LOCK from '../assets/home_lock_blck.png';        // LOCK
  import NONE_TATA from '../assets/none_data.png';        // LOCK
+ import ETH_LOGO from '../assets/eth_logo.svg';        // LOCK
 
  // test图片
  import TEST_QR from '../assets/test/test_1.jpg';
@@ -17,4 +18,5 @@
   LOCK,
   TEST_QR,
   NONE_TATA,
+  ETH_LOGO,
  }

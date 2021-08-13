@@ -63,17 +63,27 @@ const mnemonic = 'jar deny prosper gasp flush glass core corn alarm treat leg sm
 // const DEVNET_PRIVKEY = '0xffb2b26161e081f0cdf9db67200ee0ce25499d5ee683180a9781e6cceb791c39' // 私钥 address = 0x81183C9C61bdf79DB7330BBcda47Be30c0a85064
 const DEVNET_PRIVKEY = '0xd26e62d7726062e735d6d130b3c624e97921eecc3bde9263b404121f6f0dccc4' // 私钥  address = 0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9
 
+const DEFAULT_NETLIST = [
+  { key: 'ethereum', name: '以太坊Ethereum主网络', url: '', },
+  { key: 'ropsten', name: 'Ropsten测试网', url: '', },
+  { key: 'kavan', name: 'Kavan测试网', url: '', },
+  { key: 'rinkeby', name: 'Rinkeby测试网', url: '', },
+  { key: 'goerli', name: 'Goerli测试网', url: '', },
+]
 const ACCOUNT_LIMIT = 1;  // 可创建钱包账户的最大值
+
 export {
   DEFAULTIMG,
   RECHAERGE_TIP,
   TRANSFER_TIP,
   dev_host,
   DOMAIN,
+  ACCOUNT_LIMIT,
+  DEFAULT_NETLIST,
 
   address,
   ethRPC,
   arbRPC,
   DEVNET_PRIVKEY,
-  ACCOUNT_LIMIT,
+  
 }

@@ -2,7 +2,7 @@
   <div style="width:100%">
     <mt-header title="" class="common-header">
       <img :src="DEFAULTIMG.LOGO" slot="left" class="logo"/>
-      <span slot="right" v-if="showAddress!==''" class="header-address">{{ showAddress }}</span>
+      <span slot="right" v-if="showAddress!==''" class="header-address" @click="toMyWallet">{{ showAddress }}</span>
       <div slot="right" v-else >
         <!-- <a @click="chooseWallet" class="linkWallet">链接钱包</a> -->
         <a @click="myWallet" class="linkWallet">我的钱包</a>
@@ -72,6 +72,10 @@ export default {
     chooseWallet() {
       this.popupVisible = true;
       this.installWalletModal = false;
+    },
+    toMyWallet() {
+      if (this.$route.name === 'MyWallet') { return ;}
+      this.$router.push({ name: 'MyWallet' });
     },
     myWallet() {
       if (this.$route.name === 'FirstIntoWallet') { return ;}

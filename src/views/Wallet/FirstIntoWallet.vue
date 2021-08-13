@@ -54,7 +54,7 @@
                 label=""
                 type="textarea"
                 placeholder="请输入助记词，英文逗号分隔"
-                @input="handleAddressInputChange"
+                @input="handleInputChange"
               />
             </div>
             <van-form @submit="onSubmit">
@@ -183,6 +183,10 @@ export default {
     menonicConfirmCallback() {
       this.activeStepForPsw = 3; // 成功提示
     },
+    handleInputChange(value) {
+      console.log(value)
+    },
+    onSubmit() {},
   },
 }
 </script>

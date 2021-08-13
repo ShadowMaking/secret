@@ -7,6 +7,8 @@ import Withdraw from '../views/Withdraw/index';
 // import Test from '../views/Test/Test1';
 import Test from '../views/Test/Transaction';
 import FirstIntoWallet from '../views/Wallet/FirstIntoWallet';
+import MyWallet from '../views/Wallet/MyWallet';
+import SetNet from '../views/Wallet/SetNet';
 
 
 Vue.use(VueRouter);
@@ -21,6 +23,16 @@ const routes = [
     path: '/walletguide',
     name: 'FirstIntoWallet',
     component: FirstIntoWallet,
+  },
+  {
+    path: '/myWallet',
+    name: 'MyWallet',
+    component: MyWallet,
+  },
+  {
+    path: '/setNet',
+    name: 'SetNet',
+    component: SetNet,
   },
   {
     path: '/recharge',
