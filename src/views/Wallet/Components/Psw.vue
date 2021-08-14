@@ -22,10 +22,10 @@
 <script>
 import Vue from 'vue';
 import { Form, Field, Button, Toast } from 'vant';
-import { saveToStorage, getFromStorage } from '@/utils/storage';
+import { saveToStorage, getFromStorage, removeFromStorage } from '@/utils/storage';
 import { ACCOUNT_LIMIT } from '@/utils/global'
+import { removeWallet } from '@/utils/auth'
 import _ from 'lodash'
-
 
 Vue.use(Form);
 Vue.use(Field);
@@ -50,22 +50,31 @@ export default {
   },
   methods: {
     onSubmit(values) {
-      let accountList = [];
-      if (getFromStorage('walletAccount')) {
-        accountList = window.JSON.parse(getFromStorage('walletAccount'))
-        if (accountList.length === ACCOUNT_LIMIT) {
-          Toast(`当前账户数已达上限: ${ACCOUNT_LIMIT}`);
-          return
-        }
-      }
-      const index = this.getAccountIndex(accountList);
+      // 如果本地存储已有钱包则清除，并清除钱包相关的一且信息。包括账户
+      removeWallet();
+      const index = this.getAccountIndex([]);
       const accountInfo = {
         index,
         name: `Account${index}`,
         psw: values.psw
       }
-      saveToStorage({ 'walletAccount': window.JSON.stringify([].concat(accountList, accountInfo)) });
-      this.$emit('childEvent', accountInfo);
+
+      // 拿到随机生成的钱包信息
+      const wallet = this.ethers.Wallet.createRandom();
+      const { mnemonic, privateKey, publicKey, address} = wallet;
+      // 获取助记词
+      const mnemonicValues = mnemonic['phrase'];
+      console.log("钱包助记词：",mnemonicValues)
+      const walletInfo = {
+        address,
+        privateKey,
+      }
+      saveToStorage({ 'walletInfo': window.JSON.stringify(Object.assign({}, walletInfo)) });
+      saveToStorage({ 'walletAccount': window.JSON.stringify([].concat([{...accountInfo}])) });
+      this.$emit('childEvent', {
+        accountInfo,
+        walletInfo: Object.assign({}, { ...walletInfo, mnemonic: mnemonicValues })
+      });
     },
     getAccountIndex(list) {
       if (list.length===0) {

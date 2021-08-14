@@ -1,9 +1,3 @@
-<!--
- * @Author       : skyeGao
- * @Email        : yingyinggao@sohu-inc.com
- * @DateTime     : 2021-08-12 01:01:42
- * @Description  : Description
--->
 <template>
   <div class="first-wallet-page">
     <div class="page-top">
@@ -11,7 +5,7 @@
       <span>第一次使用钱包<i> EigenSecret ？</i></span>
     </div>
     <div class="create-wallet-type">
-      <van-tabs @click="oncheckCreateType" v-model="activeCreateWalletType">
+      <van-tabs @click="oncheckCreateType" v-model="activeCreateWalletType" animated>
         <van-tab name="password" title="创建钱包" class="inner-type-wrapper">
           <span class="tip">第一次使用钱包，为您创建钱包账户和助记词</span>
           <div class="type-create">
@@ -35,6 +29,7 @@
               <v-menonicConfirm
                 key="menonic-confirm"
                 v-show="activeStepForPsw===2"
+                :sourceData="mnemonicList"
                 @childEvent="menonicConfirmCallback" />
               <v-complete
                 key="menonic-confirm-complete"
@@ -42,13 +37,13 @@
             </div>
           </div>
         </van-tab>
-        <van-tab name="momenic" title="导入钱包" class="inner-type-wrapper">
+        <van-tab name="mnemonic" title="导入钱包" class="inner-type-wrapper">
           <!-- <span class="tip">已经有账户助记词，用来恢复钱包</span> -->
           <span class="tip">您需要输入已经有的账户助记词，用来恢复钱包</span>
           <div class="type-import">
             <div class="menonic-input">
               <van-field
-                v-model="menonic"
+                v-model="mnemonic"
                 rows="4"
                 autosize
                 label=""
@@ -78,7 +73,7 @@
                   native-type="submit"
                   block
                   color="#495ABE"
-                  :disabled="!psw||!repsw||!menonic"
+                  :disabled="!psw||!repsw||!mnemonic"
                   @click="handleImportWallet">导入钱包</van-button>
               </div>
             </van-form>
@@ -93,12 +88,30 @@
       tip=""
       :show="showStatusPop"
       @childEvent="handleImportComplete" />
+    <van-dialog
+      v-model="showWalletTip"
+      title="应用检测到您已有钱包账号"
+      confirm-button-text="导入钱包"
+      confirm-button-color="rgb(73, 90, 190)"
+      :show-cancel-button="true"
+      cancel-button-text="重新创建"
+      @confirm="handleConfirm"
+      @cancel="handleCancel"
+      get-container="#app">
+      <div slots="default" class="wallet-create-tip-content">
+        <div class="tip-txt">您可选择通助记词导入形式恢复钱包账号</div>
+        <div class="tip-txt">也可重新创建一个钱包账号。</div>
+        <div class="tipinfo">重新创建，已有账户等相关信息将被清空且无法恢复</div>
+      </div>
+    </van-dialog>
   </div>
 </template>
 <script>
 import Vue from 'vue';
-import { Icon, Tab, Tabs, Step, Steps, Field, Form } from 'vant';
+import { Icon, Tab, Tabs, Step, Steps, Field, Form, Dialog } from 'vant';
 import StatusPop from '@/components/StatusPop';
+import { saveToStorage, getFromStorage } from '@/utils/storage';
+import { removeWallet } from '@/utils/auth'
 import PSW from './Components/Psw'
 import MenonicBackup from './Components/MenonicBackup'
 import MenonicConfirm from './Components/MenonicConfirm'
@@ -111,6 +124,7 @@ Vue.use(Step);
 Vue.use(Steps);
 Vue.use(Field);
 Vue.use(Form);
+Vue.use(Dialog);
 
 export default {
   name: 'FirstIntoWallet',
@@ -123,9 +137,9 @@ export default {
   },
   data() {
     return {
-      activeCreateWalletType: 'password', // password | momenic
-      activeStepForPsw: 0, // 0-创建密码 1-助记词备份 2-助记词验证 3-创建完成
-      menonic: '',
+      activeCreateWalletType: 'password', // password | mnemonic
+      activeStepForPsw: 2, // 0-创建密码 1-助记词备份 2-助记词验证 3-创建完成
+      mnemonic: '',
       psw: '',
       repsw: '',
       ruleForPsw: [
@@ -138,9 +152,50 @@ export default {
         { required: true, validator: this.validatorRePsw, message: '两次密码不一致' },
       ],
       showStatusPop: false,
+      showWalletTip: false,
     }
   },
+  computed: {
+    mnemonicList() {
+      const list = this.mnemonic && this.mnemonic.split(' ') || []
+      // return this.mnemonic && this.mnemonic.split(' ')||[];
+      return 'message cream element broken shoulder alert input improve kick banner sing fork'.split(' ')
+    },
+  
+  },
+  /* beforeRouteEnter (to, from, next) {
+    // 在渲染该组件的对应路由被 confirm 前调用
+    // 不！能！获取组件实例 `this`
+    // 因为当守卫执行前，组件实例还没被创建
+  },
+  beforeRouteUpdate (to, from, next) {
+    // 在当前路由改变，但是该组件被复用时调用
+    // 举例来说，对于一个带有动态参数的路径 /foo/:id，在 /foo/1 和 /foo/2 之间跳转的时候，
+    // 由于会渲染同样的 Foo 组件，因此组件实例会被复用。而这个钩子就会在这个情况下被调用。
+    // 可以访问组件实例 `this`
+  },
+  beforeRouteLeave (to, from, next) {
+    // 导航离开该组件的对应路由时调用
+    // 可以访问组件实例 `this`
+  }, */
   methods: {
+    // 判断是否已经有钱包账户
+    checkWallet() {
+      let walletInfo = null;
+      if (getFromStorage('walletInfo')) {
+        walletInfo = window.JSON.parse(getFromStorage('walletInfo'))
+        this.showWalletTip = true
+      }
+    },
+    handleConfirm() {
+      this.showWalletTip = false
+      this.$router.replace({ name: 'FirstIntoWallet', query: { type: 'mnemonic' }})
+    },
+    handleCancel() {
+      removeWallet();
+      this.showWalletTip = false
+      this.$router.replace({ name: 'FirstIntoWallet', query: { type: 'psw' }})
+    },
     validatorPsw(val) {
       return val.length >= 1
     },
@@ -150,8 +205,13 @@ export default {
     goBack() {
       this.$router.push({ name: 'Home' });
     },
-    oncheckCreateType() {
+    oncheckCreateType(tabType) {
       this.activeStepForPsw = 0;
+      if (tabType === 'password') {
+        this.$router.replace({ name: 'FirstIntoWallet', query: { type: 'psw' }})
+      } else {
+        this.$router.replace({ name: 'FirstIntoWallet', query: { type: 'mnemonic' }})
+      }
     },
     // 导入钱包
     handleImportWallet() {
@@ -161,10 +221,11 @@ export default {
       this.$router.push({name:'Home'})
     },
     // 创建密码回调
-    walletPswCallback(accountInfo) {
-      console.log('accountInfo', accountInfo)
-      if (accountInfo) {
+    walletPswCallback({accountInfo, walletInfo}) {
+      console.log('accountInfo', accountInfo, walletInfo)
+      if (accountInfo || walletInfo) {
         this.activeStepForPsw = 1;
+        this.mnemonic = walletInfo['mnemonic']; // message cream element broken shoulder alert input improve kick banner sing fork
       }
     },
     // 立即备份回调
@@ -187,6 +248,11 @@ export default {
       console.log(value)
     },
     onSubmit() {},
+  },
+  created() {
+  },
+  mounted() {
+    this.checkWallet();
   },
 }
 </script>

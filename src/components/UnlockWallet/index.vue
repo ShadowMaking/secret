@@ -55,7 +55,8 @@ export default {
     },
   },
   methods: {
-    async unlockWallet() {
+    // 跟metamask联动效果的解锁
+    async unlockWallet_origin() {
       if (this.metamaskInstall) {
         const message = `
           Access Eigen account.
@@ -100,6 +101,9 @@ export default {
       } else {
         this.installWalletModal = true;
       }
+    },
+    unlockWallet() {
+      
     },
   },
   async mounted() { },

@@ -74,19 +74,23 @@
       padding: rem(10);
       min-height: rem(100);
       margin: rem(10) 0;
-      ul {
-        display: flex;
-        li {
-          margin: rem(5);
-        }
-      }
     }
+    .menonic-selected,
     .menonic-messy {
       margin: rem(10) 0;
       ul{
         display: flex;
+        flex-wrap: wrap;
         li{
           margin: rem(5);
+          .mnemonicItem{
+            padding: rem(6) rem(10);
+          }
+        }
+        li.disabled{
+          span{
+            background: #ededed;
+          }
         }
       }
     }
@@ -115,4 +119,3 @@
     margin: rem(60) 0 rem(30);
   }
 }
-

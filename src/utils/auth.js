@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie';
 import { DOMAIN } from '@/utils/global';
+import { saveToStorage, getFromStorage, removeFromStorage } from '@/utils/storage';
 import { utils} from 'ethers'
 
 export const getCookie = (key) => {
@@ -60,8 +61,14 @@ export async function getAvailableBalanceByAddress (address, self) {
   const balance = await self.web3.eth.getBalance(address);
   return balance || 0;
 }
-export async function getAvailableBalanceByAddressFromProvider (address, self) {
-  
+export async function getAvailableBalanceByAddressFromProvider (address, self) { }
+
+// 清除缓存中的钱包等相关信息
+export const removeWallet = () => {
+  if (getFromStorage('walletInfo')) {
+    removeFromStorage(['walletInfo', 'walletAccount']);
+  }
 }
+
 
 
