@@ -21,6 +21,7 @@ $footerHeight: 270px;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   margin: 0 auto;
+  font-size: rem(13);
 
 }
 .main-page {
@@ -35,7 +36,7 @@ $footerHeight: 270px;
 
 @media screen and (min-width: 768px) {
   #app {
-    width: rem(300);
+    width: rem(350);
     border: rem(1) solid #eee;
   }
 }

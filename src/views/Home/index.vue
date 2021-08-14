@@ -14,6 +14,7 @@
     </div>
     <v-unlockwallet :show="showUnlockWalletButton" key="unlockWalletButton" v-show="walletIsLock" />
     <v-exchangeList key="comon-exchangeList" type="all" v-show="!walletIsLock" />
+    <v-netPairingTip key="comon-netPairingTip" :show="showNetPairingTip" @childEvent="toPageSetNetPairing"/>
   </div>
 </template>
 
@@ -22,6 +23,7 @@ import Vue from 'vue';
 import { Button, Cell, Popup } from 'mint-ui';
 import ExchangeList from '@/components/ExchangeList';
 import UnlockWallet from '@/components/UnlockWallet';
+import NetPairingTipPop from '@/components/NetPairingTipPop';
 import {
   getAvailableBalanceByAddress,
   getAvailableBalanceByAddressFromProvider } from '@/utils/auth';
@@ -50,6 +52,7 @@ export default {
   components: {
     "v-exchangeList": ExchangeList,
     "v-unlockwallet": UnlockWallet,
+    "v-netPairingTip": NetPairingTipPop,
   },
   data() {
     return {
@@ -57,7 +60,8 @@ export default {
       popupVisible: false,
       installWalletModal: false,
       exchangeListData: [],
-      balance: '0.0'
+      balance: '0.0',
+      showNetPairingTip: false,
     }
   },
   computed: {
@@ -144,6 +148,10 @@ export default {
       }
       this.balance = utils.formatEther(balanceForL2)
     },
+    toPageSetNetPairing() {
+      this.showNetPairingTip = false;
+      this.$router.push({ name: 'pairingNet' })
+    }
   },
   async mounted() {
     if (!this.walletIsLock) {

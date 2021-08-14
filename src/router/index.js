@@ -9,6 +9,8 @@ import Test from '../views/Test/Transaction';
 import FirstIntoWallet from '../views/Wallet/FirstIntoWallet';
 import MyWallet from '../views/Wallet/MyWallet';
 import SetNet from '../views/Wallet/SetNet';
+import ImportAccount from '../views/Wallet/ImportAccount';
+import PairingNet from '../views/Wallet/PairingNet';
 
 
 Vue.use(VueRouter);
@@ -33,6 +35,16 @@ const routes = [
     path: '/setNet',
     name: 'SetNet',
     component: SetNet,
+  },
+  {
+    path: '/importAccount',
+    name: 'ImportAccount',
+    component: ImportAccount,
+  },
+  {
+    path: '/pairingNet',
+    name: 'PairingNet',
+    component: PairingNet,
   },
   {
     path: '/recharge',

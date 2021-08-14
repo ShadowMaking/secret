@@ -48,6 +48,7 @@
   }
 }
 
+
 .mywallet-page {
   font-size: rem(14);
   .top-header {
@@ -155,7 +156,8 @@
   }
 }
 
-.setnet-page{
+.setnet-page,
+.pairingnet-page{
   font-size: rem(14);
   padding: rem(10);
   .subtitle{
@@ -169,7 +171,8 @@
         display: block;
       }
       .field-item-input {
-        border: rem(1) solid #BBC0C5;
+        // border: rem(1) solid #BBC0C5;
+        border: rem(1) solid #ebedf0;
         border-radius: rem(6);
         margin: rem(5) 0;
         color: rgba(0, 0, 0, 0.87);
@@ -189,8 +192,62 @@
   }
 }
 
+.import-account-page {
+  .import-tip-info{
+    background: #f4f9fc;
+    padding: rem(20);
+  }
+  .importType-select{
+    line-height: rem(40);
+    ::v-deep input{
+      border: rem(1) solid #ebedf0;
+      border-radius: rem(5);
+      padding: 0 rem(5);
+    }
+  }
+  .content-for-private,
+  .content-for-json {
+    padding: rem(30) rem(13);
+    font-size: rem(14);
+    // color: #646566;
+    color: #4D4D4D;
+    .fieldName {
+      display: block;
+    }
+    .field-item-input {
+      // border: rem(1) solid #BBC0C5;
+      border: rem(1) solid #ebedf0;
+      border-radius: rem(6);
+      margin: rem(5) 0;
+      color: rgba(0, 0, 0, 0.87);
+      font-size: rem(15);
+    }
+  }
+  .content-for-json {
+    .upload-wrapper{
+      margin: rem(20) 0;
+      .tip-info {
+        display: block;
+        color: #646566;
+      }
+      button{
+        width: rem(100);
+      }
+    }
+  }
+  .opt-wrapper{
+    margin: rem(60) 0 rem(30);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    button{
+      margin: rem(10) auto;
+      width: 45%;
+    }
+  }
+}
 
-.networklist {
+.networklist-popover {
   color: #6a737d;
   font-size: rem(14);
   li {
@@ -229,3 +286,68 @@
     .net-status{ border: rem(1) solid #d6d9dc;background: transparent; }
   }
 }
+
+.account-popover{
+  font-size: rem(14);
+  color: #6a737d;
+  width: rem(300);
+  padding: rem(10);
+  // background: rgba(0, 0, 0, 0.8);
+  box-shadow: rgb(0 0 0 / 15%) 0 2px 2px 2px;
+  .account-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: rem(5) 0;
+    >span{
+      font-size: rem(15);
+      color: #000;
+    }
+    .lockbutton{
+      padding: rem(0) rem(20);
+    }
+  }
+  .accountlist {
+    max-height: rem(256);
+    overflow-y: auto;
+    font-size: rem(15);
+    li {
+      cursor: pointer;
+      margin: rem(5);
+      display: flex;
+      align-items: center;
+      padding: rem(8) rem(5);
+      .active-status-icon {
+        margin-right: rem(10);
+        visibility: hidden;
+      }
+      .account-text {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        span{
+          display: block;
+          margin-bottom: rem(5);
+        }
+      }
+    }
+    li.active{
+      .account-text {
+        span:first-child {color: #236BFB;}
+      }
+      .active-status-icon {
+        color: #236BFB;
+        visibility: visible;
+      }
+    }
+  }
+  .account-setting-wrapper{
+    padding: rem(10);
+    .opt-item {
+      padding: rem(13) 0;
+      .opt-icon {margin-right: rem(5); vertical-align: middle;}
+    }
+  }
+}
+
+

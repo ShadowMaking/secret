@@ -5,11 +5,12 @@
         <van-col span="5" class="left-txt">我的钱包</van-col>
         <van-col>
           <van-popover
-            v-model="showPopover"
+            key="networkpopover"
+            v-model="showNetworkListPopover"
             trigger="click"
             placement="bottom-start">
-            <ul class="networklist">
-              <li v-for="(item,index) in actions" :key="index" :class="`net-for-${item.key}`" @click="selectNetWork(item)">
+            <ul class="networklist-popover">
+              <li v-for="(item,index) in networkList" :key="index" :class="`net-for-${item.key}`" @click="selectNetWork(item)">
                 <span class="net-status"></span>
                 <span class="net-text">{{ item.name }}</span>
               </li>
@@ -24,7 +25,46 @@
           </van-popover>
         </van-col>
         <van-col>
-          <div class="account"></div>
+          <van-popover
+            key="accountListpopover"
+            v-model="showAccountListPopover"
+            trigger="click"
+            placement="bottom-end">
+            <div class="account-popover">
+              <div class="van-hairline--bottom account-header">
+                <span>我的账户</span>
+                <van-button plain type="info" class="lockbutton" size="small">锁 定</van-button>
+              </div>
+              <ul class="accountlist">
+                <li
+                  v-for="(item,index) in accoutList"
+                  :key="index"
+                  :class="[{'active':selectedAccount['address']===item.address}]"
+                  @click="selectAccount(item)">
+                  <van-icon name="success" class="active-status-icon"/>
+                  <div class="account-text">
+                    <span>{{ item.name }}</span>
+                    <span>0 ETH</span>
+                  </div>
+                </li>
+              </ul>
+              <div class="account-setting-wrapper van-hairline--top">
+                <div class="opt-item van-hairline--bottom" @click="accountSeeting('addCount')">
+                  <van-icon name="plus" class="opt-icon" />
+                  <span>创建账户</span>
+                </div>
+                <div class="opt-item van-hairline--bottom" @click="accountSeeting('importCount')">
+                  <van-icon name="down" class="opt-icon" />
+                  <span>导入账户</span>
+                </div>
+                <div class="opt-item van-hairline--bottom" @click="accountSeeting('pairingNet')">
+                  <van-icon name="cluster-o" class="opt-icon" />
+                  <span>配置网络对</span>
+                </div>
+              </div>
+            </div>
+            <template #reference><div class="account"></div></template>
+          </van-popover>
         </van-col>
       </van-row>
     </div>
@@ -67,26 +107,54 @@ export default {
   data() {
     return {
       DEFAULTIMG,
-      showPopover: false,
+      showNetworkListPopover: false,
       customRpc: { key: 'custom', name: '自定义RPC', url: '',},
-      selectedNet: { key: 'ethereum', name: '以太坊Ethereum主网络', url: '', },
+      selectedNet: { key: 'ethereum', name: '以太坊Ethereum主网络', url: '', }, // 默认选择以太坊主网
+      showAccountListPopover: false,
+      selectedAccount: {index: 1, address:'0x81183C9C61bdf79DB7330BBcda47Be30c0a85064',name:'Account1'}
     }
   },
   computed: {
-    actions() {
+    networkList() {
       return [].concat(DEFAULT_NETLIST, [this.customRpc]);
+    },
+    accoutList() {
+      const list = [{
+        index: 1,
+        address: '0x81183C9C61bdf79DB7330BBcda47Be30c0a85064',
+        name: 'Account1',
+      },{
+        index: 2,
+        address: '0x88183C9C61bdf79DB7330BBcda47Be30c0a85064',
+        name: 'Account2',
+      }]
+      return list
     },
   },
   methods: {
-    selectNetWork(action) {
-      console.log(action)
-      this.showPopover = false;
-      if (action.key === 'custom') { // 设置网络
+    accountSeeting(type) {
+      switch(type) {
+        case 'addCount':
+          break;
+        case 'importCount':
+          this.$router.push({ name:'ImportAccount' })
+          break;
+        case 'pairingNet':
+          this.$router.push({ name:'PairingNet' })
+          break;
+      }
+    },
+    selectNetWork(record) {
+      console.log(record)
+      this.showNetworkListPopover = false;
+      if (record.key === 'custom') { // 设置网络
         this.$router.push({ name:'SetNet' });
         return
       }
-      this.selectedNet = action
-      
+      this.selectedNet = record;
+    },
+    selectAccount(record) {
+      console.log(record)
     },
   },
 }
