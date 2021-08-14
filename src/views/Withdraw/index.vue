@@ -171,7 +171,7 @@ export default {
         if (outGoingMessagesFromTxn.length === 0)
             throw new Error(`Txn ${txnHash} did not initiate an outgoing messages`)
         const { batchNumber, indexInBatch } = outGoingMessagesFromTxn[0]
-        const outgoingMessageState = await bridge.getOutgoingMessageState(
+        const outgoingMessageState = await bridge.getOutGoingMessageState(
                 batchNumber,
                 indexInBatch
                 )
@@ -180,7 +180,7 @@ export default {
                 )
         while (!outgoingMessageState === OutGoingMessageState.CONFIRMED) {
     await wait(1000 * 60)
-    const outgoingMessageState = await bridge.getOutgoingMessageState(
+    const outgoingMessageState = await bridge.getOutGoingMessageState(
       batchNumber,
       indexInBatch
     )
