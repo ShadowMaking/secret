@@ -151,8 +151,66 @@ export default {
       // const withdrawEthRec = await withdrawEthRes.wait()
 
       bridge.withdrawETH(ethFromL2WithdrawAmount)
-      .then(async res=>{
+      .then(async res2=>{
         // Toast.fail(`交易已取消`);
+        const withdrawEventData = (
+                await bridge.getWithdrawalsInL2Transaction(withdrawRec)
+        )[0]
+        console.log('Withdrawal data:', withdrawEventData)
+        //执行交易
+        const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(
+                res2.transactionHash
+                )
+        if (!initiatingTxnReceipt)
+        throw new Error(
+                `No Arbitrum transaction found with provided txn hash: ${txnHash}`
+                )
+        const outGoingMessagesFromTxn = await bridge.getWithdrawalsInL2Transaction(
+                initiatingTxnReceipt
+        )
+        if (outGoingMessagesFromTxn.length === 0)
+            throw new Error(`Txn ${txnHash} did not initiate an outgoing messages`)
+        const { batchNumber, indexInBatch } = outGoingMessagesFromTxn[0]
+        const outgoingMessageState = await bridge.getOutgoingMessageState(
+                batchNumber,
+                indexInBatch
+                )
+        console.log(
+                `Waiting for message to be confirmed: Batchnumber: ${batchNumber}, IndexInBatch ${indexInBatch}`
+                )
+        while (!outgoingMessageState === OutGoingMessageState.CONFIRMED) {
+    await wait(1000 * 60)
+    const outgoingMessageState = await bridge.getOutgoingMessageState(
+      batchNumber,
+      indexInBatch
+    )
+
+    switch (outgoingMessageState) {
+      case OutGoingMessageState.NOT_FOUND: {
+        console.log('Message not found; something strange and bad happened')
+        process.exit(1)
+        break
+      }
+      case OutGoingMessageState.EXECUTED: {
+        console.log(`Message already executed! Nothing else to do here`)
+        process.exit(1)
+        break
+      }
+      case OutGoingMessageState.UNCONFIRMED: {
+        console.log(`Message not yet confirmed; we'll wait a bit and try again`)
+        break
+      }
+
+      default:
+        break
+    }
+  }
+   const res = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
+  const rec = await res.wait()
+
+  console.log('Done! Your transaction is executed')
+
+
         const walletL1EthBalance = await getAvailableBalanceForL1()
         const walletL2EthBalance = await getAvailableBalanceForL2()
         console.log('交易进行完成后获取L1和L2余额', walletL1EthBalance.toString(), walletL2EthBalance.toString())
