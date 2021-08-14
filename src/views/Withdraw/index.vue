@@ -154,7 +154,7 @@ export default {
       .then(async res2=>{
         // Toast.fail(`交易已取消`);
         const withdrawEventData = (
-                await bridge.getWithdrawalsInL2Transaction(withdrawRec)
+                await bridge.getWithdrawalsInL2Transaction(res2)
         )[0]
         console.log('Withdrawal data:', withdrawEventData)
         //执行交易
