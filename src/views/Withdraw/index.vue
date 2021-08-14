@@ -174,7 +174,7 @@ export default {
         console.log(
                 `Waiting for message to be confirmed: Batchnumber: ${batchNumber}, IndexInBatch ${indexInBatch}`
                 )
-        while (!outgoingMessageState === OutGoingMessageState.CONFIRMED) {
+        while (!outgoingMessageState === OutgoingMessageState.CONFIRMED) {
     await wait(1000 * 60)
     const outgoingMessageState = await bridge.getOutGoingMessageState(
       batchNumber,
@@ -182,17 +182,17 @@ export default {
     )
 
     switch (outgoingMessageState) {
-      case OutGoingMessageState.NOT_FOUND: {
+      case OutgoingMessageState.NOT_FOUND: {
         console.log('Message not found; something strange and bad happened')
         process.exit(1)
         break
       }
-      case OutGoingMessageState.EXECUTED: {
+      case OutgoingMessageState.EXECUTED: {
         console.log(`Message already executed! Nothing else to do here`)
         process.exit(1)
         break
       }
-      case OutGoingMessageState.UNCONFIRMED: {
+      case OutgoingMessageState.UNCONFIRMED: {
         console.log(`Message not yet confirmed; we'll wait a bit and try again`)
         break
       }
