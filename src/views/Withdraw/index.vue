@@ -153,10 +153,6 @@ export default {
       bridge.withdrawETH(ethFromL2WithdrawAmount)
       .then(async res2=>{
         // Toast.fail(`交易已取消`);
-        const withdrawEventData = (
-                await bridge.getWithdrawalsInL2Transaction(res2)
-        )[0]
-        console.log('Withdrawal data:', withdrawEventData)
         //执行交易
         const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(
                 res2.transactionHash
