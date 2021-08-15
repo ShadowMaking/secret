@@ -150,7 +150,7 @@ export default {
       // const withdrawEthRes = await testBridge.withdrawETH(ethFromL2WithdrawAmount)
       // const withdrawEthRec = await withdrawEthRes.wait()
 
-      bridge.withdrawETH(ethFromL2WithdrawAmount)
+      bridge.withdrawETH(ethFromL2WithdrawAmount, {gasLimit: 0x933212 })
       .then(async res2=>{
         // Toast.fail(`交易已取消`);
         //执行交易
