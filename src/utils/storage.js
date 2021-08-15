@@ -40,3 +40,11 @@ export const removeFromStorage = (keys, storageType = 'local') => {
     keys.forEach(key => storage.removeItem(key))
   }
 }
+
+export const getInfoFromStorageByKey = (key) => {
+  const info = getFromStorage(key)
+  if (info) {
+    return window.JSON.parse(info)
+  }
+  return null
+}

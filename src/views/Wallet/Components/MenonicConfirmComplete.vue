@@ -14,6 +14,7 @@
 <script>
 import Vue from 'vue';
 import { Button } from 'vant';
+import { saveToStorage, getFromStorage, removeFromStorage } from '@/utils/storage';
 
 Vue.use(Button);
 
@@ -24,7 +25,10 @@ export default {
     return{ }
   },
   methods: {
-    confirm() {
+    async confirm() {
+      const accountInfo = window.JSON.parse(getFromStorage('walletAccounts'))[0];
+      const loginRes = await this.$store.dispatch('login', { ...accountInfo });
+      this.$eventBus.$emit('updateLoginStatus', {...accountInfo});
       this.$router.push({ name: 'Home' });
     },
   },

@@ -1,3 +1,9 @@
+<!--
+ * @Author       : skyeGao
+ * @Email        : yingyinggao@sohu-inc.com
+ * @DateTime     : 2021-08-01 23:13:57
+ * @Description  : Description
+-->
 <template>
   <van-popup v-model="show" closeable class="install-wallet-modal">
     <div class="flex flex-center flex-column">

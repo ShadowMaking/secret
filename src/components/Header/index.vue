@@ -2,7 +2,7 @@
   <div style="width:100%">
     <mt-header title="" class="common-header">
       <img :src="DEFAULTIMG.LOGO" slot="left" class="logo"/>
-      <span slot="right" v-if="showAddress!==''" class="header-address" @click="toMyWallet">{{ showAddress }}</span>
+      <span slot="right" v-if="address!==''" class="header-address" @click="toMyWallet">{{ address.slice(0,8)+"..." }}</span>
       <div slot="right" v-else >
         <!-- <a @click="chooseWallet" class="linkWallet">链接钱包</a> -->
         <a @click="myWallet" class="linkWallet">我的钱包</a>
@@ -18,7 +18,6 @@
         </div>
       </div>
     </van-popup>
-    <v-walletstatus :show="installWalletModal" key="installWalletModal" />
   </div>
 </template>
 
@@ -31,7 +30,7 @@ import {
   checkMetamask, connectMetamask,
   setCookie, getCookie, getAccount } from "@/utils/auth";
 import { Popup, Button as VanButton } from 'vant';
-import WalletStatus from '@/components/WalletStatus';
+import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 
 Vue.use(Popup);
 Vue.use(VanButton);
@@ -46,27 +45,22 @@ export default {
       popupVisible: false,
       installWalletModal: false,
       address: '',
-      addressArr: [],
       walletIsLock: true,
     }
   },
   components: {
-    "v-walletstatus": WalletStatus,
   },
   computed: {
-    showAddress() {
-      const address = this.$store.state.metamask.accountsArr[0]||'';
-      if (address) {
-        return address.slice(0,8)+"..."
-      }
-      return '';
+    loginInfo() {
+      return getInfoFromStorageByKey('loginInfo');
     },
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall
     }
   },
   watch: {
-    '$store.state.metamask.accountsArr': function (res) { }
+    '$store.state.metamask.accountsArr': function (res) { },
+    '$store.state.auth.loginInfo': function (res) { },
   },
   methods: {
     chooseWallet() {
@@ -116,11 +110,17 @@ export default {
     updateAddress(info) {
       this.showAddress = info.address.slice(0,8)+"...";
     },
+    handleUpdateLoginStatus(accountInfo) {
+      this.address = accountInfo.address;
+    },
+  },
+  created() {
+    if (this.loginInfo) {
+      this.address = this.loginInfo.address
+    }
   },
   async mounted() {
-    console.log("metamask是否安装-header", this.$store.state.metamask.metamaskInstall)
-    console.log('钱包账户是否锁定-header', this.$store.state.metamask.walletIsLock);
-
+    this.$eventBus.$on('updateLoginStatus', this.handleUpdateLoginStatus);
     // test
     // let currentProvider = new this.web3.providers.HttpProvider('http://localhost:8545');
     // let customHttpProvider = new ethers.providers.JsonRpcProvider('http://localhost:8545');

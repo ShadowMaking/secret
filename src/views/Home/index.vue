@@ -27,6 +27,7 @@ import NetPairingTipPop from '@/components/NetPairingTipPop';
 import {
   getAvailableBalanceByAddress,
   getAvailableBalanceByAddressFromProvider } from '@/utils/auth';
+import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
 import { Bridge } from 'arb-ts';
@@ -66,7 +67,11 @@ export default {
   },
   computed: {
     walletIsLock() {
-      return this.$store.state.metamask.walletIsLock;
+      const walletInfo = getInfoFromStorageByKey('walletInfo')
+      if (walletInfo) {
+        return walletInfo.isLock
+      }
+      return true;
     },
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
@@ -76,11 +81,11 @@ export default {
     },
   },
   watch: {
-    '$store.state.metamask.walletIsLock': function (res) {
+    /* '$store.state.metamask.walletIsLock': function (res) {
       if (!this.walletIsLock) {
         this.$eventBus.$emit('updateAvailableBanlanceForL2');
       }
-    }
+    } */
   },
   
   methods: {
@@ -151,14 +156,18 @@ export default {
     toPageSetNetPairing() {
       this.showNetPairingTip = false;
       this.$router.push({ name: 'pairingNet' })
-    }
+    },
+    handleUpdateWalletLockStatus(data) {
+      this.walletIsLock = data.walletIsLock
+    },
   },
   async mounted() {
-    if (!this.walletIsLock) {
+    this.$eventBus.$on('updateWalletLockStatus', this.handleUpdateWalletLockStatus);
+    /* if (!this.walletIsLock) {
       await this.updateAvailableBanlanceForL2();
     }
     this.$eventBus.$on('updateAvailableBanlanceForL2', this.updateAvailableBanlanceForL2);
-    this.$eventBus.$on('resetStatus', this.handleWatchResetStatus);
+    this.$eventBus.$on('resetStatus', this.handleWatchResetStatus); */
   },
   
 };

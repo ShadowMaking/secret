@@ -23,7 +23,8 @@
       <span class="tip">请按顺序抄写助记词，确保备份正确</span>
       <div class="menonic">
         <van-grid :column-num="3">
-          <van-grid-item v-for="value in 12" :key="value" text="JSON" />
+          <!-- <van-grid-item v-for="value in 12" :key="value" text="JSON" /> -->
+          <van-grid-item v-for="(item,index) in sourceData" :key="index" :text="item" />
         </van-grid>
       </div>
       <ul class="tip-info-ul">
@@ -51,6 +52,7 @@ Vue.use(GridItem);
 
 export default {
   name: 'memonicBackup',
+  props: ['sourceData'],
   data() {
     return{
       showMenonicTip: true,

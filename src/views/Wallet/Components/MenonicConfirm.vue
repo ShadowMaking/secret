@@ -46,8 +46,14 @@ export default {
   data() {
     return{
       menonicList: [],
-      menonicList2: _.cloneDeep(this.sourceData).reverse(),
+      // menonicList2: _.cloneDeep(this.sourceData).reverse(),
     }
+  },
+  computed: {
+    menonicList2() {
+      return _.cloneDeep(this.sourceData).reverse()
+    },
+  
   },
   methods: {
     confirm() {

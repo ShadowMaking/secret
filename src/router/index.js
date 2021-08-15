@@ -11,6 +11,7 @@ import MyWallet from '../views/Wallet/MyWallet';
 import SetNet from '../views/Wallet/SetNet';
 import ImportAccount from '../views/Wallet/ImportAccount';
 import PairingNet from '../views/Wallet/PairingNet';
+import SignWallet from '../views/Wallet/SignWallet';
 
 
 Vue.use(VueRouter);
@@ -20,6 +21,11 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home,
+  },
+  {
+    path: '/signWallet',
+    name: 'SignWallet',
+    component: SignWallet,
   },
   {
     path: '/walletguide',

@@ -1,0 +1,13 @@
+// 创建钱包时，监测到已有钱包信息框提示
+.wallet-create-tip-content {
+  padding: rem(20) rem(10);
+  color: #9e9e9e;
+  .tip-txt {
+    font-size: rem(13);
+    margin-bottom: rem(10);
+  }
+  .tipinfo {
+    font-size: rem(12);
+    color: #ff9800;
+  }
+}

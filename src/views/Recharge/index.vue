@@ -13,9 +13,9 @@
       <van-tabs v-model="activeName">
         <van-tab title="从L1 账户充值" name="fromL1">
           <v-tokenAmount
-          key="tokenAmount-recharge"
-          type="recharge"
-          @childEvent="submitRecharge" />
+            key="tokenAmount-recharge"
+            type="recharge"
+            @childEvent="submitRecharge" />
         </van-tab>
         <van-tab title="从L2 账户充值" name="fromeL2">
           <div class="recharge-amount-wrap">
@@ -38,10 +38,6 @@
       </van-tabs>
     </div>
     <v-exchangeList key="comon-exchangeList" type="recharge" v-show="activeName=='fromL1'&&!walletIsLock" />
-    <!-- <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-      <div>交易正在进行</div>
-      <div>请耐心等待<van-count-down :time="time" /></div>
-    </van-popup> -->
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
       <div>交易正在进行</div>
       <div>请耐心等待</div>
@@ -66,6 +62,7 @@ import { Tab, Tabs, Button, Col, Row, Toast, Popup, CountDown } from 'vant';
 
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
 import { DEFAULTIMG } from '@/utils/global';
+import { getInfoFromStorageByKey } from '@/utils/storage';
 
 import {
   rpcProvider, walletForRPC, bridgeAboutWalletForRPC,
@@ -103,8 +100,15 @@ export default {
     }
   },
   computed: {
-    walletIsLock() {
+    /* walletIsLock() {
       return this.$store.state.metamask.walletIsLock;
+    }, */
+    walletIsLock() {
+      const walletInfo = getInfoFromStorageByKey('walletInfo')
+      if (walletInfo) {
+        return walletInfo.isLock
+      }
+      return true;
     },
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
@@ -178,10 +182,14 @@ export default {
       // const finalInboxBalance = await ethProvider.getBalance(inbox.address)
       // expect(initialInboxBalance.add(ethToL2DepositAmount).eq(finalInboxBalance))
     },
+    handleUpdateWalletLockStatus(data) {
+      this.walletIsLock = data.walletIsLock
+    }
   },
   mounted() {
-    console.log("metamask是否安装-recharge", this.$store.state.metamask.metamaskInstall)
-    console.log('钱包账户是否锁定-recharge', this.$store.state.metamask.walletIsLock);
+    this.$eventBus.$on('updateWalletLockStatus', this.handleUpdateWalletLockStatus);
+    // console.log("metamask是否安装-recharge", this.$store.state.metamask.metamaskInstall)
+    // console.log('钱包账户是否锁定-recharge', this.$store.state.metamask.walletIsLock);
   },
 }
 </script>

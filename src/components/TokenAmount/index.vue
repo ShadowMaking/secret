@@ -93,6 +93,7 @@ import { Button, Col, Row, Field, Popup, Search } from 'vant';
 import UnlockWallet from '@/components/UnlockWallet';
 import { minus, lteZero, isZero } from '@/utils/number'
 import { getAvailableBalanceForL1, getAvailableBalanceForL2 } from '@/utils/walletBridge'
+import { getInfoFromStorageByKey } from '@/utils/storage'
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
 const { parseEther, formatEther } = utils;
 
@@ -166,8 +167,15 @@ export default {
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
     },
-    walletIsLock() {
+    /* walletIsLock() {
       return this.$store.state.metamask.walletIsLock;
+    }, */
+    walletIsLock() {
+      const walletInfo = getInfoFromStorageByKey('walletInfo')
+      if (walletInfo) {
+        return walletInfo.isLock
+      }
+      return true;
     },
     showUnlockWalletButton() {
       return !this.metamaskInstall || this.walletIsLock;
@@ -231,15 +239,19 @@ export default {
       }
       console.log(`ETH余额-${availableBalance}；输入余额换成ETH为-${formatEther(formatAmount)}`)
     },
+    handleUpdateWalletLockStatus(data) {
+      this.walletIsLock = data.walletIsLock
+    }
   },
   async mounted() {
-    if (!this.walletIsLock) {
+    this.$eventBus.$on('updateWalletLockStatus', this.handleUpdateWalletLockStatus);
+    /* if (!this.walletIsLock) {
       const balance = await this.getAvailableBalance();
       if (BigNumber.isBigNumber(balance)) {
         this.availableBalance = formatEther(balance);
       }
     }
-    this.$eventBus.$on('resetStatus', this.handleWatchResetStatus);
+    this.$eventBus.$on('resetStatus', this.handleWatchResetStatus); */
   }
 }
 </script>

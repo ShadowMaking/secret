@@ -21,6 +21,7 @@
               <!-- 助记词备份 -->
               <v-menonicbackup
                 key="menonic-backup"
+                :sourceData="mnemonicList"
                 @childEvent="menonicbackupCallback"
                 @childEventAfter="menonicbackupAfterCallback"
                 @childEventConfirm="menonicbackupConfirmCallback"
@@ -29,7 +30,7 @@
               <v-menonicConfirm
                 key="menonic-confirm"
                 v-show="activeStepForPsw===2"
-                :sourceData="mnemonicList"
+                :sourceData="conformList"
                 @childEvent="menonicConfirmCallback" />
               <v-complete
                 key="menonic-confirm-complete"
@@ -88,34 +89,21 @@
       tip=""
       :show="showStatusPop"
       @childEvent="handleImportComplete" />
-    <van-dialog
-      v-model="showWalletTip"
-      title="应用检测到您已有钱包账号"
-      confirm-button-text="导入钱包"
-      confirm-button-color="rgb(73, 90, 190)"
-      :show-cancel-button="true"
-      cancel-button-text="重新创建"
-      @confirm="handleConfirm"
-      @cancel="handleCancel"
-      get-container="#app">
-      <div slots="default" class="wallet-create-tip-content">
-        <div class="tip-txt">您可选择通助记词导入形式恢复钱包账号</div>
-        <div class="tip-txt">也可重新创建一个钱包账号。</div>
-        <div class="tipinfo">重新创建，已有账户等相关信息将被清空且无法恢复</div>
-      </div>
-    </van-dialog>
+    <v-walletStatus :showWalletTip="showWalletTip" title="应用检测到您已有钱包账号" />
   </div>
 </template>
 <script>
 import Vue from 'vue';
 import { Icon, Tab, Tabs, Step, Steps, Field, Form, Dialog } from 'vant';
 import StatusPop from '@/components/StatusPop';
+import WalletStatusDialog from '@/components/WalletStatusDialog';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
 import { removeWallet } from '@/utils/auth'
 import PSW from './Components/Psw'
 import MenonicBackup from './Components/MenonicBackup'
 import MenonicConfirm from './Components/MenonicConfirm'
 import MenonicConfirmComplete from './Components/MenonicConfirmComplete'
+import _ from 'lodash'
 
 Vue.use(Icon);
 Vue.use(Tab);
@@ -134,11 +122,12 @@ export default {
     'v-menonicConfirm': MenonicConfirm,
     'v-complete': MenonicConfirmComplete,
     'v-statusPop': StatusPop,
+    'v-walletStatus': WalletStatusDialog,
   },
   data() {
     return {
       activeCreateWalletType: 'password', // password | mnemonic
-      activeStepForPsw: 2, // 0-创建密码 1-助记词备份 2-助记词验证 3-创建完成
+      activeStepForPsw: 0, // 0-创建密码 1-助记词备份 2-助记词验证 3-创建完成
       mnemonic: '',
       psw: '',
       repsw: '',
@@ -158,10 +147,13 @@ export default {
   computed: {
     mnemonicList() {
       const list = this.mnemonic && this.mnemonic.split(' ') || []
-      // return this.mnemonic && this.mnemonic.split(' ')||[];
-      return 'message cream element broken shoulder alert input improve kick banner sing fork'.split(' ')
+      return this.mnemonic && this.mnemonic.split(' ')||[];
+      // return 'message cream element broken shoulder alert input improve kick banner sing fork'.split(' ')
     },
-  
+    conformList() {
+      const list = this.mnemonic && this.mnemonic.split(' ') || []
+      return this.mnemonic && this.mnemonic.split(' ')||[];
+    },
   },
   /* beforeRouteEnter (to, from, next) {
     // 在渲染该组件的对应路由被 confirm 前调用
@@ -187,15 +179,6 @@ export default {
         this.showWalletTip = true
       }
     },
-    handleConfirm() {
-      this.showWalletTip = false
-      this.$router.replace({ name: 'FirstIntoWallet', query: { type: 'mnemonic' }})
-    },
-    handleCancel() {
-      removeWallet();
-      this.showWalletTip = false
-      this.$router.replace({ name: 'FirstIntoWallet', query: { type: 'psw' }})
-    },
     validatorPsw(val) {
       return val.length >= 1
     },
@@ -212,6 +195,7 @@ export default {
       } else {
         this.$router.replace({ name: 'FirstIntoWallet', query: { type: 'mnemonic' }})
       }
+      this.showWalletTip = false
     },
     // 导入钱包
     handleImportWallet() {
@@ -238,6 +222,7 @@ export default {
     },
     // 助记词确认备份后回调
     menonicbackupConfirmCallback() {
+      this.conformList = _.cloneDeep(this.mnemonic);
       this.activeStepForPsw = 2; // 进入助记词验证
     },
     // 助记词验证通过后回调
@@ -250,9 +235,9 @@ export default {
     onSubmit() {},
   },
   created() {
+    this.checkWallet();
   },
   mounted() {
-    this.checkWallet();
   },
 }
 </script>

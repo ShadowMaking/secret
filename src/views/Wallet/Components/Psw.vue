@@ -52,13 +52,6 @@ export default {
     onSubmit(values) {
       // 如果本地存储已有钱包则清除，并清除钱包相关的一且信息。包括账户
       removeWallet();
-      const index = this.getAccountIndex([]);
-      const accountInfo = {
-        index,
-        name: `Account${index}`,
-        psw: values.psw
-      }
-
       // 拿到随机生成的钱包信息
       const wallet = this.ethers.Wallet.createRandom();
       const { mnemonic, privateKey, publicKey, address} = wallet;
@@ -68,9 +61,23 @@ export default {
       const walletInfo = {
         address,
         privateKey,
+        psw: values.psw,
+        isLock: true, // 默认是锁定状态（需要授权钱包进行解锁操作）
       }
-      saveToStorage({ 'walletInfo': window.JSON.stringify(Object.assign({}, walletInfo)) });
-      saveToStorage({ 'walletAccount': window.JSON.stringify([].concat([{...accountInfo}])) });
+      // 默认创建一个账户，且与该钱包想关联
+      // 私钥、address等同钱包的。所以通过助记词可恢复且只能恢复该默认账号
+      const index = this.getAccountIndex([]);
+      const accountInfo = {
+        index,
+        name: `Account${index}`,
+        psw: values.psw,
+        privateKey,
+        address,
+      }
+      this.$store.dispatch('storeWalletInfo', { walletInfo });
+      this.$store.dispatch('storeWalletAccount', { accounts: [].concat([{...accountInfo}]) });
+      // saveToStorage({ 'walletInfo': window.JSON.stringify(Object.assign({}, walletInfo)) });
+      // saveToStorage({ 'walletAccount': window.JSON.stringify([].concat([{...accountInfo}])) });
       this.$emit('childEvent', {
         accountInfo,
         walletInfo: Object.assign({}, { ...walletInfo, mnemonic: mnemonicValues })

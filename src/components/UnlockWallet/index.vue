@@ -4,7 +4,20 @@
       <div :class="['flex', 'flex-center', {'margin10':!showLockIcon}]"><img :src="DEFAULTIMG.LOCK" v-show="showLockIcon"/></div>
       <mt-button type="primary" size="large" class="button button-large" @click="unlockWallet">解锁钱包</mt-button>
     </div>
-    <v-walletstatus :show="installWalletModal" key="installWalletModal" />
+    <v-walletstatus :showWalletTip="showWalletTip" title="应用检测到您还没有钱包账号" />
+    <van-popup
+      round
+      :closeable="true"
+      v-model="showAccoutList"
+      :close-on-click-overlay="false">
+      <ul class="account-list-for-wallet-modal">
+        <span class="title van-hairline--bottom">该钱包下的账户</span>
+        <li v-for="(item, index) in accountList" :key="index" @click="connectAccount(item)">
+          <span class="name">{{ item.name }}</span>
+          <a>连接到此账户</a>
+        </li>
+      </ul>
+    </van-popup>
   </div>
 </template>
 
@@ -12,14 +25,18 @@
 import Vue from 'vue';
 import { Button } from 'mint-ui';
 import { DEFAULTIMG, address } from '@/utils/global';
-import WalletStatus from '@/components/WalletStatus';
+import WalletStatus from '@/components/WalletStatusDialog';
 import { getAvailableBalanceByAddress } from '@/utils/auth';
 import { utils } from 'ethers';
 import {
   rpcProvider, walletForRPC, bridgeAboutWalletForRPC,
   getAvailableBalanceForL2, } from '@/utils/walletBridge'
+import { getInfoFromStorageByKey, removeFromStorage } from '@/utils/storage'
+import { Dialog,Popup } from 'vant'
 
 Vue.component(Button.name, Button)
+Vue.use(Dialog)
+Vue.use(Popup)
 
 export default {
   name: 'ComponentForUnlockWallet',
@@ -35,9 +52,20 @@ export default {
     return {
       DEFAULTIMG,
       installWalletModal: false,
+      showWalletTip: false,
+      showAccoutList: false,
     }
   },
   computed: {
+    walletInfo() {
+      return getInfoFromStorageByKey('walletInfo')
+    },
+    loginInfo() {
+      return getInfoFromStorageByKey('loginInfo');
+    },
+    accountList() {
+      return getInfoFromStorageByKey('walletAccounts')||[];
+    },
     walletIsLock() {
       return this.$store.state.metamask.walletIsLock;
     },
@@ -103,8 +131,36 @@ export default {
       }
     },
     unlockWallet() {
-      
+      // 没有钱包账号
+      if (!this.walletInfo) {
+        this.showWalletTip = true;
+        return
+      }
+      // 有钱包但是没有登录钱包
+      if (!this.loginInfo) {
+        this.showAccoutList = true;
+        return
+      }
+      // 进入解锁授权页面
+      this.$router.push({ name: 'SignWallet' });
     },
+    // 登录账户
+    async connectAccount(account) {
+      console.log(account)
+      removeFromStorage(['loginInfo']);
+      const accountInfo = {
+        login: true,
+        address: account.address
+      };
+      const loginRes = await this.$store.dispatch('login', { ...accountInfo });
+      this.showAccoutList = false;
+      if (this.$route.name === 'Home') {
+        this.$store.dispatch('updateWalletLockStatus', {walletIsLock: false})
+        this.$emit('childEvent',{ login: true });
+        return;
+      }
+      this.$router.push({ name: 'Home' });
+    }
   },
   async mounted() { },
   
