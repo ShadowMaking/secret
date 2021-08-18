@@ -40,5 +40,10 @@ const walletAccount = [
   },
 ]
 
+// 连接的网络信息
+const connectNet = {
+  
+}
+
 
 

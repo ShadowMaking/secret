@@ -63,12 +63,7 @@ export async function getAvailableBalanceByAddress (address, self) {
 }
 export async function getAvailableBalanceByAddressFromProvider (address, self) { }
 
-// 清除缓存中的钱包等相关信息
-export const removeWallet = () => {
-  if (getFromStorage('walletInfo')) {
-    removeFromStorage(['walletInfo', 'walletAccounts']);
-  }
-}
+
 
 
 

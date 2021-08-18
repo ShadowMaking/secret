@@ -152,7 +152,9 @@ export default {
         login: true,
         address: account.address
       };
-      const loginRes = await this.$store.dispatch('login', { ...accountInfo });
+      await this.$store.dispatch('login', { ...accountInfo });
+      // 登录成功后，检测上次链接网络，如果有则直接连接，否则默认连接以太坊主网。
+      await this.$store.dispatch('getConnectNet');
       this.showAccoutList = false;
       if (this.$route.name === 'Home') {
         this.$store.dispatch('updateWalletLockStatus', {walletIsLock: false})

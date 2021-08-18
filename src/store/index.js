@@ -4,6 +4,7 @@ import persistedState from 'vuex-persistedstate'
 
 import metamask from './modules/metamask';
 import auth from './modules/auth';
+import net from './modules/net';
 import getters from './getters'
 
 Vue.use(Vuex);
@@ -22,6 +23,7 @@ Vue.use(Vuex);
 const store = new Vuex.Store({
   modules: {
     auth,
+    net,
     metamask
   },
   getters,

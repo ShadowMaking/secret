@@ -1,3 +1,9 @@
+<!--
+ * @Author       : skyeGao
+ * @Email        : yingyinggao@sohu-inc.com
+ * @DateTime     : 2021-08-12 14:44:02
+ * @Description  : Description
+-->
 <template>
   <div class="create-wallet-step4">
     <div class="icon-success">
@@ -27,7 +33,9 @@ export default {
   methods: {
     async confirm() {
       const accountInfo = window.JSON.parse(getFromStorage('walletAccounts'))[0];
-      const loginRes = await this.$store.dispatch('login', { ...accountInfo });
+      await this.$store.dispatch('login', { ...accountInfo });
+      // 登录成功后，检测上次链接网络，如果有则直接连接，否则默认连接以太坊主网。
+      await this.$store.dispatch('getConnectNet');
       this.$eventBus.$emit('updateLoginStatus', {...accountInfo});
       this.$router.push({ name: 'Home' });
     },

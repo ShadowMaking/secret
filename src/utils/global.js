@@ -63,12 +63,62 @@ const mnemonic = 'jar deny prosper gasp flush glass core corn alarm treat leg sm
 // const DEVNET_PRIVKEY = '0xffb2b26161e081f0cdf9db67200ee0ce25499d5ee683180a9781e6cceb791c39' // 私钥 address = 0x81183C9C61bdf79DB7330BBcda47Be30c0a85064
 const DEVNET_PRIVKEY = '0xd26e62d7726062e735d6d130b3c624e97921eecc3bde9263b404121f6f0dccc4' // 私钥  address = 0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9
 
+// netType-L1 || L2 || pair
 const DEFAULT_NETLIST = [
-  { key: 'ethereum', name: '以太坊Ethereum主网络', url: '', },
-  { key: 'ropsten', name: 'Ropsten测试网', url: '', },
-  { key: 'kavan', name: 'Kavan测试网', url: '', },
-  { key: 'rinkeby', name: 'Rinkeby测试网', url: '', },
-  { key: 'goerli', name: 'Goerli测试网', url: '', },
+  { 
+    key: 'ethereum',
+    netName: '以太坊Ethereum主网络',
+    rpcUrl: 'https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+    chainId: 1,
+    chart: 'ETH',
+    browserURL: 'https://etherscan.io',
+    netType: 'L1',
+  },
+  {
+    key: 'ropsten',
+    netName: 'Ropsten测试网',
+    rpcUrl: 'https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+    chainId: 3,
+    chart: 'ETH',
+    browserURL: 'https://ropsten.etherscan.io',
+    netType: 'L1',
+  },
+  {
+    key: 'rinkeby',
+    netName: 'Rinkeby测试网',
+    rpcUrl: 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+    chainId: 4,
+    chart: 'ETH',
+    browserURL: 'https://rinkeby.etherscan.io',
+    netType: 'L1',
+  },
+  {
+    key: 'goerli',
+    netName: 'Goerli测试网',
+    rpcUrl: 'https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+    chainId: 5,
+    chart: 'ETH',
+    browserURL: 'https://goerli.etherscan.io',
+    netType: 'L1',
+  },
+  {
+    key: 'kavan',
+    netName: 'Kavan测试网',
+    rpcUrl: 'https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+    chainId: 42,
+    chart: 'ETH',
+    browserURL: 'https://kovan.etherscan.io',
+    netType: 'L1',
+  },
+  {
+    key: 'Localhost8545',
+    netName: 'Localhost 8545',
+    rpcUrl: 'http://localhost:8545',
+    chainId: 72,
+    chart: 'ETH',
+    browserURL: '',
+    netType: 'L2',
+  }
 ]
 const ACCOUNT_LIMIT = 1;  // 可创建钱包账户的最大值
 

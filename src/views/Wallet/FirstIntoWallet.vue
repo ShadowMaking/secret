@@ -98,7 +98,6 @@ import { Icon, Tab, Tabs, Step, Steps, Field, Form, Dialog } from 'vant';
 import StatusPop from '@/components/StatusPop';
 import WalletStatusDialog from '@/components/WalletStatusDialog';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
-import { removeWallet } from '@/utils/auth'
 import PSW from './Components/Psw'
 import MenonicBackup from './Components/MenonicBackup'
 import MenonicConfirm from './Components/MenonicConfirm'

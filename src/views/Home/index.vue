@@ -40,6 +40,7 @@ import {
 } from '@/utils/global';
 
 import { getAvailableBalanceForL2 } from '@/utils/walletBridge';
+import { Toast } from 'vant';
 
 const { parseEther } = utils;
 
@@ -92,7 +93,16 @@ export default {
     getExchangeDetail() {
       this.popupVisible = true;
     },
+    connetPairNet() {
+      const connectNet = getInfoFromStorageByKey('connectNet');
+      return !!connectNet && connectNet.startsWith('pair');
+    },
     toPage(pageType) {
+      // 判断当前是否连接的是L1和L2网络对
+      if (!this.connetPairNet()) {
+        Toast('请连接L1和L2网络对后进行该操作');
+        return 
+      }
       switch(pageType) {
         // 充值
         case "recharge":

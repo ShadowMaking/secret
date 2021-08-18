@@ -1,4 +1,8 @@
-import { saveToStorage, getFromStorage, removeFromStorage } from '@/utils/storage';
+import {
+  saveToStorage,
+  getFromStorage,
+  removeFromStorage,
+  getInfoFromStorageByKey } from '@/utils/storage';
 
 const auth = {
   state: {
@@ -32,7 +36,22 @@ const auth = {
           address: accountInfo.address
         }
         saveToStorage({'loginInfo': window.JSON.stringify(loginInfo)})
-        resolve()
+        resolve(loginInfo)
+      })
+    },
+    getLoginInfo({ commit }) {
+      return new Promise(resolve => {
+        const loginInfo = getInfoFromStorageByKey('loginInfo');
+        const accounts = getInfoFromStorageByKey('walletAccounts')||[];
+        let info = {
+          address: loginInfo?loginInfo['address']:''
+        }
+        accounts.some(item=>{
+          if (item.address === loginInfo.address){
+            info['name'] = item['name']
+          }
+        })
+        resolve({ info });
       })
     },
     logout({ commit }) {

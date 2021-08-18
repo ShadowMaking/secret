@@ -24,7 +24,7 @@ import Vue from 'vue';
 import { Form, Field, Button, Toast } from 'vant';
 import { saveToStorage, getFromStorage, removeFromStorage } from '@/utils/storage';
 import { ACCOUNT_LIMIT } from '@/utils/global'
-import { removeWallet } from '@/utils/auth'
+import { removeWallet } from '@/utils/storage'
 import _ from 'lodash'
 
 Vue.use(Form);

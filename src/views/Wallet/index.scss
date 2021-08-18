@@ -69,7 +69,7 @@
         width: rem(12);
         height: rem(12);
         border-radius: rem(6);
-        // background: #29b6af;
+        background: #fff;
       }
       .net-text{
         margin: 0 rem(5);
@@ -169,6 +169,16 @@
       margin: rem(20) 0;
       .fieldName {
         display: block;
+        span{
+          margin-right: rem(5);
+          vertical-align: text-bottom;
+        }
+      }
+      .fieldName.width120{
+        width: rem(120);
+      }
+      .type-radio{
+        margin-right: rem(30);
       }
       .field-item-input {
         // border: rem(1) solid #BBC0C5;
@@ -316,6 +326,18 @@
       height: rem(12);
       border-radius: rem(6);
       margin: rem(5);
+      border: rem(1) solid #d6d9dc;
+      background: transparent;
+    }
+    .active-status-icon {
+      margin-right: rem(10);
+      visibility: hidden;
+    }
+  }
+  li.active{
+    .active-status-icon {
+      color: #236BFB;
+      visibility: visible;
     }
   }
   li:hover {

@@ -2,6 +2,20 @@
   <div class="setnet-page">
     <div class="subtitle">设置网络</div>
     <van-form @submit="onSubmit" class="set-net-form">
+      <div class="field-item flex flex-center ">
+        <span class="fieldName width120">
+          <span>网络类型</span>
+          <van-icon name="info-o" size="16"/>
+        </span>
+        <van-field name="netType" label="" >
+          <template #input>
+            <van-radio-group v-model="netType" direction="horizontal">
+              <van-radio name="L1" class="type-radio">L1</van-radio>
+              <van-radio name="L2" class="type-radio">L2</van-radio>
+            </van-radio-group>
+          </template>
+        </van-field>
+      </div>
       <div class="field-item">
         <span class="fieldName">网络名称</span>
         <van-field
@@ -19,8 +33,8 @@
      <div class="field-item">
       <span class="fieldName">链ID</span>
       <van-field
-        v-model="linkId"
-        name="linkId"
+        v-model="chainId"
+        name="chainId"
         class="field-item-input" />
       </div>
       <div class="field-item">
@@ -46,17 +60,22 @@
 </template>
 <script>
 import Vue from 'vue';
-import { Form, Button } from 'vant';
+import { Form, Button, RadioGroup, Radio, Icon } from 'vant';
+import { guid } from '@/utils/index'
 Vue.use(Form);
 Vue.use(Button);
+Vue.use(RadioGroup);
+Vue.use(Radio);
+Vue.use(Icon);
 
 export default {
   name: 'SetNet',
   data() {
     return {
+      netType: 'L1',
       netName: '',
       rpcUrl: '',
-      linkId: '',
+      chainId: '',
       chart: '',
       browserURL: '',
     }
@@ -66,8 +85,10 @@ export default {
       this.$router.push({ name: 'MyWallet' })
     },
     onSubmit(values) {
-      console.log(values)
-      this.$router.push({ name: 'MyWallet' })
+      const key = `net-${guid()}`;
+      const netInfo = { key, ...values };
+      this.$store.dispatch('updateNetList', netInfo);
+      this.$router.push({ name: 'MyWallet' });
     },
   },
 }

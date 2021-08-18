@@ -19,7 +19,7 @@
   </div>
 </template>
 <script>
-import { removeWallet } from '@/utils/auth'
+import { removeWallet } from '@/utils/storage'
 export default {
   name: 'WalletStatusDialog',
   props: [
