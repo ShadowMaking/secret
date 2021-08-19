@@ -4,6 +4,7 @@
     <a @click="depositEth">depositEth</a>
     <a @click="withDrawEth">withDrawEth</a>
     <a @click="result">结果</a>
+    <a @click="testDeposit">signer初始化Bridge</a>
   </div>
 </template>
 
@@ -31,6 +32,41 @@ export default {
   components: {},
   computed: {},
   methods: {
+    async testDeposit() {
+      const metamaskProvider = new this.ethers.providers.Web3Provider(window.ethereum);
+      const networkVersion = window.ethereum.networkVersion;
+
+      const ethProvider = metamaskProvider
+      const arbProvider = new this.ethers.providers.JsonRpcProvider(
+        'http://43.128.80.242:8547'
+      )
+      const l1Signer = ethProvider.getSigner(0)
+      const l2Signer = arbProvider.getSigner(
+        window.ethereum?.selectedAddress
+      )
+      const bridge = new Bridge(
+        "0x7feAe6550487B59Cb903d977c18Ea16c4CC8D89e",
+        "0x5fe46790aE8c6Af364C2f715AB6594A370089B35",
+        l1Signer,
+        l2Signer,
+      )
+      const walletL1EthBalance = await bridge.getAndUpdateL1EthBalance();
+      const walletL2EthBalance = await bridge.getAndUpdateL2EthBalance();
+
+      console.log(`L1余额-${walletL1EthBalance.toString()}，L2余额-${walletL2EthBalance.toString()}`)
+
+      const ethToL2DepositAmount = parseEther('0.1');
+      bridge.depositETH(ethToL2DepositAmount)
+      .then(async res=>{ // TODO 
+        console.log('交易成功',res)
+        const walletL1EthBalance = await bridge.getAndUpdateL1EthBalance();
+        const walletL2EthBalance = await bridge.getAndUpdateL2EthBalance();
+        console.log('交易后',`L1余额-${utils.formatEther(walletL1EthBalance)}，L2余额-${walletL2EthBalance.toString()}`)
+      })
+      .catch(error => {
+        console.log(error)
+      })
+    },
     wait(ms) {
       return new Promise(res => setTimeout(res, ms || this.defaultWait))
     },
