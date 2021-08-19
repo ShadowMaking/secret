@@ -1,7 +1,7 @@
 <template>
   <div style="width:100%">
     <mt-header title="" class="common-header">
-      <img :src="DEFAULTIMG.LOGO" slot="left" class="logo"/>
+      <img :src="DEFAULTIMG.LOGO" slot="left" class="logo" @click="toPageHome" />
       <span slot="right" v-if="showAddress!==''" class="header-address">{{ showAddress }}</span>
       <div slot="right" v-else >
         <a @click="chooseWallet" class="linkWallet">链接钱包</a>
@@ -68,6 +68,10 @@ export default {
     '$store.state.metamask.accountsArr': function (res) { }
   },
   methods: {
+    toPageHome() {
+      if (this.$route.name ==='Home') {return;}
+      this.$router.push({ name: 'Home' });
+    },
     chooseWallet() {
       this.popupVisible = true;
       this.installWalletModal = false;
