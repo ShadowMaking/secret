@@ -2,7 +2,7 @@
   <div style="width:100%">
     <mt-header title="" class="common-header">
       <img :src="DEFAULTIMG.LOGO" slot="left" class="logo" @click="toPageHome" />
-      <span slot="right" v-if="showAddress!==''" class="header-address">{{ showAddress }}</span>
+      <span slot="right" v-if="address!==''"  class="header-address">{{ address.slice(0,8)+"..." }}</span>
       <div slot="right" v-else >
         <a @click="chooseWallet" class="linkWallet">链接钱包</a>
         <i class="icon night"></i>
@@ -18,6 +18,7 @@
       </div>
     </van-popup>
     <v-walletstatus :show="installWalletModal" key="installWalletModal" />
+    <v-netTipPopup :show="showNetTip" key="netTipModal" />
   </div>
 </template>
 
@@ -25,12 +26,10 @@
 import Vue from 'vue';
 import { Header, Button } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
-import { initWeb3 } from "@/utils/wb3";
-import {
-  checkMetamask, connectMetamask,
-  setCookie, getCookie, getAccount } from "@/utils/auth";
 import { Popup, Button as VanButton } from 'vant';
 import WalletStatus from '@/components/WalletStatus';
+import NetTipModal from '@/components/NetTipModal';
+import { getSelectedChainID } from '@/utils/web3'
 
 Vue.use(Popup);
 Vue.use(VanButton);
@@ -51,18 +50,15 @@ export default {
   },
   components: {
     "v-walletstatus": WalletStatus,
+    "v-netTipPopup": NetTipModal,
   },
   computed: {
-    showAddress() {
-      const address = this.$store.state.metamask.accountsArr[0]||'';
-      if (address) {
-        return address.slice(0,8)+"..."
-      }
-      return '';
-    },
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall
-    }
+    },
+    showNetTip() {
+      return false
+    },
   },
   watch: {
     '$store.state.metamask.accountsArr': function (res) { }
@@ -83,43 +79,43 @@ export default {
       if (!this.metamaskInstall) {
         this.installWalletModal = true;
       } else {
-        await ethereum.request({ method: 'eth_requestAccounts' });
         await ethereum.request({
           method: 'wallet_requestPermissions',
           params:  [{ "eth_accounts": {} }]
-        });
-        const accounts = await this.web3.eth.getAccounts();
-        const balance = await this.web3.eth.getBalance(accounts[0])
-        
-        // await ethereum.request({ method: 'eth_personalSign' });
-        const coinbaseAddress = this.web3.eth.coinbase;
+        })
+        const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
+        const selectedAccountAddress = accounts[0];
+        console.log('当前选择的账户地址', selectedAccountAddress)
         const message = `
           Access Eigen account.
           Only sign this message for a trusted client!
         `;
-        const signAdress = accounts[0];
-        
-        const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), signAdress);
-        // when signRes has value declare sign sucess
+        const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), selectedAccountAddress);
+        console.log('signRes', signRes)
         let _isLock = true;
+        // when signRes has value declare sign sucess
         signRes!==undefined && (_isLock = false);
+
         this.walletIsLock = _isLock;
         await this.$store.dispatch('WalletLockStatus', {isLock: _isLock});
-        this.$eventBus.$emit('updateAddress', {address: signAdress});
+        this.$eventBus.$emit('updateAddress', {address: selectedAccountAddress});
+        this.updateAddress({address: selectedAccountAddress})
+        // await ethereum.request({ method: 'eth_personalSign' });
+        this.checkNetPair()
       }
     },
     updateAddress(info) {
-      this.showAddress = info.address.slice(0,8)+"...";
+      this.address = info.address;
+    },
+    checkNetPair() {
+      const netId = getSelectedChainID();
+      console.log('netId', netId)
     },
   },
   async mounted() {
-    console.log("metamask是否安装-header", this.$store.state.metamask.metamaskInstall)
-    console.log('钱包账户是否锁定-header', this.$store.state.metamask.walletIsLock);
-
-    // test
-    // let currentProvider = new this.web3.providers.HttpProvider('http://localhost:8545');
-    // let customHttpProvider = new ethers.providers.JsonRpcProvider('http://localhost:8545');
-    
+    this.$eventBus.$on('updateAddress', this.updateAddress);
+    // console.log("metamask是否安装-header", this.$store.state.metamask.metamaskInstall)
+    // console.log('钱包账户是否锁定-header', this.$store.state.metamask.walletIsLock);
   },
 };
 </script>

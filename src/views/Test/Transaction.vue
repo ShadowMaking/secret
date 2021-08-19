@@ -5,6 +5,7 @@
     <a @click="withDrawEth">withDrawEth</a>
     <a @click="result">结果</a>
     <a @click="testDeposit">signer初始化Bridge</a>
+    <a @click="testAddNet">AddNet</a>
   </div>
 </template>
 
@@ -32,6 +33,33 @@ export default {
   components: {},
   computed: {},
   methods: {
+    async testAddNet() {
+      const res = await ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params:  [{
+          "chainId": "0x64",
+          "chainName": "xDAI Chain",
+          "rpcUrls": [ "https://dai.poa.network" ],
+          "iconUrls": [
+            "https://xdaichain.com/fake/example/url/xdai.svg",
+            "https://xdaichain.com/fake/example/url/xdai.png"
+          ],
+          "nativeCurrency": {
+            "name": "xDAI",
+            "symbol": "xDAI",
+            "decimals": 18
+          },
+          "blockExplorerUrls": [ "https://blockscout.com/poa/xdai/" ]
+        }],
+      })
+      .then(res=>{
+
+      })
+      .catch(err=>{
+        console.log(err)
+      });
+      console.log('res', res);
+    },
     async testDeposit() {
       const metamaskProvider = new this.ethers.providers.Web3Provider(window.ethereum);
       const networkVersion = window.ethereum.networkVersion;

@@ -6,28 +6,44 @@
       <v-header></v-header>
     </div>
     <router-view :key="$route.path" />
+    <v-netTipPopup :show="showNetTip" key="netTipModal" />
   </div>
 </template>
 
 <script>
   import _ from 'lodash';
   import header from '@/components/Header/index';
+  import NetTipModal from '@/components/NetTipModal';
+  import { getSelectedChainID } from '@/utils/web3'
+  import { NETWORKS } from '@/utils/netWork'
+  
   import {
     checkMetamask, connectMetamask,
     setCookie, getCookie, getAccount } from "@/utils/auth";
+import { utils } from 'ethers';
 
   export default {
     name: 'APP',
     data() {
-      return { };
+      return {
+        showNetTip: false
+      };
     },
     components: {
       'v-header': header,
+      "v-netTipPopup": NetTipModal,
     },
     methods: {
       async resetWalletStatus() {
         await this.$store.dispatch("WalletAccountsAddress", {accounts:[]});
         await this.$store.dispatch('WalletLockStatus', {isLock: true});
+      },
+      checkNet(nID) {
+        if (!NETWORKS[nID]) {
+          this.showNetTip = true
+        } else {
+          this.showNetTip = false
+        }
       },
     },
     created () {
@@ -63,18 +79,24 @@
       if (window.ethereum) {
         ethereum.on('connect', async (connectInfo) => {
           if(window.ethereum.isConnected()){
-            console.log('isConnected')
+            const netId = this.web3.utils.hexToNumberString(connectInfo.chainId)
+            this.checkNet(netId);
+            console.log(`metamask isConnected and connectNetID is ${netId}`)
           }
         });
         ethereum.on('disconnect', async (error) => {
           console.log('disconnect')
         });
         ethereum.on('chainChanged', async (chainId) => {
-          console.log(4, chainId)
-          // 需要重置钱包相关状态
-          await this.$store.dispatch("WalletAccountsAddress", {accounts:[]})
-          await this.$store.dispatch('WalletLockStatus', {isLock: true});
-          this.$eventBus.$emit('resetStatus');
+          const netId = this.web3.utils.hexToNumberString(chainId)
+          console.log('chainChanged', netId)
+          this.checkNet(netId);
+          if (this.showNetTip) {
+            // 需要重置钱包相关状态
+            await this.$store.dispatch("WalletAccountsAddress", {accounts:[]})
+            await this.$store.dispatch('WalletLockStatus', {isLock: true});
+            this.$eventBus.$emit('resetStatus');
+          }
         });
         ethereum.on('accountsChanged', async (accounts) => {
           await this.$store.dispatch("WalletAccountsAddress", {accounts})

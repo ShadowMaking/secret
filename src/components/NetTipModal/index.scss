@@ -1,0 +1,21 @@
+
+
+.net-tip-modal {
+  padding: rem(20);
+  width: rem(300);
+  color: #646566;
+  h4{
+    width: 100%;
+    font-size: rem(15);
+    text-align: center;
+    color: #000;
+  }
+  .tip-content {
+    font-size: rem(14);
+    margin: rem(10) 0 0;
+    a {
+      color: #236BFB;
+      margin: rem(5);
+    }
+  }
+}
