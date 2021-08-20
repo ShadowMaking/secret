@@ -14,13 +14,9 @@
   import _ from 'lodash';
   import header from '@/components/Header/index';
   import NetTipModal from '@/components/NetTipModal';
-  import { getSelectedChainID } from '@/utils/web3'
   import { NETWORKS } from '@/utils/netWork'
-  
-  import {
-    checkMetamask, connectMetamask,
-    setCookie, getCookie, getAccount } from "@/utils/auth";
-import { utils } from 'ethers';
+  import { checkMetamask } from "@/utils/auth";
+  import { utils } from 'ethers';
 
   export default {
     name: 'APP',
@@ -82,6 +78,7 @@ import { utils } from 'ethers';
             const netId = this.web3.utils.hexToNumberString(connectInfo.chainId)
             this.checkNet(netId);
             console.log(`metamask isConnected and connectNetID is ${netId}`)
+            this.$eventBus.$emit('chainChanged', {netId, showTip: this.showNetTip });
           }
         });
         ethereum.on('disconnect', async (error) => {
@@ -91,12 +88,13 @@ import { utils } from 'ethers';
           const netId = this.web3.utils.hexToNumberString(chainId)
           console.log('chainChanged', netId)
           this.checkNet(netId);
-          if (this.showNetTip) {
+          this.$eventBus.$emit('chainChanged', {netId, showTip: this.showNetTip });
+          // if (this.showNetTip) {
             // 需要重置钱包相关状态
             await this.$store.dispatch("WalletAccountsAddress", {accounts:[]})
             await this.$store.dispatch('WalletLockStatus', {isLock: true});
             this.$eventBus.$emit('resetStatus');
-          }
+          // }
         });
         ethereum.on('accountsChanged', async (accounts) => {
           await this.$store.dispatch("WalletAccountsAddress", {accounts})

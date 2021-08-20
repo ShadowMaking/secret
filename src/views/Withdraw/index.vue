@@ -33,19 +33,15 @@
     <v-exchangeList key="comon-exchangeList" type="withdraw" v-show="!walletIsLock"/>
     <v-statusPop
       :status="popStatus"
-      title="您的提现已提交"
+      :title="statusPopTitle"
       timeTxt="预计等待 20-40 分钟汇出"
       tip="请在链上钱包中查看到账情况"
       :show="showStatusPop"
       @childEvent="changeVisible" />
-    <!-- <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-      <div>交易正在进行</div>
-      <div>请耐心等待<van-count-down :time="time" /></div>
-    </van-popup> -->
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-      <div>交易正在进行</div>
-      <div>请耐心等待</div>
+      <div>请在钱包上确认</div>
     </van-popup>
+    <v-netTipPopup :show="showNetTip" key="netTipModal" />
   </div>
 </template>
 <script>
@@ -54,21 +50,18 @@ import { Popup, CountDown, Field, Toast } from 'vant';
 import TokenAmount from '@/components/TokenAmount';
 import ExchangeList from '@/components/ExchangeList';
 import StatusPop from '@/components/StatusPop';
+import NetTipModal from '@/components/NetTipModal';
 import { wait, prettyLog } from '@/utils/index'
 import { getDefaultAddress } from '@/utils/auth'
-
+import { getNetMode, getSelectedChainID, initBrideByTransanctionType } from '@/utils/web3'
+import { Bridge } from 'arb-ts';
+import { NETWORKS } from '@/utils/netWork'
 import {
   rpcProvider, walletForRPC, bridgeAboutWalletForRPC,
   getAvailableBalanceForL1,getAvailableBalanceForL2, } from '@/utils/walletBridge'
 
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
-import { Bridge } from 'arb-ts';
-import {
-  address,
-  DEVNET_PRIVKEY,
-  ethRPC,
-  arbRPC
-} from '@/utils/global';
+
 
 Vue.use(Popup);
 Vue.use(CountDown);
@@ -83,16 +76,19 @@ export default {
     'v-exchangeList': ExchangeList,
     'v-tokenAmount': TokenAmount,
     'v-statusPop': StatusPop,
+    "v-netTipPopup": NetTipModal,
   },
   data() {
     return {
       popStatus: 'sucess',
       showStatusPop: false,
+      statusPopTitle: '您的提现已提交',
       show: false,
-      time: 10 * 1000,
       tokenAmountButtonTxtCode: 1,
       tokenAmountButtonTxt: '请输入金额',
       withDrawAddress: getDefaultAddress(this.$store),
+      showNetTip: false,
+      bridge: null,
     }
   },
   
@@ -103,18 +99,6 @@ export default {
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
     },
-    defaultAddress() {
-      return this.$store.state.metamask.accountsArr[0] || ''
-    },
-    provider() {
-      return rpcProvider()
-    },
-    wallet() {
-      return walletForRPC()
-    },
-    bridge() {
-      return bridgeAboutWalletForRPC()
-    },
   },
   watch: {
     walletIsLock(newValue, oldValue) {
@@ -123,7 +107,11 @@ export default {
   },
   methods: {
     setMyAddress() { },
-    changeVisible() {},
+    changeVisible() {
+      if (this.popStatus === 'success') {
+        this.$router.push({ name: 'Home' });
+      }
+    },
     handleAddressInputChange(value) {
       this.withDrawAddress = value;
       if (!utils.isAddress(value)) {
@@ -134,100 +122,132 @@ export default {
       this.tokenAmountButtonTxt = '请输入金额'
       this.tokenAmountButtonTxtCode = 1
     },
+    initBridge() {
+      const connectAddress = window.ethereum.selectedAddress;
+      const metamaskProvider = new this.ethers.providers.Web3Provider(window.ethereum);
+      const netId = getSelectedChainID();
+      const currentNet = NETWORKS[netId];
+      const partnerNet = NETWORKS[currentNet['partnerChainID']];
+      const tokenBridge = currentNet['tokenBridge'];
+
+      const ethProvider = new this.ethers.providers.JsonRpcProvider(
+        // partnerNet['url']   // 'http://43.128.80.242:7545'
+        'http://43.128.80.242:7545' // TODO
+      )
+      const arbProvider = metamaskProvider
+      const l1Signer = ethProvider.getSigner(connectAddress)
+      const l2Signer = arbProvider.getSigner(0)
+      
+      const bridge = new Bridge(
+        tokenBridge['l1Address'], // "0x7feAe6550487B59Cb903d977c18Ea16c4CC8D89e",
+        tokenBridge['l2Address'], // "0x5fe46790aE8c6Af364C2f715AB6594A370089B35",
+        l1Signer,
+        l2Signer,
+      )
+      this.bridge = bridge;
+      return bridge
+    },
     async submitWithdraw(info) {
       this.show = true;
-      const { ethProvider } = this.provider;
-      const bridge = this.bridge;
-      const inbox = await bridge.l1Bridge.getInbox();  // 这个inbox (address)的作用？
-      const inboxAddress = inbox.address;
-      if (!utils.isAddress(inboxAddress)) {
+
+      const connectAddress = window.ethereum.selectedAddress;
+      if (!utils.isAddress(connectAddress)) {
         Toast.fail(`账户地址有误，无法进行交易`);
         return;
       }
 
-      // 转换充值金额
+      // const bridge = initBrideByTransanctionType('l2');
+      const bridge = this.bridge || this.initBridge();
       const ethFromL2WithdrawAmount = parseEther(info.amount);
-      // const withdrawEthRes = await testBridge.withdrawETH(ethFromL2WithdrawAmount)
-      // const withdrawEthRec = await withdrawEthRes.wait()
-
-      bridge.withdrawETH(ethFromL2WithdrawAmount, {gasLimit: 0x933212 })
-      .then(async res2=>{
-        // Toast.fail(`交易已取消`);
+      // bridge.withdrawETH(ethFromL2WithdrawAmount, {gasLimit: 0x933212 })
+      bridge.withdrawETH(ethFromL2WithdrawAmount)
+      .then(async res=>{
+        this.show = false;
+        console.log('交易成功',res)
+        await wait()
+        prettyLog('交易正在进行，请耐心等待10s....')
+        this.showStatusPop = true;
+        this.statusPopTitle = '您的提现已提交'
+        this.popStatus = 'success';
+        await wait(10000);
+        this.showStatusPop = false;
+        this.$router.push({ name: 'Home' });
+        
         //执行交易
-        const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(
-                res2.transactionHash
-                )
-        if (!initiatingTxnReceipt)
-        throw new Error(
-                `No Arbitrum transaction found with provided txn hash: ${txnHash}`
-                )
-        const outGoingMessagesFromTxn = await bridge.getWithdrawalsInL2Transaction(
-                initiatingTxnReceipt
+        /* const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(
+          res.transactionHash
         )
-        if (outGoingMessagesFromTxn.length === 0)
-            throw new Error(`Txn ${txnHash} did not initiate an outgoing messages`)
+        if (!initiatingTxnReceipt){
+          throw new Error(`No Arbitrum transaction found with provided txn hash: ${txnHash}`)
+        }
+        const outGoingMessagesFromTxn = await bridge.getWithdrawalsInL2Transaction(initiatingTxnReceipt)
+        if (outGoingMessagesFromTxn.length === 0){
+          throw new Error(`Txn ${txnHash} did not initiate an outgoing messages`)
+        }
         const { batchNumber, indexInBatch } = outGoingMessagesFromTxn[0]
         const outgoingMessageState = await bridge.getOutGoingMessageState(
-                batchNumber,
-                indexInBatch
-                )
-        console.log(
-                `Waiting for message to be confirmed: Batchnumber: ${batchNumber}, IndexInBatch ${indexInBatch}`
-                )
+          batchNumber,
+          indexInBatch
+        )
+        console.log(`Waiting for message to be confirmed: Batchnumber: ${batchNumber}, IndexInBatch ${indexInBatch}`)
         while (!outgoingMessageState === OutgoingMessageState.CONFIRMED) {
-    await wait(1000 * 60)
-    const outgoingMessageState = await bridge.getOutGoingMessageState(
-      batchNumber,
-      indexInBatch
-    )
-
-    switch (outgoingMessageState) {
-      case OutgoingMessageState.NOT_FOUND: {
-        console.log('Message not found; something strange and bad happened')
-        process.exit(1)
-        break
-      }
-      case OutgoingMessageState.EXECUTED: {
-        console.log(`Message already executed! Nothing else to do here`)
-        process.exit(1)
-        break
-      }
-      case OutgoingMessageState.UNCONFIRMED: {
-        console.log(`Message not yet confirmed; we'll wait a bit and try again`)
-        break
-      }
-
-      default:
-        break
-    }
-  }
-   const res = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
-  const rec = await res.wait()
-
-  console.log('Done! Your transaction is executed')
-
-
-        const walletL1EthBalance = await getAvailableBalanceForL1()
-        const walletL2EthBalance = await getAvailableBalanceForL2()
-        console.log('交易进行完成后获取L1和L2余额', walletL1EthBalance.toString(), walletL2EthBalance.toString())
-        await wait()
-        // this.showStatusPop = true;
-        prettyLog('交易正在进行，请耐心等待10s....')
-        await wait(10000);
-        this.show = false;
-        // this.showStatusPop = false;
-        this.$router.push({ name: 'Home' });
+          await wait(1000 * 60)
+          const outgoingMessageState = await bridge.getOutGoingMessageState(
+            batchNumber,
+            indexInBatch
+          )
+          switch (outgoingMessageState) {
+            case OutgoingMessageState.NOT_FOUND: {
+              console.log('Message not found; something strange and bad happened')
+              process.exit(1)
+              break
+            }
+            case OutgoingMessageState.EXECUTED: {
+              console.log(`Message already executed! Nothing else to do here`)
+              process.exit(1)
+              break
+            }
+            case OutgoingMessageState.UNCONFIRMED: {
+              console.log(`Message not yet confirmed; we'll wait a bit and try again`)
+              break
+            }
+            default:
+              break
+          }
+        }
+        const res = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
+        const rec = await res.wait()
+        console.log('Done! Your transaction is executed') */
       })
       .catch(error => {
-        Toast.fail(`未知错误`);
-        // this.showStatusPop = true;
+        this.show = false;
+        if (error.code == '4001') {
+          Toast('交易取消')
+          return
+        }
         console.log(error)
+        // Toast.fail(`未知错误`);
+        this.showStatusPop = true;
+        this.statusPopTitle = '提现失败'
+        this.popStatus = 'fail';
       })
-    }
+    },
+    async handleChainChanged({netId, showTip}) {
+      if (showTip) {
+        this.showNetTip = false;
+        return
+      }
+      const mode = getNetMode(netId)
+      if (mode !== 'l2') {
+        this.showNetTip = true;
+        await this.$store.dispatch('WalletLockStatus', {isLock: true});
+      } else {
+        this.showNetTip = false;
+      }
+    },
   },
   mounted() {
-    console.log("metamask是否安装", this.$store.state.metamask.metamaskInstall)
-    console.log('钱包账户是否锁定', this.$store.state.metamask.walletIsLock);
+    this.$eventBus.$on('chainChanged', this.handleChainChanged);
   },
 }
 </script>

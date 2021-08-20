@@ -3,6 +3,7 @@
   <van-popup
     round
     v-model="show"
+    :closeable="showCloseIcon"
     :close-on-click-overlay="false"
     class="net-tip-modal" >
     <h4>Wrong NetWork</h4>
@@ -21,10 +22,10 @@ Vue.use(Button);
 
 export default {
   name: "NetTipPopUp",
-  props: ['show'],
+  props: ['show', 'showClose'],
   data() {
     return {
-      
+      showCloseIcon: this.showClose,
     }
   },
   methods: {
@@ -32,7 +33,7 @@ export default {
       const params = [];
       if (netType === 'l1') {
         params.push({
-          "chainId": L1ChainID,
+          "chainId": L1ChainID, // 此处需要16进制表示
           "chainName": "SecretL1",
           "rpcUrls": [ ethRPC ],
           // "blockExplorerUrls": []

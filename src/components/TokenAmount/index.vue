@@ -94,6 +94,7 @@ import UnlockWallet from '@/components/UnlockWallet';
 import { minus, lteZero, isZero } from '@/utils/number'
 import { getAvailableBalanceForL1, getAvailableBalanceForL2 } from '@/utils/walletBridge'
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
+import { initBrideByTransanctionType } from '@/utils/web3'
 const { parseEther, formatEther } = utils;
 
 Vue.use(Button);
@@ -191,15 +192,22 @@ export default {
       this.buttonColor = '#A4ACDF';
       this.buttonDisabled = true;
     },
+    initBridge() {
+      
+    },
     async getAvailableBalance() {
       const type = this.type
+      const bridgeType = type === 'recharge'? 'l1':'l2';
+      const bridge = initBrideByTransanctionType(bridgeType);
       let balance;
       switch(type) {
         case 'recharge':
-          balance = await getAvailableBalanceForL1();
+          // balance = await getAvailableBalanceForL1();
+          balance = await bridge.getAndUpdateL1EthBalance();
           break;
         case 'withdraw':
-          balance = await getAvailableBalanceForL2();
+          // balance = await getAvailableBalanceForL2();
+          balance = await bridge.getAndUpdateL2EthBalance();
           break;
         case 'transfer':
           break;

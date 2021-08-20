@@ -40,6 +40,7 @@
       tip="可以到“L2 钱包”对应资产的详情查看明细"
       :show="showStatusPop"
       @childEvent="changeVisible" />
+    <v-netTipPopup :show="showNetTip" key="netTipModal" />
   </div>
 </template>
 <script>
@@ -48,7 +49,10 @@ import { TRANSFER_TIP } from '@/utils/global';
 import ExchangeList from '@/components/ExchangeList';
 import TokenAmount from '@/components/TokenAmount';
 import StatusPop from '@/components/StatusPop';
+import NetTipModal from '@/components/NetTipModal';
 import { Popup, Field } from 'vant';
+import { getNetMode } from '@/utils/web3';
+import { Bridge } from 'arb-ts';
 
 Vue.use(Popup);
 Vue.use(Field);
@@ -59,6 +63,7 @@ export default {
     'v-exchangeList': ExchangeList,
     'v-tokenAmount': TokenAmount,
     'v-statusPop': StatusPop,
+    "v-netTipPopup": NetTipModal,
   },
   data() {
     return {
@@ -67,6 +72,7 @@ export default {
       showStatusPop: false,
       popStatus: "success",
       transferAddress: '',
+      showNetTip: false,
     }
   },
   computed: {
@@ -94,10 +100,22 @@ export default {
         this.tipShow = false;
       }, 2000)
     },
+    async handleChainChanged({netId, showTip}) {
+      if (showTip) {
+        this.showNetTip = false;
+        return
+      }
+      const mode = getNetMode(netId)
+      if (mode !== 'l2') {
+        this.showNetTip = true;
+        await this.$store.dispatch('WalletLockStatus', {isLock: true});
+      } else {
+        this.showNetTip = false;
+      }
+    },
   },
   mounted() {
-    console.log("metamask是否安装-transfer", this.$store.state.metamask.metamaskInstall)
-    console.log('钱包账户是否锁定-transfer', this.$store.state.metamask.walletIsLock);
+    this.$eventBus.$on('chainChanged', this.handleChainChanged);
   },
 }
 </script>

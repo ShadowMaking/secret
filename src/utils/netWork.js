@@ -20,6 +20,7 @@ const l1l2Bridge = {
   l2Address: ADDRESS.arbTokenBridge
 };
 
+// 预设链的链ID（16进制）
 const L1ChainID = '0xabea';         // 44010
 const L2ChainID = '0xac1f442f2a46'; // 189250287905350
 
@@ -28,10 +29,10 @@ const NETWORKS = {
   // 0xabea -> 44010
   '44010': {
     chainID: '44010',
-    name: 'Secret',
+    name: 'SecretL1',
     url: ethRPC,
     explorerUrl: '',
-    partnerChainID: '0xac1f442f2a46',
+    partnerChainID: '189250287905350',
     netType: 'l1',
     tokenBridge: l1l2Bridge,
     // confirmPeriodBlocks: 6545
@@ -39,7 +40,7 @@ const NETWORKS = {
   // 0xac1f442f2a46->189250287905350
   '189250287905350': {
     chainID: '189250287905350',
-    name: 'Secret2',
+    name: 'SecretL2',
     url: arbRPC,
     explorerUrl: '',
     partnerChainID: '44010',

@@ -1,8 +1,11 @@
 'use strict';
 import _ from 'lodash'
 import Web3 from "web3";
+import * as ethers from 'ethers'
+import { Bridge } from 'arb-ts';
 import { MessageBox } from 'mint-ui';
 import { dev_host } from '@/utils/global';
+import { NETWORKS } from '@/utils/netWork'
 
 // 区块链的网络ID
 const NETWORK_VERSION = {
@@ -103,8 +106,76 @@ export const init = (callback) =>{
   }
 }
 
-// 获取metamask连接的网络ID
+// 获取metamask连接的网络ID（10进制形式）
 export const getSelectedChainID = () => {
   return window.ethereum.networkVersion;
 }
 
+export const getInjectedWeb3 = () => {
+  return new Promise( async (resolve, reject) => {
+    if (window.ethereum) {
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        console.warn('No window.ethereum.enable function')
+      } catch (e) {
+        console.warn('Failed to enable window.ethereum: ' + e.message)
+        return []
+      }
+      resolve({
+        provider: new ethers.providers.Web3Provider(window.ethereum),
+        networkId: window.ethereum.networkVersion
+      })
+    }
+    resolve([])
+  })
+}
+
+export const getNetMode = (nId) => {
+  const netId = nId || getSelectedChainID();
+  if (NETWORKS[netId+'']) {
+    return NETWORKS[netId+'']['netType'];
+  }
+  return ''
+}
+
+// transanctionType - l1||l2
+export const initBrideByTransanctionType = (transanctionType='l1') => {
+  const connectAddress = window.ethereum.selectedAddress;
+  const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+  const netId = getSelectedChainID();
+  const currentNet = NETWORKS[netId];
+  if (!currentNet) {
+    return null
+  }
+  const partnerNet = NETWORKS[currentNet['partnerChainID']];
+  const tokenBridge = currentNet['tokenBridge'];
+  
+  let ethProvider;
+  let arbProvider;
+  let l1Signer;
+  let l2Signer;
+  if (transanctionType === 'l1') {
+    ethProvider = metamaskProvider
+    arbProvider = new ethers.providers.JsonRpcProvider(
+      // partnerNet['url']  // 'http://43.128.80.242:8547'
+      'http://43.128.80.242:8547' // TODO
+    )
+    l1Signer = ethProvider.getSigner(0);
+    l2Signer = arbProvider.getSigner(connectAddress);
+  } else if (transanctionType === 'l2') {
+    ethProvider = new ethers.providers.JsonRpcProvider(
+      // partnerNet['url']   // 'http://43.128.80.242:7545'
+      'http://43.128.80.242:7545' // TODO
+    )
+    arbProvider = metamaskProvider
+    l1Signer = ethProvider.getSigner(connectAddress)
+    l2Signer = arbProvider.getSigner(0)
+  }
+  const bridge = new Bridge(
+    tokenBridge['l1Address'], // "0x7feAe6550487B59Cb903d977c18Ea16c4CC8D89e",
+    tokenBridge['l2Address'], // "0x5fe46790aE8c6Af364C2f715AB6594A370089B35",
+    l1Signer,
+    l2Signer,
+  )
+  return bridge
+}
