@@ -3,7 +3,7 @@ import App from './App.vue';
 import router from './router';
 import store from './store';
 // import '@/assets/style/reset.scss';
-import { initWeb3 } from "@/utils/wb3";
+import { initWeb3 } from "@/utils/web3";
 import { ethers } from 'ethers';
 
 Vue.config.productionTip = false;
