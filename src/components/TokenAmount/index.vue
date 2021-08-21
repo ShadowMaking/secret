@@ -92,7 +92,6 @@ import Vue from 'vue';
 import { Button, Col, Row, Field, Popup, Search } from 'vant';
 import UnlockWallet from '@/components/UnlockWallet';
 import { minus, lteZero, isZero } from '@/utils/number'
-import { getAvailableBalanceForL1, getAvailableBalanceForL2 } from '@/utils/walletBridge'
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
 import { initBrideByTransanctionType } from '@/utils/web3'
 const { parseEther, formatEther } = utils;
@@ -202,14 +201,13 @@ export default {
       let balance;
       switch(type) {
         case 'recharge':
-          // balance = await getAvailableBalanceForL1();
           balance = await bridge.getAndUpdateL1EthBalance();
           break;
         case 'withdraw':
-          // balance = await getAvailableBalanceForL2();
           balance = await bridge.getAndUpdateL2EthBalance();
           break;
         case 'transfer':
+          balance = await bridge.getAndUpdateL2EthBalance();
           break;
       }
       return balance;

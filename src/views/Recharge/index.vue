@@ -126,8 +126,8 @@ export default {
 
       const ethProvider = metamaskProvider
       const arbProvider = new this.ethers.providers.JsonRpcProvider(
-        // partnerNet['url']  // 'http://43.128.80.242:8547'
-        'http://43.128.80.242:8547' // TODO
+        partnerNet['url']
+        // 'http://43.128.80.242:8547' // TODO
       )
       const l1Signer = ethProvider.getSigner(0);
       const l2Signer = arbProvider.getSigner(connectAddress);

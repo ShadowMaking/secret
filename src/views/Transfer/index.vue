@@ -33,9 +33,12 @@
       <i class=""></i>
       <span>您的交易地址和交易金额已被加密保护</span>
     </van-popup>
+    <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+      <div>请在钱包上确认</div>
+    </van-popup>
     <v-statusPop
       :status="popStatus"
-      title="您的转账已提交"
+      :title="statusPopTitle"
       timeTxt="预计 1 分钟内完成资金变动"
       tip="可以到“L2 钱包”对应资产的详情查看明细"
       :show="showStatusPop"
@@ -50,9 +53,11 @@ import ExchangeList from '@/components/ExchangeList';
 import TokenAmount from '@/components/TokenAmount';
 import StatusPop from '@/components/StatusPop';
 import NetTipModal from '@/components/NetTipModal';
-import { Popup, Field } from 'vant';
+import { Popup, Field, Toast } from 'vant';
 import { getNetMode } from '@/utils/web3';
-import { Bridge } from 'arb-ts';
+import { wait, prettyLog } from '@/utils/index'
+import { utils } from 'ethers';
+import { utils as web3utils } from 'web3';
 
 Vue.use(Popup);
 Vue.use(Field);
@@ -73,6 +78,8 @@ export default {
       popStatus: "success",
       transferAddress: '',
       showNetTip: false,
+      show: false,
+      statusPopTitle: '您的转账已提交',
     }
   },
   computed: {
@@ -87,9 +94,59 @@ export default {
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
     },
-    submitTransfer(info) {
-      this.showStatusPop = true;
-      console.log('金额', info.amount)
+    async submitTransfer(info) {
+      const transferToAddress = this.transferAddress;
+      const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
+      const selectedAccountAddress = accounts[0];
+      if (!utils.isAddress(transferToAddress)) {
+        Toast('转账地址输入有误')
+        return
+      }
+      
+      if (transferToAddress.toLocaleUpperCase() === selectedAccountAddress.toLocaleUpperCase()) {
+        Toast('不允许给自己转账')
+        return
+      }
+      this.show = true;
+      const transferAmount = utils.parseEther(info.amount);
+      const transferParams = [{
+        from: selectedAccountAddress,
+        to: transferToAddress,
+        gas: web3utils.toHex('21000'), // 21000的16进制 '0x5208
+        gasPrice: '0',
+        value: transferAmount.toHexString()
+      }];
+      console.log('submitData', transferParams)
+      ethereum.request({
+        jsonrpc: "2.0",
+        method: "eth_sendTransaction",
+        params: transferParams,
+        id: 0
+      })
+      .then(async res=>{
+        this.show = false;
+        console.log('交易成功',res)
+        await wait()
+        prettyLog('交易正在进行，请耐心等待10s....')
+        this.showStatusPop = true;
+        this.statusPopTitle = '您的转账已提交'
+        this.popStatus = 'success';
+        await wait(10000);
+        this.showStatusPop = false;
+        this.$router.push({ name: 'Home' });
+      })
+      .catch(error=>{
+        this.show = false;
+        if (error.code == '4001') {
+          Toast('交易取消')
+          return
+        }
+        console.log(error)
+        // Toast.fail(`未知错误`);
+        this.showStatusPop = true;
+        this.statusPopTitle = '转账失败'
+        this.popStatus = 'fail';
+      })
     },
     handleAddressInputChange(value) {
 

@@ -67,6 +67,7 @@ export default {
       const ethProvider = metamaskProvider
       const arbProvider = new this.ethers.providers.JsonRpcProvider(
         'http://43.128.80.242:8547'
+        // , {allowInsecure: true}
       )
       const l1Signer = ethProvider.getSigner(0)
       const l2Signer = arbProvider.getSigner(

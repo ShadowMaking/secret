@@ -12,8 +12,13 @@ const ADDRESS = {
 const HOST_CLOUD = '43.128.80.242';   // 云上环境
 const HOST_LOCAL = '192.168.0.194';   // 本地测试环境
 
-const ethRPC = `https://${HOST_CLOUD}:7545`;
-const arbRPC = `https://${HOST_CLOUD}:8547`;
+// const ethRPC = `https://${HOST_CLOUD}:7545`;
+// const arbRPC = `https://${HOST_CLOUD}:8547`;
+
+// const ethRPC = `https://43.128.80.242:8443/eth`;
+// const arbRPC = `https://43.128.80.242:8443/eig`;
+const ethRPC = `https://rpc.ieigen.com/eth/`;
+const arbRPC = `https://rpc.ieigen.com/eig/`;
 
 const l1l2Bridge = {
   l1Address: ADDRESS.ethERC20Bridge,

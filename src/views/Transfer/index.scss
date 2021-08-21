@@ -67,3 +67,12 @@
   }
   ::v-deep.noneOverlay{ display: none; }
 }
+
+.waiting-modal {
+  width: rem(200);
+  height: rem(200);
+  font-size: rem(15);
+  ::v-deep.van-count-down{
+    text-align: center;
+  }
+}
