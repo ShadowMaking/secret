@@ -158,14 +158,14 @@ export const initBrideByTransanctionType = (transanctionType='l1') => {
     ethProvider = metamaskProvider
     arbProvider = new ethers.providers.JsonRpcProvider(
       partnerNet['url']
-      // 'http://43.128.80.242:8547' // TODO
+      // 'http://43.128.80.242:8547'
     )
     l1Signer = ethProvider.getSigner(0);
     l2Signer = arbProvider.getSigner(connectAddress);
   } else if (transanctionType === 'l2') {
     ethProvider = new ethers.providers.JsonRpcProvider(
       partnerNet['url']
-      // 'http://43.128.80.242:7545' // TODO
+      // 'http://43.128.80.242:7545'
     )
     arbProvider = metamaskProvider
     l1Signer = ethProvider.getSigner(connectAddress)

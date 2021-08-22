@@ -31,11 +31,12 @@
         :buttonTxt="tokenAmountButtonTxt" />
     </div>
     <v-exchangeList key="comon-exchangeList" type="L2ToL1" v-show="!walletIsLock"/>
+    <!-- 请在链上钱包中查看到账情况 -->
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
       timeTxt="预计等待 20-40 分钟汇出"
-      tip="请在链上钱包中查看到账情况"
+      tip="到账慢可在交易详情中进行加速操作"
       :show="showStatusPop"
       @childEvent="changeVisible" />
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
@@ -173,11 +174,6 @@ export default {
       console.log(`Waiting for message to be confirmed: Batchnumber: ${batchNumber}, IndexInBatch ${indexInBatch}`)
 
       if (!outgoingMessageState === OutgoingMessageState.CONFIRMED) {
-        await wait(1000 * 60)
-        /* const outgoingMessageState = await bridge.getOutGoingMessageState(
-          batchNumber,
-          indexInBatch
-        ) */
         let msg = '';
         switch (outgoingMessageState) {
           case OutgoingMessageState.NOT_FOUND: {
@@ -197,7 +193,6 @@ export default {
         }
         return { success: false, msg };
       }
-      debugger
       const res = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
       
       const rec = await res.wait()
@@ -225,103 +220,37 @@ export default {
       // bridge.withdrawETH(ethFromL2WithdrawAmount, undefined, {gas: '0x933212' })
       bridge.withdrawETH(ethFromL2WithdrawAmount)
       .then(async res=>{
+        this.tipTxt = '交易正在进行';
         const txHash = res.hash;
         const transactionWaitRes = await res.wait();
         console.log('transactionWaitRes', transactionWaitRes)
         const { confirmations } = transactionWaitRes
         const { from, to, transactionHash } = confirmations;
 
-        // {"txid": "1", "from": "0x1", "to": "0x1", "type":0}
-        this.$store.dispatch('AddTransactionHistory', {
-          txid: transactionHash,
-          from,
-          to,
-          type: TRANSACTION_TYPE['L2ToL1'],
-          status: confirmations // 1-成功(交易已被确认)，0-失败
-        })
-        .then(res=>{
-          this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
-        })
-        .catch(err=>{})
-
-        this.tipTxt = '交易正在进行';
-
-        // 执行下面代码
         if (confirmations == 1) {
-          const conformStatus = await this.executeConfirmTransaction(txHash);
-          if (conformStatus.success) {
-            // 如果是withdraw，并且confirmation是1，然后继续调用我那段代码，如果成功将后端status改成2.
-            // {"status": 1, "sub_txid": "2121"}  withdraw类型的交易，status是2，才认为成功
-            this.$store.dispatch('UpdateTransactionHistory', {
-              txid: txHash,
-              status: 2,
-            })
-            .then(res=>{
-              this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
-            })
-            .catch(err=>{})
-          }
+          // {"txid": "1", "from": "0x1", "to": "0x1", "type":0}
+          this.$store.dispatch('AddTransactionHistory', {
+            txid: transactionHash,
+            from,
+            to,
+            type: TRANSACTION_TYPE['L2ToL1'],
+            status: confirmations // 1-成功(交易已被确认)，0-失败
+          })
+          .then(async res=>{
+            this.show = false;
+            console.log('交易成功',res)
+            await wait()
+            prettyLog('交易正在进行，请耐心等待10s....')
+            this.showStatusPop = true;
+            this.statusPopTitle = '您的提现已提交'
+            this.popStatus = 'success';
+            await wait(10000);
+            this.showStatusPop = false;
+            this.$router.push({ name: 'Home' });
+            this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
+          })
+          .catch(err=>{})
         }
-
-        this.show = false;
-        console.log('交易成功',res)
-        await wait()
-        prettyLog('交易正在进行，请耐心等待10s....')
-        this.showStatusPop = true;
-        this.statusPopTitle = '您的提现已提交'
-        this.popStatus = 'success';
-        await wait(10000);
-        this.showStatusPop = false;
-        this.$router.push({ name: 'Home' });
-        
-        //执行交易
-        /* const txnHash = res.hash;
-        const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(
-          res.hash
-        )
-        if (!initiatingTxnReceipt){
-          throw new Error(`No Arbitrum transaction found with provided txn hash: ${txnHash}`)
-        }
-        const outGoingMessagesFromTxn = await bridge.getWithdrawalsInL2Transaction(initiatingTxnReceipt)
-        if (outGoingMessagesFromTxn.length === 0){
-          throw new Error(`Txn ${txnHash} did not initiate an outgoing messages`)
-        }
-        const { batchNumber, indexInBatch } = outGoingMessagesFromTxn[0]
-        const outgoingMessageState = await bridge.getOutGoingMessageState(
-          batchNumber,
-          indexInBatch
-        )
-        console.log(`Waiting for message to be confirmed: Batchnumber: ${batchNumber}, IndexInBatch ${indexInBatch}`)
-        
-        while (!outgoingMessageState === OutgoingMessageState.CONFIRMED) {
-          await wait(1000 * 60)
-          const outgoingMessageState = await bridge.getOutGoingMessageState(
-            batchNumber,
-            indexInBatch
-          )
-          switch (outgoingMessageState) {
-            case OutgoingMessageState.NOT_FOUND: {
-              console.log('Message not found; something strange and bad happened')
-              process.exit(1)
-              break
-            }
-            case OutgoingMessageState.EXECUTED: {
-              console.log(`Message already executed! Nothing else to do here`)
-              process.exit(1)
-              break
-            }
-            case OutgoingMessageState.UNCONFIRMED: {
-              console.log(`Message not yet confirmed; we'll wait a bit and try again`)
-              break
-            }
-            default:
-              break
-          }
-        }
-        const _res = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
-        const rec = await _res.wait()
-        console.log(_res, rec)
-        console.log('Done! Your transaction is executed') */
       })
       .catch(error => {
         this.show = false;

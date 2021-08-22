@@ -159,23 +159,15 @@ export default {
       // bridge.depositETH(ethToL2DepositAmount, {gas: web3utils.toHex('21000')})
       bridge.depositETH(ethToL2DepositAmount)
       .then(async res=>{
+        this.tipTxt = '交易正在进行';
         const txHash = res.hash;
         const transactionWaitRes = await res.wait();
         console.log('transactionWaitRes', transactionWaitRes)
         const { confirmations } = transactionWaitRes
         const { from, to, transactionHash } = confirmations;
 
-        this.tipTxt = '交易正在进行';
-
-        if (confirmations == 1) {
-          this.show = false;
+        // if (confirmations == 1) { // TODO deposit confirmations===1 为成功，调试中也有2的情况
           console.log('交易成功',res)
-          await wait()
-          prettyLog('交易正在进行，请耐心等待10s....')
-          this.showStatusPop = true;
-          this.statusPopTitle = '您的转账已提交'
-          this.popStatus = 'success';
-          // {"txid": "1", "from": "0x1", "to": "0x1", "type":0}
           this.$store.dispatch('AddTransactionHistory', {
             txid: txHash,
             from: res.from || connectAddress,
@@ -184,20 +176,27 @@ export default {
             status: confirmations,
           })
           .then(async res=>{
+            this.show = false;
+            this.showStatusPop = true;
+            this.statusPopTitle = '您的转账已提交'
+            this.popStatus = 'success';
+            prettyLog('交易正在进行，请耐心等待10s....')
             await wait(10000);
             this.showStatusPop = false;
             this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L1ToL2'});
             this.$router.push({ name: 'Home' });
           })
           .catch(err=>{
+            this.show = false;
             this.showStatusPop = false;
             // this.$router.push({ name: 'Home' });
             // Toast.fail(`提交记录发生未知错误`);
             console.log(`提交记录发生未知错误,${err}`)
           })
-        } else {
-          Toast('未知错误')
-        }
+        // } else {
+        //   this.show = false;
+        //   Toast('未知错误')
+        // }
       })
       .catch(error => {
         this.show = false;
