@@ -37,9 +37,9 @@
         </van-tab>
       </van-tabs>
     </div>
-    <v-exchangeList key="comon-exchangeList" type="recharge" v-show="activeName=='fromL1'&&!walletIsLock" />
+    <v-exchangeList key="comon-exchangeList" type="L1ToL2" v-show="activeName=='fromL1'&&!walletIsLock" />
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-      <div>请在钱包上确认</div>
+      <div>{{ tipTxt }}</div>
     </van-popup>
     <v-statusPop
       :status="popStatus"
@@ -65,6 +65,8 @@ import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
 import { DEFAULTIMG } from '@/utils/global';
 import { NETWORKS } from '@/utils/netWork'
 import { Bridge } from 'arb-ts';
+import { TRANSACTION_TYPE } from '@/api/transaction';
+import { utils as web3utils } from 'web3';
 
 const { parseEther } = utils;
 
@@ -92,6 +94,7 @@ export default {
       RECHAERGE_TIP,
       activeName: 'fromL1', // fromL1 | fromeL2
       show: false,
+      tipTxt: '请在钱包上确认',
       showStatusPop: false,
       popStatus: "success",
       statusPopTitle: '您的转账已提交',
@@ -127,13 +130,12 @@ export default {
       const ethProvider = metamaskProvider
       const arbProvider = new this.ethers.providers.JsonRpcProvider(
         partnerNet['url']
-        // 'http://43.128.80.242:8547' // TODO
       )
       const l1Signer = ethProvider.getSigner(0);
       const l2Signer = arbProvider.getSigner(connectAddress);
       const bridge = new Bridge(
-        tokenBridge['l1Address'], // "0x7feAe6550487B59Cb903d977c18Ea16c4CC8D89e",
-        tokenBridge['l2Address'], // "0x5fe46790aE8c6Af364C2f715AB6594A370089B35",
+        tokenBridge['l1Address'],
+        tokenBridge['l2Address'],
         l1Signer,
         l2Signer,
       )
@@ -141,6 +143,8 @@ export default {
       return bridge
     },
     async submitRecharge(info) {
+      this.showStatusPop = false;
+      this.tipTxt = '请在钱包上确认';
       this.show = true;
 
       const connectAddress = window.ethereum.selectedAddress;
@@ -152,18 +156,47 @@ export default {
       const bridge = this.bridge || this.initBridge();
       // const bridge = initBrideByTransanctionType('l1');
       const ethToL2DepositAmount = parseEther(info.amount);
+      // bridge.depositETH(ethToL2DepositAmount, {gas: web3utils.toHex('21000')})
       bridge.depositETH(ethToL2DepositAmount)
       .then(async res=>{
-        this.show = false;
-        console.log('交易成功',res)
-        await wait()
-        prettyLog('交易正在进行，请耐心等待10s....')
-        this.showStatusPop = true;
-        this.statusPopTitle = '您的转账已提交'
-        this.popStatus = 'success';
-        await wait(10000);
-        this.showStatusPop = false;
-        this.$router.push({ name: 'Home' });
+        const txHash = res.hash;
+        const transactionWaitRes = await res.wait();
+        console.log('transactionWaitRes', transactionWaitRes)
+        const { confirmations } = transactionWaitRes
+        const { from, to, transactionHash } = confirmations;
+
+        this.tipTxt = '交易正在进行';
+
+        if (confirmations == 1) {
+          this.show = false;
+          console.log('交易成功',res)
+          await wait()
+          prettyLog('交易正在进行，请耐心等待10s....')
+          this.showStatusPop = true;
+          this.statusPopTitle = '您的转账已提交'
+          this.popStatus = 'success';
+          // {"txid": "1", "from": "0x1", "to": "0x1", "type":0}
+          this.$store.dispatch('AddTransactionHistory', {
+            txid: transactionHash||txHash,
+            from: from || connectAddress,
+            to,
+            type: TRANSACTION_TYPE['L1ToL2'],
+            status: confirmations,
+          })
+          .then(async res=>{
+            await wait(10000);
+            this.showStatusPop = false;
+            this.$router.push({ name: 'Home' });
+          })
+          .catch(err=>{
+            this.showStatusPop = false;
+            // this.$router.push({ name: 'Home' });
+            // Toast.fail(`提交记录发生未知错误`);
+            console.log(`提交记录发生未知错误,${err}`)
+          })
+        } else {
+          Toast('未知错误')
+        }
       })
       .catch(error => {
         this.show = false;
@@ -172,7 +205,6 @@ export default {
           return
         }
         console.log(error)
-        // Toast.fail(`未知错误`);
         this.showStatusPop = true;
         this.statusPopTitle = '充值失败'
         this.popStatus = 'fail';

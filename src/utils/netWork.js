@@ -1,22 +1,9 @@
 
 const ADDRESS = {
-  "l2ChainId": "0xac1f442f2a46",
-  "buddyDeployer": "0xFd987e3cA0e9EbadF6Fd9F6651f62965F7CDc466",
-  "standardArbERC20": "0x85C9c72A99F1a4ae0E18D47a2E3A1906a2c6370C",
-  "standardArbERC777": "0x3F5f9873Df8d5bCdC98d155644D45F9F9093DC1a",
   "ethERC20Bridge": "0x7feAe6550487B59Cb903d977c18Ea16c4CC8D89e",
   "arbTokenBridge": "0x5fe46790aE8c6Af364C2f715AB6594A370089B35",
-  "inbox": "0x52B1ebAB51864d760b8E298f6dEEfd9b21D4ff8E"
 };
 
-const HOST_CLOUD = '43.128.80.242';   // 云上环境
-const HOST_LOCAL = '192.168.0.194';   // 本地测试环境
-
-// const ethRPC = `https://${HOST_CLOUD}:7545`;
-// const arbRPC = `https://${HOST_CLOUD}:8547`;
-
-// const ethRPC = `https://43.128.80.242:8443/eth`;
-// const arbRPC = `https://43.128.80.242:8443/eig`;
 const ethRPC = `https://rpc.ieigen.com/eth/`;
 const arbRPC = `https://rpc.ieigen.com/eig/`;
 

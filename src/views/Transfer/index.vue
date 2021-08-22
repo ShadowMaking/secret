@@ -28,13 +28,13 @@
       <span class="tip"><i class="info_icon"></i>请勿输入交易所地址</span>
       <v-tokenAmount key="tokenAmount-transfer" type="transfer" @childEvent="submitTransfer" />
     </div>
-    <v-exchangeList key="comon-exchangeList" type="transfer" v-show="!walletIsLock" />
+    <v-exchangeList key="comon-exchangeList" type="L2ToL2" v-show="!walletIsLock" />
     <van-popup v-model="tipShow" class="safe-tip-toast" overlay-class="noneOverlay">
       <i class=""></i>
       <span>您的交易地址和交易金额已被加密保护</span>
     </van-popup>
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-      <div>请在钱包上确认</div>
+      <div>{{ tipTxt }}</div>
     </van-popup>
     <v-statusPop
       :status="popStatus"
@@ -58,6 +58,7 @@ import { getNetMode } from '@/utils/web3';
 import { wait, prettyLog } from '@/utils/index'
 import { utils } from 'ethers';
 import { utils as web3utils } from 'web3';
+import { TRANSACTION_TYPE } from '@/api/transaction';
 
 Vue.use(Popup);
 Vue.use(Field);
@@ -79,6 +80,7 @@ export default {
       transferAddress: '',
       showNetTip: false,
       show: false,
+      tipTxt: '请在钱包上确认',
       statusPopTitle: '您的转账已提交',
     }
   },
@@ -95,6 +97,7 @@ export default {
       this.showStatusPop = eventInfo.show;
     },
     async submitTransfer(info) {
+      this.showStatusPop = false;
       const transferToAddress = this.transferAddress;
       const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
       const selectedAccountAddress = accounts[0];
@@ -107,6 +110,8 @@ export default {
         Toast('不允许给自己转账')
         return
       }
+
+      this.tipTxt = '请在钱包上确认';
       this.show = true;
       const transferAmount = utils.parseEther(info.amount);
       const transferParams = [{
@@ -131,9 +136,25 @@ export default {
         this.showStatusPop = true;
         this.statusPopTitle = '您的转账已提交'
         this.popStatus = 'success';
-        await wait(10000);
-        this.showStatusPop = false;
-        this.$router.push({ name: 'Home' });
+        // {"txid": "1", "from": "0x1", "to": "0x1", "type":0}
+        this.$store.dispatch('AddTransactionHistory', {
+          txid: res,
+          from: transferParams['from'],
+          to: transferParams['to'],
+          type: TRANSACTION_TYPE['L2ToL2'],
+          status: 1,
+        })
+        .then(async res=>{
+          await wait(10000);
+          this.showStatusPop = false;
+          this.$router.push({ name: 'Home' });
+        })
+        .catch(err=>{
+          this.showStatusPop = false;
+          // this.$router.push({ name: 'Home' });
+          // Toast.fail(`提交记录发生未知错误`);
+          console.log(`提交记录发生未知错误,${err}`)
+        })
       })
       .catch(error=>{
         this.show = false;

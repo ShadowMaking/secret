@@ -16,11 +16,13 @@ module.exports = {
     hotOnly: false,
     /* proxy: {
       "/api": {
-        target: dev ? "http://eigen.com:80/" : "http://eigen.com",
+        target: "http://dev-deliver-secret.eigen.com:8090",
+        // target: "http://rpc.ieigen.com",
         changeOrigin: true,
         secure: false,
+        ws: true,
         pathRewirte: {
-          "^/api": ""
+          "^/api": "/api"
         }
       }
     }, */

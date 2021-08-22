@@ -2,11 +2,12 @@
   <div class="token-amount-wrap">
     <van-row class="token-amount-wrap-inner">
       <van-col span="12" @click="choseToken">
-        <div class="slect-token-wrap">
+        <div class="slect-token-wrap flex">
           <i class="token token-ETH"></i>
           <span class="token-span">ETH</span>
-          <i class="icon-selected"></i>
-          <van-button color="#E4E6F5" size="mini" >
+          <!-- TODO 暂时隐藏 -->
+          <i class="icon-selected" style="display:none;"></i>
+          <van-button color="#E4E6F5" size="mini" style="margin-left:5px">
             <span slots="default" style="color:#495ABE">最大值</span>
           </van-button>
         </div>
@@ -179,6 +180,8 @@ export default {
   },
   methods: {
     choseToken() {
+      // TODO 目前只要一个ETH 所以该功能暂时隐藏
+      return
       if (this.walletIsLock) { return }
       this.showTokenSelect = true
     },

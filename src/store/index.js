@@ -3,6 +3,7 @@ import Vuex from 'vuex';
 import persistedState from 'vuex-persistedstate'
 
 import metamask from './modules/metamask';
+import transaction from './modules/transaction';
 import getters from './getters'
 
 Vue.use(Vuex);
@@ -20,7 +21,8 @@ Vue.use(Vuex);
 
 const store = new Vuex.Store({
   modules: {
-    metamask
+    metamask,
+    transaction
   },
   getters,
   // plugins: [persistedState()]
