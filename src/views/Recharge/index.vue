@@ -177,15 +177,16 @@ export default {
           this.popStatus = 'success';
           // {"txid": "1", "from": "0x1", "to": "0x1", "type":0}
           this.$store.dispatch('AddTransactionHistory', {
-            txid: transactionHash||txHash,
-            from: from || connectAddress,
-            to,
+            txid: txHash,
+            from: res.from || connectAddress,
+            to: res.to,
             type: TRANSACTION_TYPE['L1ToL2'],
             status: confirmations,
           })
           .then(async res=>{
             await wait(10000);
             this.showStatusPop = false;
+            this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L1ToL2'});
             this.$router.push({ name: 'Home' });
           })
           .catch(err=>{

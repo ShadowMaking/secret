@@ -149,7 +149,6 @@ export default {
       return bridge
     },
     async executeConfirmTransaction(withrawTxHash) {
-      debugger
       const bridge = this.bridge || this.initBridge();
       const txnHash = withrawTxHash;
       const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(txnHash);
@@ -233,15 +232,17 @@ export default {
         const { from, to, transactionHash } = confirmations;
 
         // {"txid": "1", "from": "0x1", "to": "0x1", "type":0}
-        /* this.$store.dispatch('AddTransactionHistory', {
+        this.$store.dispatch('AddTransactionHistory', {
           txid: transactionHash,
           from,
           to,
           type: TRANSACTION_TYPE['L2ToL1'],
           status: confirmations // 1-成功(交易已被确认)，0-失败
         })
-        .then(res=>{})
-        .catch(err=>{}) */
+        .then(res=>{
+          this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
+        })
+        .catch(err=>{})
 
         this.tipTxt = '交易正在进行';
 
@@ -251,12 +252,14 @@ export default {
           if (conformStatus.success) {
             // 如果是withdraw，并且confirmation是1，然后继续调用我那段代码，如果成功将后端status改成2.
             // {"status": 1, "sub_txid": "2121"}  withdraw类型的交易，status是2，才认为成功
-            /* this.$store.dispatch('UpdateTransactionHistory', {
+            this.$store.dispatch('UpdateTransactionHistory', {
               txid: txHash,
               status: 2,
             })
-            .then(res=>{})
-            .catch(err=>{}) */
+            .then(res=>{
+              this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
+            })
+            .catch(err=>{})
           }
         }
 

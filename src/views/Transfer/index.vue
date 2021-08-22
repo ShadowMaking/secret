@@ -129,30 +129,32 @@ export default {
         id: 0
       })
       .then(async res=>{
-        this.show = false;
+        this.tipTxt = '交易正在进行';
         console.log('交易成功',res)
-        await wait()
+        await wait(10000);
         prettyLog('交易正在进行，请耐心等待10s....')
-        this.showStatusPop = true;
-        this.statusPopTitle = '您的转账已提交'
-        this.popStatus = 'success';
+        
         // {"txid": "1", "from": "0x1", "to": "0x1", "type":0}
         this.$store.dispatch('AddTransactionHistory', {
           txid: res,
-          from: transferParams['from'],
-          to: transferParams['to'],
+          from: transferParams['from'] || selectedAccountAddress,
+          to: transferParams['to'] || transferToAddress,
           type: TRANSACTION_TYPE['L2ToL2'],
           status: 1,
         })
         .then(async res=>{
-          await wait(10000);
-          this.showStatusPop = false;
+          this.show = false;
+          this.showStatusPop = true;
+          this.statusPopTitle = '您的转账已提交'
+          this.popStatus = 'success';
+          this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL2'});
+          await wait();
           this.$router.push({ name: 'Home' });
         })
         .catch(err=>{
           this.showStatusPop = false;
           // this.$router.push({ name: 'Home' });
-          // Toast.fail(`提交记录发生未知错误`);
+          Toast.fail(`提交记录发生未知错误`);
           console.log(`提交记录发生未知错误,${err}`)
         })
       })

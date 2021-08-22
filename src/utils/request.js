@@ -10,7 +10,7 @@ export const WEBSITE_BASEURL = protocol + '//43.128.80.242:8443';
  const service = axios.create({
    // baseURL: process.env.BASE_API,
    baseURL: WEBSITE_BASEURL,
-   timeout: 5000 // request timeout
+   timeout: 500000000 // request timeout
  })
  
  // request interceptor

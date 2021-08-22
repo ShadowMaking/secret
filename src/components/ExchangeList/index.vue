@@ -159,6 +159,9 @@ export default {
       }
     },
     handleSearchTransactionHistoryList() {
+      console.log('ready requet history...')
+      if (this.walletIsLock) { return }
+      console.log('requet history...')
       const tx_type = this.type === 'all' ? '' : TRANSACTION_TYPE[this.type];
       const fromAddress = window.ethereum.selectedAddress;
       this.$store.dispatch('SearchAllTransactionHistory', { from: fromAddress })
@@ -201,7 +204,11 @@ export default {
     if (!this.walletIsLock) {
       this.handleSearchTransactionHistoryList()
     }
-  }
+  },
+  mounted() {
+    this.$eventBus.$on('handleUpdateTransactionHistory', this.handleSearchTransactionHistoryList)
+  },
+  
 };
 </script>
 <style lang="scss" >
