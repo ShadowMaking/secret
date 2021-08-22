@@ -30,7 +30,7 @@
         :buttonCode="tokenAmountButtonTxtCode"
         :buttonTxt="tokenAmountButtonTxt" />
     </div>
-    <v-exchangeList key="comon-exchangeList" type="withdraw" v-show="!walletIsLock"/>
+    <v-exchangeList key="comon-exchangeList" type="L2ToL1" v-show="!walletIsLock"/>
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
@@ -39,7 +39,7 @@
       :show="showStatusPop"
       @childEvent="changeVisible" />
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-      <div>请在钱包上确认</div>
+      <div>{{ tipTxt }}</div>
     </van-popup>
     <v-netTipPopup :show="showNetTip" key="netTipModal" />
   </div>
@@ -54,8 +54,9 @@ import NetTipModal from '@/components/NetTipModal';
 import { wait, prettyLog } from '@/utils/index'
 import { getDefaultAddress } from '@/utils/auth'
 import { getNetMode, getSelectedChainID, initBrideByTransanctionType } from '@/utils/web3'
-import { Bridge } from 'arb-ts';
+import { Bridge, OutgoingMessageState } from 'arb-ts';
 import { NETWORKS } from '@/utils/netWork'
+import { TRANSACTION_TYPE } from '@/api/transaction';
 import {
   rpcProvider, walletForRPC, bridgeAboutWalletForRPC,
   getAvailableBalanceForL1,getAvailableBalanceForL2, } from '@/utils/walletBridge'
@@ -84,6 +85,7 @@ export default {
       showStatusPop: false,
       statusPopTitle: '您的提现已提交',
       show: false,
+      tipTxt: '请在钱包上确认',
       tokenAmountButtonTxtCode: 1,
       tokenAmountButtonTxt: '请输入金额',
       withDrawAddress: getDefaultAddress(this.$store),
@@ -132,22 +134,80 @@ export default {
 
       const ethProvider = new this.ethers.providers.JsonRpcProvider(
         partnerNet['url']
-        // 'http://43.128.80.242:7545' // TODO
       )
       const arbProvider = metamaskProvider
       const l1Signer = ethProvider.getSigner(connectAddress)
       const l2Signer = arbProvider.getSigner(0)
       
       const bridge = new Bridge(
-        tokenBridge['l1Address'], // "0x7feAe6550487B59Cb903d977c18Ea16c4CC8D89e",
-        tokenBridge['l2Address'], // "0x5fe46790aE8c6Af364C2f715AB6594A370089B35",
+        tokenBridge['l1Address'],
+        tokenBridge['l2Address'],
         l1Signer,
         l2Signer,
       )
       this.bridge = bridge;
       return bridge
     },
+    async executeConfirmTransaction(withrawTxHash) {
+      const bridge = this.bridge || this.initBridge();
+      const txnHash = withrawTxHash;
+      const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(txnHash);
+      if (!initiatingTxnReceipt){
+        return {
+          success: false,
+          msg: `No Arbitrum transaction found with provided txn hash: ${txnHash}`
+        };
+      }
+      const outGoingMessagesFromTxn = await bridge.getWithdrawalsInL2Transaction(initiatingTxnReceipt)
+      if (outGoingMessagesFromTxn.length === 0){
+        return {
+          success: false,
+          msg: `Txn ${txnHash} did not initiate an outgoing messages`
+        };
+      }
+      const { batchNumber, indexInBatch } = outGoingMessagesFromTxn[0]
+      const outgoingMessageState = await bridge.getOutGoingMessageState(
+        batchNumber,
+        indexInBatch
+      )
+      console.log(`Waiting for message to be confirmed: Batchnumber: ${batchNumber}, IndexInBatch ${indexInBatch}`)
+
+      if (!outgoingMessageState === OutgoingMessageState.CONFIRMED) {
+        await wait(1000 * 60)
+        /* const outgoingMessageState = await bridge.getOutGoingMessageState(
+          batchNumber,
+          indexInBatch
+        ) */
+        let msg = '';
+        switch (outgoingMessageState) {
+          case OutgoingMessageState.NOT_FOUND: {
+            msg = 'Message not found; something strange and bad happened'
+            break
+          }
+          case OutgoingMessageState.EXECUTED: {
+            msg = `Message already executed! Nothing else to do here`
+            break
+          }
+          case OutgoingMessageState.UNCONFIRMED: {
+            msg = `Message not yet confirmed; we'll wait a bit and try again`
+            break
+          }
+          default:
+            break
+        }
+        return { success: false, msg };
+      }
+      const res = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
+      const rec = await res.wait()
+      if (rec.confirmations === 1) {
+        console.log('Done! Your transaction is executed')
+        return { success: true }
+      }
+      return { success: false };
+    },
     async submitWithdraw(info) {
+      this.showStatusPop = false;
+      this.tipTxt = '请在钱包上确认';
       this.show = true;
 
       const connectAddress = window.ethereum.selectedAddress;
@@ -159,9 +219,39 @@ export default {
       // const bridge = initBrideByTransanctionType('l2');
       const bridge = this.bridge || this.initBridge();
       const ethFromL2WithdrawAmount = parseEther(info.amount);
-      // bridge.withdrawETH(ethFromL2WithdrawAmount, {gasLimit: 0x933212 })
+      const destinationAddress = await bridge.l2Signer.getAddress();
+      // bridge.withdrawETH(ethFromL2WithdrawAmount, undefined, {gas: '0x933212' })
       bridge.withdrawETH(ethFromL2WithdrawAmount)
       .then(async res=>{
+        const txHash = res.hash;
+        const transactionWaitRes = await res.wait();
+        console.log('transactionWaitRes', transactionWaitRes)
+        const { confirmations } = transactionWaitRes
+
+        // {"txid": "1", "from": "0x1", "to": "0x1", "type":0}
+        await this.$store.dispatch('AddTransactionHistory', {
+          txid: txHash,
+          from: connectAddress,
+          to: '0x0000000000000000000000000000000000000064', // TODO ???
+          type: TRANSACTION_TYPE['L2ToL1'],
+          status: confirmations // 1-成功(交易已被确认)，0-失败
+        })
+
+        this.tipTxt = '交易正在进行';
+
+        // 执行下面代码
+        if (confirmations == 1) {
+          const conformStatus = await this.executeConfirmTransaction(txHash);
+          if (conformStatus.success) {
+            // 如果是withdraw，并且confirmation是1，然后继续调用我那段代码，如果成功将后端status改成2.
+            // {"status": 1, "sub_txid": "2121"}  withdraw类型的交易，status是2，才认为成功
+            await this.$store.dispatch('UpdateTransactionHistory', {
+              txid: txHash,
+              status: 2,
+            })
+          }
+        }
+
         this.show = false;
         console.log('交易成功',res)
         await wait()
@@ -174,8 +264,9 @@ export default {
         this.$router.push({ name: 'Home' });
         
         //执行交易
-        /* const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(
-          res.transactionHash
+        /* const txnHash = res.hash;
+        const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(
+          res.hash
         )
         if (!initiatingTxnReceipt){
           throw new Error(`No Arbitrum transaction found with provided txn hash: ${txnHash}`)
@@ -190,6 +281,7 @@ export default {
           indexInBatch
         )
         console.log(`Waiting for message to be confirmed: Batchnumber: ${batchNumber}, IndexInBatch ${indexInBatch}`)
+        
         while (!outgoingMessageState === OutgoingMessageState.CONFIRMED) {
           await wait(1000 * 60)
           const outgoingMessageState = await bridge.getOutGoingMessageState(
@@ -215,8 +307,9 @@ export default {
               break
           }
         }
-        const res = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
-        const rec = await res.wait()
+        const _res = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
+        const rec = await _res.wait()
+        console.log(_res, rec)
         console.log('Done! Your transaction is executed') */
       })
       .catch(error => {
