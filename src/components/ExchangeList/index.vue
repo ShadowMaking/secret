@@ -69,7 +69,7 @@
         <div class="header">
           <h3>交易详情</h3>
         </div>
-        <ul v-for="(item,index) in dataList" :key="`exchange-${index}`">
+        <ul v-for="(item,index) in detaiInfo" :key="`exchange-${index}`">
           <li class="flex flex-content-between common-exchange-detail-item">
             <span>{{ item.title }}</span>
             <span>{{ item.value }}</span>
@@ -106,17 +106,7 @@ export default {
       popupVisible: false,
       historyList: [],
       showUpdate: false,
-      // dataList: [],
-      dataList: [
-        {
-          title: '时间',
-          value: '13/07/2021 12:54:35'
-        },
-        {
-          title: '操作',
-          value: '充值 54.6958 ZKS'
-        },
-      ]
+      detaiInfo: [],
     }
   },
   computed: {
@@ -150,8 +140,37 @@ export default {
       return classArr
     },
     getExchangeDetail(record) {
+      const { typeTxt, createdAt, value, type, status } = record;
+      const date = moment(createdAt).format('YY:MM:DD HH:MM:SS')
+      const opt = `${typeTxt} ${value} ETH`;
+      let statusTxt = '';
+      if (status===0) {
+        statusTxt = '失败'
+      }
+      switch(status) {
+        case 0:
+          statusTxt = '失败'
+          break;
+        case 1:
+          if (type === TRANSACTION_TYPE['L2ToL1']) {
+            statusTxt = '确认中'
+          } else {
+            statusTxt = '成功'
+          }
+          break;
+        case 2:
+          statusTxt = '成功'
+          break;
+      }
+      const browser = ''; // TODO
+      const info = [
+        {title: '时间', value: date},
+        {title: '操作', value: opt},
+        {title: '状态', value: statusTxt}
+      ];
       console.log('record', record);
-      // this.popupVisible = true;
+      this.detaiInfo = info;
+      this.popupVisible = true;
       if (record.status === '0') {
         console.log('需要重试')
         this.showUpdate = true
