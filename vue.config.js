@@ -99,8 +99,8 @@ module.exports = {
         }
       }
       config.externals = {
-        'vue': 'Vue',
-        'vue-router': 'VueRouter',
+        // 'vue': 'Vue',
+        // 'vue-router': 'VueRouter',
         'moment': 'moment',
         'lodash': 'lodash',
        }
