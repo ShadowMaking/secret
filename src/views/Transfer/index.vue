@@ -153,7 +153,7 @@ export default {
         .catch(err=>{
           this.showStatusPop = false;
           // this.$router.push({ name: 'Home' });
-          Toast.fail(`提交记录发生未知错误`);
+          Toast.fail(`交易已成功，但提交记录发生未知错误`);
           console.log(`提交记录发生未知错误,${err}`)
         })
       })

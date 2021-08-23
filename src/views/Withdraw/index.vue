@@ -213,19 +213,18 @@ export default {
       const bridge = this.bridge || this.initBridge();
       const ethFromL2WithdrawAmount = parseEther(info.amount);
       const destinationAddress = await bridge.l2Signer.getAddress();
-      // bridge.withdrawETH(ethFromL2WithdrawAmount, undefined, {gas: '0x933212' })
-      bridge.withdrawETH(ethFromL2WithdrawAmount)
+      bridge.withdrawETH(ethFromL2WithdrawAmount, undefined, {gasLimit: '21000', gasPrice:'0' })
+      // bridge.withdrawETH(ethFromL2WithdrawAmount)
       .then(async res=>{
         this.tipTxt = '交易正在进行';
         const txHash = res.hash;
         const transactionWaitRes = await res.wait();
         console.log('transactionWaitRes', transactionWaitRes)
-        const { confirmations } = transactionWaitRes
-        const { from, to, transactionHash } = confirmations;
+        const { confirmations, from, to, transactionHash } = transactionWaitRes;
 
         if (confirmations == 1) {
           this.$store.dispatch('AddTransactionHistory', {
-            txid: transactionHash,
+            txid: transactionHash||txHash,
             from,
             to,
             type: TRANSACTION_TYPE['L2ToL1'],
@@ -244,7 +243,13 @@ export default {
             this.$router.push({ name: 'Home' });
             this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
           })
-          .catch(err=>{})
+          .catch(err=>{
+            this.show = false;
+            this.showStatusPop = false;
+            // this.$router.push({ name: 'Home' });
+            Toast.fail(`交易已成功，但提交记录发生未知错误`);
+            console.log(`提交记录发生未知错误,${err}`)
+          })
         }
       })
       .catch(error => {
