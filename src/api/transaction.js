@@ -21,6 +21,8 @@ export const TRANSACTION_TYPE = {
  * @return {*}
  */
 export const addTransactionHistory = (data) => {
+  data['from'] && (data['from'] = data['from'].toLocaleLowerCase());
+  // data['to'] && (data['to'] = data['to'].toLocaleLowerCase());
   return request({
     url: '/api/txh',
     method: 'post',
@@ -35,10 +37,12 @@ export const addTransactionHistory = (data) => {
  */
 export const updateTransactionHistory = (data) => {
   const txid = data.txid
+  data['from'] && (data['from'] = data['from'].toLocaleLowerCase());
+  // data['to'] && (data['to'] = data['to'].toLocaleLowerCase());
   return request({
     url: `/api/txh/${txid}`,
     method: 'put',
-    data: { ...data },
+    data,
   })
 }
 
