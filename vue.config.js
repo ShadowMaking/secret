@@ -52,7 +52,7 @@ module.exports = {
         minRatio: 0.8                         // 只有压缩率小于这个值的资源才会被处理
       }))
       // 开启分离js
-      /* config.optimization = {
+      config.optimization = {
         runtimeChunk: 'single',
         splitChunks: {
           chunks: 'all',
@@ -71,8 +71,8 @@ module.exports = {
             }
           }
         }
-      } */
-      config.optimization = {
+      }
+      /* config.optimization = {
         splitChunks: {
             chunks: 'async',
             minSize: 30000,
@@ -97,7 +97,7 @@ module.exports = {
                 }
             }
         }
-      }
+      } */
       config.externals = {
         // 'vue': 'Vue',
         // 'vue-router': 'VueRouter',
