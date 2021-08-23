@@ -101,8 +101,8 @@ module.exports = {
       config.externals = {
         // 'vue': 'Vue',
         // 'vue-router': 'VueRouter',
-        'moment': 'moment',
-        'lodash': 'lodash',
+        // 'moment': 'moment',
+        // 'lodash': 'lodash',
        }
     } else {
       config.mode = "development";
