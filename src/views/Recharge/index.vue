@@ -163,8 +163,7 @@ export default {
         const txHash = res.hash;
         const transactionWaitRes = await res.wait();
         console.log('transactionWaitRes', transactionWaitRes)
-        const { confirmations } = transactionWaitRes
-        const { from, to, transactionHash } = confirmations;
+        const { confirmations, from, to, transactionHash, status } = transactionWaitRes
 
         // if (confirmations == 1) { // TODO deposit confirmations===1 为成功，调试中也有2的情况
           console.log('交易成功',res)
@@ -173,7 +172,7 @@ export default {
             from: res.from || connectAddress,
             to: res.to,
             type: TRANSACTION_TYPE['L1ToL2'],
-            status: confirmations,
+            status: status,
           })
           .then(async res=>{
             this.show = false;

@@ -58,10 +58,6 @@ import { getNetMode, getSelectedChainID, initBrideByTransanctionType } from '@/u
 import { Bridge, OutgoingMessageState } from 'arb-ts';
 import { NETWORKS } from '@/utils/netWork'
 import { TRANSACTION_TYPE } from '@/api/transaction';
-import {
-  rpcProvider, walletForRPC, bridgeAboutWalletForRPC,
-  getAvailableBalanceForL1,getAvailableBalanceForL2, } from '@/utils/walletBridge'
-
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
 
 
@@ -228,7 +224,6 @@ export default {
         const { from, to, transactionHash } = confirmations;
 
         if (confirmations == 1) {
-          // {"txid": "1", "from": "0x1", "to": "0x1", "type":0}
           this.$store.dispatch('AddTransactionHistory', {
             txid: transactionHash,
             from,

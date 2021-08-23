@@ -134,7 +134,6 @@ export default {
         await wait(10000);
         prettyLog('交易正在进行，请耐心等待10s....')
         
-        // {"txid": "1", "from": "0x1", "to": "0x1", "type":0}
         this.$store.dispatch('AddTransactionHistory', {
           txid: res,
           from: transferParams['from'] || selectedAccountAddress,
