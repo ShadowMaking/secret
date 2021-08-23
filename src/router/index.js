@@ -1,11 +1,16 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import Home from '../views/Home/index';
+/* import Home from '../views/Home/index';
 import Recharge from '../views/Recharge/index';
 import Transfer from '../views/Transfer/index';
 import Withdraw from '../views/Withdraw/index';
-// import Test from '../views/Test/Test1';
-import Test from '../views/Test/Transaction';
+import Test from '../views/Test/Transaction'; */
+
+const Home = () => import('../views/Home/index')
+const Recharge = () => import('../views/Recharge/index')
+const Transfer = () => import('../views/Transfer/index')
+const Withdraw = () => import('../views/Withdraw/index')
+const Test = () => import('../views/Test/Transaction')
 
 
 Vue.use(VueRouter);

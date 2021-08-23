@@ -71,7 +71,7 @@
         </div>
         <ul v-for="(item,index) in detaiInfo" :key="`exchange-${index}`">
           <li class="flex flex-content-between common-exchange-detail-item">
-            <span>{{ item.title }}</span>
+            <span class="title">{{ item.title }}</span>
             <span class="flex flex-center">
               {{ item.value }}
               <van-button
@@ -183,6 +183,7 @@ export default {
       }
       const browser = ''; // TODO
       const info = [
+        {title: 'Hash', value: record.txid, key:'hash', info: record},
         {title: '时间', value: date, key:'data', info: record},
         {title: '操作', value: opt, key:'opt', info: record},
         {title: '状态', value: statusTxt, key:'status', info: record},
@@ -325,7 +326,7 @@ export default {
             gas,
             gasPrice,
             typeTxt: ['', '充值','提现','转账'][item.type],
-            dateTitme: moment(item.createdAt).format('YYYY-MM-DD HH:MM:SS')
+            dateTitme: moment(item.createdAt).format('YYYY-MM-DD HH:mm:ss')
           })
         })
         this.historyList = historyList;
