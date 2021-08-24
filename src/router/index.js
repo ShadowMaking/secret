@@ -1,12 +1,7 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-/* import Home from '../views/Home/index';
-import Recharge from '../views/Recharge/index';
-import Transfer from '../views/Transfer/index';
-import Withdraw from '../views/Withdraw/index';
-import Test from '../views/Test/Transaction'; */
 
-const Home = () => import('../views/Home/index')
+import Home from '../views/Home/index';
 const Recharge = () => import('../views/Recharge/index')
 const Transfer = () => import('../views/Transfer/index')
 const Withdraw = () => import('../views/Withdraw/index')
@@ -24,42 +19,32 @@ const routes = [
   {
     path: '/recharge',
     name: 'recharge',
-    component: Recharge,
     meta: {
       title: "充值"
-    }
+    },
+    component: Recharge,
+    // component: () => import(/* webpackChunkName: "recharge" */ '../views/Recharge/index'),
   },
   {
     path: '/transfer',
     name: 'transfer',
-    component: Transfer,
     meta: {
       title: "转账"
-    }
+    },
+    component: Transfer,
+    // component: () => import(/* webpackChunkName: "transfer" */ '../views/Transfer/index'),
   },
   {
     path: '/withdraw',
     name: 'withdraw',
-    component: Withdraw,
     meta: {
       title: "提现"
-    }
-  },
-  {
-    path: '/test',
-    name: 'test',
-    component: Test,
-    meta: {
-      title: "测试页面"
-    }
-  },
-  {
-    path: '/about',
-    name: 'About',
+    },
+    component: Withdraw,
     // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
+    // this generates a separate chunk (withdraw.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue'),
+    // component: () => import(/* webpackChunkName: "withdraw" */ '../views/Withdraw/index'),
   },
 ];
 

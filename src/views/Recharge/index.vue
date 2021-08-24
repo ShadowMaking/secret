@@ -61,7 +61,7 @@ import NetTipModal from '@/components/NetTipModal';
 import { wait, prettyLog } from '@/utils/index'
 import { Tab, Tabs, Button, Col, Row, Toast, Popup, CountDown } from 'vant';
 import { getNetMode, getSelectedChainID, initBrideByTransanctionType } from '@/utils/web3'
-import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
+import { utils, ethers } from 'ethers'
 import { DEFAULTIMG } from '@/utils/global';
 import { NETWORKS } from '@/utils/netWork'
 import { Bridge } from 'arb-ts';
@@ -121,14 +121,14 @@ export default {
     },
     initBridge() {
       const connectAddress = window.ethereum.selectedAddress;
-      const metamaskProvider = new this.ethers.providers.Web3Provider(window.ethereum);
+      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
       const netId = getSelectedChainID();
       const currentNet = NETWORKS[netId];
       const partnerNet = NETWORKS[currentNet['partnerChainID']];
       const tokenBridge = currentNet['tokenBridge'];
 
       const ethProvider = metamaskProvider
-      const arbProvider = new this.ethers.providers.JsonRpcProvider(
+      const arbProvider = new ethers.providers.JsonRpcProvider(
         partnerNet['url']
       )
       const l1Signer = ethProvider.getSigner(0);

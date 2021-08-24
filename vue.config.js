@@ -29,7 +29,7 @@ module.exports = {
         }
       }
     }, */
-    before: app => {}
+    before: app => { }
   },
   // 全局引入scss报错处理
   css: {
@@ -39,8 +39,16 @@ module.exports = {
       }
     }
   },
-  productionSourceMap: false, //生产环境sourceMap
-  
+  productionSourceMap: false,
+  chainWebpack: config => {
+    if (isProduction) {
+      // delete prefetch plugins
+      config.plugins.delete('prefetch')
+      if (process.env.npm_config_report) {
+        config.plugin('webpack-bundle-analyzer').use(require('webpack-bundle-analyzer').BundleAnalyzerPlugin).end();
+      }
+    }
+  },
   configureWebpack: config => {
     if (isProduction) {
       // 开启gzip压缩
@@ -72,31 +80,34 @@ module.exports = {
           }
         }
       } */
-      // config.plugins.delete('prefetch');
+
       config.optimization = {
         splitChunks: {
-            chunks: 'async',
-            minSize: 30000,
-            maxSize: 0,
-            minChunks: 1,
-            maxAsyncRequests: 6,
-            maxInitialRequests: 4,
-            automaticNameDelimiter: '~',
-            cacheGroups: {
-                vendors: {
-                    name: `chunk-vendors`,
-                    test: /[\\/]node_modules[\\/]/,
-                    priority: -10,
-                    chunks: 'initial'
-                },
-                common: {
-                    name: `chunk-common`,
-                    minChunks: 2,
-                    priority: -20,
-                    chunks: 'initial',
-                    reuseExistingChunk: true
-                }
+          chunks: 'async',
+          minSize: 30000,
+          maxSize: 0,
+          minChunks: 1,
+          maxAsyncRequests: 6,
+          maxInitialRequests: 4,
+          automaticNameDelimiter: '~',
+          cacheGroups: {
+            vendors: {
+              name: `chunk-vendors`,
+              test: /[\\/]node_modules[\\/]/,
+              priority: -10,
+              chunks: 'initial',
+              // minChunks: 2,
+              chunks: 'all',
+            },
+            common: {
+              name: `chunk-common`,
+              minChunks: 2,
+              priority: -20,
+              minSize: 60000, // 大小超过60kb的模块才会被提取,防止一堆小chunck
+              chunks: 'initial',
+              reuseExistingChunk: true
             }
+          }
         }
       }
       config.externals = {
@@ -104,12 +115,12 @@ module.exports = {
         // 'vue-router': 'VueRouter',
         // 'moment': 'moment',
         // 'lodash': 'lodash',
-       }
+      }
     } else {
       config.mode = "development";
       config.devtool = 'inline-source-map'
     }
-    
+
   },
   publicPath: '/',
   outputDir: 'dist',

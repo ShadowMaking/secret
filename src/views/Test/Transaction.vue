@@ -6,33 +6,50 @@
     <a @click="result">结果</a>
     <a @click="testDeposit">signer初始化Bridge</a>
     <a @click="testAddNet">AddNet</a>
+   <a @click="copyUrl">copy</a>
   </div>
 </template>
 
 <script>
-import Vue from 'vue';
-import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
+import Vue from 'vue'
+import { utils, ethers } from 'ethers'
 import { Bridge } from 'arb-ts';
-import {
-  DEFAULTIMG,
-  address,
-  DEVNET_PRIVKEY,
-  ethRPC,
-  arbRPC
-} from '@/utils/global';
 
 const { parseEther } = utils;
 
 export default {
   name: 'Test',
+  components: {
+    // 'copy-to-clipboard': Clipboard
+  },
   data() {
     return {
+      copyContent: 'opopopop',
       defaultWait: 10000
     }
   },
   components: {},
   computed: {},
   methods: {
+    copyUrl(){
+      const url = 'oooooooossssssssddddddd'
+      //创建一个 Input标签 
+      let oInput = document.createElement('input');
+      oInput.value = url;
+      document.body.appendChild(oInput);
+      oInput.select(); // 选择对象;
+      console.log(oInput.value)
+      // 执行浏览器复制命令
+      /// 复制命令会将当前选中的内容复制到剪切板中
+      /// 如这里构建的 Input标签 
+      document.execCommand("Copy"); 
+      /* this.$message({
+        message: '复制成功',
+        type: 'success'
+      }); */
+      ///复制成功后再将构造的标签 移除
+      oInput.remove()
+    },
     async testAddNet() {
       const res = await ethereum.request({
           method: 'wallet_addEthereumChain',
@@ -61,11 +78,11 @@ export default {
       console.log('res', res);
     },
     async testDeposit() {
-      const metamaskProvider = new this.ethers.providers.Web3Provider(window.ethereum);
+      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
       const networkVersion = window.ethereum.networkVersion;
 
       const ethProvider = metamaskProvider
-      const arbProvider = new this.ethers.providers.JsonRpcProvider(
+      const arbProvider = new ethers.providers.JsonRpcProvider(
         'http://43.128.80.242:8547'
         // , {allowInsecure: true}
       )

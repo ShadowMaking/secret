@@ -8,7 +8,9 @@
           <mt-cell is-link class="exchange-list-item">
             <div slot="title" class="flex flex-column mt10">
               <span><i :class="iconClass(item)"></i>{{ item.typeTxt }}ETH</span>
-              <span class="exchange-status" v-if="showStatus(item)">确认中</span>
+              <span class="exchange-status pending" v-show="showStatus(item)">确认中</span>
+              <span class="exchange-status success" v-show="showStatusSuccess(item)">成功</span>
+              <span class="exchange-status fail" v-show="showStatusFail(item)">失败</span>
             </div>
             <div class="flex flex-column">
               <span class="exchange-amount">{{item.value}} ETH<span>($ {{item.gasPrice}})</span></span>
@@ -64,7 +66,9 @@
         <span>暂无交易记录</span>
       </div>
     </div>
-    <van-popup v-model="popupVisible" round position="bottom" :style="{ minHeight: '30%' }" class="common-bottom-popup exchange-detail-popup">
+    <div class="seeMore" v-show="allList.length>20"><a @click='toBroswer'>查看更多</a></div>
+    <!-- get-container="#app"  -->
+    <van-popup v-model="popupVisible" round position="bottom" :style="{ minHeight: '40%' }" class="common-bottom-popup exchange-detail-popup">
       <div class="common-exchange-detail-wrap">
         <div class="header">
           <h3>交易详情</h3>
@@ -73,7 +77,10 @@
           <li class="flex flex-content-between common-exchange-detail-item">
             <span class="title">{{ item.title }}</span>
             <span class="flex flex-center">
-              {{ item.value }}
+              <span @click="copyHash(item)">
+                {{ item.key==='hash'?`${item.value.substr(0,6)}...${item.value.substr(-4)}`:item.value }}
+                <span v-show="item.key==='hash'" class="copy-tip">（点击复制）</span>
+              </span>
               <van-button
                 size='small'
                 style="margin-left:10px;"
@@ -98,13 +105,17 @@
 import Vue from 'vue';
 import { DEFAULTIMG } from '@/utils/global';
 import { TRANSACTION_TYPE } from '@/api/transaction';
-import { Popup, Toast } from 'vant';
+import { Popup, Toast, Popover, List } from 'vant';
 import moment from 'moment'
 import { utils } from 'ethers';
 import { Bridge, OutgoingMessageState } from 'arb-ts';
 import { initBrideByTransanctionType, getNetMode } from '@/utils/web3';
+import { copyTxt } from '@/utils/index';
+import { compareDate } from '@/utils/number';
 
 Vue.use(Popup);
+Vue.use(Popover);
+Vue.use(List);
 
 export default {
   name: 'Home',
@@ -116,8 +127,10 @@ export default {
   },
   data() {
     return {
+      showPopover: false,
       DEFAULTIMG,
       popupVisible: false,
+      allList: [],
       historyList: [],
       showUpdate: false,
       detaiInfo: [],
@@ -138,8 +151,22 @@ export default {
     }
   },
   methods: {
+    toBroswer() {
+      Toast('敬请期待')
+    },
+    copyHash(item) {
+      if (item.key === 'hash' && copyTxt(item.value)) {
+        Toast.success('copy success')
+      }
+    },
     showStatus(record) {
       return record.status===1 && record.type === TRANSACTION_TYPE['L2ToL1'];
+    },
+    showStatusSuccess(record) {
+      return record.type === TRANSACTION_TYPE['L2ToL1']?record.status===2:record.status === 1
+    },
+    showStatusFail(record) {
+      return record.status === 0
     },
     iconClass(record) {
       let classArr = ['icon', 'exchange-status-icon', 'status-transfer']
@@ -292,7 +319,60 @@ export default {
         })
       }
     },
-    handleSearchTransactionHistoryList() {
+    // TODO forEach and async await will lead to the incorrect order for array
+    async generateHistoryList_e(sourceArr) {
+      const historyList = [];
+      sourceArr.forEach(async item=>{
+        const hash = item.txid
+        const info = await this.web3.eth.getTransaction(hash);
+        let gas =0;
+        let gasPrice = 0;
+        let value = 0;
+        if (info){
+          // gas = info['gas'];
+          // gasPrice = info['gasPrice'];
+          value = utils.formatEther(info.value);
+        }
+        // const type = '' // 1-deposit 2-withdraw 3-transfer
+        // status 0-fail 1-success（ withraw1-pending 2-success）
+        historyList.push({
+          ...item,
+          value,
+          gas,
+          gasPrice,
+          typeTxt: ['', '充值','提现','转账'][item.type],
+          dateTitme: moment(sourceArr[i].createdAt).format('DD/MM/YYYY HH:mm:ss')
+        })
+      })
+      return historyList;
+    },
+    async generateHistoryList(sourceArr) {
+      const historyList = [];
+      for( let i = 0; i < sourceArr.length; i += 1) {
+        const hash = sourceArr[i].txid;
+        const info = await this.web3.eth.getTransaction(hash);
+        let gas =0;
+        let gasPrice = 0;
+        let value = 0;
+        if (info){
+          // gas = info['gas']; // TODO
+          // gasPrice = info['gasPrice']; // TODO
+          value = utils.formatEther(info.value);
+        }
+        // const type = '' // 1-deposit 2-withdraw 3-transfer
+        // status 0-fail 1-success（ withraw1-pending 2-success）
+        historyList.push({
+          ...sourceArr[i],
+          value,
+          gas,
+          gasPrice,
+          typeTxt: ['', '充值','提现','转账'][sourceArr[i].type],
+          dateTitme: moment(sourceArr[i].createdAt).format('DD/MM/YYYY HH:mm:ss')
+        })
+      }
+      return historyList;
+    },
+    async handleSearchTransactionHistoryList() {
       // console.log('ready requet history...')
       if (this.walletIsLock) { return }
       // console.log('requet history...')
@@ -300,37 +380,19 @@ export default {
       const fromAddress = window.ethereum.selectedAddress;
       this.$store.dispatch('SearchAllTransactionHistory', { from: fromAddress })
       .then(async result => {
-        let list = _.cloneDeep(result);
+        let list =[];
         if (tx_type) {
           list = [].concat(_.filter(result, {type: tx_type}))
+        } else {
+          list = [].concat(_.cloneDeep(result));
         }
+        const sortList = list.sort(compareDate('createdAt', 'reverse'));
         // console.log(`response transaction history ...`,result)
         // console.log(`response transaction history from ${this.type}...`,list);
-        const historyList = []
-        list.forEach(async item=>{
-          const hash = item.txid
-          const info = await this.web3.eth.getTransaction(hash);
-          let gas =0;
-          let gasPrice = 0;
-          let value = 0;
-          if (info){
-            // gas = info['gas']; // TODO 单位
-            // gasPrice = info['gasPrice']; // TODO 单位
-            value = utils.formatEther(info.value);
-          }
-          // const type = '' // 1-充值 2-提现 3-转账
-          // status 0-失败 1-成功（ withraw1-确认中 2-成功）
-          historyList.push({
-            ...item,
-            value,
-            gas,
-            gasPrice,
-            typeTxt: ['', '充值','提现','转账'][item.type],
-            dateTitme: moment(item.createdAt).format('YYYY-MM-DD HH:mm:ss')
-          })
-        })
-        this.historyList = historyList;
-        console.log('historyList',historyList);
+        const historyList = await this.generateHistoryList(sortList);
+        this.allList = _.cloneDeep(sortList);
+        this.historyList = historyList.slice(0,20);
+        // console.log('historyList',historyList);
       })
     },
   },
@@ -339,7 +401,7 @@ export default {
       this.handleSearchTransactionHistoryList()
     }
   },
-  mounted() {
+  async mounted() {
     this.$eventBus.$on('handleUpdateTransactionHistory', this.handleSearchTransactionHistoryList)
   },
   

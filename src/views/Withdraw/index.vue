@@ -58,7 +58,7 @@ import { getNetMode, getSelectedChainID, initBrideByTransanctionType } from '@/u
 import { Bridge, OutgoingMessageState } from 'arb-ts';
 import { NETWORKS } from '@/utils/netWork'
 import { TRANSACTION_TYPE } from '@/api/transaction';
-import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
+import { utils, ethers } from 'ethers'
 
 
 Vue.use(Popup);
@@ -123,13 +123,13 @@ export default {
     },
     initBridge() {
       const connectAddress = window.ethereum.selectedAddress;
-      const metamaskProvider = new this.ethers.providers.Web3Provider(window.ethereum);
+      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
       const netId = getSelectedChainID();
       const currentNet = NETWORKS[netId];
       const partnerNet = NETWORKS[currentNet['partnerChainID']];
       const tokenBridge = currentNet['tokenBridge'];
 
-      const ethProvider = new this.ethers.providers.JsonRpcProvider(
+      const ethProvider = new ethers.providers.JsonRpcProvider(
         partnerNet['url']
       )
       const arbProvider = metamaskProvider

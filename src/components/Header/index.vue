@@ -2,7 +2,7 @@
   <div style="width:100%">
     <mt-header title="" class="common-header">
       <img :src="DEFAULTIMG.LOGO" slot="left" class="logo" @click="toPageHome" />
-      <span slot="right" v-if="address!==''"  class="header-address">{{ address.slice(0,8)+"..." }}</span>
+      <span slot="right" v-if="address!==''"  class="header-address"  @click="copyHash()">{{ address.slice(0,8)+"..." }}</span>
       <div slot="right" v-else >
         <a @click="chooseWallet" class="linkWallet">链接钱包</a>
         <i class="icon night"></i>
@@ -26,13 +26,15 @@
 import Vue from 'vue';
 import { Header, Button } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
-import { Popup, Button as VanButton } from 'vant';
+import { Popup, Button as VanButton, Toast } from 'vant';
 import WalletStatus from '@/components/WalletStatus';
 import NetTipModal from '@/components/NetTipModal';
 import { getSelectedChainID } from '@/utils/web3'
+import { copyTxt } from '@/utils/index';
 
 Vue.use(Popup);
 Vue.use(VanButton);
+Vue.use(Toast);
 Vue.component(Header.name, Header)
 Vue.component(Button.name, Button)
 
@@ -64,6 +66,11 @@ export default {
     '$store.state.metamask.accountsArr': function (res) { }
   },
   methods: {
+    copyHash() {
+      if (copyTxt(this.address)) {
+        Toast.success('copy success');
+      }
+    },
     toPageHome() {
       if (this.$route.name ==='Home') {return;}
       this.$router.push({ name: 'Home' });
