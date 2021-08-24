@@ -213,7 +213,8 @@ export default {
       const bridge = this.bridge || this.initBridge();
       const ethFromL2WithdrawAmount = parseEther(info.amount);
       const destinationAddress = await bridge.l2Signer.getAddress();
-      bridge.withdrawETH(ethFromL2WithdrawAmount, undefined, {gasLimit: '21000', gasPrice:'0' })
+      // gasPrice : gwei（1000000000=1gwei）
+      bridge.withdrawETH(ethFromL2WithdrawAmount, undefined, {gasLimit: '21000', gasPrice:'100000000000' })
       // bridge.withdrawETH(ethFromL2WithdrawAmount)
       .then(async res=>{
         this.tipTxt = '交易正在进行';

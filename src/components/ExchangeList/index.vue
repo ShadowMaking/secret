@@ -13,7 +13,7 @@
               <span class="exchange-status fail" v-show="showStatusFail(item)">失败</span>
             </div>
             <div class="flex flex-column">
-              <span class="exchange-amount">{{item.value}} ETH<span>($ {{item.gasPrice}})</span></span>
+              <span class="exchange-amount">{{item.value}} ETH<span style="display:none">($ {{item.gasPrice}})</span></span>
               <span class="exchange-time">{{item.dateTitme}}</span>
             </div>
           </mt-cell>

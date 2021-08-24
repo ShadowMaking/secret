@@ -2,7 +2,7 @@
   <div style="width:100%">
     <mt-header title="" class="common-header">
       <img :src="DEFAULTIMG.LOGO" slot="left" class="logo" @click="toPageHome" />
-      <span slot="right" v-if="address!==''"  class="header-address"  @click="copyHash()">{{ address.slice(0,8)+"..." }}</span>
+      <span slot="right" v-if="address!==''"  class="header-address"  @click="copyHash()">{{ `${address.slice(0,6)}...${address.slice(-4)}` }}</span>
       <div slot="right" v-else >
         <a @click="chooseWallet" class="linkWallet">链接钱包</a>
         <i class="icon night"></i>
