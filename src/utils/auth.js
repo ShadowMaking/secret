@@ -49,19 +49,12 @@ export async function connectMetamask () {
   installStatus && awaitFun.ethereum.enable();
 }
 
-// 获取默认账户地址，
+// get default accout address
 export const getDefaultAddress = (store) => {
   return store.state.metamask.accountsArr[0] || ''
 }
 
-// 根据address获取可用余额
 export async function getAvailableBalanceByAddress (address, self) {
-  // 其解析值为指定账户地址的余额字符串，以wei为单位
-  const balance = await self.web3.eth.getBalance(address);
+  const balance = await self.web3.eth.getBalance(address); // wei
   return balance || 0;
 }
-export async function getAvailableBalanceByAddressFromProvider (address, self) {
-  
-}
-
-

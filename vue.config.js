@@ -4,6 +4,9 @@ var rootPath = path.join(__dirname)
 var srcPath = path.join(rootPath, 'src')
 var distPath = path.join(rootPath, 'dist')
 var publicPath = path.join(rootPath, 'public')
+const CompressionWebpackPlugin = require('compression-webpack-plugin');
+const productionGzipExtensions = ['js', 'css'];
+const isProduction = process.env.NODE_ENV === 'production';
 
 
 module.exports = {
@@ -16,15 +19,17 @@ module.exports = {
     hotOnly: false,
     /* proxy: {
       "/api": {
-        target: dev ? "http://eigen.com:80/" : "http://eigen.com",
+        target: "http://dev-deliver-secret.eigen.com:8090",
+        // target: "http://rpc.ieigen.com",
         changeOrigin: true,
         secure: false,
+        ws: true,
         pathRewirte: {
-          "^/api": ""
+          "^/api": "/api"
         }
       }
     }, */
-    before: app => {}
+    before: app => { }
   },
   // 全局引入scss报错处理
   css: {
@@ -34,20 +39,88 @@ module.exports = {
       }
     }
   },
-  productionSourceMap: false, //生产环境sourceMap
-  
+  productionSourceMap: false,
+  chainWebpack: config => {
+    if (isProduction) {
+      // delete prefetch plugins
+      config.plugins.delete('prefetch')
+      if (process.env.npm_config_report) {
+        config.plugin('webpack-bundle-analyzer').use(require('webpack-bundle-analyzer').BundleAnalyzerPlugin).end();
+      }
+    }
+  },
   configureWebpack: config => {
-    if (process.env.NODE_ENV === 'production') {
-      // 为生产环境修改配置...
-      console.log('procuction')
-      config.mode = "production";
+    if (isProduction) {
+      // 开启gzip压缩
+      config.plugins.push(new CompressionWebpackPlugin({
+        algorithm: 'gzip',
+        test: /\.js$|\.html$|\.json$|\.css/,  // test: /\.js$|\.html$|\.css/,
+        threshold: 10240,                     // 对超过10k的数据进行压缩
+        deleteOriginalAssets: false,
+        minRatio: 0.8                         // 只有压缩率小于这个值的资源才会被处理
+      }))
+      // 开启分离js
+      /* config.optimization = {
+        runtimeChunk: 'single',
+        splitChunks: {
+          chunks: 'all',
+          maxInitialRequests: Infinity,
+          minSize: 20000,
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name (module) {
+                // get the name. E.g. node_modules/packageName/not/this/part.js
+                // or node_modules/packageName
+                const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)[1]
+                // npm package names are URL-safe, but some servers don't like @ symbols
+                return `npm.${packageName.replace('@', '')}`
+              }
+            }
+          }
+        }
+      } */
+
+      config.optimization = {
+        splitChunks: {
+          chunks: 'async',
+          minSize: 30000,
+          maxSize: 0,
+          minChunks: 1,
+          maxAsyncRequests: 6,
+          maxInitialRequests: 4,
+          automaticNameDelimiter: '~',
+          cacheGroups: {
+            vendors: {
+              name: `chunk-vendors`,
+              test: /[\\/]node_modules[\\/]/,
+              priority: -10,
+              chunks: 'initial',
+              // minChunks: 2,
+              chunks: 'all',
+            },
+            common: {
+              name: `chunk-common`,
+              minChunks: 2,
+              priority: -20,
+              minSize: 60000, // 大小超过60kb的模块才会被提取,防止一堆小chunck
+              chunks: 'initial',
+              reuseExistingChunk: true
+            }
+          }
+        }
+      }
+      config.externals = {
+        // 'vue': 'Vue',
+        // 'vue-router': 'VueRouter',
+        // 'moment': 'moment',
+        // 'lodash': 'lodash',
+      }
     } else {
-      // 为开发环境修改配置...
-      console.log('dev')
       config.mode = "development";
       config.devtool = 'inline-source-map'
     }
-    
+
   },
   publicPath: '/',
   outputDir: 'dist',

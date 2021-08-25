@@ -18,3 +18,16 @@ export const isZero = (num) => {
 export const createBigNumber = (num=0) => {
   return new Big(num);
 }
+
+// align positive || reverse
+export const compareDate = (arrKey, align='positive') => (a,b) => {
+  const v1 = a[arrKey];
+  const v2 = b[arrKey];
+  var x = new Big(new Date(v1).getTime())
+  var y = new Big(new Date(v2).getTime())
+  if (align ==='positive') {
+    return  x.minus(y)
+  } else {
+    return  y.minus(x)
+  }
+}

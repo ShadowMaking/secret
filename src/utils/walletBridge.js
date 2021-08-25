@@ -27,7 +27,7 @@ export const bridgeAboutWalletForRPC = () => {
   return bridge;
 }
 
-// 获取 L1 资产 (单位是 wei)
+// get L1 balance unit is wei
 export async function getAvailableBalanceForL1() {
   const bridge = bridgeAboutWalletForRPC();
   const walletL1EthBalance = await bridge.getAndUpdateL1EthBalance();
@@ -35,11 +35,11 @@ export async function getAvailableBalanceForL1() {
   return walletL1EthBalance
 }
 
-// 获取 L2 资产 (单位是 wei)
+// get L2 balance unit is wei
 export async function getAvailableBalanceForL2() {
   const bridge = bridgeAboutWalletForRPC();
   const walletL2EthBalance = await bridge.getAndUpdateL2EthBalance();
-  // console.log('L2可用余额(wei): ',walletL2EthBalance.toString())
+  // console.log('L2 avalibale balance(wei): ',walletL2EthBalance.toString())
   return walletL2EthBalance
 }
 

@@ -4,7 +4,7 @@
   word-break: break-all;
   word-wrap:break-word;
 }
-//公用css
+
 $defaultColor: #660D0D;
 $headerHeight: 60px;
 $footerHeight: 270px;
@@ -15,10 +15,13 @@ $footerHeight: 270px;
 }
 #app {
   // font-family: 'MicrosoftYaHei', 'Avenir', Helvetica, Arial, sans-serif;
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  // font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: Euclid, Roboto, Helvetica, Arial, sans-serif;;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
+  margin: 0 auto;
+  font-size: rem(13);
 
 }
 .main-page {
@@ -31,9 +34,16 @@ $footerHeight: 270px;
   overflow: hidden;
 }
 
+@media screen and (min-width: 768px) {
+  #app {
+    width: rem(350);
+    border: rem(1) solid #eee;
+  }
+}
+
 $main-color: #5474CE;
 
-//清除浮动
+
 @mixin clearfix() {
     &:before,
     &:after {
@@ -45,7 +55,7 @@ $main-color: #5474CE;
     }
 }
 
-//圆角边框
+
 @mixin border-radius($radius) {
     -webkit-border-radius: $radius;
      -moz-border-radius: $radius;
@@ -53,14 +63,14 @@ $main-color: #5474CE;
           border-radius: $radius;
 }
 
-//跨浏览器的透明度设置
+
 @mixin opacity($opacity) {
     opacity: $opacity;
     $opacity-ie: $opacity * 100;
     filter: alpha(opacity=$opacity-ie); //IE8
 }
 
-//单行文本溢出省略显示
+
 @mixin text-ellipsis () {
     line-height: 24px;
     white-space: nowrap;
@@ -70,7 +80,7 @@ $main-color: #5474CE;
     word-break:break-all;
 }
 
-//多行文本溢出省略显示
+
 @mixin text-more-ellipsis ($line) {
     position: relative;
     line-height: 24px;
@@ -95,7 +105,6 @@ $main-color: #5474CE;
     }*/
 }
 
-/* 配合 max-height 使用 ，因为font-size不同，所以不能统一设置 */
 @mixin main-text-more-ellipsis ($line, $bgColor: white) {
     position: relative;
     line-height: 24px;
@@ -112,7 +121,6 @@ $main-color: #5474CE;
     &:before {
       content: '...';
       position: absolute;
-      /* 省略号的显示位置定位在右下方*/
       right: 0;
       bottom: 0;
       background: $bgColor;
@@ -121,28 +129,22 @@ $main-color: #5474CE;
     &:after {
      content: '';
       position: absolute;
-      /*设置遮盖省略号的位置 */
       right: 0;
-      /*设置遮盖省的大小 */
       width: 1em;
       height: 1em;
       margin-top: 0.2em;
-      /*设置遮盖省略号的背景颜色，这个要和背景颜色一致 */
       background: $bgColor;
     }
 }
 
-/*创建省略号*/
 .main-block-with-text:before {
     content: '...';
     position: absolute;
-    /* 省略号的显示位置定位在右下方*/
     right: 0;
     bottom: 0;
     background: #fff;
     width: 14px;
 }
-/*遮盖省略号*/
 .main-block-with-text:after {
     content: '';
     position: absolute;
@@ -152,11 +154,9 @@ $main-color: #5474CE;
     width: 1em;
     height: 1em;
     margin-top: 0.2em;
-    /*设置遮盖省略号的背景颜色，这个要和背景颜色一致 */
     background: white;
 }
 
-//背景图片
 @mixin imgRetina($url, $extension, $width, $height, $position: center, $repeat: no-repeat) {
      background: url($url + '.' + $extension) $repeat $position;
           
@@ -189,6 +189,7 @@ a{
 
 
 .button {
+  cursor: pointer;
   padding: rem(10);
   font-size: rem(15);
   color: #fff;
@@ -203,5 +204,6 @@ a{
 .textTransparent { color: transparent!important; }
 .textAlignLeft { text-align: left;}
 .textAlignRight { text-align: right;}
+
 
 

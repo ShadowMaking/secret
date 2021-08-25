@@ -37,6 +37,20 @@
         margin: rem(5) 0 rem(20);
       }
     }
+    .account-balance{
+      width: 100%;
+      text-align: left;
+      margin: rem(-20) 0 rem(20);
+      .balance {
+        display: block;
+        color: #fff;
+        font-weight: bold;
+        font-size: rem(16);
+      }
+      .balance:nth-of-type(1){
+        margin: rem(26) 0 rem(10);
+      }
+    }
   }
   // operate area on top
   &-opt-wrap {

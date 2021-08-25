@@ -1,19 +1,24 @@
 <template>
   <div class="page-home">
     <div class="page-home-account flex flex-center flex-column ">
-      <a class="button button-with-radius button-update" @click="refresh"><i class="icon ico-ipdate"></i>刷新</a>
-      <div class="flex flex-column account-info">
+      <a class="button button-with-radius button-update" @click="refresh"><i class="icon ico-ipdate"></i>refresh</a>
+      <!-- <div class="flex flex-column account-info">
         <span class="balance">{{ balance }}</span>
-        <span class="tip">L2 资产总额($)</span>
+        <span class="tip">L2 Total Assets($)</span>
+      </div> -->
+      <div class="account-balance">
+        <span class="balance">L1 Total Assets(ETH)：{{ balanceL1 }}</span>
+        <span class="balance">L2 Total Assets(ETH)：{{ balanceL2 }}</span>
       </div>
       <div class="flex page-home-opt-wrap">
-        <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('recharge')">充值到 L2</mt-button>
-        <mt-button type="primary" size="large" class="button button-with-radius" @click="toPage('transfer')">L2 转账</mt-button>
-        <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('withdraw')">提现到 L1</mt-button>
+        <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('recharge')">Deposit to L2</mt-button>
+        <mt-button type="primary" size="large" class="button button-with-radius" @click="toPage('transfer')">Send to L2</mt-button>
+        <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('withdraw')">Withdraw to L1</mt-button>
       </div>
     </div>
     <v-unlockwallet :show="showUnlockWalletButton" key="unlockWalletButton" v-show="walletIsLock" />
     <v-exchangeList key="comon-exchangeList" type="all" v-show="!walletIsLock" />
+    <v-netTipPopup :show="showNetTip" :showClose="true" key="netTipModal" />
   </div>
 </template>
 
@@ -22,34 +27,22 @@ import Vue from 'vue';
 import { Button, Cell, Popup } from 'mint-ui';
 import ExchangeList from '@/components/ExchangeList';
 import UnlockWallet from '@/components/UnlockWallet';
-import {
-  getAvailableBalanceByAddress,
-  getAvailableBalanceByAddressFromProvider } from '@/utils/auth';
-
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
-import { Bridge } from 'arb-ts';
-import {
-  DEFAULTIMG,
-  address,
-  DEVNET_PRIVKEY,
-  ethRPC,
-  arbRPC
-} from '@/utils/global';
-
-import { getAvailableBalanceForL2 } from '@/utils/walletBridge';
-
-const { parseEther } = utils;
-
+import { DEFAULTIMG } from '@/utils/global';
+import { getSelectedChainID, getInjectedWeb3, getNetMode, initBrideByTransanctionType } from '@/utils/web3'
+  import NetTipModal from '@/components/NetTipModal';
 
 Vue.component(Button.name, Button)
 Vue.component(Cell.name, Cell)
 Vue.component(Popup.name, Popup)
+const { parseEther } = utils;
 
 export default {
   name: 'Home',
   components: {
     "v-exchangeList": ExchangeList,
     "v-unlockwallet": UnlockWallet,
+    "v-netTipPopup": NetTipModal,
   },
   data() {
     return {
@@ -57,7 +50,11 @@ export default {
       popupVisible: false,
       installWalletModal: false,
       exchangeListData: [],
-      balance: '0.0'
+      balance: '0.0',
+      showNetTip: false,
+      expectNetType: '',
+      balanceL1: '0.0',
+      balanceL2: '0.0',
     }
   },
   computed: {
@@ -74,7 +71,7 @@ export default {
   watch: {
     '$store.state.metamask.walletIsLock': function (res) {
       if (!this.walletIsLock) {
-        this.$eventBus.$emit('updateAvailableBanlanceForL2');
+        this.$eventBus.$emit('updateAvailableBanlanceForL1L2');
       }
     }
   },
@@ -83,73 +80,112 @@ export default {
     getExchangeDetail() {
       this.popupVisible = true;
     },
-    toPage(pageType) {
+    async toPage(pageType) {
+      this.showNetTip = false;
+      const { provider, networkId } = await getInjectedWeb3();
+      const netMode = getNetMode(networkId);
       switch(pageType) {
-        // 充值
         case "recharge":
+          if (netMode !== 'l1') {
+            this.expectNetType = 'l1';
+            this.showNetTip = true;
+            return
+          }
           this.$router.push({ name: 'recharge' })
           break;
-        // 转账
         case "transfer":
+          if (netMode !== 'l2') {
+            this.expectNetType = 'l2';
+            this.showNetTip = true;
+            return
+          }
           this.$router.push({ name: 'transfer' })
           break;
-        // 提现
         case "withdraw":
+          if (netMode !== 'l2') {
+            this.expectNetType = 'l2';
+            this.showNetTip = true;
+            return
+          }
           this.$router.push({ name: 'withdraw' })
           break;
       }
     },
-    refresh() {
-
+    async refresh() {
+      console.log('refresh...')
+      await this.updateAvailableBanlanceForL1L2();
+      console.log('refresh done!!!');
     },
     handleWatchResetStatus() {
       this.balance = '0.0'
+      this.balanceL1 = '0.0'
+      this.balanceL2 = '0.0'
     },
     async unlockWallet() {
       if (this.metamaskInstall) {
-        const message = `
-          Access Eigen account.
-          Only sign this message for a trusted client!
-        `;
         const accounts = this.$store.state.metamask.accountsArr;
-        if (accounts.length === 0) { // 没有登录
-          await ethereum.request({ method: 'eth_requestAccounts' });
-          const accounts = await this.web3.eth.getAccounts();
-          const coinbaseAddress = await this.web3.eth.coinbase;
-          const lockStatus = this.$store.state.metamask.walletIsLock;
-          await this.$store.dispatch("WalletAccountsAddress", {accounts})
+        if (accounts.length === 0) { // not login
+          // await ethereum.request({ method: 'eth_requestAccounts' });
+          await ethereum.request({
+            method: 'wallet_requestPermissions',
+            params:  [{ "eth_accounts": {} }]
+          })
+          const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
+          const selectedAccountAddress = accounts[0];
           const message = `
             Access Eigen account.
             Only sign this message for a trusted client!
           `;
-          const signAdress = this.$store.state.metamask.accountsArr[0]||accounts[0];
-          const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), signAdress);
-          // when signRes has value declare sign sucess
+          const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), selectedAccountAddress);
+
+          await this.$store.dispatch("WalletAccountsAddress", {accounts})
           let _isLock = true;
-          signRes!==undefined && (_isLock = false) 
-          await this.$store.dispatch('WalletLockStatus', {isLock:_isLock});
+          // when signRes has value declare sign sucess
+          signRes!==undefined && (_isLock = false);
+
           this.walletIsLock = _isLock;
-          this.$eventBus.$emit('updateAddress', {address: signAdress});
+          await this.$store.dispatch('WalletLockStatus', {isLock: _isLock});
+          this.$eventBus.$emit('updateAddress', {address: selectedAccountAddress});
+          // this.checkNetPair()
+          return
         }
-      } else {
-        this.installWalletModal = true;
       }
+      this.installWalletModal = true;
     },
-    async updateAvailableBanlanceForL2 (balanceObj) {
-      let balanceForL2 = this.balance;
-      if (balanceObj) {
-        balanceForL2 = balanceObj.balance;
-      } else { 
-        balanceForL2 = await getAvailableBalanceForL2(); // 获得L2的资产
+    async updateAvailableBanlanceForL1L2(balanceObj) {
+      const netMode = getNetMode();
+      if (!netMode) { return; }
+      this.balanceL1 = '...';
+      this.balanceL2 = '...';
+      const bridge = initBrideByTransanctionType(netMode);
+      const balanceForL1 = await bridge.getAndUpdateL1EthBalance();
+      const balanceForL2 = await bridge.getAndUpdateL2EthBalance();
+      this.balanceL1 = utils.formatEther(balanceForL1);
+      this.balanceL2 = utils.formatEther(balanceForL2);
+    },
+    async handleChainChanged({netId, showTip}) {
+      if (showTip) {
+        this.showNetTip = false;
+        return
       }
-      this.balance = utils.formatEther(balanceForL2)
+      const mode = getNetMode(netId)
+      if (this.expectNetType && mode !== this.expectNetType) {
+        this.showNetTip = true;
+        this.balanceL1 = '0.0';
+        this.balanceL2 = '0.0';
+        await this.$store.dispatch('WalletLockStatus', {isLock: true});
+      } else {
+        this.showNetTip = false;
+      }
     },
   },
   async mounted() {
+    this.$eventBus.$on('chainChanged', this.handleChainChanged);
+
     if (!this.walletIsLock) {
-      await this.updateAvailableBanlanceForL2();
+      await this.updateAvailableBanlanceForL1L2();
     }
-    this.$eventBus.$on('updateAvailableBanlanceForL2', this.updateAvailableBanlanceForL2);
+    this.$eventBus.$on('updateAvailableBanlanceForL1L2', this.updateAvailableBanlanceForL1L2);
     this.$eventBus.$on('resetStatus', this.handleWatchResetStatus);
   },
   

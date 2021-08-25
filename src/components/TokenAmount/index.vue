@@ -2,15 +2,16 @@
   <div class="token-amount-wrap">
     <van-row class="token-amount-wrap-inner">
       <van-col span="12" @click="choseToken">
-        <div class="slect-token-wrap">
+        <div class="slect-token-wrap flex">
           <i class="token token-ETH"></i>
           <span class="token-span">ETH</span>
-          <i class="icon-selected"></i>
-          <van-button color="#E4E6F5" size="mini" >
-            <span slots="default" style="color:#495ABE">最大值</span>
+          <!-- TODO hide -->
+          <i class="icon-selected" style="display:none;"></i>
+          <van-button color="#E4E6F5" size="mini" style="margin-left:5px">
+            <span slots="default" style="color:#495ABE">Max</span>
           </van-button>
         </div>
-        <span>可用：{{ availableBalance }} ETH</span>
+        <span>Balance：{{ availableBalance }} ETH</span>
       </van-col>
       <van-col span="12" style="text-align:right">
         <div class="flex flex-column">
@@ -22,15 +23,16 @@
             class="recharge-amount-input"
             :disabled="this.walletIsLock"
             @input="handleInputTokenAmountChange" />
-          <span>{{typeTxt}}金额</span>
+          <span>{{typeTxt}}Amount</span>
         </div>
       </van-col>
     </van-row>
-    <div class="amount-fee-tip" v-show="type=='withdraw'">
-      <span class="tip"><i class="info_icon"></i>提现手续费：0.000002 ZKS($5.00)</span>
-      <span class="tip"><i class="info_icon"></i>到账金额：3.678766 ZKS</span>
+    <!-- TODO -->
+    <!-- <div class="amount-fee-tip" v-show="type=='withdraw'" style="display:none!important"> -->
+    <div class="amount-fee-tip" style="display:none!important">
+      <span class="tip"><i class="info_icon"></i>Withdrawal Transaction Fee：0.000002 ZKS($5.00)</span>
+      <span class="tip"><i class="info_icon"></i>Withdrawal Amount：3.678766 ZKS</span>
     </div>
-    <!-- 请输入金额|金额过低|确定（color：#495ABE  #A4ACDF） -->
     <van-button
       type="primary"
       block
@@ -48,9 +50,9 @@
       v-show="walletIsLock" />
     <van-popup round closeable v-model="showTokenSelect" position="bottom" :style="{ minHeight: '30%' }">
       <div class="token-select-wrap">
-        <div class="header"><h3>选择通证</h3></div>
+        <div class="header"><h3>Choose Token</h3></div>
         <div class="choose-token-list">
-          <van-search v-model="serchTokenValue" placeholder="输入代币名称" class="serach-token-input"/>
+          <van-search v-model="serchTokenValue" placeholder="token name" class="serach-token-input"/>
           <div class="common-base-token">
             <p>Common bases<i></i></p>
             <div class="common-bases-list">
@@ -92,8 +94,8 @@ import Vue from 'vue';
 import { Button, Col, Row, Field, Popup, Search } from 'vant';
 import UnlockWallet from '@/components/UnlockWallet';
 import { minus, lteZero, isZero } from '@/utils/number'
-import { getAvailableBalanceForL1, getAvailableBalanceForL2 } from '@/utils/walletBridge'
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
+import { initBrideByTransanctionType } from '@/utils/web3'
 const { parseEther, formatEther } = utils;
 
 Vue.use(Button);
@@ -110,7 +112,7 @@ export default {
     'buttonCode': Number,
     'buttonTxt': {
       type: String,
-      default: '请输入金额'
+      default: 'Enter the Amount'
     },
     'disabled': Boolean,
   },
@@ -133,8 +135,8 @@ export default {
         let buttonColor = this.buttonColor;
         let buttonDisabled = this.buttonDisabled;
         switch(newV) {
-          case 1: // 1: '请输入金额'
-          case 2: // 2: '地址无效'
+          case 1: // 1: 'Enter the Amount'
+          case 2: // 2: 'invalid address'
           default:
             buttonColor = 'A4ACDF'
             buttonDisabled = true;
@@ -146,7 +148,7 @@ export default {
       deep: true,
     },
     dynamicButtonTxt: {
-      // 深度监听，可监听到对象、数组的变化
+      // deep watch， watch object and array change
       handler(newV, oldV) {
         // console.log(newV, oldV)
       },
@@ -173,12 +175,14 @@ export default {
       return !this.metamaskInstall || this.walletIsLock;
     },
     typeTxt() {
-      const erum = { recharge: '充值', transfer: '转账', withdraw: '提现' };
+      const erum = { recharge: 'Deposit', transfer: 'Send', withdraw: 'Withdraw' };
       return erum[this.type];
     },
   },
   methods: {
     choseToken() {
+      // TODO  only ETH
+      return
       if (this.walletIsLock) { return }
       this.showTokenSelect = true
     },
@@ -191,24 +195,30 @@ export default {
       this.buttonColor = '#A4ACDF';
       this.buttonDisabled = true;
     },
+    initBridge() {
+      
+    },
     async getAvailableBalance() {
       const type = this.type
+      const bridgeType = type === 'recharge'? 'l1':'l2';
+      const bridge = initBrideByTransanctionType(bridgeType);
       let balance;
       switch(type) {
         case 'recharge':
-          balance = await getAvailableBalanceForL1();
+          balance = await bridge.getAndUpdateL1EthBalance();
           break;
         case 'withdraw':
-          balance = await getAvailableBalanceForL2();
+          balance = await bridge.getAndUpdateL2EthBalance();
           break;
         case 'transfer':
+          balance = await bridge.getAndUpdateL2EthBalance();
           break;
       }
       return balance;
     },
     async handleInputTokenAmountChange(tokenAmount) {
       if (!tokenAmount || isZero(tokenAmount)) {
-        this.buttonTxt = '请输入金额';
+        this.buttonTxt = 'Enter the Amount';
         this.buttonColor = '#A4ACDF';
         this.buttonDisabled = true;
         return;
@@ -221,15 +231,15 @@ export default {
       const formatAmount = parseEther(tokenAmount);
       const _minus  = minus(parseEther(availableBalance).toString(), formatAmount.toString())
       if (lteZero(_minus, false)) {
-        this.buttonTxt = '余额不足';
+        this.buttonTxt = 'Insufficient Balance';
         this.buttonColor = '#A4ACDF';
         this.buttonDisabled = true;
       } else {
-        this.buttonTxt = '确定';
+        this.buttonTxt = 'OK';
         this.buttonColor = '#495ABE';
         this.buttonDisabled = false;
       }
-      console.log(`ETH余额-${availableBalance}；输入余额换成ETH为-${formatEther(formatAmount)}`)
+      console.log(`ETH Balance-${availableBalance}；input ETH为-${formatEther(formatAmount)}`)
     },
   },
   async mounted() {

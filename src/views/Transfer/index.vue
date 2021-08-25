@@ -3,7 +3,7 @@
     <div class="transfer-toL2-tip flex">
       <div><i class="info_icon"></i></div>
       <div class="flex flex-column">
-        <p>L2 转账</p>
+        <p>L2 Transfer</p>
         <div class="expand">
           <span class="expand-tip">{{ TRANSFER_TIP }}</span>
         </div>
@@ -19,27 +19,31 @@
             label=""
             type="textarea"
             :disabled="walletIsLock"
-            placeholder="请输入转账地址"
+            placeholder="enter the transfer address"
             @input="handleAddressInputChange"
             @focus="handleAddressInputFocus"
           />
         </div>
       </div>
-      <span class="tip"><i class="info_icon"></i>请勿输入交易所地址</span>
+      <span class="tip"><i class="info_icon"></i>Do not enter any exchange address!</span>
       <v-tokenAmount key="tokenAmount-transfer" type="transfer" @childEvent="submitTransfer" />
     </div>
-    <v-exchangeList key="comon-exchangeList" type="transfer" v-show="!walletIsLock" />
+    <v-exchangeList key="comon-exchangeList" type="L2ToL2" v-show="!walletIsLock" />
     <van-popup v-model="tipShow" class="safe-tip-toast" overlay-class="noneOverlay">
       <i class=""></i>
-      <span>您的交易地址和交易金额已被加密保护</span>
+      <span>Aaddress and Amount have been encrypted and protected!</span>
+    </van-popup>
+    <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+      <div>{{ tipTxt }}</div>
     </van-popup>
     <v-statusPop
       :status="popStatus"
-      title="您的转账已提交"
-      timeTxt="预计 1 分钟内完成资金变动"
-      tip="可以到“L2 钱包”对应资产的详情查看明细"
+      :title="statusPopTitle"
+      timeTxt="It is expected to take effect within 1 minute"
+      tip="You can check the transaction details in the transaction record"
       :show="showStatusPop"
       @childEvent="changeVisible" />
+    <v-netTipPopup :show="showNetTip" key="netTipModal" />
   </div>
 </template>
 <script>
@@ -48,7 +52,13 @@ import { TRANSFER_TIP } from '@/utils/global';
 import ExchangeList from '@/components/ExchangeList';
 import TokenAmount from '@/components/TokenAmount';
 import StatusPop from '@/components/StatusPop';
-import { Popup, Field } from 'vant';
+import NetTipModal from '@/components/NetTipModal';
+import { Popup, Field, Toast } from 'vant';
+import { getNetMode } from '@/utils/web3';
+import { wait, prettyLog } from '@/utils/index'
+import { utils } from 'ethers';
+import { utils as web3utils } from 'web3';
+import { TRANSACTION_TYPE } from '@/api/transaction';
 
 Vue.use(Popup);
 Vue.use(Field);
@@ -59,6 +69,7 @@ export default {
     'v-exchangeList': ExchangeList,
     'v-tokenAmount': TokenAmount,
     'v-statusPop': StatusPop,
+    "v-netTipPopup": NetTipModal,
   },
   data() {
     return {
@@ -67,6 +78,10 @@ export default {
       showStatusPop: false,
       popStatus: "success",
       transferAddress: '',
+      showNetTip: false,
+      show: false,
+      tipTxt: 'Please confirm on the wallet',
+      statusPopTitle: 'Your transfer has been submitted',
     }
   },
   computed: {
@@ -81,9 +96,79 @@ export default {
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
     },
-    submitTransfer(info) {
-      this.showStatusPop = true;
-      console.log('金额', info.amount)
+    async submitTransfer(info) {
+      this.showStatusPop = false;
+      const transferToAddress = this.transferAddress;
+      const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
+      const selectedAccountAddress = accounts[0];
+      if (!utils.isAddress(transferToAddress)) {
+        Toast('Wrong Address')
+        return
+      }
+      
+      if (transferToAddress.toLocaleUpperCase() === selectedAccountAddress.toLocaleUpperCase()) {
+        Toast("Don't enter your own address")
+        return
+      }
+
+      this.tipTxt = 'Please confirm on the wallet';
+      this.show = true;
+      const transferAmount = utils.parseEther(info.amount);
+      const transferParams = [{
+        from: selectedAccountAddress,
+        to: transferToAddress,
+        gas: web3utils.toHex('21000'), // 21000的16进制 '0x5208
+        gasPrice: '0',
+        value: transferAmount.toHexString()
+      }];
+      console.log('submitData', transferParams)
+      ethereum.request({
+        jsonrpc: "2.0",
+        method: "eth_sendTransaction",
+        params: transferParams,
+        id: 0
+      })
+      .then(async res=>{
+        this.tipTxt = 'The transaction is in progress, please wait';
+        console.log('交易成功',res)
+        await wait(10000);
+        prettyLog('Transaction is in progress，waiting for 10s....')
+        
+        this.$store.dispatch('AddTransactionHistory', {
+          txid: res,
+          from: transferParams['from'] || selectedAccountAddress,
+          to: transferParams['to'] || transferToAddress,
+          type: TRANSACTION_TYPE['L2ToL2'],
+          status: 1,
+        })
+        .then(async res=>{
+          this.show = false;
+          this.showStatusPop = true;
+          this.statusPopTitle = 'Your transfer has been submitted'
+          this.popStatus = 'success';
+          this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL2'});
+          await wait();
+          this.$router.push({ name: 'Home' });
+        })
+        .catch(err=>{
+          this.showStatusPop = false;
+          // this.$router.push({ name: 'Home' });
+          Toast.fail(`Transaction success，but error when add history`);
+          console.log(`There is unknown error when add history,${err}`)
+        })
+      })
+      .catch(error=>{
+        this.show = false;
+        if (error.code == '4001') {
+          Toast('Cancel Transaction')
+          return
+        }
+        console.log(error)
+        // Toast.fail(`unknown error`);
+        this.showStatusPop = true;
+        this.statusPopTitle = 'Transfer Failed'
+        this.popStatus = 'fail';
+      })
     },
     handleAddressInputChange(value) {
 
@@ -94,10 +179,22 @@ export default {
         this.tipShow = false;
       }, 2000)
     },
+    async handleChainChanged({netId, showTip}) {
+      if (showTip) {
+        this.showNetTip = false;
+        return
+      }
+      const mode = getNetMode(netId)
+      if (mode !== 'l2') {
+        this.showNetTip = true;
+        await this.$store.dispatch('WalletLockStatus', {isLock: true});
+      } else {
+        this.showNetTip = false;
+      }
+    },
   },
   mounted() {
-    console.log("metamask是否安装-transfer", this.$store.state.metamask.metamaskInstall)
-    console.log('钱包账户是否锁定-transfer', this.$store.state.metamask.walletIsLock);
+    this.$eventBus.$on('chainChanged', this.handleChainChanged);
   },
 }
 </script>

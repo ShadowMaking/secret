@@ -2,9 +2,9 @@
   <van-popup v-model="show" closeable class="install-wallet-modal">
     <div class="flex flex-center flex-column">
       <a href="https://metamask.io/" target="_blank" class="install-button-outer">
-        <van-button class="install-button" color="#AA2E26" plain >安装metamask</van-button>
+        <van-button class="install-button" color="#AA2E26" plain >Install Metamask</van-button>
       </a>
-      <span class="install-guid">请先安装<a href="https://metamask.io/" target="_blank" >Metamask</a></span>
+      <span class="install-guid">Install<a href="https://metamask.io/" target="_blank" >Metamask</a></span>
     </div>
   </van-popup>
 </template>
