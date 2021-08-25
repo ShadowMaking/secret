@@ -360,10 +360,10 @@ export default {
       bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
       .then(async res=>{
         console.log('res', res)
-        const rec = await res.wait()
-        console.log('rec', rec)
+        // const rec = await res.wait()
+        // console.log('rec', rec)
         // if (rec.confirmations === 1) {
-        if (rec.status === 1) {
+        if (res.status === 1) {
           console.log('Done! Your transaction is executed')
           this.show = false;
           this.$store.dispatch('UpdateTransactionHistory', {
