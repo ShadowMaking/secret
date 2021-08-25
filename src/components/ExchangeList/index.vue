@@ -227,6 +227,18 @@ export default {
         this.needRetryData = record;
       }
     },
+    // fake
+    triggerMock(bridge,batchNumber, indexInBatch) {
+      bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
+      .then(res=>{
+        console.log('Done! Your transaction is executed')
+      })
+      .catch(err=>{
+        this.show = false;
+        Toast('Failed，wait for minutes');
+      })
+      return { staus: 1 }
+    },
     // withdraw Confirming need refresh
     async executeConfirmTransaction(withrawTxHash) {
       this.show = true;
@@ -313,12 +325,15 @@ export default {
       const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(txnHash);
       if (!initiatingTxnReceipt){
         this.show = false;
+        Toast('Failed，wait for minutes');
         console.log(`No Arbitrum transaction found with provided txn hash: ${txnHash}`)
         return
       }
       const outGoingMessagesFromTxn = await bridge.getWithdrawalsInL2Transaction(initiatingTxnReceipt)
       if (outGoingMessagesFromTxn.length === 0){
         this.show = false;
+        Toast('Failed，wait for minutes');
+        console.log(`Txn ${txnHash} did not initiate an outgoing messages`)
         return {
           success: false,
           msg: `Txn ${txnHash} did not initiate an outgoing messages`
@@ -350,12 +365,32 @@ export default {
             break
         }
         this.show = false;
+        Toast('Failed，wait for minutes');
         console.log(`${msg}`)
         return
       }
 
       // const res = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
       // const rec = await res.wait()
+
+      // mock
+      const res1 = this.triggerMock(bridge, batchNumber, indexInBatch)
+      if (res1.status === 1) {
+        this.show = false;
+        this.$store.dispatch('UpdateTransactionHistory', {
+          txid: txnHash,
+          status: 2,
+        })
+        .then(res=>{
+          this.popupVisible = false;
+          this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
+        })
+        .catch(err=>{
+          this.popupVisible = false;
+          Toast('unknown error')
+        })
+      }
+      return
 
       bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
       .then(async res=>{
