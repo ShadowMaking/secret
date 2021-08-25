@@ -87,7 +87,7 @@
                 plain
                 type="info"
                 @click="speed(item)"
-                v-show="item.info['type']=='2'&&item.key==='status'&&item.info['status']===1">加速</van-button>
+                v-show="item.info['type']=='2'&&item.key==='status'&&item.info['status']===1">refresh</van-button>
             </span>
           </li>
         </ul>

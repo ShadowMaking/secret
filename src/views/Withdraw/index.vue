@@ -221,15 +221,15 @@ export default {
         const txHash = res.hash;
         const transactionWaitRes = await res.wait();
         console.log('transactionWaitRes', transactionWaitRes)
-        const { confirmations, from, to, transactionHash } = transactionWaitRes;
+        const { confirmations, from, to, transactionHash, status } = transactionWaitRes
 
-        if (confirmations == 1) {
+        // if (confirmations == 1) {
           this.$store.dispatch('AddTransactionHistory', {
             txid: transactionHash||txHash,
             from,
             to,
             type: TRANSACTION_TYPE['L2ToL1'],
-            status: confirmations // 1-成功(交易已被确认)，0-失败
+            status
           })
           .then(async res=>{
             this.show = false;
@@ -251,7 +251,7 @@ export default {
             Toast.fail(`交易已成功，但提交记录发生未知错误`);
             console.log(`提交记录发生未知错误,${err}`)
           })
-        }
+        // }
       })
       .catch(error => {
         this.show = false;
