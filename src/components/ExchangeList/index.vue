@@ -367,7 +367,7 @@ export default {
           console.log('Done! Your transaction is executed')
           this.show = false;
           this.$store.dispatch('UpdateTransactionHistory', {
-            txid: txHash,
+            txid: txnHash,
             status: 2,
           })
           .then(res=>{
