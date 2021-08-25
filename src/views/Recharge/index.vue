@@ -3,7 +3,7 @@
     <div class="recharge-toL2-tip flex">
       <div><i></i></div>
       <div class="flex flex-column">
-        <p>充值到L2</p>
+        <p>Deposit to L2</p>
         <div class="expand">
           <span class="expand-tip">{{ RECHAERGE_TIP }}</span>
         </div>
@@ -11,26 +11,26 @@
     </div>
     <div class="recharge-opt-area">
       <van-tabs v-model="activeName">
-        <van-tab title="从L1 账户充值" name="fromL1">
+        <van-tab title="Deposit from L1 account" name="fromL1">
           <v-tokenAmount
           key="tokenAmount-recharge"
           type="recharge"
           @childEvent="submitRecharge" />
         </van-tab>
-        <van-tab title="从L2 账户充值" name="fromeL2">
+        <van-tab title="Deposit from L2 account" name="fromeL2">
           <div class="recharge-amount-wrap">
             <div class="flex flex-center">
               <img :src="DEFAULTIMG.TEST_QR" class="img-QR"/>
             </div>
             <div class="recharge-address-wrapper">
-              <h3>充币地址</h3>
+              <h3>Deposit address</h3>
               <div class="address">{{ defaultAddress }}</div>
               <van-button color="#ECEEF8" class="copy-address">
-                <span slots="default" style="color:#495ABE">复制地址</span>
+                <span slots="default" style="color:#495ABE">Copy Address</span>
               </van-button>
               <span>
-                <span>仅支持 ZKSwap 上 L2 资产转账</span>
-                <span>请勿向上送地址发送其他资产</span>
+                <span>EigenSecret supported assets only.</span>
+                <span>Do not send other assets to this address.</span>
               </span>
             </div>
           </div>
@@ -44,8 +44,8 @@
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
-      timeTxt="预计 1 分钟内完成资金变动"
-      tip="可以到“L2 钱包”对应资产的详情查看明细"
+      timeTxt="It is expected to take effect within 1 minute"
+      tip="You can check the transaction details in the transaction record"
       :show="showStatusPop"
       @childEvent="changeVisible" />
     <v-netTipPopup :show="showNetTip" key="netTipModal" />
@@ -94,10 +94,10 @@ export default {
       RECHAERGE_TIP,
       activeName: 'fromL1', // fromL1 | fromeL2
       show: false,
-      tipTxt: '请在钱包上确认',
+      tipTxt: 'Please confirm on the wallet',
       showStatusPop: false,
       popStatus: "success",
-      statusPopTitle: '您的转账已提交',
+      statusPopTitle: 'Your transfer has been submitted',
       showNetTip: false,
       bridge: null,
     }
@@ -144,12 +144,12 @@ export default {
     },
     async submitRecharge(info) {
       this.showStatusPop = false;
-      this.tipTxt = '请在钱包上确认';
+      this.tipTxt = 'Please confirm on the wallet';
       this.show = true;
 
       const connectAddress = window.ethereum.selectedAddress;
       if (!utils.isAddress(connectAddress)) {
-        Toast.fail(`账户地址有误，无法进行交易`);
+        Toast.fail(`Wrong Address`);
         return;
       }
 
@@ -159,14 +159,14 @@ export default {
       // bridge.depositETH(ethToL2DepositAmount, {gas: web3utils.toHex('21000')})
       bridge.depositETH(ethToL2DepositAmount)
       .then(async res=>{
-        this.tipTxt = '交易正在进行';
+        this.tipTxt = 'The transaction is in progress, please wait';
         const txHash = res.hash;
         const transactionWaitRes = await res.wait();
         console.log('transactionWaitRes', transactionWaitRes)
         const { confirmations, from, to, transactionHash, status } = transactionWaitRes
 
-        // if (confirmations == 1) { // TODO deposit confirmations===1 为成功，调试中也有2的情况
-          console.log('交易成功',res)
+        // if (confirmations == 1) { // TODO deposit confirmations===1 is success，but appear 2
+          console.log('transaction success',res)
           this.$store.dispatch('AddTransactionHistory', {
             txid: txHash,
             from: res.from || connectAddress,
@@ -177,9 +177,9 @@ export default {
           .then(async res=>{
             this.show = false;
             this.showStatusPop = true;
-            this.statusPopTitle = '您的转账已提交'
+            this.statusPopTitle = 'Your transfer has been submitted'
             this.popStatus = 'success';
-            prettyLog('交易正在进行，请耐心等待10s....')
+            prettyLog('transaction is in progress，waiting fro 10s....')
             await wait(10000);
             this.showStatusPop = false;
             this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L1ToL2'});
@@ -189,23 +189,23 @@ export default {
             this.show = false;
             this.showStatusPop = false;
             // this.$router.push({ name: 'Home' });
-            Toast.fail(`交易已成功，但提交记录发生未知错误`);
-            console.log(`提交记录发生未知错误,${err}`)
+            Toast.fail(`Transaction success，but error when add history`);
+            console.log(`There is unknown error when add history,${err}`)
           })
         // } else {
         //   this.show = false;
-        //   Toast('未知错误')
+        //   Toast('unknown error')
         // }
       })
       .catch(error => {
         this.show = false;
         if (error.code == '4001') {
-          Toast('交易取消')
+          Toast('Cancel Transaction')
           return
         }
         console.log(error)
         this.showStatusPop = true;
-        this.statusPopTitle = '充值失败'
+        this.statusPopTitle = 'Deposit Failed'
         this.popStatus = 'fail';
       })
     },

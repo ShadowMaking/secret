@@ -43,19 +43,16 @@
       },
     },
     created () {
-      //在页面加载时读取sessionStorage里的状态信息
       /* if (sessionStorage.getItem("store") ) {
         const d = JSON.parse(sessionStorage.getItem("store"));
         this.$store.replaceState(Object.assign({}, this.$store.state,JSON.parse(sessionStorage.getItem("store"))))
         console.log('d', this.$store.state);
       }
 
-      //在页面刷新时将vuex里的信息保存到sessionStorage里
       window.addEventListener("beforeunload",()=>{
         sessionStorage.setItem("store", JSON.stringify(this.$store.state))
       })
 
-      //ios废弃了beforeunload，使用pagehide代替
       window.addEventListener("pagehide",()=>{
         const d = _.cloneDeep(this.$store.state);
         sessionStorage.setItem("store", JSON.stringify(this.$store.state))
@@ -90,7 +87,7 @@
           this.checkNet(netId);
           this.$eventBus.$emit('chainChanged', {netId, showTip: this.showNetTip });
           // if (this.showNetTip) {
-            // 需要重置钱包相关状态
+            // reset wallet status
             await this.$store.dispatch("WalletAccountsAddress", {accounts:[]})
             await this.$store.dispatch('WalletLockStatus', {isLock: true});
             this.$eventBus.$emit('resetStatus');
@@ -98,7 +95,7 @@
         });
         ethereum.on('accountsChanged', async (accounts) => {
           await this.$store.dispatch("WalletAccountsAddress", {accounts})
-          if (accounts.length === 0) { // 断开了链接
+          if (accounts.length === 0) { // disconnect 
             await this.$store.dispatch('WalletLockStatus', {isLock: true});
             this.$eventBus.$emit('resetStatus');
           }

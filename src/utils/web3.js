@@ -7,13 +7,13 @@ import { MessageBox } from 'mint-ui';
 import { dev_host } from '@/utils/global';
 import { NETWORKS } from '@/utils/netWork'
 
-// 区块链的网络ID
+
 const NETWORK_VERSION = {
-  "mian_ethernet": 1, // 以太坊主网
-  "Morden": 2,        // Morden测试链
-  "ropsten": 3,       // Ropsten测试链
-  "rinkeby": 4,       // Rinkeby测试链
-  "kovan": 42,        // Kovan测试链
+  "mian_ethernet": 1, // ETH main
+  "Morden": 2,        // Morden Test Net
+  "ropsten": 3,       // Ropsten Test Net
+  "rinkeby": 4,       // Rinkeby Test Net
+  "kovan": 42,        // Kovan Test Net
 }
 
 export const getWeb3 = () =>
@@ -73,40 +73,31 @@ export const initWeb3 = () => {
 
 // test code
 export const init = (callback) =>{
-  //判断用户是否安装MetaMask钱包插件
   if (typeof window.ethereum === "undefined") {
-    //没安装MetaMask钱包进行弹框提示
-    MessageBox('提示', '请安装MetaMask');
+    MessageBox('Tip', 'Install MetaMask');
   } else {
-    //如果用户安装了MetaMask，你可以要求他们授权应用登录并获取其账号
     ethereum.enable()
       .catch(function (reason) {
-        //如果用户拒绝了登录请求
         if (reason === "User rejected provider access") {
-          // 用户拒绝登录后执行语句；
         } else {
-          // 本不该执行到这里，但是真到这里了，说明发生了意外
           MessageBox('提示', "There was a problem signing you in");
         }
       }).then(function (accounts) {
-        // 判断是否连接以太
         // if (ethereum.networkVersion !== NETWORK_VERSION['mian_ethernet]) { }
         getWeb3().then(res=>{
           let web3 = res
           let currentProvider = web3.currentProvider;
           web3.setProvider(currentProvider);
-          //如果用户同意了登录请求，你就可以拿到用户的账号
           web3.eth.defaultAccount = accounts[0];
 
           // myContract = new web3.eth.Contract(ABI, metaMaskAddress);
-          //这里返回用户钱包地址
           callback(accounts[0]);
         })
       });
   }
 }
 
-// 获取metamask连接的网络ID（10进制形式）
+// get metamask connect chainID（Decimal） 
 export const getSelectedChainID = () => {
   return window.ethereum.networkVersion;
 }
@@ -157,23 +148,21 @@ export const initBrideByTransanctionType = (transanctionType='l1') => {
   if (transanctionType === 'l1') {
     ethProvider = metamaskProvider
     arbProvider = new ethers.providers.JsonRpcProvider(
-      partnerNet['url']
-      // 'http://43.128.80.242:8547'
+      partnerNet['url'] // 8547
     )
     l1Signer = ethProvider.getSigner(0);
     l2Signer = arbProvider.getSigner(connectAddress);
   } else if (transanctionType === 'l2') {
     ethProvider = new ethers.providers.JsonRpcProvider(
-      partnerNet['url']
-      // 'http://43.128.80.242:7545'
+      partnerNet['url'] // 7545
     )
     arbProvider = metamaskProvider
     l1Signer = ethProvider.getSigner(connectAddress)
     l2Signer = arbProvider.getSigner(0)
   }
   const bridge = new Bridge(
-    tokenBridge['l1Address'], // "0x7feAe6550487B59Cb903d977c18Ea16c4CC8D89e",
-    tokenBridge['l2Address'], // "0x5fe46790aE8c6Af364C2f715AB6594A370089B35",
+    tokenBridge['l1Address'],
+    tokenBridge['l2Address'],
     l1Signer,
     l2Signer,
   )

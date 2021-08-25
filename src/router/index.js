@@ -5,8 +5,6 @@ import Home from '../views/Home/index';
 const Recharge = () => import('../views/Recharge/index')
 const Transfer = () => import('../views/Transfer/index')
 const Withdraw = () => import('../views/Withdraw/index')
-const Test = () => import('../views/Test/Transaction')
-
 
 Vue.use(VueRouter);
 
@@ -20,7 +18,7 @@ const routes = [
     path: '/recharge',
     name: 'recharge',
     meta: {
-      title: "充值"
+      title: "deposit"
     },
     component: Recharge,
     // component: () => import(/* webpackChunkName: "recharge" */ '../views/Recharge/index'),
@@ -29,7 +27,7 @@ const routes = [
     path: '/transfer',
     name: 'transfer',
     meta: {
-      title: "转账"
+      title: "transfer"
     },
     component: Transfer,
     // component: () => import(/* webpackChunkName: "transfer" */ '../views/Transfer/index'),
@@ -38,7 +36,7 @@ const routes = [
     path: '/withdraw',
     name: 'withdraw',
     meta: {
-      title: "提现"
+      title: "withdraw"
     },
     component: Withdraw,
     // route level code-splitting

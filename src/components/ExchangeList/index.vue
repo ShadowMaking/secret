@@ -1,16 +1,16 @@
 <template>
   <div class="common-exchange-list-wrapper">
     <div class="common-exchange-list">
-      <h3 class="exchange-list-title">交易记录</h3>
-      <!-- TODO 需要分页 -->
+      <h3 class="exchange-list-title">Transactions</h3>
+      <!-- TODO need Pagination -->
       <div class="exchange-list" v-if="historyList.length>0 && !walletIsLock">
         <div v-for="(item,index) in historyList" :key="`history-${index}`" @click="getExchangeDetail(item)">
           <mt-cell is-link class="exchange-list-item">
             <div slot="title" class="flex flex-column mt10">
               <span><i :class="iconClass(item)"></i>{{ item.typeTxt }}ETH</span>
-              <span class="exchange-status pending" v-show="showStatus(item)">确认中</span>
-              <span class="exchange-status success" v-show="showStatusSuccess(item)">成功</span>
-              <span class="exchange-status fail" v-show="showStatusFail(item)">失败</span>
+              <span class="exchange-status pending" v-show="showStatus(item)">Confirming</span>
+              <span class="exchange-status success" v-show="showStatusSuccess(item)">Succeed</span>
+              <span class="exchange-status fail" v-show="showStatusFail(item)">Failed</span>
             </div>
             <div class="flex flex-column">
               <span class="exchange-amount">{{item.value}} ETH<span style="display:none">($ {{item.gasPrice}})</span></span>
@@ -21,8 +21,8 @@
         <div @click="getExchangeDetail" style="display:none">
           <mt-cell is-link class="exchange-list-item" >
             <div slot="title" class="flex flex-column mt10">
-              <span><i class="icon exchange-status-icon status-transfer"></i>转账ZKS</span>
-              <span class="exchange-status">确认中</span>
+              <span><i class="icon exchange-status-icon status-transfer"></i>Transfer ZKS</span>
+              <span class="exchange-status">Confirming</span>
             </div>
             <div class="flex flex-column">
               <span class="exchange-amount">-9.9932 ZKS<span>($ 7.81)</span></span>
@@ -32,8 +32,8 @@
         </div>
         <mt-cell is-link class="exchange-list-item"  style="display:none">
           <div slot="title" class="flex flex-column mt10">
-            <span><i class="icon exchange-status-icon status-withdraw"></i>提现ZKS</span>
-            <span class="exchange-status">确认中</span>
+            <span><i class="icon exchange-status-icon status-withdraw"></i>withdraw ZKS</span>
+            <span class="exchange-status">Confirming</span>
           </div>
           <div class="flex flex-column">
             <span class="exchange-amount">-9.9932 ZKS<span>($ 7.81)</span></span>
@@ -42,18 +42,18 @@
         </mt-cell>
         <mt-cell is-link class="exchange-list-item"  style="display:none">
           <div slot="title" class="flex flex-column mt10">
-            <span><i class="icon exchange-status-icon status-wrong"></i>交易失败</span>
-            <!-- <span class="exchange-status">确认中</span> -->
+            <span><i class="icon exchange-status-icon status-wrong"></i>Transaction Failed</span>
+            <!-- <span class="exchange-status">Confirming</span> -->
           </div>
           <div class="flex flex-column">
-            <span class="exchange-amount textTransparent">交易失败</span>
+            <span class="exchange-amount textTransparent">Transaction Failed</span>
             <span class="exchange-time">13/07/2021 12:54:35</span>
           </div>
         </mt-cell>
         <mt-cell is-link class="exchange-list-item"  style="display:none">
           <div slot="title" class="flex flex-column mt10">
-            <span><i class="icon exchange-status-icon status-recharge"></i>充值 ETH</span>
-            <span class="textTransparent">充值</span>
+            <span><i class="icon exchange-status-icon status-recharge"></i>deposit ETH</span>
+            <span class="textTransparent">deposit</span>
           </div>
           <div class="flex flex-column">
             <span class="exchange-amount">-9.9932 ZKS<span>($ 7.81)</span></span>
@@ -63,15 +63,15 @@
       </div>
       <div class="flex flex-center flex-column none-data" v-else>
         <img :src="DEFAULTIMG.NONE_TATA" class="img-QR"/>
-        <span>暂无交易记录</span>
+        <span>No Transactions</span>
       </div>
     </div>
-    <div class="seeMore" v-show="allList.length>20"><a @click='toBroswer'>查看更多</a></div>
+    <div class="seeMore" v-show="allList.length>20"><a @click='toBroswer'>see more</a></div>
     <!-- get-container="#app"  -->
     <van-popup v-model="popupVisible" round position="bottom" :style="{ minHeight: '40%' }" class="common-bottom-popup exchange-detail-popup">
       <div class="common-exchange-detail-wrap">
         <div class="header">
-          <h3>交易详情</h3>
+          <h3>Transaction Details</h3>
         </div>
         <ul v-for="(item,index) in detaiInfo" :key="`exchange-${index}`">
           <li class="flex flex-content-between common-exchange-detail-item">
@@ -79,7 +79,7 @@
             <span class="flex flex-center">
               <span @click="copyHash(item)">
                 {{ item.key==='hash'?`${item.value.substr(0,6)}...${item.value.substr(-4)}`:item.value }}
-                <span v-show="item.key==='hash'" class="copy-tip">（点击复制）</span>
+                <span v-show="item.key==='hash'" class="copy-tip">（copy）</span>
               </span>
               <van-button
                 size='small'
@@ -94,10 +94,10 @@
       </div>
     </van-popup>
     <van-popup v-model="showUpdate" round >
-      <a>需要刷新</a>
+      <a>Need Refresh</a>
     </van-popup>
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-      <div>加速进行中</div>
+      <div>refreshing...</div>
     </van-popup>
   </div>
 </template>
@@ -152,7 +152,7 @@ export default {
   },
   methods: {
     toBroswer() {
-      Toast('敬请期待')
+      Toast('Coming Soon')
     },
     copyHash(item) {
       if (item.key === 'hash' && copyTxt(item.value)) {
@@ -191,41 +191,43 @@ export default {
       const opt = `${typeTxt} ${value} ETH`;
       let statusTxt = '';
       if (status===0) {
-        statusTxt = '失败'
+        // statusTxt = 'Transaction Failed'
+        statusTxt = 'Failed'
       }
       switch(status) {
         case 0:
-          statusTxt = '失败'
+          // statusTxt = 'Transaction Failed'
+          statusTxt = 'Failed'
           break;
         case 1:
           if (type === TRANSACTION_TYPE['L2ToL1']) {
-            statusTxt = '确认中'
+            statusTxt = 'Confirming'
           } else {
-            statusTxt = '成功'
+            statusTxt = 'Succeed'
           }
           break;
         case 2:
-          statusTxt = '成功'
+          statusTxt = 'Succeed'
           break;
       }
       const browser = ''; // TODO
       const info = [
         {title: 'Hash', value: record.txid, key:'hash', info: record},
-        {title: '时间', value: date, key:'data', info: record},
-        {title: '操作', value: opt, key:'opt', info: record},
-        {title: '状态', value: statusTxt, key:'status', info: record},
+        {title: 'Time', value: date, key:'data', info: record},
+        {title: 'Operation', value: opt, key:'opt', info: record},
+        {title: 'Status', value: statusTxt, key:'status', info: record},
       ];
       console.log('record', record);
       this.infoRecord = record;
       this.detaiInfo = info;
       this.popupVisible = true;
       if (record.status === '0') {
-        console.log('需要重试')
+        console.log('need refresh')
         this.showUpdate = true
         this.needRetryData = record;
       }
     },
-    // withdraw 确认中需要加速（重试）
+    // withdraw Confirming need refresh
     async executeConfirmTransaction(withrawTxHash) {
       this.show = true;
       const bridge = initBrideByTransanctionType('l2');
@@ -274,7 +276,10 @@ export default {
         this.show = false;
         return { success: false, msg };
       }
+
       // const res = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
+      // const rec = await res.wait()
+
       bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
       .then(async res=>{
         const rec = await res.wait()
@@ -286,25 +291,106 @@ export default {
       })
       .catch(err=>{
         this.show = false;
-        Toast('加速失败，等待几分钟后在重试');
+        Toast('Failed，wait for minutes');
         return { success: false };
       })
       return { success: false };
     },
     async speed(item) {
-      // 判断网络类型，非L2网络不可进行该操作
+      // judge the networkType
       const netType = getNetMode();
       if (netType !== 'l2') {
-        Toast('需切换到L2网络进行该操作')
+        Toast('Need change network to L2');
         return;
       }
       const info = this.infoRecord;
       console.log('info', info)
+      
+
+      this.show = true;
+      const bridge = initBrideByTransanctionType('l2');
+      const txnHash = info.txid;
+      const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(txnHash);
+      if (!initiatingTxnReceipt){
+        this.show = false;
+        console.log(`No Arbitrum transaction found with provided txn hash: ${txnHash}`)
+        return
+      }
+      const outGoingMessagesFromTxn = await bridge.getWithdrawalsInL2Transaction(initiatingTxnReceipt)
+      if (outGoingMessagesFromTxn.length === 0){
+        this.show = false;
+        return {
+          success: false,
+          msg: `Txn ${txnHash} did not initiate an outgoing messages`
+        };
+      }
+      const { batchNumber, indexInBatch } = outGoingMessagesFromTxn[0]
+      const outgoingMessageState = await bridge.getOutGoingMessageState(
+        batchNumber,
+        indexInBatch
+      )
+      console.log(`Waiting for message to be confirmed: Batchnumber: ${batchNumber}, IndexInBatch ${indexInBatch}`)
+
+      if (!outgoingMessageState === OutgoingMessageState.CONFIRMED) {
+        let msg = '';
+        switch (outgoingMessageState) {
+          case OutgoingMessageState.NOT_FOUND: {
+            msg = 'Message not found; something strange and bad happened'
+            break
+          }
+          case OutgoingMessageState.EXECUTED: {
+            msg = `Message already executed! Nothing else to do here`
+            break
+          }
+          case OutgoingMessageState.UNCONFIRMED: {
+            msg = `Message not yet confirmed; we'll wait a bit and try again`
+            break
+          }
+          default:
+            break
+        }
+        this.show = false;
+        console.log(`${msg}`)
+        return
+      }
+
+      // const res = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
+      // const rec = await res.wait()
+
+      bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
+      .then(async res=>{
+        console.log('res', res)
+        const rec = await res.wait()
+        console.log('rec', rec)
+        // if (rec.confirmations === 1) {
+        if (rec.status === 1) {
+          console.log('Done! Your transaction is executed')
+          this.show = false;
+          this.$store.dispatch('UpdateTransactionHistory', {
+            txid: txHash,
+            status: 2,
+          })
+          .then(res=>{
+            this.popupVisible = false;
+            this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
+          })
+          .catch(err=>{
+            this.popupVisible = false;
+            Toast('unknown error')
+          })
+        }
+      })
+      .catch(err=>{
+        this.show = false;
+        Toast('Failed，wait for minutes');
+      })
+     
+      
+      
+      /* 
       const txHash = info.txid
       const conformStatus = await this.executeConfirmTransaction(txHash);
       if (conformStatus.success) {
-        // 如果是withdraw，并且confirmation是1，然后继续调用我那段代码，如果成功将后端status改成2.
-        // {"status": 1, "sub_txid": "2121"}  withdraw类型的交易，status是2，才认为成功
         this.$store.dispatch('UpdateTransactionHistory', {
           txid: txHash,
           status: 2,
@@ -315,9 +401,9 @@ export default {
         })
         .catch(err=>{
           this.popupVisible = false;
-          Toast('未知错误')
+          Toast('unknown error')
         })
-      }
+      } */
     },
     // TODO forEach and async await will lead to the incorrect order for array
     async generateHistoryList_e(sourceArr) {
@@ -340,7 +426,7 @@ export default {
           value,
           gas,
           gasPrice,
-          typeTxt: ['', '充值','提现','转账'][item.type],
+          typeTxt: ['', 'deposit','withdraw','send'][item.type],
           dateTitme: moment(sourceArr[i].createdAt).format('DD/MM/YYYY HH:mm:ss')
         })
       })
@@ -349,7 +435,8 @@ export default {
     async generateHistoryList(sourceArr) {
       const historyList = [];
       for( let i = 0; i < sourceArr.length; i += 1) {
-        const hash = sourceArr[i].txid;
+        const item = sourceArr[i]
+        const hash = item.txid;
         const info = await this.web3.eth.getTransaction(hash);
         let gas =0;
         let gasPrice = 0;
@@ -362,12 +449,12 @@ export default {
         // const type = '' // 1-deposit 2-withdraw 3-transfer
         // status 0-fail 1-success（ withraw1-pending 2-success）
         historyList.push({
-          ...sourceArr[i],
+          ...item,
           value,
           gas,
           gasPrice,
-          typeTxt: ['', '充值','提现','转账'][sourceArr[i].type],
-          dateTitme: moment(sourceArr[i].createdAt).format('DD/MM/YYYY HH:mm:ss')
+          typeTxt: ['', 'deposit','withdraw','send'][item.type],
+          dateTitme: moment(item.createdAt).format('DD/MM/YYYY HH:mm:ss')
         })
       }
       return historyList;

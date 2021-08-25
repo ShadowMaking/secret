@@ -3,7 +3,7 @@
     <div class="transfer-toL2-tip flex">
       <div><i class="info_icon"></i></div>
       <div class="flex flex-column">
-        <p>L2 转账</p>
+        <p>L2 Transfer</p>
         <div class="expand">
           <span class="expand-tip">{{ TRANSFER_TIP }}</span>
         </div>
@@ -19,19 +19,19 @@
             label=""
             type="textarea"
             :disabled="walletIsLock"
-            placeholder="请输入转账地址"
+            placeholder="enter the transfer address"
             @input="handleAddressInputChange"
             @focus="handleAddressInputFocus"
           />
         </div>
       </div>
-      <span class="tip"><i class="info_icon"></i>请勿输入交易所地址</span>
+      <span class="tip"><i class="info_icon"></i>Do not enter any exchange address!</span>
       <v-tokenAmount key="tokenAmount-transfer" type="transfer" @childEvent="submitTransfer" />
     </div>
     <v-exchangeList key="comon-exchangeList" type="L2ToL2" v-show="!walletIsLock" />
     <van-popup v-model="tipShow" class="safe-tip-toast" overlay-class="noneOverlay">
       <i class=""></i>
-      <span>您的交易地址和交易金额已被加密保护</span>
+      <span>Aaddress and Amount have been encrypted and protected!</span>
     </van-popup>
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
       <div>{{ tipTxt }}</div>
@@ -39,8 +39,8 @@
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
-      timeTxt="预计 1 分钟内完成资金变动"
-      tip="可以到“L2 钱包”对应资产的详情查看明细"
+      timeTxt="It is expected to take effect within 1 minute"
+      tip="You can check the transaction details in the transaction record"
       :show="showStatusPop"
       @childEvent="changeVisible" />
     <v-netTipPopup :show="showNetTip" key="netTipModal" />
@@ -80,8 +80,8 @@ export default {
       transferAddress: '',
       showNetTip: false,
       show: false,
-      tipTxt: '请在钱包上确认',
-      statusPopTitle: '您的转账已提交',
+      tipTxt: 'Please confirm on the wallet',
+      statusPopTitle: 'Your transfer has been submitted',
     }
   },
   computed: {
@@ -102,16 +102,16 @@ export default {
       const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
       const selectedAccountAddress = accounts[0];
       if (!utils.isAddress(transferToAddress)) {
-        Toast('转账地址输入有误')
+        Toast('Wrong Address')
         return
       }
       
       if (transferToAddress.toLocaleUpperCase() === selectedAccountAddress.toLocaleUpperCase()) {
-        Toast('不允许给自己转账')
+        Toast("Don't enter your own address")
         return
       }
 
-      this.tipTxt = '请在钱包上确认';
+      this.tipTxt = 'Please confirm on the wallet';
       this.show = true;
       const transferAmount = utils.parseEther(info.amount);
       const transferParams = [{
@@ -129,10 +129,10 @@ export default {
         id: 0
       })
       .then(async res=>{
-        this.tipTxt = '交易正在进行';
+        this.tipTxt = 'The transaction is in progress, please wait';
         console.log('交易成功',res)
         await wait(10000);
-        prettyLog('交易正在进行，请耐心等待10s....')
+        prettyLog('Transaction is in progress，waiting for 10s....')
         
         this.$store.dispatch('AddTransactionHistory', {
           txid: res,
@@ -144,7 +144,7 @@ export default {
         .then(async res=>{
           this.show = false;
           this.showStatusPop = true;
-          this.statusPopTitle = '您的转账已提交'
+          this.statusPopTitle = 'Your transfer has been submitted'
           this.popStatus = 'success';
           this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL2'});
           await wait();
@@ -153,20 +153,20 @@ export default {
         .catch(err=>{
           this.showStatusPop = false;
           // this.$router.push({ name: 'Home' });
-          Toast.fail(`交易已成功，但提交记录发生未知错误`);
-          console.log(`提交记录发生未知错误,${err}`)
+          Toast.fail(`Transaction success，but error when add history`);
+          console.log(`There is unknown error when add history,${err}`)
         })
       })
       .catch(error=>{
         this.show = false;
         if (error.code == '4001') {
-          Toast('交易取消')
+          Toast('Cancel Transaction')
           return
         }
         console.log(error)
-        // Toast.fail(`未知错误`);
+        // Toast.fail(`unknown error`);
         this.showStatusPop = true;
-        this.statusPopTitle = '转账失败'
+        this.statusPopTitle = 'Transfer Failed'
         this.popStatus = 'fail';
       })
     },

@@ -1,4 +1,3 @@
-<!-- 网络提示 -->
 <template>
   <van-popup
     round
@@ -7,9 +6,9 @@
     :close-on-click-overlay="false"
     class="net-tip-modal" >
     <h4>Wrong NetWork</h4>
-    <div class="tip-content">需要连接到我们提供的网络进行相关操作</div>
-    <div class="tip-content">点击<a @click="addAndSwitchNet('l1')">L1测试网络</a>切换到L1进行充值操作</div>
-    <div class="tip-content">点击<a @click="addAndSwitchNet('l2')">L2测试网络</a>切换到L2进行提现操作</div>
+    <div class="tip-content">Please change the Metamask's network to the next step</div>
+    <div class="tip-content">click to<a @click="addAndSwitchNet('l1')">L1 network</a>for deposit</div>
+    <div class="tip-content">click to<a @click="addAndSwitchNet('l2')">L2 network</a>for withdraw</div>
   </van-popup>
 </template>
 <script>
@@ -33,7 +32,7 @@ export default {
       const params = [];
       if (netType === 'l1') {
         params.push({
-          "chainId": L1ChainID, // 此处需要16进制表示
+          "chainId": L1ChainID, // Hexadecimal
           "chainName": "SecretL1",
           "rpcUrls": [ ethRPC ],
           // "blockExplorerUrls": []

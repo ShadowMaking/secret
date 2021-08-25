@@ -11,7 +11,6 @@ const transaction = {
   },
 
   mutations: {
-    // 搜索结果 挂载在 store内
     SET_HISTORY_LIST: (state, list) => {
       state.searchList = list;
     },

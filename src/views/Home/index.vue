@@ -1,19 +1,19 @@
 <template>
   <div class="page-home">
     <div class="page-home-account flex flex-center flex-column ">
-      <a class="button button-with-radius button-update" @click="refresh"><i class="icon ico-ipdate"></i>刷新</a>
+      <a class="button button-with-radius button-update" @click="refresh"><i class="icon ico-ipdate"></i>refresh</a>
       <!-- <div class="flex flex-column account-info">
         <span class="balance">{{ balance }}</span>
-        <span class="tip">L2 资产总额($)</span>
+        <span class="tip">L2 Total Assets($)</span>
       </div> -->
       <div class="account-balance">
-        <span class="balance">L1 资产总额($)：{{ balanceL1 }}</span>
-        <span class="balance">L2 资产总额($)：{{ balanceL2 }}</span>
+        <span class="balance">L1 Total Assets(ETH)：{{ balanceL1 }}</span>
+        <span class="balance">L2 Total Assets(ETH)：{{ balanceL2 }}</span>
       </div>
       <div class="flex page-home-opt-wrap">
-        <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('recharge')">充值到 L2</mt-button>
-        <mt-button type="primary" size="large" class="button button-with-radius" @click="toPage('transfer')">L2 转账</mt-button>
-        <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('withdraw')">提现到 L1</mt-button>
+        <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('recharge')">Deposit to L2</mt-button>
+        <mt-button type="primary" size="large" class="button button-with-radius" @click="toPage('transfer')">Send to L2</mt-button>
+        <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('withdraw')">Withdraw to L1</mt-button>
       </div>
     </div>
     <v-unlockwallet :show="showUnlockWalletButton" key="unlockWalletButton" v-show="walletIsLock" />
@@ -124,7 +124,7 @@ export default {
     async unlockWallet() {
       if (this.metamaskInstall) {
         const accounts = this.$store.state.metamask.accountsArr;
-        if (accounts.length === 0) { // 没有登录
+        if (accounts.length === 0) { // not login
           // await ethereum.request({ method: 'eth_requestAccounts' });
           await ethereum.request({
             method: 'wallet_requestPermissions',

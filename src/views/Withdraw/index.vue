@@ -1,10 +1,10 @@
 <template>
   <div class="withdraw-page">
     <van-row type="flex" justify="space-between" align="center" class="top-address">
-      <van-col span="12" class="textAlignLeft">提现地址</van-col>
+      <van-col span="12" class="textAlignLeft">Withdrawal Address</van-col>
       <van-col span="12" class="textAlignRight">
         <van-button color="#E4E6F5" size="mini" @click="setMyAddress">
-          <span slots="default" style="coloe:#495ABE">我的地址</span>
+          <span slots="default" style="coloe:#495ABE">My Address</span>
         </van-button>
       </van-col>
     </van-row>
@@ -18,7 +18,7 @@
             label=""
             type="textarea"
             :disabled="walletIsLock"
-            placeholder="请输入提现地址"
+            placeholder="enter withdraw address"
             @input="handleAddressInputChange"
           />
         </div>
@@ -31,12 +31,11 @@
         :buttonTxt="tokenAmountButtonTxt" />
     </div>
     <v-exchangeList key="comon-exchangeList" type="L2ToL1" v-show="!walletIsLock"/>
-    <!-- 请在链上钱包中查看到账情况 -->
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
-      timeTxt="预计等待 20-40 分钟汇出"
-      tip="到账慢可在交易详情中进行加速操作"
+      timeTxt="It is expected to take effect within 20~40 minutes"
+      tip="You can refrsh transaction in Transaction Details"
       :show="showStatusPop"
       @childEvent="changeVisible" />
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
@@ -80,11 +79,11 @@ export default {
     return {
       popStatus: 'sucess',
       showStatusPop: false,
-      statusPopTitle: '您的提现已提交',
+      statusPopTitle: 'Your withdraw has been submitted',
       show: false,
-      tipTxt: '请在钱包上确认',
+      tipTxt: 'Please confirm on the wallet',
       tokenAmountButtonTxtCode: 1,
-      tokenAmountButtonTxt: '请输入金额',
+      tokenAmountButtonTxt: 'Enter the Amount',
       withDrawAddress: getDefaultAddress(this.$store),
       showNetTip: false,
       bridge: null,
@@ -114,11 +113,11 @@ export default {
     handleAddressInputChange(value) {
       this.withDrawAddress = value;
       if (!utils.isAddress(value)) {
-        this.tokenAmountButtonTxt = '地址无效'
+        this.tokenAmountButtonTxt = 'Invalid Address'
         this.tokenAmountButtonTxtCode = 2
         return;
       }
-      this.tokenAmountButtonTxt = '请输入金额'
+      this.tokenAmountButtonTxt = 'Enter Amount'
       this.tokenAmountButtonTxtCode = 1
     },
     initBridge() {
@@ -200,12 +199,12 @@ export default {
     },
     async submitWithdraw(info) {
       this.showStatusPop = false;
-      this.tipTxt = '请在钱包上确认';
+      this.tipTxt = 'Please confirm on the wallet';
       this.show = true;
 
       const connectAddress = window.ethereum.selectedAddress;
       if (!utils.isAddress(connectAddress)) {
-        Toast.fail(`账户地址有误，无法进行交易`);
+        Toast.fail(`Wrong Address`);
         return;
       }
 
@@ -217,7 +216,7 @@ export default {
       bridge.withdrawETH(ethFromL2WithdrawAmount, undefined, {gasLimit: '21000', gasPrice:'100000000000' })
       // bridge.withdrawETH(ethFromL2WithdrawAmount)
       .then(async res=>{
-        this.tipTxt = '交易正在进行';
+        this.tipTxt = 'The transaction is in progress, please wait';
         const txHash = res.hash;
         const transactionWaitRes = await res.wait();
         console.log('transactionWaitRes', transactionWaitRes)
@@ -233,11 +232,11 @@ export default {
           })
           .then(async res=>{
             this.show = false;
-            console.log('交易成功',res)
+            console.log('transaction success',res)
             await wait()
-            prettyLog('交易正在进行，请耐心等待10s....')
+            prettyLog('Transaction is in progress，waiting for 10s....')
             this.showStatusPop = true;
-            this.statusPopTitle = '您的提现已提交'
+            this.statusPopTitle = 'Your withdraw has been submitted'
             this.popStatus = 'success';
             await wait(10000);
             this.showStatusPop = false;
@@ -248,21 +247,21 @@ export default {
             this.show = false;
             this.showStatusPop = false;
             // this.$router.push({ name: 'Home' });
-            Toast.fail(`交易已成功，但提交记录发生未知错误`);
-            console.log(`提交记录发生未知错误,${err}`)
+            Toast.fail(`Transaction success，but error when add history`);
+            console.log(`There is unknown error when add history,${err}`)
           })
         // }
       })
       .catch(error => {
         this.show = false;
         if (error.code == '4001') {
-          Toast('交易取消')
+          Toast('Cancel Transaction')
           return
         }
         console.log(error)
         // Toast.fail(`未知错误`);
         this.showStatusPop = true;
-        this.statusPopTitle = '提现失败'
+        this.statusPopTitle = 'Withdraw Failed'
         this.popStatus = 'fail';
       })
     },

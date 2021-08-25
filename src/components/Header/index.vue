@@ -4,14 +4,14 @@
       <img :src="DEFAULTIMG.LOGO" slot="left" class="logo" @click="toPageHome" />
       <span slot="right" v-if="address!==''"  class="header-address"  @click="copyHash()">{{ `${address.slice(0,6)}...${address.slice(-4)}` }}</span>
       <div slot="right" v-else >
-        <a @click="chooseWallet" class="linkWallet">链接钱包</a>
+        <a @click="chooseWallet" class="linkWallet">wallet</a>
         <i class="icon night"></i>
         <i class="icon language"></i>
       </div>
     </mt-header>
     <van-popup v-model="popupVisible" round position="bottom" :style="{ minHeight: '30%' }" class="common-bottom-popup">
       <div class="common-exchange-detail-wrap choose-wallet-popup">
-        <div class="header"><h3>选择钱包</h3></div>
+        <div class="header"><h3>Choose Wallet</h3></div>
         <div class="choose-wallet" @click="connectWallet">
           <i></i><span>metamask</span>
         </div>
@@ -80,7 +80,7 @@ export default {
       this.installWalletModal = false;
     },
 
-    // 解锁钱包，进行当前登录账户的授权签名
+    // unlock wallet and sign
     async connectWallet() {
       this.popupVisible = false;
       if (!this.metamaskInstall) {
@@ -92,7 +92,7 @@ export default {
         })
         const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
         const selectedAccountAddress = accounts[0];
-        console.log('当前选择的账户地址', selectedAccountAddress)
+        console.log('currentSelectedAccountAddress', selectedAccountAddress)
         const message = `
           Access Eigen account.
           Only sign this message for a trusted client!
@@ -121,8 +121,6 @@ export default {
   },
   async mounted() {
     this.$eventBus.$on('updateAddress', this.updateAddress);
-    // console.log("metamask是否安装-header", this.$store.state.metamask.metamaskInstall)
-    // console.log('钱包账户是否锁定-header', this.$store.state.metamask.walletIsLock);
   },
 };
 </script>

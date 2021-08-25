@@ -2,7 +2,7 @@
   <div class="component-unlockwallet">
     <div class="no-connect-wallet">
       <div :class="['flex', 'flex-center', {'margin10':!showLockIcon}]"><img :src="DEFAULTIMG.LOCK" v-show="showLockIcon"/></div>
-      <mt-button type="primary" size="large" class="button button-large" @click="unlockWallet">解锁钱包</mt-button>
+      <mt-button type="primary" size="large" class="button button-large" @click="unlockWallet">Unlock Wallet</mt-button>
     </div>
     <v-walletstatus :show="installWalletModal" key="installWalletModal" />
   </div>
@@ -65,7 +65,6 @@ export default {
         this.walletIsLock = _isLock;
         this.$eventBus.$emit('updateAddress', {address: selectedAccountAddress});
         
-        // 获取L1 和 L2的余额
         this.$eventBus.$emit('updateAvailableBanlanceForL1L2');
         return
       }

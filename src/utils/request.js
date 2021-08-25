@@ -2,12 +2,10 @@ import axios from 'axios'
 import { getCookie } from '@/utils/auth'
 
 const protocol = location.protocol;
-// api 的 base_url
 export const WEBSITE_BASEURL = protocol + '//rpc.ieigen.com';
 
  // create an axios instance
  const service = axios.create({
-   // baseURL: process.env.BASE_API,
    baseURL: WEBSITE_BASEURL,
    timeout: 500000000 // request timeout
  })
@@ -35,11 +33,11 @@ export const WEBSITE_BASEURL = protocol + '//rpc.ieigen.com';
      const res = response.data
      if (res.errno&&res.errno !== 0) {
        switch (res.errno) {
-         case 1: // 登录过期或未登录
+         case 1:
            return Promise.reject('error')
          case 3:
          case 4:
-         case 5: // 特殊处理公共登录
+         case 5:
            return response
          default:
            console.log('error', res.message);
