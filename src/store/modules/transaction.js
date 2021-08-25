@@ -28,7 +28,7 @@ const transaction = {
       })
     },
     // {"status": 1, "sub_txid": "2121"}
-    ApdateTransactionHistory({ commit }, params) {
+    UpdateTransactionHistory({ commit }, params) {
       return new Promise((resolve, reject) => {
         updateTransactionHistory(params).then(response => {
           const data = response.data.data;
