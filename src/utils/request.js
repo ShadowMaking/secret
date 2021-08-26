@@ -2,8 +2,7 @@ import axios from 'axios'
 import { getCookie } from '@/utils/auth'
 
 const protocol = location.protocol;
-// export const WEBSITE_BASEURL = protocol + '//rpc.ieigen.com';
-export const WEBSITE_BASEURL = protocol + '//43.128.80.242:8443';
+export const WEBSITE_BASEURL = protocol + '//rpc.ieigen.com';
 
  // create an axios instance
  const service = axios.create({
