@@ -21,7 +21,15 @@ Vue.use(Button);
 
 export default {
   name: "NetTipPopUp",
-  props: ['show', 'showClose'],
+  props: {
+    'show': {
+      type: Boolean,
+    },
+    'showClose': {
+      type: Boolean,
+      default: true
+    }
+  },
   data() {
     return {
       showCloseIcon: this.showClose,

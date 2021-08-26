@@ -6,7 +6,7 @@
       <v-header></v-header>
     </div>
     <router-view :key="$route.path" />
-    <v-netTipPopup :show="showNetTip" key="netTipModal" />
+    <v-netTipPopup :show="showNetTip" :showCloseIcon="true" key="netTipModal" />
   </div>
 </template>
 
@@ -16,7 +16,6 @@
   import NetTipModal from '@/components/NetTipModal';
   import { NETWORKS } from '@/utils/netWork'
   import { checkMetamask } from "@/utils/auth";
-  import { utils } from 'ethers';
 
   export default {
     name: 'APP',

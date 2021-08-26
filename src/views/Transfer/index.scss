@@ -9,6 +9,7 @@
     width: rem(20);
     background: url('~@/assets/icon_notice.png') center center no-repeat;
     vertical-align: middle;
+    background-size: contain;
   }
   .transfer-toL2-tip {
     >div{

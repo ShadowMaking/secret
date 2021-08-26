@@ -16,14 +16,40 @@
       background: #544FDF;
       color: #fff;
       position: absolute;
-      left: 11px;
-      top: 31px;
+      left: rem(11);
+      top: rem(40);
       .ico-ipdate {
         width: rem(20);
         height: rem(20);
         background: url('~@/assets/icon_update.png') center center no-repeat;
         vertical-align: middle;
         margin: -4px 4px 0 0;
+        background-size: contain;
+      }
+      .ico-ipdate.spin{
+        animation: spin 1s infinite linear;
+        -moz-animation: spin 1s infinite linear;
+        -webkit-animation: spin 1s infinite linear;
+        -o-animation: refreshing 1s infinite linear;
+      }
+      @-moz-keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      @-webkit-keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      @-o-keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
     }
     .account-info {

@@ -25,7 +25,7 @@
             <div class="recharge-address-wrapper">
               <h3>Deposit address</h3>
               <div class="address">{{ defaultAddress }}</div>
-              <van-button color="#ECEEF8" class="copy-address">
+              <van-button color="#ECEEF8" class="copy-address" @click="copyAddress">
                 <span slots="default" style="color:#495ABE">Copy Address</span>
               </van-button>
               <span>
@@ -66,6 +66,7 @@ import { DEFAULTIMG } from '@/utils/global';
 import { NETWORKS } from '@/utils/netWork'
 import { Bridge } from 'arb-ts';
 import { TRANSACTION_TYPE } from '@/api/transaction';
+import { copyTxt } from '@/utils/index';
 import { utils as web3utils } from 'web3';
 
 const { parseEther } = utils;
@@ -114,6 +115,13 @@ export default {
     },
   },
   methods: {
+    copyAddress() {
+      if (this.walletIsLock) {
+        return;
+      }
+      copyTxt(this.defaultAddress)
+      Toast.success('Success')
+    },
     async getWalletBalance() {
       const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
       const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()

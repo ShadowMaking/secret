@@ -1,7 +1,10 @@
 <template>
   <div class="page-home">
     <div class="page-home-account flex flex-center flex-column ">
-      <a class="button button-with-radius button-update" @click="refresh"><i class="icon ico-ipdate"></i>refresh</a>
+      <a class="button button-with-radius button-update" @click="refresh">
+        <i :class="['icon','ico-ipdate', {'spin': refreshLoading}]"></i>
+        Refresh
+      </a>
       <!-- <div class="flex flex-column account-info">
         <span class="balance">{{ balance }}</span>
         <span class="tip">L2 Total Assets($)</span>
@@ -11,14 +14,14 @@
         <span class="balance">L2 Total Assets(ETH)：{{ balanceL2 }}</span>
       </div>
       <div class="flex page-home-opt-wrap">
-        <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('recharge')">Deposit to L2</mt-button>
-        <mt-button type="primary" size="large" class="button button-with-radius" @click="toPage('transfer')">Send to L2</mt-button>
-        <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('withdraw')">Withdraw to L1</mt-button>
+        <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('recharge')">Deposit</mt-button>
+        <mt-button type="primary" size="large" class="button button-with-radius" @click="toPage('transfer')">Send</mt-button>
+        <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('withdraw')">Withdraw</mt-button>
       </div>
     </div>
     <v-unlockwallet :show="showUnlockWalletButton" key="unlockWalletButton" v-show="walletIsLock" />
     <v-exchangeList key="comon-exchangeList" type="all" v-show="!walletIsLock" />
-    <v-netTipPopup :show="showNetTip" :showClose="true" key="netTipModal" />
+    <v-netTipPopup :show="showNetTip" key="netTipModal" />
   </div>
 </template>
 
@@ -55,6 +58,7 @@ export default {
       expectNetType: '',
       balanceL1: '0.0',
       balanceL2: '0.0',
+      refreshLoading: false,
     }
   },
   computed: {
@@ -112,9 +116,14 @@ export default {
       }
     },
     async refresh() {
+      if (this.walletIsLock) {
+        return
+      }
       console.log('refresh...')
+      this.refreshLoading = true;
       await this.updateAvailableBanlanceForL1L2();
       console.log('refresh done!!!');
+      this.refreshLoading = false;
     },
     handleWatchResetStatus() {
       this.balance = '0.0'
