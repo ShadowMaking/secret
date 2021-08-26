@@ -13,7 +13,6 @@ import Vue from 'vue';
 import { Button } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
 import WalletStatus from '@/components/WalletStatus';
-import { utils } from 'ethers';
 
 Vue.component(Button.name, Button)
 

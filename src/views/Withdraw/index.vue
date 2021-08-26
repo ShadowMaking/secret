@@ -46,7 +46,7 @@
 </template>
 <script>
 import Vue from 'vue';
-import { Popup, CountDown, Field, Toast } from 'vant';
+import { Popup, CountDown, Field, Toast, Icon } from 'vant';
 import TokenAmount from '@/components/TokenAmount';
 import ExchangeList from '@/components/ExchangeList';
 import StatusPop from '@/components/StatusPop';
@@ -64,6 +64,7 @@ Vue.use(Popup);
 Vue.use(CountDown);
 Vue.use(Field);
 Vue.use(Toast);
+Vue.use(Icon);
 
 const { parseEther } = utils;
 
@@ -81,7 +82,7 @@ export default {
       showStatusPop: false,
       statusPopTitle: 'Your withdraw has been submitted',
       show: false,
-      tipTxt: 'Please confirm on the wallet',
+      tipTxt: 'Confirm on the wallet',
       tokenAmountButtonTxtCode: 1,
       tokenAmountButtonTxt: 'Enter the Amount',
       withDrawAddress: getDefaultAddress(this.$store),
@@ -199,7 +200,7 @@ export default {
     },
     async submitWithdraw(info) {
       this.showStatusPop = false;
-      this.tipTxt = 'Please confirm on the wallet';
+      this.tipTxt = 'Confirm on the wallet';
       this.show = true;
 
       const connectAddress = window.ethereum.selectedAddress;
@@ -208,8 +209,8 @@ export default {
         return;
       }
 
-      // const bridge = initBrideByTransanctionType('l2');
-      const bridge = this.bridge || this.initBridge();
+      const bridge = initBrideByTransanctionType('l2');
+      // const bridge = this.bridge || this.initBridge();
       const ethFromL2WithdrawAmount = parseEther(info.amount);
       const destinationAddress = await bridge.l2Signer.getAddress();
       // gasPrice : gwei（1000000000=1gwei）

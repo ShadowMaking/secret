@@ -8,7 +8,7 @@
           <!-- TODO hide -->
           <i class="icon-selected" style="display:none;"></i>
           <van-button color="#E4E6F5" size="mini" style="margin-left:5px">
-            <span slots="default" style="color:#495ABE">Max</span>
+            <span slots="default" style="color:#495ABE;padding:0 5px">Max</span>
           </van-button>
         </div>
         <span>Balance：{{ availableBalance }} ETH</span>
@@ -23,7 +23,7 @@
             class="recharge-amount-input"
             :disabled="this.walletIsLock"
             @input="handleInputTokenAmountChange" />
-          <span>{{typeTxt}}Amount</span>
+          <span>{{typeTxt}} Amount</span>
         </div>
       </van-col>
     </van-row>

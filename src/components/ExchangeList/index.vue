@@ -7,7 +7,7 @@
         <div v-for="(item,index) in historyList" :key="`history-${index}`" @click="getExchangeDetail(item)">
           <mt-cell is-link class="exchange-list-item">
             <div slot="title" class="flex flex-column mt10">
-              <span><i :class="iconClass(item)"></i>{{ item.typeTxt }}ETH</span>
+              <span><i :class="iconClass(item)"></i>{{ item.typeTxt }} ETH</span>
               <span class="exchange-status pending" v-show="showStatus(item)">Confirming</span>
               <span class="exchange-status success" v-show="showStatusSuccess(item)">Succeed</span>
               <span class="exchange-status fail" v-show="showStatusFail(item)">Failed</span>
@@ -68,26 +68,42 @@
     </div>
     <div class="seeMore" v-show="allList.length>20"><a @click='toBroswer'>see more</a></div>
     <!-- get-container="#app"  -->
+    <!-- Transaction Details -->
     <van-popup v-model="popupVisible" round position="bottom" :style="{ minHeight: '40%' }" class="common-bottom-popup exchange-detail-popup">
       <div class="common-exchange-detail-wrap">
         <div class="header">
           <h3>Transaction Details</h3>
         </div>
         <ul v-for="(item,index) in detaiInfo" :key="`exchange-${index}`">
-          <li class="flex flex-content-between common-exchange-detail-item">
+          <li
+            class="flex flex-content-between common-exchange-detail-item"
+            v-if="item.key==='from'" v-show="item['info']['type']==(TRANSACTION_TYPE['L2ToL1']||TRANSACTION_TYPE['L2ToL2'])">
+            <span class="title">{{ item.title }}</span>
+            <span class="flex flex-center" @click="copyAddress(item.value)">{{ `${item.value.substr(0,6)}...${item.value.substr(-4)}` }}</span>
+          </li>
+          <li
+            class="flex flex-content-between common-exchange-detail-item"
+            v-else-if="item.key==='to'" v-show="item['info']['type']==(TRANSACTION_TYPE['L2ToL1']||TRANSACTION_TYPE['L2ToL2'])">
+            <span class="title">{{ item.title }}</span>
+            <span class="flex flex-center" @click="copyAddress(item.value)">{{ `${item.value.substr(0,6)}...${item.value.substr(-4)}` }}</span>
+          </li>
+          <li class="flex flex-content-between common-exchange-detail-item" v-else>
             <span class="title">{{ item.title }}</span>
             <span class="flex flex-center">
-              <span @click="copyHash(item)">
-                {{ item.key==='hash'?`${item.value.substr(0,6)}...${item.value.substr(-4)}`:item.value }}
-                <span v-show="item.key==='hash'" class="copy-tip">（copy）</span>
+              <span v-if="item.key==='status'">
+                <span class="exchange-status pending" v-show="showStatus(item['info'])">Confirming</span>
+                <span class="exchange-status success" v-show="showStatusSuccess(item['info'])">Succeed</span>
+                <span class="exchange-status fail" v-show="showStatusFail(item['info'])">Failed</span>
               </span>
-              <van-button
-                size='small'
-                style="margin-left:10px;"
-                plain
-                type="info"
-                @click="speed(item)"
-                v-show="item.info['type']=='2'&&item.key==='status'&&item.info['status']===1">refresh</van-button>
+              <span v-else-if="item.key==='progress'">
+                <a class="to-etherscan">{{item.value}}</a>
+              </span>
+              <span @click="copyHash(item)" v-else>
+                {{ item.key==='hash'?`${item.value.substr(0,6)}...${item.value.substr(-4)}`:item.value }}
+                <!-- <span v-show="item.key==='hash'" class="copy-tip">（copy）</span> -->
+              </span>
+              <a class="refres-button" @click="speed(item)"
+                v-show="item.info['type']=='2'&&item.key==='status'&&item.info['status']===1">Refresh</a>
             </span>
           </li>
         </ul>
@@ -118,7 +134,7 @@ Vue.use(Popover);
 Vue.use(List);
 
 export default {
-  name: 'Home',
+  name: 'ExchangeList',
   props: {
     'type': { // all | L1ToL2(deposit) | L2ToL2(transfer) | L2ToL1(withdraw)
       type: String,
@@ -127,6 +143,7 @@ export default {
   },
   data() {
     return {
+      TRANSACTION_TYPE,
       showPopover: false,
       DEFAULTIMG,
       popupVisible: false,
@@ -136,6 +153,7 @@ export default {
       detaiInfo: [],
       infoRecord: null,
       show: false,
+      loadingHistoryList: false,
     }
   },
   computed: {
@@ -153,6 +171,10 @@ export default {
   methods: {
     toBroswer() {
       Toast('Coming Soon')
+    },
+    copyAddress(txt) {
+      copyTxt(txt)
+      Toast.success('copy success')
     },
     copyHash(item) {
       if (item.key === 'hash' && copyTxt(item.value)) {
@@ -187,7 +209,7 @@ export default {
     },
     getExchangeDetail(record) {
       const { typeTxt, createdAt, value, type, status } = record;
-      const date = moment(createdAt).format('YY:MM:DD HH:MM:SS')
+      const date = moment(createdAt).format('DD/MM/YYYY HH:mm:ss')
       const opt = `${typeTxt} ${value} ETH`;
       let statusTxt = '';
       if (status===0) {
@@ -215,7 +237,10 @@ export default {
         {title: 'Hash', value: record.txid, key:'hash', info: record},
         {title: 'Time', value: date, key:'data', info: record},
         {title: 'Operation', value: opt, key:'opt', info: record},
+        {title: 'From', value: record.from, key:'from', info: record},
+        {title: 'To', value: record.to, key:'to', info: record},
         {title: 'Status', value: statusTxt, key:'status', info: record},
+        {title: 'Progress', value: 'To Etherscan', key:'progress', info: record},
       ];
       console.log('record', record);
       this.infoRecord = record;
@@ -226,75 +251,6 @@ export default {
         this.showUpdate = true
         this.needRetryData = record;
       }
-    },
-    // withdraw Confirming need refresh
-    async executeConfirmTransaction(withrawTxHash) {
-      this.show = true;
-      const bridge = initBrideByTransanctionType('l2');
-      const txnHash = withrawTxHash;
-      const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(txnHash);
-      if (!initiatingTxnReceipt){
-        this.show = false;
-        return {
-          success: false,
-          msg: `No Arbitrum transaction found with provided txn hash: ${txnHash}`
-        };
-      }
-      const outGoingMessagesFromTxn = await bridge.getWithdrawalsInL2Transaction(initiatingTxnReceipt)
-      if (outGoingMessagesFromTxn.length === 0){
-        this.show = false;
-        return {
-          success: false,
-          msg: `Txn ${txnHash} did not initiate an outgoing messages`
-        };
-      }
-      const { batchNumber, indexInBatch } = outGoingMessagesFromTxn[0]
-      const outgoingMessageState = await bridge.getOutGoingMessageState(
-        batchNumber,
-        indexInBatch
-      )
-      console.log(`Waiting for message to be confirmed: Batchnumber: ${batchNumber}, IndexInBatch ${indexInBatch}`)
-
-      if (!outgoingMessageState === OutgoingMessageState.CONFIRMED) {
-        let msg = '';
-        switch (outgoingMessageState) {
-          case OutgoingMessageState.NOT_FOUND: {
-            msg = 'Message not found; something strange and bad happened'
-            break
-          }
-          case OutgoingMessageState.EXECUTED: {
-            msg = `Message already executed! Nothing else to do here`
-            break
-          }
-          case OutgoingMessageState.UNCONFIRMED: {
-            msg = `Message not yet confirmed; we'll wait a bit and try again`
-            break
-          }
-          default:
-            break
-        }
-        this.show = false;
-        return { success: false, msg };
-      }
-
-      // const res = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
-      // const rec = await res.wait()
-
-      bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
-      .then(async res=>{
-        const rec = await res.wait()
-        if (rec.confirmations === 1) {
-          console.log('Done! Your transaction is executed')
-          this.show = false;
-          return { success: true }
-        }
-      })
-      .catch(err=>{
-        this.show = false;
-        Toast('Failed，wait for minutes');
-        return { success: false };
-      })
-      return { success: false };
     },
     async speed(item) {
       // judge the networkType
@@ -379,7 +335,7 @@ export default {
           })
           .catch(err=>{
             this.popupVisible = false;
-            Toast('unknown error')
+            Toast.fail(`Refresh success，but error whenupdate history`);
           })
         }
       })
@@ -387,26 +343,6 @@ export default {
         this.show = false;
         Toast('Failed，wait for minutes');
       })
-     
-      
-      
-      /* 
-      const txHash = info.txid
-      const conformStatus = await this.executeConfirmTransaction(txHash);
-      if (conformStatus.success) {
-        this.$store.dispatch('UpdateTransactionHistory', {
-          txid: txHash,
-          status: 2,
-        })
-        .then(res=>{
-          this.popupVisible = false;
-          this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
-        })
-        .catch(err=>{
-          this.popupVisible = false;
-          Toast('unknown error')
-        })
-      } */
     },
     // TODO forEach and async await will lead to the incorrect order for array
     async generateHistoryList_e(sourceArr) {
@@ -429,7 +365,7 @@ export default {
           value,
           gas,
           gasPrice,
-          typeTxt: ['', 'deposit','withdraw','send'][item.type],
+          typeTxt: ['', 'Deposit','Withdraw','Send'][item.type],
           dateTitme: moment(sourceArr[i].createdAt).format('DD/MM/YYYY HH:mm:ss')
         })
       })
@@ -456,18 +392,22 @@ export default {
           value,
           gas,
           gasPrice,
-          typeTxt: ['', 'deposit','withdraw','send'][item.type],
+          typeTxt: ['', 'Deposit','Withdraw','Send'][item.type],
           dateTitme: moment(item.createdAt).format('DD/MM/YYYY HH:mm:ss')
         })
       }
       return historyList;
     },
     async handleSearchTransactionHistoryList() {
-      // console.log('ready requet history...')
       if (this.walletIsLock) { return }
-      // console.log('requet history...')
       const tx_type = this.type === 'all' ? '' : TRANSACTION_TYPE[this.type];
       const fromAddress = window.ethereum.selectedAddress;
+      /* Toast.loading({
+        duration: 0,
+        message: 'loading...',
+        forbidClick: true,
+        loadingType: 'spinner',
+      }); */
       this.$store.dispatch('SearchAllTransactionHistory', { from: fromAddress })
       .then(async result => {
         let list =[];
@@ -477,12 +417,14 @@ export default {
           list = [].concat(_.cloneDeep(result));
         }
         const sortList = list.sort(compareDate('createdAt', 'reverse'));
-        // console.log(`response transaction history ...`,result)
-        // console.log(`response transaction history from ${this.type}...`,list);
-        const historyList = await this.generateHistoryList(sortList);
+        const historyList = await this.generateHistoryList(sortList.slice(0,20));
         this.allList = _.cloneDeep(sortList);
-        this.historyList = historyList.slice(0,20);
+        this.historyList = historyList;
+        Toast.clear();
         // console.log('historyList',historyList);
+      })
+      .catch(err=>{
+        Toast.clear();
       })
     },
   },
