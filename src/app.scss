@@ -205,5 +205,29 @@ a{
 .textAlignLeft { text-align: left;}
 .textAlignRight { text-align: right;}
 
-
+.waiting-modal {
+  width: rem(200);
+  height: rem(200);
+  ::v-deep.van-count-down{
+    text-align: center;
+  }
+  .inner-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    .confirm_icon{
+      width: rem(50);
+      height: rem(50);
+      display: block;
+      background: url('~@/assets/icon_sign_in.png') center center no-repeat;
+      background-size: 100% 100%;
+    }
+    .tip{
+      display: block;
+      font-size: rem(15);
+      margin-top: rem(10);
+    }
+  }
+}
 

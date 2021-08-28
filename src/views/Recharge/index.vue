@@ -1,9 +1,9 @@
 <template>
   <div class="recharge-page">
     <div class="recharge-toL2-tip flex">
-      <div><i></i></div>
+      <div><i class="info_icon"></i></div>
       <div class="flex flex-column">
-        <p>Deposit to L2</p>
+        <p>Deposit To L2</p>
         <div class="expand">
           <span class="expand-tip">{{ RECHAERGE_TIP }}</span>
         </div>
@@ -11,13 +11,13 @@
     </div>
     <div class="recharge-opt-area">
       <van-tabs v-model="activeName">
-        <van-tab title="Deposit from L1 account" name="fromL1">
+        <van-tab title="Deposit From L1" name="fromL1">
           <v-tokenAmount
           key="tokenAmount-recharge"
           type="recharge"
           @childEvent="submitRecharge" />
         </van-tab>
-        <van-tab title="Deposit from L2 account" name="fromeL2">
+        <van-tab title="Deposit From L2" name="fromeL2">
           <div class="recharge-amount-wrap">
             <div class="flex flex-center">
               <img :src="DEFAULTIMG.TEST_QR" class="img-QR"/>
@@ -39,7 +39,10 @@
     </div>
     <v-exchangeList key="comon-exchangeList" type="L1ToL2" v-show="activeName=='fromL1'&&!walletIsLock" />
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-      <div>{{ tipTxt }}</div>
+      <div class="inner-wrapper">
+        <i class="confirm_icon"></i>
+        <span class="tip">{{ tipTxt }}</span>
+      </div>
     </van-popup>
     <v-statusPop
       :status="popStatus"
@@ -95,10 +98,10 @@ export default {
       RECHAERGE_TIP,
       activeName: 'fromL1', // fromL1 | fromeL2
       show: false,
-      tipTxt: 'Please confirm on the wallet',
+      tipTxt: 'Confirm On The Wallet',
       showStatusPop: false,
       popStatus: "success",
-      statusPopTitle: 'Your transfer has been submitted',
+      statusPopTitle: 'Transfer Submitted',
       showNetTip: false,
       bridge: null,
     }
@@ -152,7 +155,7 @@ export default {
     },
     async submitRecharge(info) {
       this.showStatusPop = false;
-      this.tipTxt = 'Please confirm on the wallet';
+      this.tipTxt = 'Confirm On The Wallet';
       this.show = true;
 
       const connectAddress = window.ethereum.selectedAddress;
@@ -167,8 +170,9 @@ export default {
       // bridge.depositETH(ethToL2DepositAmount, {gas: web3utils.toHex('21000')})
       bridge.depositETH(ethToL2DepositAmount)
       .then(async res=>{
-        this.tipTxt = 'The transaction is in progress, please wait';
+        this.tipTxt = 'In progress, waitting';
         const txHash = res.hash;
+        console.log(res, res)
         const transactionWaitRes = await res.wait();
         console.log('transactionWaitRes', transactionWaitRes)
         const { confirmations, from, to, transactionHash, status } = transactionWaitRes
@@ -180,12 +184,13 @@ export default {
             from: res.from || connectAddress,
             to: res.to,
             type: TRANSACTION_TYPE['L1ToL2'],
-            status: status,
+            status,
+            value: info.amount
           })
           .then(async res=>{
             this.show = false;
             this.showStatusPop = true;
-            this.statusPopTitle = 'Your transfer has been submitted'
+            this.statusPopTitle = 'Transfer Submitted'
             this.popStatus = 'success';
             prettyLog('transaction is in progress，waiting fro 10s....')
             await wait(10000);

@@ -34,7 +34,10 @@
       <span>Aaddress and Amount have been encrypted and protected!</span>
     </van-popup>
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-      <div>{{ tipTxt }}</div>
+      <div class="inner-wrapper">
+        <i class="confirm_icon"></i>
+        <span class="tip">{{ tipTxt }}</span>
+      </div>
     </van-popup>
     <v-statusPop
       :status="popStatus"
@@ -80,8 +83,8 @@ export default {
       transferAddress: '',
       showNetTip: false,
       show: false,
-      tipTxt: 'Please confirm on the wallet',
-      statusPopTitle: 'Your transfer has been submitted',
+      tipTxt: 'Confirm On The Wallet',
+      statusPopTitle: 'Transfer Submitted',
     }
   },
   computed: {
@@ -111,7 +114,7 @@ export default {
         return
       }
 
-      this.tipTxt = 'Please confirm on the wallet';
+      this.tipTxt = 'Confirm On The Wallet';
       this.show = true;
       const transferAmount = utils.parseEther(info.amount);
       const transferParams = [{
@@ -129,7 +132,7 @@ export default {
         id: 0
       })
       .then(async res=>{
-        this.tipTxt = 'The transaction is in progress, please wait';
+        this.tipTxt = 'In progress,waitting';
         console.log('交易成功',res)
         await wait(10000);
         prettyLog('Transaction is in progress，waiting for 10s....')
@@ -140,11 +143,12 @@ export default {
           to: transferParams['to'] || transferToAddress,
           type: TRANSACTION_TYPE['L2ToL2'],
           status: 1,
+          value: info.amount
         })
         .then(async res=>{
           this.show = false;
           this.showStatusPop = true;
-          this.statusPopTitle = 'Your transfer has been submitted'
+          this.statusPopTitle = 'Transfer Submitted'
           this.popStatus = 'success';
           this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL2'});
           await wait();
