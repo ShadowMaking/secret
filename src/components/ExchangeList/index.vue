@@ -1,6 +1,6 @@
 <template>
   <div class="common-exchange-list-wrapper">
-    <div class="common-exchange-list">
+    <div class="common-exchange-list" id="common-exchange-list">
       <h3 class="exchange-list-title">Transactions</h3>
       <!-- TODO need Pagination -->
       <div class="exchange-list" v-if="historyList.length>0 && !walletIsLock">
@@ -69,7 +69,7 @@
     <div class="seeMore" v-show="allList.length>20"><a @click='toBroswer'>see more</a></div>
     <!-- get-container="#app"  -->
     <!-- Transaction Details -->
-    <van-popup v-model="popupVisible" round position="bottom" :style="{ minHeight: '40%' }" class="common-bottom-popup exchange-detail-popup">
+    <van-popup v-model="popupVisible" round position="bottom" get-container="#common-exchange-list"   :style="{ minHeight: '40%' }" class="common-bottom-popup exchange-detail-popup">
       <div class="common-exchange-detail-wrap">
         <div class="header">
           <h3>Transaction Details</h3>
@@ -96,7 +96,7 @@
                 <span class="exchange-status fail" v-show="showStatusFail(item['info'])">Failed</span>
               </span>
               <span v-else-if="item.key==='progress'">
-                <a class="to-etherscan">{{item.value}}</a>
+                <a class="to-etherscan" @click="toBroswer(item)">{{item.value}}</a>
               </span>
               <span @click="copyHash(item)" v-else>
                 {{ item.key==='hash'?`${item.value.substr(0,6)}...${item.value.substr(-4)}`:item.value }}
@@ -113,7 +113,10 @@
       <a>Need Refresh</a>
     </van-popup>
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-      <div>refreshing...</div>
+      <div class="inner-wrapper">
+        <i class="waiting_icon spin"></i>
+        <span class="tip">Waiting...</span>
+      </div>
     </van-popup>
   </div>
 </template>
@@ -376,15 +379,15 @@ export default {
       for( let i = 0; i < sourceArr.length; i += 1) {
         const item = sourceArr[i]
         const hash = item.txid;
-        const info = await this.web3.eth.getTransaction(hash);
+        // const info = await this.web3.eth.getTransaction(hash);
         let gas =0;
         let gasPrice = 0;
-        let value = 0;
-        if (info){
-          // gas = info['gas']; // TODO
-          // gasPrice = info['gasPrice']; // TODO
+        let value = item.value || 0;
+        /* if (info){
+          gas = info['gas'];
+          gasPrice = info['gasPrice'];
           value = utils.formatEther(info.value);
-        }
+        } */
         // const type = '' // 1-deposit 2-withdraw 3-transfer
         // status 0-fail 1-success（ withraw1-pending 2-success）
         historyList.push({
@@ -402,12 +405,12 @@ export default {
       if (this.walletIsLock) { return }
       const tx_type = this.type === 'all' ? '' : TRANSACTION_TYPE[this.type];
       const fromAddress = window.ethereum.selectedAddress;
-      /* Toast.loading({
+      Toast.loading({
         duration: 0,
         message: 'loading...',
         forbidClick: true,
         loadingType: 'spinner',
-      }); */
+      });
       this.$store.dispatch('SearchAllTransactionHistory', { from: fromAddress })
       .then(async result => {
         let list =[];

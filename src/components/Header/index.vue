@@ -5,8 +5,8 @@
       <span slot="right" v-if="address!==''"  class="header-address"  @click="copyHash()">{{ `${address.slice(0,6)}...${address.slice(-4)}` }}</span>
       <div slot="right" v-else >
         <a @click="chooseWallet" class="linkWallet">wallet</a>
-        <i class="icon night"></i>
-        <i class="icon language"></i>
+        <i class="icon night" style="display:none"></i>
+        <i class="icon language" style="display:none"></i>
       </div>
     </mt-header>
     <van-popup v-model="popupVisible" round position="bottom" :style="{ minHeight: '30%' }" class="common-bottom-popup">
@@ -46,7 +46,6 @@ export default {
       popupVisible: false,
       installWalletModal: false,
       address: '',
-      addressArr: [],
       walletIsLock: true,
     }
   },
@@ -118,9 +117,14 @@ export default {
       const netId = getSelectedChainID();
       console.log('netId', netId)
     },
+    handleWatchResetStatus() {
+      this.address = '';
+      this.walletIsLock = true;
+    },
   },
   async mounted() {
     this.$eventBus.$on('updateAddress', this.updateAddress);
+    this.$eventBus.$on('resetStatus', this.handleWatchResetStatus);
   },
 };
 </script>

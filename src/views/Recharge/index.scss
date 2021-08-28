@@ -7,11 +7,13 @@
     >div{
       margin: rem(10);
     }
-    i {
-      display: block;
+    i.info_icon {
+      display: inline-block;
       height: rem(20);
       width: rem(20);
       background: url('~@/assets/icon_notice.png') center center no-repeat;
+      vertical-align: middle;
+      background-size: contain;
     }
     .expand {
       .expand-tip {
@@ -67,14 +69,5 @@
         span{ display: block; margin-bottom: rem(5); }
       }
     }
-  }
-}
-
-.waiting-modal {
-  width: rem(200);
-  height: rem(200);
-  font-size: rem(15);
-  ::v-deep.van-count-down{
-    text-align: center;
   }
 }

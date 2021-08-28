@@ -39,7 +39,10 @@
       :show="showStatusPop"
       @childEvent="changeVisible" />
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-      <div>{{ tipTxt }}</div>
+      <div class="inner-wrapper">
+        <i class="confirm_icon"></i>
+        <span class="tip">{{ tipTxt }}</span>
+      </div>
     </van-popup>
     <v-netTipPopup :show="showNetTip" key="netTipModal" />
   </div>
@@ -80,9 +83,9 @@ export default {
     return {
       popStatus: 'sucess',
       showStatusPop: false,
-      statusPopTitle: 'Your withdraw has been submitted',
+      statusPopTitle: 'Withdraw Submitted',
       show: false,
-      tipTxt: 'Confirm on the wallet',
+      tipTxt: 'Confirm On The Wallet',
       tokenAmountButtonTxtCode: 1,
       tokenAmountButtonTxt: 'Enter the Amount',
       withDrawAddress: getDefaultAddress(this.$store),
@@ -200,7 +203,7 @@ export default {
     },
     async submitWithdraw(info) {
       this.showStatusPop = false;
-      this.tipTxt = 'Confirm on the wallet';
+      this.tipTxt = 'Confirm On The Wallet';
       this.show = true;
 
       const connectAddress = window.ethereum.selectedAddress;
@@ -217,7 +220,7 @@ export default {
       bridge.withdrawETH(ethFromL2WithdrawAmount, undefined, {gasLimit: '21000', gasPrice:'100000000000' })
       // bridge.withdrawETH(ethFromL2WithdrawAmount)
       .then(async res=>{
-        this.tipTxt = 'The transaction is in progress, please wait';
+        this.tipTxt = 'In progress, waitting';
         const txHash = res.hash;
         const transactionWaitRes = await res.wait();
         console.log('transactionWaitRes', transactionWaitRes)
@@ -229,7 +232,8 @@ export default {
             from,
             to,
             type: TRANSACTION_TYPE['L2ToL1'],
-            status
+            status,
+            value: info.amount
           })
           .then(async res=>{
             this.show = false;
@@ -237,7 +241,7 @@ export default {
             await wait()
             prettyLog('Transaction is in progress，waiting for 10s....')
             this.showStatusPop = true;
-            this.statusPopTitle = 'Your withdraw has been submitted'
+            this.statusPopTitle = 'Withdraw Submitted'
             this.popStatus = 'success';
             await wait(10000);
             this.showStatusPop = false;

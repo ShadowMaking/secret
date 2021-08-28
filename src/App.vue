@@ -93,10 +93,12 @@
           // }
         });
         ethereum.on('accountsChanged', async (accounts) => {
+          console.log('accountsChanged', accounts)
           await this.$store.dispatch("WalletAccountsAddress", {accounts})
+          await this.$store.dispatch('WalletLockStatus', {isLock: true});
+          this.$eventBus.$emit('resetStatus');
           if (accounts.length === 0) { // disconnect 
-            await this.$store.dispatch('WalletLockStatus', {isLock: true});
-            this.$eventBus.$emit('resetStatus');
+            console.log('disconnect')
           }
         });
       }

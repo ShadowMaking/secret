@@ -11,7 +11,7 @@
   .header-address {
     // @include text-more-ellipsis(1)
   }
-  .linkWallet { color: #236BFB; vertical-align: middle; display: inline-block; margin-top: 2px;}
+  .linkWallet { color: #236BFB; vertical-align: middle; display: inline-block; margin-top: 2px; font-size: rem(15);}
   .icon {
     width: rem(20);
     height: rem(20);
