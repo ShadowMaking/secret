@@ -23,7 +23,7 @@
             class="recharge-amount-input"
             :disabled="this.walletIsLock"
             @input="handleInputTokenAmountChange" />
-          <span>{{typeTxt}} Amount</span>
+          <span>Amount</span>
         </div>
       </van-col>
     </van-row>
@@ -235,7 +235,7 @@ export default {
         this.buttonColor = '#A4ACDF';
         this.buttonDisabled = true;
       } else {
-        this.buttonTxt = 'OK';
+        this.buttonTxt = 'Submit';
         this.buttonColor = '#495ABE';
         this.buttonDisabled = false;
       }

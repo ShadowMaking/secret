@@ -4,7 +4,7 @@
     <span class="main-txt">{{ title }}</span>
     <span class="supplement-txt" v-show="status==='success'">{{ timeTxt }}</span>
     <span class="supplement-txt" v-show="status==='success'">{{ tip }}</span>
-    <van-button block color="#495ABF" class="button" @click="submitOk">OK</van-button>
+    <van-button block color="#495ABF" class="button" @click="submitOk">{{ buttonTxt}}</van-button>
   </van-popup>
 </template>
 <script>
@@ -16,7 +16,22 @@ Vue.use(Button);
 
 export default {
   name: "StatusPop",
-  props: ['show', 'title', 'timeTxt', 'tip', 'status'],
+  // props: ['show', 'title', 'timeTxt', 'tip', 'status', 'buttonTxt'],
+  props: {
+    'show': { type: Boolean, },
+    'title': { type: String, },
+    'timeTxt': { type: String, },
+    'tip': { type: String, },
+    'status': { type: String, },
+    'needColse': {
+      type: Boolean,
+      default: true
+    },
+    'buttonTxt': {
+      type: String,
+      default: 'OK'
+    },
+  },
   data() {
     return {
       
@@ -24,7 +39,9 @@ export default {
   },
   methods: {
     submitOk() {
-      this.show = false;
+      if (this.needColse) {
+        this.show = false;
+      }
       this.$emit('childEvent',{show: false});
     },
   },

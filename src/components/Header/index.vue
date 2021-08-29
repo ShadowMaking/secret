@@ -1,10 +1,16 @@
 <template>
   <div style="width:100%">
     <mt-header title="" class="common-header">
-      <img :src="DEFAULTIMG.LOGO" slot="left" class="logo" @click="toPageHome" />
+      <div slot="left" class="header-left">
+        <div v-show="$route.name!=='home'" class="flex flex-center" @click="back">
+          <van-icon name="arrow-left" class="back-icon" size="18"/>
+          <span>{{ navTxt() }}</span>
+        </div>
+        <img :src="DEFAULTIMG.LOGO" class="logo" @click="toPageHome" v-show="$route.name==='home'"/>
+      </div>
       <span slot="right" v-if="address!==''"  class="header-address"  @click="copyHash()">{{ `${address.slice(0,6)}...${address.slice(-4)}` }}</span>
       <div slot="right" v-else >
-        <a @click="chooseWallet" class="linkWallet">wallet</a>
+        <a @click="chooseWallet" class="linkWallet">Connect Wallet</a>
         <i class="icon night" style="display:none"></i>
         <i class="icon language" style="display:none"></i>
       </div>
@@ -26,15 +32,16 @@
 import Vue from 'vue';
 import { Header, Button } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
-import { Popup, Button as VanButton, Toast } from 'vant';
+import { Popup, Button as VanButton, Toast, Icon } from 'vant';
 import WalletStatus from '@/components/WalletStatus';
 import NetTipModal from '@/components/NetTipModal';
-import { getSelectedChainID } from '@/utils/web3'
+import { getSelectedChainID, getInjectedWeb3, getNetMode, initBrideByTransanctionType } from '@/utils/web3'
 import { copyTxt } from '@/utils/index';
 
 Vue.use(Popup);
 Vue.use(VanButton);
 Vue.use(Toast);
+Vue.use(Icon);
 Vue.component(Header.name, Header)
 Vue.component(Button.name, Button)
 
@@ -47,6 +54,7 @@ export default {
       installWalletModal: false,
       address: '',
       walletIsLock: true,
+      showNetTip: false,
     }
   },
   components: {
@@ -57,21 +65,32 @@ export default {
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall
     },
-    showNetTip() {
-      return false
-    },
   },
   watch: {
     '$store.state.metamask.accountsArr': function (res) { }
   },
   methods: {
+    navTxt() {
+      const routeName = this.$route.name;
+      switch(routeName) {
+        case 'recharge':
+          return 'Deposit';
+        case 'transfer':
+          return 'Trasfer';
+        case 'withdraw':
+          return 'Withdraw';
+      }
+    },
     copyHash() {
       if (copyTxt(this.address)) {
         Toast.success('copy success');
       }
     },
+    back() {
+      this.$router.go(-1);
+    },
     toPageHome() {
-      if (this.$route.name ==='Home') {return;}
+      if (this.$route.name ==='home') {return;}
       this.$router.push({ name: 'Home' });
     },
     chooseWallet() {
@@ -82,6 +101,15 @@ export default {
     // unlock wallet and sign
     async connectWallet() {
       this.popupVisible = false;
+      
+      // check netType
+      const { networkId } = await getInjectedWeb3();
+      const netMode = getNetMode(networkId);
+      if (netMode !== "l1" && netMode !== "l2") {
+        this.showNetTip = true;
+        return
+      }
+      
       if (!this.metamaskInstall) {
         this.installWalletModal = true;
       } else {

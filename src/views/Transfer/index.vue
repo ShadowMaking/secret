@@ -14,7 +14,7 @@
         <div class="address-wrapper-inner">
           <van-field
             v-model="transferAddress"
-            rows="2"
+            rows="3"
             autosize
             label=""
             type="textarea"
@@ -42,15 +42,22 @@
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
-      timeTxt="It is expected to take effect within 1 minute"
-      tip="You can check the transaction details in the transaction record"
+      :timeTxt="timeTxt"
+      :tip="tip"
       :show="showStatusPop"
       @childEvent="changeVisible" />
-    <v-netTipPopup :show="showNetTip" key="netTipModal" />
+    <van-popup v-model="showRefresh" class="status-popUp-refresh flex flex-center flex-column">
+      <i class="icon icon-failed"></i>
+      <span class="main-txt">No Transactions</span>
+      <span class="supplement-txt">Refresh to get histoty</span>
+      <van-button block color="#495ABF" class="button" @click="retryAddHistory">{{ refreshing?"Refresh...":"Refresh"}}</van-button>
+    </van-popup>
+    <v-netTipPopup :show="showNetTip" key="netTipModal" showType="l2"/>
   </div>
 </template>
 <script>
 import Vue from 'vue';
+import _ from 'lodash';
 import { TRANSFER_TIP } from '@/utils/global';
 import ExchangeList from '@/components/ExchangeList';
 import TokenAmount from '@/components/TokenAmount';
@@ -79,12 +86,18 @@ export default {
       TRANSFER_TIP,
       tipShow: false,
       showStatusPop: false,
+      // timeTxt: 'It is expected to take effect within 1 minute',
+      // tip: 'You can check the transaction details in the transaction record',
+      timeTxt: 'Will take effect in one minute',
       popStatus: "success",
       transferAddress: '',
       showNetTip: false,
       show: false,
       tipTxt: 'Confirm On The Wallet',
       statusPopTitle: 'Transfer Submitted',
+      addHistoryData: null,
+      showRefresh: false,
+      refreshing: false,
     }
   },
   computed: {
@@ -133,33 +146,19 @@ export default {
       })
       .then(async res=>{
         this.tipTxt = 'In progress,waitting';
-        console.log('交易成功',res)
         await wait(10000);
         prettyLog('Transaction is in progress，waiting for 10s....')
         
-        this.$store.dispatch('AddTransactionHistory', {
+        const submitData = {
           txid: res,
           from: transferParams['from'] || selectedAccountAddress,
           to: transferParams['to'] || transferToAddress,
           type: TRANSACTION_TYPE['L2ToL2'],
           status: 1,
           value: info.amount
-        })
-        .then(async res=>{
-          this.show = false;
-          this.showStatusPop = true;
-          this.statusPopTitle = 'Transfer Submitted'
-          this.popStatus = 'success';
-          this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL2'});
-          await wait();
-          this.$router.push({ name: 'Home' });
-        })
-        .catch(err=>{
-          this.showStatusPop = false;
-          // this.$router.push({ name: 'Home' });
-          Toast.fail(`Transaction success，but error when add history`);
-          console.log(`There is unknown error when add history,${err}`)
-        })
+        }
+        this.addHistoryData = _.cloneDeep(submitData);
+        await this.addHistory(submitData);
       })
       .catch(error=>{
         this.show = false;
@@ -168,11 +167,40 @@ export default {
           return
         }
         console.log(error)
-        // Toast.fail(`unknown error`);
         this.showStatusPop = true;
         this.statusPopTitle = 'Transfer Failed'
         this.popStatus = 'fail';
       })
+    },
+    async addHistory(data) {
+      const submitData = data || this.addHistoryData;
+      const res = await this.$store.dispatch('AddTransactionHistory', {...submitData});
+      if (res.hasError) {
+        this.showRefresh = true;
+        this.showStatusPop = false;
+        this.show = false;
+        // this.$router.push({ name: 'Home' });
+        console.log('Transaction success，but error when add history')
+      } else  {
+        this.show = false;
+        this.showStatusPop = true;
+        this.statusPopTitle = 'Transfer Submitted'
+        this.popStatus = 'success';
+        this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL2'});
+        await wait();
+        this.$router.push({ name: 'Home' });
+      }
+      return { hasError: res.hasError };
+    },
+    async retryAddHistory() {
+      this.refreshing = true;
+      const res = await this.addHistory();
+      if (!res.hasError) {
+        this.showRefresh = false;
+      } else {
+        this.refreshing = false;
+        Toast('Faild, can retry')
+      }
     },
     handleAddressInputChange(value) {
 

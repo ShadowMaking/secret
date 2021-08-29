@@ -7,7 +7,7 @@
         <div v-for="(item,index) in historyList" :key="`history-${index}`" @click="getExchangeDetail(item)">
           <mt-cell is-link class="exchange-list-item">
             <div slot="title" class="flex flex-column mt10">
-              <span><i :class="iconClass(item)"></i>{{ item.typeTxt }} ETH</span>
+              <span class="transaction-title"><i :class="iconClass(item)"></i>{{ item.typeTxt }} ETH</span>
               <span class="exchange-status pending" v-show="showStatus(item)">Confirming</span>
               <span class="exchange-status success" v-show="showStatusSuccess(item)">Succeed</span>
               <span class="exchange-status fail" v-show="showStatusFail(item)">Failed</span>
