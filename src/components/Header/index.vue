@@ -4,7 +4,7 @@
       <img :src="DEFAULTIMG.LOGO" slot="left" class="logo" @click="toPageHome" />
       <span slot="right" v-if="address!==''"  class="header-address"  @click="copyHash()">{{ `${address.slice(0,6)}...${address.slice(-4)}` }}</span>
       <div slot="right" v-else >
-        <a @click="chooseWallet" class="linkWallet">wallet</a>
+        <a @click="chooseWallet" class="linkWallet">Connect Wallet</a>
         <i class="icon night" style="display:none"></i>
         <i class="icon language" style="display:none"></i>
       </div>
@@ -29,7 +29,7 @@ import { DEFAULTIMG } from '@/utils/global';
 import { Popup, Button as VanButton, Toast } from 'vant';
 import WalletStatus from '@/components/WalletStatus';
 import NetTipModal from '@/components/NetTipModal';
-import { getSelectedChainID } from '@/utils/web3'
+import { getSelectedChainID, getInjectedWeb3, getNetMode, initBrideByTransanctionType } from '@/utils/web3'
 import { copyTxt } from '@/utils/index';
 
 Vue.use(Popup);
@@ -47,6 +47,7 @@ export default {
       installWalletModal: false,
       address: '',
       walletIsLock: true,
+      showNetTip: false,
     }
   },
   components: {
@@ -56,9 +57,6 @@ export default {
   computed: {
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall
-    },
-    showNetTip() {
-      return false
     },
   },
   watch: {
@@ -82,6 +80,15 @@ export default {
     // unlock wallet and sign
     async connectWallet() {
       this.popupVisible = false;
+      
+      // check netType
+      const { networkId } = await getInjectedWeb3();
+      const netMode = getNetMode(networkId);
+      if (netMode !== "l1" && netMode !== "l2") {
+        this.showNetTip = true;
+        return
+      }
+      
       if (!this.metamaskInstall) {
         this.installWalletModal = true;
       } else {

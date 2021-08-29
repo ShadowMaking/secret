@@ -21,7 +21,7 @@
     </div>
     <v-unlockwallet :show="showUnlockWalletButton" key="unlockWalletButton" v-show="walletIsLock" />
     <v-exchangeList key="comon-exchangeList" type="all" v-show="!walletIsLock" />
-    <v-netTipPopup :show="showNetTip" key="netTipModal" />
+    <v-netTipPopup :show="showNetTip" key="netTipModal" :showType="expectNetType"/>
   </div>
 </template>
 
@@ -55,7 +55,7 @@ export default {
       exchangeListData: [],
       balance: '0.0',
       showNetTip: false,
-      expectNetType: '',
+      expectNetType: '', // L1 || l2
       balanceL1: '0.0',
       balanceL2: '0.0',
       refreshLoading: false,

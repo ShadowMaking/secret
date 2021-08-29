@@ -6,7 +6,7 @@
       <v-header></v-header>
     </div>
     <router-view :key="$route.path" />
-    <v-netTipPopup :show="showNetTip" :showCloseIcon="true" key="netTipModal" />
+    <v-netTipPopup :show="showNetTip" :showCloseIcon="true" key="netTipModal" :showType="expectNetType" />
   </div>
 </template>
 
@@ -21,7 +21,8 @@
     name: 'APP',
     data() {
       return {
-        showNetTip: false
+        showNetTip: false,
+        expectNetType: '',
       };
     },
     components: {
@@ -40,8 +41,23 @@
           this.showNetTip = false
         }
       },
+      setExpectNetType(routeName) {
+        switch(routeName) {
+          case 'recharge':
+            this.expectNetType = 'l1';
+            break;
+          case 'withdraw':
+          case 'transfer':
+            this.expectNetType = 'l2';
+            break;
+          default:
+            this.expectNetType="";
+            break;
+        }
+      },
     },
     created () {
+      this.setExpectNetType(this.$route.name);
       /* if (sessionStorage.getItem("store") ) {
         const d = JSON.parse(sessionStorage.getItem("store"));
         this.$store.replaceState(Object.assign({}, this.$store.state,JSON.parse(sessionStorage.getItem("store"))))
@@ -102,6 +118,13 @@
           }
         });
       }
+      this.$router.beforeEach((to, from, next) => {
+        if (to.meta.title) {
+          document.title = to.meta.title;
+        }
+        this.setExpectNetType(to.name);
+        next();
+      })
     },
   }
 </script>

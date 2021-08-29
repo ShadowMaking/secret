@@ -23,7 +23,8 @@ const transaction = {
           const data = response.data;
           resolve(data)
         }).catch(error => {
-          reject(error)
+          // reject(error)
+          resolve({ hasError: true });
         })
       })
     },

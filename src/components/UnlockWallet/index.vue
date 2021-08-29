@@ -5,6 +5,7 @@
       <mt-button type="primary" size="large" class="button button-large" @click="unlockWallet">Unlock Wallet</mt-button>
     </div>
     <v-walletstatus :show="installWalletModal" key="installWalletModal" />
+    <v-netTipPopup :show="showNetTip" key="netTipModal-1" @childEvent="closeNetTip"/>
   </div>
 </template>
 
@@ -13,6 +14,8 @@ import Vue from 'vue';
 import { Button } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
 import WalletStatus from '@/components/WalletStatus';
+import NetTipModal from '@/components/NetTipModal';
+import { getInjectedWeb3, getNetMode } from '@/utils/web3'
 
 Vue.component(Button.name, Button)
 
@@ -25,11 +28,13 @@ export default {
   },
   components: {
     "v-walletstatus": WalletStatus,
+    "v-netTipPopup": NetTipModal,
   },
   data() {
     return {
       DEFAULTIMG,
       installWalletModal: false,
+      showNetTip: false,
     }
   },
   computed: {
@@ -41,8 +46,19 @@ export default {
     },
   },
   methods: {
+    closeNetTip() {
+      this.showNetTip = false;
+    },
     async unlockWallet() {
       if (this.metamaskInstall) {
+        // check netType
+        const { networkId } = await getInjectedWeb3();
+        const netMode = getNetMode(networkId);
+        if (netMode !== "l1" && netMode !== "l2") {
+          this.showNetTip = true;
+          return
+        }
+        this.showNetTip = false;
         // const accounts = this.$store.state.metamask.accountsArr;
         // await ethereum.request({ method: 'eth_requestAccounts' });
         await ethereum.request({
@@ -69,8 +85,18 @@ export default {
       }
       this.installWalletModal = true;
     },
+    async handleChainChanged({netId, showTip}) {
+      const netMode = getNetMode(netId);
+      if (netMode !== "l1" && netMode !== "l2") {
+        !showTip && (this.showNetTip = true)
+      } else {
+        this.closeNetTip();
+      }
+    },
   },
-  async mounted() { },
+  async mounted() {
+    this.$eventBus.$on('chainChanged', this.handleChainChanged);
+  },
   
 };
 </script>

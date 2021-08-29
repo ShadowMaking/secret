@@ -1,14 +1,15 @@
 <template>
   <van-popup
     round
-    v-model="show"
+    v-model="showPopup"
     :closeable="showCloseIcon"
     :close-on-click-overlay="false"
+    @close="closePopup"
     class="net-tip-modal" >
-    <h4>Wrong NetWork</h4>
-    <div class="tip-content">Please change the Metamask's network to the next step</div>
-    <div class="tip-content">click to<a @click="addAndSwitchNet('l1')">L1 network</a>for deposit</div>
-    <div class="tip-content">click to<a @click="addAndSwitchNet('l2')">L2 network</a>for withdraw</div>
+    <h4>Wrong Network</h4>
+    <div class="tip-content">Please change the Metamask's network to the next steps:</div>
+    <div class="tip-content" v-show="checkType('l1')">Deposit: Connect to<a @click="addAndSwitchNet('l1')">L1 Network</a></div>
+    <div class="tip-content" v-show="checkType('l2')">Withdraw: Connect to<a @click="addAndSwitchNet('l2')">L2 Network</a></div>
   </van-popup>
 </template>
 <script>
@@ -28,14 +29,31 @@ export default {
     'showClose': {
       type: Boolean,
       default: true
+    },
+    'showType': {
+      type: String,
+      default: '', // l1 || l2
     }
+  },
+  watch: {
+    show() {
+      this.showPopup = this.show
+    },
   },
   data() {
     return {
+      showPopup: false,
       showCloseIcon: this.showClose,
     }
   },
   methods: {
+    closePopup() {
+      this.showPopup = false;
+      this.$emit('childEvent',{show: false});
+    },
+    checkType(type) {
+      return this.showType === type || this.showType === '';
+    },
     async addAndSwitchNet(netType) {
       const params = [];
       if (netType === 'l1') {

@@ -44,11 +44,18 @@
         <span class="tip">{{ tipTxt }}</span>
       </div>
     </van-popup>
-    <v-netTipPopup :show="showNetTip" key="netTipModal" />
+    <van-popup v-model="showRefresh" class="status-popUp-refresh flex flex-center flex-column">
+      <i class="icon icon-failed"></i>
+      <span class="main-txt">No Transactions</span>
+      <span class="supplement-txt">Refresh to get histoty</span>
+      <van-button block color="#495ABF" class="button" @click="retryAddHistory">{{ refreshing?"Refresh...":"Refresh"}}</van-button>
+    </van-popup>
+    <v-netTipPopup :show="showNetTip" key="netTipModal" showType="l2"/>
   </div>
 </template>
 <script>
 import Vue from 'vue';
+import _ from 'lodash';
 import { Popup, CountDown, Field, Toast, Icon } from 'vant';
 import TokenAmount from '@/components/TokenAmount';
 import ExchangeList from '@/components/ExchangeList';
@@ -91,6 +98,9 @@ export default {
       withDrawAddress: getDefaultAddress(this.$store),
       showNetTip: false,
       bridge: null,
+      addHistoryData: null,
+      showRefresh: false,
+      refreshing: false,
     }
   },
   
@@ -223,39 +233,19 @@ export default {
         this.tipTxt = 'In progress, waitting';
         const txHash = res.hash;
         const transactionWaitRes = await res.wait();
-        console.log('transactionWaitRes', transactionWaitRes)
         const { confirmations, from, to, transactionHash, status } = transactionWaitRes
+        console.log(`transaction success! res:${res},waitRes:${transactionWaitRes}`)
 
-        // if (confirmations == 1) {
-          this.$store.dispatch('AddTransactionHistory', {
-            txid: transactionHash||txHash,
-            from,
-            to,
-            type: TRANSACTION_TYPE['L2ToL1'],
-            status,
-            value: info.amount
-          })
-          .then(async res=>{
-            this.show = false;
-            console.log('transaction success',res)
-            await wait()
-            prettyLog('Transaction is in progress，waiting for 10s....')
-            this.showStatusPop = true;
-            this.statusPopTitle = 'Withdraw Submitted'
-            this.popStatus = 'success';
-            await wait(10000);
-            this.showStatusPop = false;
-            this.$router.push({ name: 'Home' });
-            this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
-          })
-          .catch(err=>{
-            this.show = false;
-            this.showStatusPop = false;
-            // this.$router.push({ name: 'Home' });
-            Toast.fail(`Transaction success，but error when add history`);
-            console.log(`There is unknown error when add history,${err}`)
-          })
-        // }
+        const submitData = {
+          txid: transactionHash||txHash,
+          from,
+          to,
+          type: TRANSACTION_TYPE['L2ToL1'],
+          status,
+          value: info.amount
+        }
+        this.addHistoryData = _.cloneDeep(submitData);
+        await this.addHistory(submitData);
       })
       .catch(error => {
         this.show = false;
@@ -269,6 +259,38 @@ export default {
         this.statusPopTitle = 'Withdraw Failed'
         this.popStatus = 'fail';
       })
+    },
+    async addHistory(data) {
+      const submitData = data || this.addHistoryData;
+      const res = await this.$store.dispatch('AddTransactionHistory', {...submitData});
+      if (res.hasError) {
+        this.showRefresh = true;
+        this.showStatusPop = false;
+        this.show = false;
+        console.log('Transaction success，but error when add history')
+      } else  {
+        this.show = false;
+        await wait()
+        prettyLog('Transaction is in progress，waiting for 10s....')
+        this.showStatusPop = true;
+        this.statusPopTitle = 'Withdraw Submitted'
+        this.popStatus = 'success';
+        await wait(10000);
+        this.showStatusPop = false;
+        this.$router.push({ name: 'Home' });
+        this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
+      }
+      return { hasError: res.hasError };
+    },
+    async retryAddHistory() {
+      this.refreshing = true;
+      const res = await this.addHistory();
+      if (!res.hasError) {
+        this.showRefresh = false;
+      } else {
+        this.refreshing = false;
+        Toast('Faild, can retry')
+      }
     },
     async handleChainChanged({netId, showTip}) {
       if (showTip) {

@@ -47,22 +47,29 @@
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
-      timeTxt="It is expected to take effect within 1 minute"
-      tip="You can check the transaction details in the transaction record"
+      :timeTxt="timeTxt"
+      :tip="tip"
       :show="showStatusPop"
       @childEvent="changeVisible" />
-    <v-netTipPopup :show="showNetTip" key="netTipModal" />
+    <van-popup v-model="showRefresh" class="status-popUp-refresh flex flex-center flex-column">
+      <i class="icon icon-failed"></i>
+      <span class="main-txt">No Transactions</span>
+      <span class="supplement-txt">Refresh to get histoty</span>
+      <van-button block color="#495ABF" class="button" @click="retryAddHistory">{{ refreshing?"Refresh...":"Refresh"}}</van-button>
+    </van-popup>
+    <v-netTipPopup :show="showNetTip" key="netTipModal" showType="l1"/>
   </div>
 </template>
 <script>
 import Vue from 'vue';
+import _ from 'lodash';
 import { RECHAERGE_TIP } from '@/utils/global';
 import ExchangeList from '@/components/ExchangeList';
 import TokenAmount from '@/components/TokenAmount';
 import StatusPop from '@/components/StatusPop';
 import NetTipModal from '@/components/NetTipModal';
 import { wait, prettyLog } from '@/utils/index'
-import { Tab, Tabs, Button, Col, Row, Toast, Popup, CountDown } from 'vant';
+import { Tab, Tabs, Button, Col, Row, Toast, Popup, CountDown, Dialog } from 'vant';
 import { getNetMode, getSelectedChainID, initBrideByTransanctionType } from '@/utils/web3'
 import { utils, ethers } from 'ethers'
 import { DEFAULTIMG } from '@/utils/global';
@@ -83,6 +90,7 @@ Vue.use(Row);
 Vue.use(Toast);
 Vue.use(Popup);
 Vue.use(CountDown);
+Vue.use(Dialog);
 
 export default {
   name: "Recharge",
@@ -102,8 +110,14 @@ export default {
       showStatusPop: false,
       popStatus: "success",
       statusPopTitle: 'Transfer Submitted',
+      // timeTxt: 'It is expected to take effect within 1 minute',
+      // tip: 'You can check the transaction details in the transaction record',
+      timeTxt: 'Will take effect in 20-40 minutes',
       showNetTip: false,
       bridge: null,
+      addHistoryData: null,
+      showRefresh: false,
+      refreshing: false,
     }
   },
   computed: {
@@ -163,7 +177,6 @@ export default {
         Toast.fail(`Wrong Address`);
         return;
       }
-
       const bridge = this.bridge || this.initBridge();
       // const bridge = initBrideByTransanctionType('l1');
       const ethToL2DepositAmount = parseEther(info.amount);
@@ -172,43 +185,19 @@ export default {
       .then(async res=>{
         this.tipTxt = 'In progress, waitting';
         const txHash = res.hash;
-        console.log(res, res)
         const transactionWaitRes = await res.wait();
-        console.log('transactionWaitRes', transactionWaitRes)
         const { confirmations, from, to, transactionHash, status } = transactionWaitRes
-
-        // if (confirmations == 1) { // TODO deposit confirmations===1 is success，but appear 2
-          console.log('transaction success',res)
-          this.$store.dispatch('AddTransactionHistory', {
-            txid: txHash,
-            from: res.from || connectAddress,
-            to: res.to,
-            type: TRANSACTION_TYPE['L1ToL2'],
-            status,
-            value: info.amount
-          })
-          .then(async res=>{
-            this.show = false;
-            this.showStatusPop = true;
-            this.statusPopTitle = 'Transfer Submitted'
-            this.popStatus = 'success';
-            prettyLog('transaction is in progress，waiting fro 10s....')
-            await wait(10000);
-            this.showStatusPop = false;
-            this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L1ToL2'});
-            this.$router.push({ name: 'Home' });
-          })
-          .catch(err=>{
-            this.show = false;
-            this.showStatusPop = false;
-            // this.$router.push({ name: 'Home' });
-            Toast.fail(`Transaction success，but error when add history`);
-            console.log(`There is unknown error when add history,${err}`)
-          })
-        // } else {
-        //   this.show = false;
-        //   Toast('unknown error')
-        // }
+        console.log(`transaction success! res:${res},waitRes:${transactionWaitRes}`)
+        const submitData = {
+          txid: txHash,
+          from: res.from || connectAddress,
+          to: res.to,
+          type: TRANSACTION_TYPE['L1ToL2'],
+          status,
+          value: info.amount
+        }
+        this.addHistoryData = _.cloneDeep(submitData);
+        await this.addHistory(submitData);
       })
       .catch(error => {
         this.show = false;
@@ -221,6 +210,38 @@ export default {
         this.statusPopTitle = 'Deposit Failed'
         this.popStatus = 'fail';
       })
+    },
+    async addHistory(data) {
+      const submitData = data || this.addHistoryData;
+      const res = await this.$store.dispatch('AddTransactionHistory', {...submitData});
+      this.show = false;
+      if (res.hasError) {
+        this.showRefresh = true;
+        this.showStatusPop = false;
+        this.show = false;
+        // this.$router.push({ name: 'Home' });
+        console.log('Transaction success，but error when add history')
+      } else {
+        this.showStatusPop = true;
+        this.statusPopTitle = 'Transfer Submitted'
+        this.popStatus = 'success';
+        prettyLog('transaction is in progress，waiting fro 10s....')
+        await wait(10000);
+        this.showStatusPop = false;
+        this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L1ToL2'});
+        this.$router.push({ name: 'Home' });
+      }
+      return { hasError: res.hasError };
+    },
+    async retryAddHistory() {
+      this.refreshing = true;
+      const res = await this.addHistory();
+      if (!res.hasError) {
+        this.showRefresh = false;
+      } else {
+        this.refreshing = false;
+        Toast('Faild, can retry')
+      }
     },
     async handleChainChanged({netId, showTip}) {
       if (showTip) {
