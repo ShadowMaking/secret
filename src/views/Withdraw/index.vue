@@ -1,10 +1,10 @@
 <template>
   <div class="withdraw-page">
     <van-row type="flex" justify="space-between" align="center" class="top-address">
-      <van-col span="12" class="textAlignLeft">Withdraw Address</van-col>
+      <van-col span="12" class="textAlignLeft">Withdrawal Address</van-col>
       <van-col span="12" class="textAlignRight">
-        <van-button color="#E4E6F5" size="mini" @click="setMyAddress">
-          <span slots="default" style="coloe:#495ABE">My Address</span>
+        <van-button color="#E4E6F5" size="mini" @click="setMyAddress" class="myAddress">
+          <span slots="default" style="color:#495ABE">My Address</span>
         </van-button>
       </van-col>
     </van-row>
@@ -13,12 +13,12 @@
         <div class="address-wrapper-inner">
           <van-field
             v-model="withDrawAddress"
-            rows="3"
+            rows="2"
             autosize
             label=""
             type="textarea"
             :disabled="walletIsLock"
-            placeholder="enter withdraw address"
+            placeholder="enter withdrawal address"
             @input="handleAddressInputChange"
           />
         </div>
@@ -97,7 +97,7 @@ export default {
       show: false,
       tipTxt: 'Confirm On The Wallet',
       tokenAmountButtonTxtCode: 1,
-      tokenAmountButtonTxt: 'Enter the Amount',
+      tokenAmountButtonTxt: 'Enter The Amount',
       withDrawAddress: getDefaultAddress(this.$store),
       showNetTip: false,
       bridge: null,
@@ -124,7 +124,7 @@ export default {
     setMyAddress() { },
     changeVisible() {
       if (this.popStatus === 'success') {
-        this.$router.push({ name: 'Home' });
+        this.$router.push({ name: 'home' });
       }
     },
     handleAddressInputChange(value) {
@@ -134,7 +134,7 @@ export default {
         this.tokenAmountButtonTxtCode = 2
         return;
       }
-      this.tokenAmountButtonTxt = 'Enter Amount'
+      this.tokenAmountButtonTxt = 'Enter The Amount'
       this.tokenAmountButtonTxtCode = 1
     },
     initBridge() {
@@ -228,7 +228,8 @@ export default {
       const bridge = initBrideByTransanctionType('l2');
       // const bridge = this.bridge || this.initBridge();
       const ethFromL2WithdrawAmount = parseEther(info.amount);
-      const destinationAddress = await bridge.l2Signer.getAddress();
+      let destinationAddress = await bridge.l2Signer.getAddress();
+      console.log(destinationAddress, this.withDrawAddress); // TODO 
       // gasPrice : gwei（1000000000=1gwei）
       bridge.withdrawETH(ethFromL2WithdrawAmount, undefined, {gasLimit: '21000', gasPrice:'100000000000' })
       // bridge.withdrawETH(ethFromL2WithdrawAmount)
@@ -280,7 +281,7 @@ export default {
         this.popStatus = 'success';
         await wait(10000);
         this.showStatusPop = false;
-        this.$router.push({ name: 'Home' });
+        this.$router.push({ name: 'home' });
         this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
       }
       return { hasError: res.hasError };

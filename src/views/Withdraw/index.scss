@@ -1,6 +1,7 @@
 .withdraw-page {
   background: #fff;
   font-size: rem(13);
+  .myAddress{ padding: rem(5);}
   .top-address {
     padding: rem(10) rem(20);
     font-size: rem(15);
@@ -18,8 +19,9 @@
         border: rem(1) solid #f2f2f2;
         color: #333;
         ::v-deep.van-field__control{
-          font-size: rem(18);
+          font-size: rem(15);
           font-family: PingFangSC-Regular, PingFang SC;
+          line-height: rem(35);
         }
       }
       .address-textarea {

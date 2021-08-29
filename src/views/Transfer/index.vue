@@ -14,7 +14,7 @@
         <div class="address-wrapper-inner">
           <van-field
             v-model="transferAddress"
-            rows="3"
+            rows="2"
             autosize
             label=""
             type="textarea"
@@ -179,7 +179,7 @@ export default {
         this.showRefresh = true;
         this.showStatusPop = false;
         this.show = false;
-        // this.$router.push({ name: 'Home' });
+        // this.$router.push({ name: 'home' });
         console.log('Transaction success，but error when add history')
       } else  {
         this.show = false;
@@ -188,7 +188,7 @@ export default {
         this.popStatus = 'success';
         this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL2'});
         await wait();
-        this.$router.push({ name: 'Home' });
+        this.$router.push({ name: 'home' });
       }
       return { hasError: res.hasError };
     },
