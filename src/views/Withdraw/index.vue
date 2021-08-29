@@ -1,7 +1,7 @@
 <template>
   <div class="withdraw-page">
     <van-row type="flex" justify="space-between" align="center" class="top-address">
-      <van-col span="12" class="textAlignLeft">Withdrawal Address</van-col>
+      <van-col span="12" class="textAlignLeft">Withdraw Address</van-col>
       <van-col span="12" class="textAlignRight">
         <van-button color="#E4E6F5" size="mini" @click="setMyAddress">
           <span slots="default" style="coloe:#495ABE">My Address</span>
@@ -13,7 +13,7 @@
         <div class="address-wrapper-inner">
           <van-field
             v-model="withDrawAddress"
-            rows="2"
+            rows="3"
             autosize
             label=""
             type="textarea"
@@ -34,8 +34,8 @@
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
-      timeTxt="It is expected to take effect within 20~40 minutes"
-      tip="You can refrsh transaction in Transaction Details"
+      :timeTxt="timeTxt"
+      :tip="tip"
       :show="showStatusPop"
       @childEvent="changeVisible" />
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
@@ -90,6 +90,9 @@ export default {
     return {
       popStatus: 'sucess',
       showStatusPop: false,
+      // timeTxt: 'It is expected to take effect within 20~40 minutes',
+      // tip: 'You can refrsh transaction in Transaction Details',
+      timeTxt: 'Will take effect in 20~40 minutes',
       statusPopTitle: 'Withdraw Submitted',
       show: false,
       tipTxt: 'Confirm On The Wallet',

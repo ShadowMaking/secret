@@ -10,17 +10,17 @@
     // background-color: #eee;
     background-size: 105% 100%;
     .button-update {
-      height: rem(10);
-      line-height: rem(10);
+      
       // border-radius: rem(100) 0 0 rem(100);
       background: #544FDF;
       color: #fff;
       position: absolute;
       left: rem(11);
-      top: rem(40);
+      top: rem(45);
+      font-size: rem(16);
       .ico-ipdate {
-        width: rem(20);
-        height: rem(20);
+        width: rem(22);
+        height: rem(22);
         background: url('~@/assets/icon_update.png') center center no-repeat;
         vertical-align: middle;
         margin: -4px 4px 0 0;

@@ -48,9 +48,13 @@
         bottom: 0;
         left: rem(10);
       }
+      .transaction-title{
+        font-size: rem(16);
+        min-width: rem(170);
+      }
       .exchange-status-icon {
-        width: rem(20);
-        height: rem(20);
+        width: rem(22);
+        height: rem(22);
         vertical-align: middle;
         margin-right: rem(13);
       }
@@ -77,7 +81,7 @@
         // width: rem(45);
         width: rem(70);
         // font-size: rem(11);
-        font-size: rem(13);
+        font-size: rem(14);
         text-align: center;
         margin: rem(5) 0 0 rem(30);
       }
@@ -93,6 +97,7 @@
       .exchange-amount {
         font-weight: bolder;
         color: #333;
+        font-size: rem(16);
         >span{
           margin-left: rem(5);
           font-size: rem(13);
@@ -101,7 +106,7 @@
       .exchange-time {
         color: #606265;
         margin-top: rem(5);
-        font-size: rem(11);
+        font-size: rem(15);
       }
     }
   }
@@ -149,7 +154,7 @@
       display: flex;
       color: #606265;
       margin: 0 0 rem(20);
-      font-size: rem(15);
+      font-size: rem(16);
       .title{
         min-width: rem(50);
       }

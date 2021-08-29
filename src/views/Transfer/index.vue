@@ -14,7 +14,7 @@
         <div class="address-wrapper-inner">
           <van-field
             v-model="transferAddress"
-            rows="2"
+            rows="3"
             autosize
             label=""
             type="textarea"
@@ -42,8 +42,8 @@
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
-      timeTxt="It is expected to take effect within 1 minute"
-      tip="You can check the transaction details in the transaction record"
+      :timeTxt="timeTxt"
+      :tip="tip"
       :show="showStatusPop"
       @childEvent="changeVisible" />
     <van-popup v-model="showRefresh" class="status-popUp-refresh flex flex-center flex-column">
@@ -86,6 +86,9 @@ export default {
       TRANSFER_TIP,
       tipShow: false,
       showStatusPop: false,
+      // timeTxt: 'It is expected to take effect within 1 minute',
+      // tip: 'You can check the transaction details in the transaction record',
+      timeTxt: 'Will take effect in one minute',
       popStatus: "success",
       transferAddress: '',
       showNetTip: false,

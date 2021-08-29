@@ -4,14 +4,19 @@
   color: #236BFB;
   background: #fff;
   height: rem(44);
+  font-size: rem(16);
+  border-bottom: 1px solid #fafafa;
+  .header-left {
+    cursor: pointer;
+  }
   .logo {
     width: rem(123);
     height: rem(26);
   }
   .header-address {
-    // @include text-more-ellipsis(1)
+    cursor: pointer;
   }
-  .linkWallet { color: #236BFB; vertical-align: middle; display: inline-block; margin-top: 2px; font-size: rem(15);}
+  .linkWallet { color: #236BFB; vertical-align: middle; display: inline-block; margin-top: 2px; }
   .icon {
     width: rem(20);
     height: rem(20);
@@ -38,6 +43,7 @@
       height: rem(21);
       display: inline-block;
       background: url('~@/assets/metamask.png') center center no-repeat;
+      background-size: 100% 100%;
       vertical-align: middle;
       margin-right: rem(15);
     }

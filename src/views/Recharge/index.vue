@@ -112,7 +112,7 @@ export default {
       statusPopTitle: 'Transfer Submitted',
       // timeTxt: 'It is expected to take effect within 1 minute',
       // tip: 'You can check the transaction details in the transaction record',
-      timeTxt: 'Will take effect in 20-40 minutes',
+      timeTxt: 'Will take effect in one minute',
       showNetTip: false,
       bridge: null,
       addHistoryData: null,

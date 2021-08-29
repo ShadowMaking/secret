@@ -26,7 +26,7 @@
     .slect-token-wrap + span,
     .recharge-amount + span {
       color: #606265;
-      font-size: rem(13);
+      font-size: rem(15);
       display: block;
       margin: rem(10) 0;
     }
@@ -35,6 +35,7 @@
       font-weight: bolder;
       color: #C0C4CC;
       padding: 0;
+      +span{ font-size: rem(15); margin: rem(6) 0; }
       ::v-deep input{
         text-align: right;
       }
@@ -53,6 +54,7 @@
   }
   .opt-button {
     margin-top: rem(20);
+    font-size: rem(18);
   }
   .token-select-wrap {
     padding: rem(20);
