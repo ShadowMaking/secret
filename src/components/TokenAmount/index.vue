@@ -20,6 +20,7 @@
             type="number"
             label=""
             placeholder="0.0"
+            :formatter="formatter"
             class="recharge-amount-input"
             :disabled="this.walletIsLock"
             @input="handleInputTokenAmountChange" />
@@ -194,6 +195,13 @@ export default {
     },
   },
   methods: {
+    formatter(value) {
+      const vls = value.split('.');
+      if (vls.length > 1) {
+        return `${parseInt(vls[0])}.${vls[1]}`;
+      }
+      return value;
+    },
     choseToken() {
       // TODO  only ETH
       return
