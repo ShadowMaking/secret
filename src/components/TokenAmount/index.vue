@@ -176,7 +176,8 @@ export default {
   },
   computed: {
     dynamicButtonTxt() {
-      return this.buttonTxt;
+      // return this.buttonTxt;
+      return this.buttonText;
     },
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
