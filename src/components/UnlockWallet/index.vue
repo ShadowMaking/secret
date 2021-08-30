@@ -77,7 +77,6 @@ export default {
         let _isLock = true;
         signRes!==undefined && (_isLock = false) 
         await this.$store.dispatch('WalletLockStatus', {isLock:_isLock});
-        this.walletIsLock = _isLock;
         this.$eventBus.$emit('updateAddress', {address: selectedAccountAddress});
         
         this.$eventBus.$emit('updateAvailableBanlanceForL1L2');

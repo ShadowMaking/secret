@@ -3,7 +3,7 @@
     <div class="transfer-toL2-tip flex">
       <div><i class="info_icon"></i></div>
       <div class="flex flex-column">
-        <p>L2 Transfer</p>
+        <p>Send to L2</p>
         <div class="expand">
           <span class="expand-tip">{{ TRANSFER_TIP }}</span>
         </div>
@@ -19,7 +19,7 @@
             label=""
             type="textarea"
             :disabled="walletIsLock"
-            placeholder="enter the transfer address"
+            placeholder="Please enter the address"
             @input="handleAddressInputChange"
             @focus="handleAddressInputFocus"
           />
@@ -43,7 +43,7 @@
       :status="popStatus"
       :title="statusPopTitle"
       :timeTxt="timeTxt"
-      :tip="tip"
+      tip=""
       :show="showStatusPop"
       @childEvent="changeVisible" />
     <van-popup v-model="showRefresh" class="status-popUp-refresh flex flex-center flex-column">

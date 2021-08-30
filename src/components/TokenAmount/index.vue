@@ -127,9 +127,13 @@ export default {
       availableBalance: '0.0',
       buttonColor: '#A4ACDF',
       buttonDisabled: true,
+      buttonText: this.buttonTxt
     }
   },
   watch: {
+    buttonTxt() {
+      this.buttonText = this.buttonTxt;
+    },
     buttonCode: {
       handler(newV, oldV) {
         let buttonColor = this.buttonColor;
@@ -142,7 +146,7 @@ export default {
             } else {
               buttonColor = '#495ABE';
               buttonDisabled = false;
-              this.buttonTxt = 'Submit';
+              this.buttonText = 'Confirm';
             }
             break;
           case 2: // 2: 'invalid address'
@@ -172,7 +176,8 @@ export default {
   },
   computed: {
     dynamicButtonTxt() {
-      return this.buttonTxt;
+      // return this.buttonTxt;
+      return this.buttonText;
     },
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
@@ -227,7 +232,7 @@ export default {
     },
     async handleInputTokenAmountChange(tokenAmount) {
       if (!tokenAmount || isZero(tokenAmount)) {
-        this.buttonTxt = 'Enter The Amount';
+        this.buttonText = 'Enter The Amount';
         this.buttonColor = '#A4ACDF';
         this.buttonDisabled = true;
         return;
@@ -240,11 +245,11 @@ export default {
       const formatAmount = parseEther(tokenAmount);
       const _minus  = minus(parseEther(availableBalance).toString(), formatAmount.toString())
       if (lteZero(_minus, false)) {
-        this.buttonTxt = 'Insufficient Balance';
+        this.buttonText = 'Insufficient Balance';
         this.buttonColor = '#A4ACDF';
         this.buttonDisabled = true;
       } else {
-        this.buttonTxt = 'Submit';
+        this.buttonText = 'Confirm';
         this.buttonColor = '#495ABE';
         this.buttonDisabled = false;
       }
