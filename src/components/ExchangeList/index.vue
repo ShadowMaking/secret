@@ -13,7 +13,10 @@
               <span class="exchange-status fail" v-show="showStatusFail(item)">Failed</span>
             </div>
             <div class="flex flex-column">
-              <span class="exchange-amount">{{item.value}} ETH<span style="display:none">($ {{item.gasPrice}})</span></span>
+              <span class="exchange-amount">
+                {{exchangeValue(item)}} ETH
+                <span style="display:none">($ {{item.gasPrice}})</span>
+              </span>
               <span class="exchange-time">{{item.dateTitme}}</span>
             </div>
           </mt-cell>
@@ -69,7 +72,7 @@
     <div class="seeMore" v-show="allList.length>20"><a @click='toBroswer'>see more</a></div>
     <!-- get-container="#app"  -->
     <!-- Transaction Details -->
-    <van-popup v-model="popupVisible" round position="bottom" get-container="#common-exchange-list"   :style="{ minHeight: '40%' }" class="common-bottom-popup exchange-detail-popup">
+    <van-popup v-model="popupVisible" round :position="checkBrower()" get-container="#app"   :style="{ minHeight: '40%' }" class="common-bottom-popup exchange-detail-popup">
       <div class="common-exchange-detail-wrap">
         <div class="header">
           <h3>Transaction Details</h3>
@@ -129,7 +132,7 @@ import moment from 'moment'
 import { utils } from 'ethers';
 import { Bridge, OutgoingMessageState } from 'arb-ts';
 import { initBrideByTransanctionType, getNetMode } from '@/utils/web3';
-import { copyTxt } from '@/utils/index';
+import { copyTxt, isPc } from '@/utils/index';
 import { compareDate } from '@/utils/number';
 
 Vue.use(Popup);
@@ -172,6 +175,10 @@ export default {
     }
   },
   methods: {
+    checkBrower() {
+      if (isPc()) { return 'center' };
+      return 'bottom';
+    },
     toBroswer() {
       Toast('Coming Soon')
     },
@@ -209,6 +216,12 @@ export default {
       }
       classArr.push(icoC)
       return classArr
+    },
+    exchangeValue(item) {
+      if (item.type === TRANSACTION_TYPE['L2ToL2'] || item.type === TRANSACTION_TYPE['L2ToL1']) {
+        return -item.value
+      }
+      return item.value
     },
     getExchangeDetail(record) {
       const { typeTxt, createdAt, value, type, status } = record;

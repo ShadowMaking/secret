@@ -112,7 +112,7 @@ export default {
     'buttonCode': Number,
     'buttonTxt': {
       type: String,
-      default: 'Enter the Amount'
+      default: 'Enter The Amount'
     },
     'disabled': Boolean,
   },
@@ -135,7 +135,16 @@ export default {
         let buttonColor = this.buttonColor;
         let buttonDisabled = this.buttonDisabled;
         switch(newV) {
-          case 1: // 1: 'Enter the Amount'
+          case 1: // 1: 'Enter The Amount'
+            if (isZero(this.number)) {
+              buttonColor = 'A4ACDF'
+              buttonDisabled = true;
+            } else {
+              buttonColor = '#495ABE';
+              buttonDisabled = false;
+              this.buttonTxt = 'Submit';
+            }
+            break;
           case 2: // 2: 'invalid address'
           default:
             buttonColor = 'A4ACDF'
@@ -218,7 +227,7 @@ export default {
     },
     async handleInputTokenAmountChange(tokenAmount) {
       if (!tokenAmount || isZero(tokenAmount)) {
-        this.buttonTxt = 'Enter the Amount';
+        this.buttonTxt = 'Enter The Amount';
         this.buttonColor = '#A4ACDF';
         this.buttonDisabled = true;
         return;

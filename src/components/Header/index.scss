@@ -8,6 +8,12 @@
   border-bottom: 1px solid #fafafa;
   .header-left {
     cursor: pointer;
+    color: #333;
+    font-family: PingFangSC-Regular, PingFang SC;
+    font-weight: 400;
+    font-size: rem(17);
+    display: flex;
+    .back-icon { margin-right: rem(5);}
   }
   .logo {
     width: rem(123);
@@ -15,8 +21,22 @@
   }
   .header-address {
     cursor: pointer;
+    color: #343399;
+    background: #EAEAF4;
+    border-radius: rem(14);
+    padding: rem(5) rem(10);
+    font-size: rem(15);
   }
-  .linkWallet { color: #236BFB; vertical-align: middle; display: inline-block; margin-top: 2px; }
+  .linkWallet {
+    color: #236BFB; vertical-align: middle; display: inline-block; margin-top: 2px;
+    background: #F7F8F8;
+    font-size: rem(15);
+    border-radius: rem(14);
+    padding: rem(5) rem(10);
+    color: #333333;
+    font-family: PingFangSC-Regular, PingFang SC;
+    font-weight: 400;
+  }
   .icon {
     width: rem(20);
     height: rem(20);

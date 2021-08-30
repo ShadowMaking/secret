@@ -23,7 +23,7 @@
               <img :src="DEFAULTIMG.TEST_QR" class="img-QR"/>
             </div>
             <div class="recharge-address-wrapper">
-              <h3>Deposit address</h3>
+              <h3>Deposit Address</h3>
               <div class="address">{{ defaultAddress }}</div>
               <van-button color="#ECEEF8" class="copy-address" @click="copyAddress">
                 <span slots="default" style="color:#495ABE">Copy Address</span>
@@ -219,7 +219,7 @@ export default {
         this.showRefresh = true;
         this.showStatusPop = false;
         this.show = false;
-        // this.$router.push({ name: 'Home' });
+        // this.$router.push({ name: 'home' });
         console.log('Transaction success，but error when add history')
       } else {
         this.showStatusPop = true;
@@ -229,7 +229,7 @@ export default {
         await wait(10000);
         this.showStatusPop = false;
         this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L1ToL2'});
-        this.$router.push({ name: 'Home' });
+        this.$router.push({ name: 'home' });
       }
       return { hasError: res.hasError };
     },
@@ -258,7 +258,7 @@ export default {
     },
     changeVisible() {
       if (this.popStatus === 'success') {
-        this.$router.push({ name: 'Home' });
+        this.$router.push({ name: 'home' });
       }
     },
   },

@@ -4,8 +4,9 @@
   background: #F7F8F8;
   align-items: flex-start;
   .recharge-toL2-tip {
+    padding-right: rem(10);
     >div{
-      margin: rem(10);
+      margin: rem(10) rem(3);
     }
     i.info_icon {
       display: inline-block;
@@ -17,11 +18,12 @@
     }
     .expand {
       .expand-tip {
-        font-size: rem(11);
+        font-size: rem(12);
         color: #606265;
         height: rem(48);
         line-height: rem(16);
-        @include text-more-ellipsis(2)
+        @include text-more-ellipsis(2);
+        word-break: break-word;
       }
     }
   }
@@ -30,6 +32,7 @@
     margin-bottom: rem(20);
     min-height: rem(30);
     padding: 0 0 rem(20);
+    ::v-deep.van-tab { font-size: rem(13); border-bottom: 1px solid #f2f2f2;}
     ::v-deep.van-tab--active { color: #495ABE;}
     ::v-deep.van-tabs__line {
       width: 20%;

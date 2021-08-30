@@ -5,10 +5,24 @@
         <i :class="['icon','ico-ipdate', {'spin': refreshLoading}]"></i>
         Refresh
       </a>
-      <!-- <div class="flex flex-column account-info">
+      <!-- <van-row gutter="20">
+        <van-col span="12">
+          <div class="flex flex-column account-info">
+            <span class="balance">{{ balanceL1 }}</span>
+            <span class="tip">L1 Total Assets</span>
+          </div>
+        </van-col>
+        <van-col span="12">
+          <div class="flex flex-column account-info">
+            <span class="balance">{{ balanceL2 }}</span>
+            <span class="tip">L2 Total Assets</span>
+          </div>
+        </van-col>
+      </van-row> -->
+      <div class="flex flex-column account-info" style="display:none">
         <span class="balance">{{ balance }}</span>
         <span class="tip">L2 Total Assets($)</span>
-      </div> -->
+      </div>
       <div class="account-balance">
         <span class="balance">L1 Total Assets(ETH)：{{ balanceL1 }}</span>
         <span class="balance">L2 Total Assets(ETH)：{{ balanceL2 }}</span>
@@ -28,16 +42,19 @@
 <script>
 import Vue from 'vue';
 import { Button, Cell, Popup } from 'mint-ui';
+import { Col, Row } from 'vant';
 import ExchangeList from '@/components/ExchangeList';
 import UnlockWallet from '@/components/UnlockWallet';
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
 import { DEFAULTIMG } from '@/utils/global';
 import { getSelectedChainID, getInjectedWeb3, getNetMode, initBrideByTransanctionType } from '@/utils/web3'
-  import NetTipModal from '@/components/NetTipModal';
+import NetTipModal from '@/components/NetTipModal';
 
 Vue.component(Button.name, Button)
 Vue.component(Cell.name, Cell)
 Vue.component(Popup.name, Popup)
+Vue.use(Col);
+Vue.use(Row);
 const { parseEther } = utils;
 
 export default {
@@ -121,6 +138,7 @@ export default {
       }
       console.log('refresh...')
       this.refreshLoading = true;
+      this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'all'});
       await this.updateAvailableBanlanceForL1L2();
       console.log('refresh done!!!');
       this.refreshLoading = false;

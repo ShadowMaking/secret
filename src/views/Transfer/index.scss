@@ -12,17 +12,19 @@
     background-size: contain;
   }
   .transfer-toL2-tip {
+    padding-right: rem(10);
     >div{
-      margin: rem(10);
+      margin: rem(10) rem(3);
     }
     .expand {
       .expand-tip {
-        font-size: rem(13);
+        font-size: rem(12);
         color: #606265;
         height: rem(48);
         line-height: rem(16);
         word-break: break-word;
-        @include text-more-ellipsis(2)
+        @include text-more-ellipsis(2);
+        word-break: break-word;
       }
     }
   }
@@ -39,8 +41,9 @@
         border: rem(1) solid #f2f2f2;
         color: #333;
         ::v-deep.van-field__control{
-          font-size: rem(18);
+          font-size: rem(15);
           font-family: PingFangSC-Regular, PingFang SC;
+          line-height: rem(35);
         }
       }
     }

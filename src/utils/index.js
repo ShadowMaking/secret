@@ -16,3 +16,15 @@ export const copyTxt = (txt) => {
   console.log(oInput.value);
   return true
 }
+export const  isPc = () => {
+  const userAgentInfo = navigator.userAgent;
+  const agents = ['Android', 'iPhone', 'SymbianOS', 'Windows Phone', 'iPad', 'iPod'];
+  let flag = true;
+  agents.some(item => {
+    if(userAgentInfo.indexOf(item) > 0) {
+      flag = false
+      return true
+    }
+  })
+  return flag
+}

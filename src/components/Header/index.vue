@@ -91,7 +91,7 @@ export default {
     },
     toPageHome() {
       if (this.$route.name ==='home') {return;}
-      this.$router.push({ name: 'Home' });
+      this.$router.push({ name: 'home' });
     },
     chooseWallet() {
       this.popupVisible = true;
