@@ -18,7 +18,7 @@
             label=""
             type="textarea"
             :disabled="walletIsLock"
-            placeholder="enter withdrawal address"
+            placeholder="Please enter the address"
             @input="handleAddressInputChange"
           />
         </div>
@@ -35,7 +35,7 @@
       :status="popStatus"
       :title="statusPopTitle"
       :timeTxt="timeTxt"
-      :tip="tip"
+      tip=""
       :show="showStatusPop"
       @childEvent="changeVisible" />
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">

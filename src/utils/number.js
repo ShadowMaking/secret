@@ -11,7 +11,8 @@ export const lteZero = (num, containZero=true) => {
   return containZero ? _num.lte(new Big(0)) : _num.lt(new Big(0));
 }
 
-export const isZero = (num) => {
+export const isZero = (num=0) => {
+  if (!num) { return true };
   return new Big(num).eq(new Big(0))
 }
 

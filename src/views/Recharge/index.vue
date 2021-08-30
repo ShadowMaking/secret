@@ -3,7 +3,7 @@
     <div class="recharge-toL2-tip flex">
       <div><i class="info_icon"></i></div>
       <div class="flex flex-column">
-        <p>Deposit To L2</p>
+        <p>Deposit to L2</p>
         <div class="expand">
           <span class="expand-tip">{{ RECHAERGE_TIP }}</span>
         </div>
@@ -13,16 +13,21 @@
       <van-tabs v-model="activeName">
         <van-tab title="Deposit From L1" name="fromL1">
           <v-tokenAmount
-          key="tokenAmount-recharge"
-          type="recharge"
-          @childEvent="submitRecharge" />
+            key="tokenAmount-recharge"
+            type="recharge"
+            @childEvent="submitRecharge" />
         </van-tab>
-        <van-tab title="Deposit From L2" name="fromeL2">
+        <van-tab title="Deposit From L2" name="fromL2">
           <div class="recharge-amount-wrap">
             <div class="flex flex-center">
-              <img :src="DEFAULTIMG.TEST_QR" class="img-QR"/>
+              <div class="img-QR" v-if="defaultAddress!=='' && !walletIsLock">
+                <div ref="qrCodeUrl"></div>
+              </div>
+              <div v-else style="width: 100%">
+                <v-unlockwallet key="unlockWalletButton" />
+              </div>
             </div>
-            <div class="recharge-address-wrapper">
+            <div class="recharge-address-wrapper" v-if="!walletIsLock">
               <h3>Deposit Address</h3>
               <div class="address">{{ defaultAddress }}</div>
               <van-button color="#ECEEF8" class="copy-address" @click="copyAddress">
@@ -48,7 +53,7 @@
       :status="popStatus"
       :title="statusPopTitle"
       :timeTxt="timeTxt"
-      :tip="tip"
+      tip=""
       :show="showStatusPop"
       @childEvent="changeVisible" />
     <van-popup v-model="showRefresh" class="status-popUp-refresh flex flex-center flex-column">
@@ -68,6 +73,7 @@ import ExchangeList from '@/components/ExchangeList';
 import TokenAmount from '@/components/TokenAmount';
 import StatusPop from '@/components/StatusPop';
 import NetTipModal from '@/components/NetTipModal';
+import UnlockWallet from '@/components/UnlockWallet';
 import { wait, prettyLog } from '@/utils/index'
 import { Tab, Tabs, Button, Col, Row, Toast, Popup, CountDown, Dialog } from 'vant';
 import { getNetMode, getSelectedChainID, initBrideByTransanctionType } from '@/utils/web3'
@@ -77,6 +83,7 @@ import { NETWORKS } from '@/utils/netWork'
 import { Bridge } from 'arb-ts';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { copyTxt } from '@/utils/index';
+import QRCode from 'qrcodejs2'
 import { utils as web3utils } from 'web3';
 
 const { parseEther } = utils;
@@ -99,12 +106,13 @@ export default {
     'v-tokenAmount': TokenAmount,
     'v-statusPop': StatusPop,
     "v-netTipPopup": NetTipModal,
+    "v-unlockwallet": UnlockWallet,
   },
   data() {
     return {
       DEFAULTIMG,
       RECHAERGE_TIP,
-      activeName: 'fromL1', // fromL1 | fromeL2
+      activeName: 'fromL1', // fromL1 | fromL2
       show: false,
       tipTxt: 'Confirm On The Wallet',
       showStatusPop: false,
@@ -120,6 +128,22 @@ export default {
       refreshing: false,
     }
   },
+  watch: {
+    activeName(newValue, oldValue) {
+      if (newValue === 'fromL2') {
+        window.setTimeout(()=>{
+          this.creatQrCode();
+        },0)
+      }
+    },
+    '$store.state.metamask.walletIsLock': function (res) {
+      if (!this.walletIsLock) {
+        window.setTimeout(()=>{
+          this.creatQrCode();
+        },800)
+      }
+    }
+  },
   computed: {
     walletIsLock() {
       return this.$store.state.metamask.walletIsLock;
@@ -128,7 +152,7 @@ export default {
       return this.$store.state.metamask.metamaskInstall;
     },
     defaultAddress() {
-      return this.$store.state.metamask.accountsArr[0] || ''
+      return this.$store.state.metamask.accountsArr[0] || '';
     },
   },
   methods: {
@@ -260,6 +284,20 @@ export default {
       if (this.popStatus === 'success') {
         this.$router.push({ name: 'home' });
       }
+    },
+    creatQrCode() {
+      const refNode = this.$refs.qrCodeUrl  // childNodes(array)  childElementCount(as same as elemnt.children.length)
+      if (this.walletIsLock || !refNode || !this.defaultAddress || refNode && refNode.childElementCount >0) {
+        return;
+      }
+      new QRCode(this.$refs.qrCodeUrl, {
+        text: this.defaultAddress,
+        width: 120,
+        height: 120,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H,
+      })
     },
   },
   mounted() {

@@ -43,6 +43,9 @@
       width: rem(155);
       height: rem(155);
       margin: rem(40) 0 rem(28);
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
     }
     .recharge-address-wrapper {
       padding: 0 rem(15);

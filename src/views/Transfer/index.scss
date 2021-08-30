@@ -52,6 +52,8 @@
       font-size: rem(15);
       color: #606265;
       margin: rem(13) 0 0 rem(20);
+      display: flex;
+      align-items: center;
     }
   }
   .safe-tip-toast {

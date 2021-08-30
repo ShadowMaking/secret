@@ -15,7 +15,7 @@
         <i class="icon language" style="display:none"></i>
       </div>
     </mt-header>
-    <van-popup v-model="popupVisible" round position="bottom" :style="{ minHeight: '30%' }" class="common-bottom-popup">
+    <van-popup v-model="popupVisible" round :position="checkBrower()" :style="{ minHeight: '30%' }" class="common-bottom-popup">
       <div class="common-exchange-detail-wrap choose-wallet-popup">
         <div class="header"><h3>Choose Wallet</h3></div>
         <div class="choose-wallet" @click="connectWallet">
@@ -36,7 +36,7 @@ import { Popup, Button as VanButton, Toast, Icon } from 'vant';
 import WalletStatus from '@/components/WalletStatus';
 import NetTipModal from '@/components/NetTipModal';
 import { getSelectedChainID, getInjectedWeb3, getNetMode, initBrideByTransanctionType } from '@/utils/web3'
-import { copyTxt } from '@/utils/index';
+import { copyTxt, isPc } from '@/utils/index';
 
 Vue.use(Popup);
 Vue.use(VanButton);
@@ -70,13 +70,17 @@ export default {
     '$store.state.metamask.accountsArr': function (res) { }
   },
   methods: {
+    checkBrower() {
+      if (isPc()) { return 'center' };
+      return 'bottom';
+    },
     navTxt() {
       const routeName = this.$route.name;
       switch(routeName) {
         case 'recharge':
           return 'Deposit';
         case 'transfer':
-          return 'Trasfer';
+          return 'Send';
         case 'withdraw':
           return 'Withdraw';
       }
