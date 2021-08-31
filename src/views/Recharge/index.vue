@@ -237,6 +237,10 @@ export default {
     },
     async addHistory(data) {
       const submitData = data || this.addHistoryData;
+      if (!submitData) {
+        Toast('Params Error');
+        return ;
+      }
       const res = await this.$store.dispatch('AddTransactionHistory', {...submitData});
       this.show = false;
       if (res.hasError) {

@@ -1,7 +1,7 @@
 
 const ADDRESS = {
-  "ethERC20Bridge": "0xddDB69B8C41C93215F4d6912eA378a92a4A1EB9B",
-  "arbTokenBridge": "0x5fe46790aE8c6Af364C2f715AB6594A370089B35",
+  "ethERC20Bridge": "0x87652F9a7aa954399109e084fC0416e8e98ea38C",
+  "arbTokenBridge": "0x3eF17De788348Ab455D17ec4FF8c0B130A547049",
 };
 
 const ethRPC = `https://rpc.ieigen.com/eth/`;
