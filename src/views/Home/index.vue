@@ -33,7 +33,7 @@
         <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('withdraw')">Withdraw</mt-button>
       </div>
     </div>
-    <v-unlockwallet :show="showUnlockWalletButton" key="unlockWalletButton" v-show="walletIsLock" />
+    <v-unlockwallet key="unlockWalletButton" v-show="walletIsLock" />
     <v-exchangeList key="comon-exchangeList" type="all" v-show="!walletIsLock" />
     <v-netTipPopup :show="showNetTip" key="netTipModal" :showType="expectNetType"/>
   </div>
@@ -103,6 +103,10 @@ export default {
     },
     async toPage(pageType) {
       this.showNetTip = false;
+      if (this.showUnlockWalletButton) {
+        this.$router.push({ name: pageType });
+        return
+      }
       const { provider, networkId } = await getInjectedWeb3();
       const netMode = getNetMode(networkId);
       switch(pageType) {

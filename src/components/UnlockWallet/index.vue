@@ -4,7 +4,7 @@
       <div :class="['flex', 'flex-center', {'margin10':!showLockIcon}]"><img :src="DEFAULTIMG.LOCK" v-show="showLockIcon"/></div>
       <mt-button type="primary" size="large" class="button button-large" @click="unlockWallet">Unlock Wallet</mt-button>
     </div>
-    <v-walletstatus :show="installWalletModal" key="installWalletModal" />
+    <v-walletstatus :show="installWalletModal" key="installWalletModal" @childEvent="closeWalletstatusPop" />
     <v-netTipPopup :show="showNetTip" key="netTipModal-1" @childEvent="closeNetTip"/>
   </div>
 </template>
@@ -48,6 +48,9 @@ export default {
   methods: {
     closeNetTip() {
       this.showNetTip = false;
+    },
+    closeWalletstatusPop() {
+      this.installWalletModal = false;
     },
     async unlockWallet() {
       if (this.metamaskInstall) {

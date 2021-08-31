@@ -106,17 +106,16 @@ export default {
     async connectWallet() {
       this.popupVisible = false;
       
-      // check netType
-      const { networkId } = await getInjectedWeb3();
-      const netMode = getNetMode(networkId);
-      if (netMode !== "l1" && netMode !== "l2") {
-        this.showNetTip = true;
-        return
-      }
-      
       if (!this.metamaskInstall) {
         this.installWalletModal = true;
       } else {
+        // check netType
+        const { networkId } = await getInjectedWeb3();
+        const netMode = getNetMode(networkId);
+        if (netMode !== "l1" && netMode !== "l2") {
+          this.showNetTip = true;
+          return
+        }
         await ethereum.request({
           method: 'wallet_requestPermissions',
           params:  [{ "eth_accounts": {} }]

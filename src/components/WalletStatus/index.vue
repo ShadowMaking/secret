@@ -1,5 +1,5 @@
 <template>
-  <van-popup v-model="show" closeable class="install-wallet-modal">
+  <van-popup v-model="showPopup" closeable class="install-wallet-modal" @close="closePopup">
     <div class="flex flex-center flex-column">
       <a href="https://metamask.io/" target="_blank" class="install-button-outer">
         <van-button class="install-button" color="#AA2E26" plain >Install Metamask</van-button>
@@ -20,13 +20,19 @@ export default {
   props: ['show'],
   data() {
     return {
-      // installWalletModal,
+      showPopup: false,
     }
   },
-  methods: {
+  watch: {
+    show() {
+      this.showPopup = this.show
+    },
   },
-  async mounted() {
-    
+  methods: {
+    closePopup() {
+      this.showPopup = false;
+      this.$emit('childEvent',{show: false});
+    },
   },
 };
 </script>
