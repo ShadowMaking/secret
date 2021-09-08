@@ -7,8 +7,8 @@
           <span class="token-span">ETH</span>
           <!-- TODO hide -->
           <i class="icon-selected" style="display:none;"></i>
-          <van-button color="#E4E6F5" size="mini" style="margin-left:5px">
-            <span slots="default" style="color:#495ABE;padding:0 5px">Max</span>
+          <van-button color="#E4E6F5" size="mini" style="" class="max-button">
+            <span slots="default" class="max-button-inner">Max</span>
           </van-button>
         </div>
         <span>Balance：{{ availableBalance }} ETH</span>
@@ -31,8 +31,8 @@
     <!-- TODO -->
     <!-- <div class="amount-fee-tip" v-show="type=='withdraw'" style="display:none!important"> -->
     <div class="amount-fee-tip" style="display:none!important">
-      <span class="tip"><i class="info_icon"></i>Withdrawal Transaction Fee：0.000002 ZKS($5.00)</span>
-      <span class="tip"><i class="info_icon"></i>Withdrawal Amount：3.678766 ZKS</span>
+      <span class="tip"><i class="info_icon"></i>Withdrawal Transaction Fee：0.000002 ETH($5.00)</span>
+      <span class="tip"><i class="info_icon"></i>Withdrawal Amount：3.678766 ETH</span>
     </div>
     <van-button
       type="primary"
@@ -216,9 +216,6 @@ export default {
       this.availableBalance = '0.0';
       this.buttonColor = '#A4ACDF';
       this.buttonDisabled = true;
-    },
-    initBridge() {
-      
     },
     async getAvailableBalance() {
       const type = this.type

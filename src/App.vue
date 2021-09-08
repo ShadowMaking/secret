@@ -15,6 +15,7 @@
   import header from '@/components/Header/index';
   import NetTipModal from '@/components/NetTipModal';
   import { NETWORKS } from '@/utils/netWork'
+  // import { NETWORKS } from '@/utils/netWork_arb'
   import { checkMetamask } from "@/utils/auth";
 
   export default {

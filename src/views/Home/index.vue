@@ -33,9 +33,12 @@
         <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('withdraw')">Withdraw</mt-button>
       </div>
     </div>
-    <v-unlockwallet key="unlockWalletButton" v-show="walletIsLock" />
+    <div v-show="walletIsLock" class="unlock-wallet-button-wrapper">
+      <v-unlockwallet key="unlockWalletButton" />
+    </div>
     <v-exchangeList key="comon-exchangeList" type="all" v-show="!walletIsLock" />
     <v-netTipPopup :show="showNetTip" key="netTipModal" :showType="expectNetType"/>
+    <v-walletstatus :show="installWalletModal" key="installWalletModal" @childEvent="closeWalletstatusPop" />
   </div>
 </template>
 
@@ -45,6 +48,7 @@ import { Button, Cell, Popup } from 'mint-ui';
 import { Col, Row } from 'vant';
 import ExchangeList from '@/components/ExchangeList';
 import UnlockWallet from '@/components/UnlockWallet';
+import WalletStatus from '@/components/WalletStatus';
 import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
 import { DEFAULTIMG } from '@/utils/global';
 import { getSelectedChainID, getInjectedWeb3, getNetMode, initBrideByTransanctionType } from '@/utils/web3'
@@ -63,6 +67,7 @@ export default {
     "v-exchangeList": ExchangeList,
     "v-unlockwallet": UnlockWallet,
     "v-netTipPopup": NetTipModal,
+    "v-walletstatus": WalletStatus,
   },
   data() {
     return {
@@ -98,11 +103,18 @@ export default {
   },
   
   methods: {
+    closeWalletstatusPop() {
+      this.installWalletModal = false;
+    },
     getExchangeDetail() {
       this.popupVisible = true;
     },
     async toPage(pageType) {
       this.showNetTip = false;
+      if (!this.metamaskInstall) {
+        this.installWalletModal = true;
+        return
+      }
       if (this.showUnlockWalletButton) {
         this.$router.push({ name: pageType });
         return

@@ -6,6 +6,7 @@ import { Bridge } from 'arb-ts';
 import { MessageBox } from 'mint-ui';
 import { dev_host } from '@/utils/global';
 import { NETWORKS } from '@/utils/netWork'
+// import { NETWORKS } from '@/utils/netWork_arb'
 
 
 const NETWORK_VERSION = {

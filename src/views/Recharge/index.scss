@@ -32,7 +32,7 @@
     margin-bottom: rem(20);
     min-height: rem(30);
     padding: 0 0 rem(20);
-    ::v-deep.van-tab { font-size: rem(13); border-bottom: 1px solid #f2f2f2;}
+    ::v-deep.van-tab { font-size: rem(15); border-bottom: 1px solid #f2f2f2;}
     ::v-deep.van-tab--active { color: #495ABE;}
     ::v-deep.van-tabs__line {
       width: 20%;
@@ -47,9 +47,19 @@
       justify-content: center;
       flex-direction: column;
     }
+    .unlock-wallet-button-wrapper {
+      width: 100%;
+      padding: rem(20);
+    }
     .recharge-address-wrapper {
       padding: 0 rem(15);
-      h3{ font-size: rem(15); color: #333; }
+      h3{
+        font-size: rem(15);
+        color: #333;
+        font-family: PingFangSC-Regular, PingFang SC;
+        font-weight: 400;
+        color: #333333;
+      }
       .address {
         background: #F7F8F8;
         padding: rem(15);
