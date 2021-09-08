@@ -18,10 +18,8 @@ export default {
     async contract() {
       /* let abi = ArbTokenBridgeABI.abi;
       const bridge = initBrideByTransanctionType('l2');
-      // 地址来自上面部署的合约
       let contractAddress = "0xF9642f5aEfD3a56818A4ed0cb66804F210a634eD";
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      // 使用Provider 连接合约，将只有对合约的可读权限
       let contract = new ethers.Contract(contractAddress, abi, provider);
 
       let myAddress = '0x38299D74a169e68df4Da85Fb12c6Fd22246aDD9F'

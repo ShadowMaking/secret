@@ -5,7 +5,6 @@ import Home from '../views/Home/index';
 const Recharge = () => import('../views/Recharge/index')
 const Transfer = () => import('../views/Transfer/index')
 const Withdraw = () => import('../views/Withdraw/index')
-const Test = () => import('../views/Test')
 
 // cache origin push method
 const originalPush = VueRouter.prototype.push
@@ -44,11 +43,6 @@ const routes = [
     path: '/',
     name: 'home',
     component: Home,
-  },
-  {
-    path: '/test',
-    name: 'test',
-    component: Test,
   },
   {
     path: '/recharge',
