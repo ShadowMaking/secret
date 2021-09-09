@@ -66,6 +66,7 @@ import { getDefaultAddress } from '@/utils/auth'
 import { getNetMode, getSelectedChainID, initBrideByTransanctionType } from '@/utils/web3'
 import { Bridge, OutgoingMessageState } from 'arb-ts';
 import { NETWORKS } from '@/utils/netWork'
+// import { NETWORKS } from '@/utils/netWork_arb'
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { utils, ethers } from 'ethers'
 
@@ -238,7 +239,7 @@ export default {
         const txHash = res.hash;
         const transactionWaitRes = await res.wait();
         const { confirmations, from, to, transactionHash, status } = transactionWaitRes
-        console.log(`transaction success! res:${res},waitRes:${transactionWaitRes}`)
+        console.log('transaction success! res:',res,'waitRes:',transactionWaitRes)
 
         const submitData = {
           txid: transactionHash||txHash,
@@ -277,16 +278,17 @@ export default {
         this.show = false;
         console.log('Transaction success，but error when add history')
       } else  {
+        await wait();
         this.show = false;
-        await wait()
-        prettyLog('Transaction is in progress，waiting for 10s....')
+        // prettyLog('Transaction is in progress，waiting for 10s....')
         this.showStatusPop = true;
         this.statusPopTitle = 'Withdraw Submitted'
         this.popStatus = 'success';
-        await wait(10000);
+        // await wait(10000);
         this.showStatusPop = false;
         this.$router.push({ name: 'home' });
-        this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
+        // this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
+
       }
       return { hasError: res.hasError };
     },

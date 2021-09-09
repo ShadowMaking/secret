@@ -16,6 +16,7 @@
 import Vue from 'vue';
 import { Popup, Button } from 'vant';
 import { ethRPC, arbRPC, NETWORKS, L1ChainID, L2ChainID } from '@/utils/netWork'
+// import { ethRPC, arbRPC, NETWORKS, L1ChainID, L2ChainID } from '@/utils/netWork_arb'
 
 Vue.use(Popup);
 Vue.use(Button);
@@ -53,6 +54,33 @@ export default {
     },
     checkType(type) {
       return this.showType === type || this.showType === '';
+    },
+    // Test for arb
+    async addAndSwitchNetForArb(netType) {
+      if (netType === 'l1') {
+        await ethereum.request({
+          jsonrpc: "2.0",
+          method: 'wallet_switchEthereumChain',
+          params: [{
+            "chainId": L1ChainID
+          }],
+          id: 0
+        })
+      }
+      if (netType === 'l2') {
+        await ethereum.request({
+          jsonrpc: "2.0",
+          method: 'wallet_addEthereumChain',
+          params: [{
+            "chainId": L2ChainID,
+            // "chainName": "SecretL2",
+            "chainName": "Arbitrum Testnet",
+            "rpcUrls": [ arbRPC ],
+            // "blockExplorerUrls": []
+          }],
+          id: 0
+        })
+      }
     },
     async addAndSwitchNet(netType) {
       const params = [];

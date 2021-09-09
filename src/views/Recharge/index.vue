@@ -23,7 +23,7 @@
               <div class="img-QR" v-if="defaultAddress!=='' && !walletIsLock">
                 <div ref="qrCodeUrl"></div>
               </div>
-              <div v-else style="width: 100%">
+              <div v-else class="unlock-wallet-button-wrapper">
                 <v-unlockwallet key="unlockWalletButton" />
               </div>
             </div>
@@ -80,6 +80,7 @@ import { getNetMode, getSelectedChainID, initBrideByTransanctionType } from '@/u
 import { utils, ethers } from 'ethers'
 import { DEFAULTIMG } from '@/utils/global';
 import { NETWORKS } from '@/utils/netWork'
+// import { NETWORKS } from '@/utils/netWork_arb'
 import { Bridge } from 'arb-ts';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { copyTxt } from '@/utils/index';
@@ -211,7 +212,7 @@ export default {
         const txHash = res.hash;
         const transactionWaitRes = await res.wait();
         const { confirmations, from, to, transactionHash, status } = transactionWaitRes
-        console.log(`transaction success! res:${res},waitRes:${transactionWaitRes}`)
+        console.log('transaction success! res:',res,'waitRes:',transactionWaitRes)
         const submitData = {
           txid: txHash,
           from: res.from || connectAddress,
@@ -253,10 +254,10 @@ export default {
         this.showStatusPop = true;
         this.statusPopTitle = 'Transfer Submitted'
         this.popStatus = 'success';
-        prettyLog('transaction is in progress，waiting fro 10s....')
-        await wait(10000);
+        // prettyLog('transaction is in progress，waiting fro 10s....')
+        await wait();
         this.showStatusPop = false;
-        this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L1ToL2'});
+        // this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L1ToL2'});
         this.$router.push({ name: 'home' });
       }
       return { hasError: res.hasError };

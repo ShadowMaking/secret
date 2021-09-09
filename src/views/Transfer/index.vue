@@ -146,9 +146,8 @@ export default {
       })
       .then(async res=>{
         this.tipTxt = 'In progress,waitting';
-        await wait(10000);
-        prettyLog('Transaction is in progress，waiting for 10s....')
-        
+        // await wait(10000);
+        // prettyLog('Transaction is in progress，waiting for 10s....')
         const submitData = {
           txid: res,
           from: transferParams['from'] || selectedAccountAddress,
@@ -190,7 +189,7 @@ export default {
         this.showStatusPop = true;
         this.statusPopTitle = 'Transfer Submitted'
         this.popStatus = 'success';
-        this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL2'});
+        // this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL2'});
         await wait();
         this.$router.push({ name: 'home' });
       }

@@ -1,5 +1,5 @@
 <template>
-  <van-popup v-model="show" class="status-popUp flex flex-center flex-column">
+  <van-popup v-model="showPopup" class="status-popUp flex flex-center flex-column">
     <i :class="['icon', {'icon-success':status==='success','icon-failed':status!=='success'}]"></i>
     <span class="main-txt">{{ title }}</span>
     <span class="supplement-txt" v-show="status==='success' && timeTxt">{{ timeTxt }}</span>
@@ -33,13 +33,18 @@ export default {
   },
   data() {
     return {
-      
+      showPopup: false
     }
+  },
+  watch: {
+    show() {
+      this.showPopup = this.show
+    },
   },
   methods: {
     submitOk() {
       if (this.needColse) {
-        this.show = false;
+        this.showPopup = false;
       }
       this.$emit('childEvent',{show: false});
     },
