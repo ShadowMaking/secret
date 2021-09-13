@@ -17,7 +17,7 @@ export const TRANSACTION_TYPE = {
 
 /**
  * @description: add transaction history
- * @param {"txid": "1", "from": "0x1", "to": "0x1", "type":0}
+ * @param {"txid": "1", "from": "0x1", "to": "0x1", "type":0, "block_num": 10}
  * @return {*}
  */
 export const addTransactionHistory = (data) => {

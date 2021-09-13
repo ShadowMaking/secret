@@ -1,6 +1,6 @@
 <template>
-  <div class="recharge-page">
-    <div class="recharge-toL2-tip flex">
+  <div class="deposit-page">
+    <div class="deposit-toL2-tip flex">
       <div><i class="info_icon"></i></div>
       <div class="flex flex-column">
         <p>Deposit to L2</p>
@@ -9,25 +9,25 @@
         </div>
       </div>
     </div>
-    <div class="recharge-opt-area">
+    <div class="deposit-opt-area">
       <van-tabs v-model="activeName">
         <van-tab title="Deposit From L1" name="fromL1">
           <v-tokenAmount
-            key="tokenAmount-recharge"
-            type="recharge"
+            key="tokenAmount-deposit"
+            type="deposit"
             @childEvent="submitRecharge" />
         </van-tab>
         <van-tab title="Deposit From L2" name="fromL2">
-          <div class="recharge-amount-wrap">
+          <div class="deposit-amount-wrap">
             <div class="flex flex-center">
               <div class="img-QR" v-if="defaultAddress!=='' && !walletIsLock">
                 <div ref="qrCodeUrl"></div>
               </div>
               <div v-else class="unlock-wallet-button-wrapper">
-                <v-unlockwallet key="unlockWalletButton" />
+                <v-unlockwallet key="unlockWalletButton" expectNetType="l1" />
               </div>
             </div>
-            <div class="recharge-address-wrapper" v-if="!walletIsLock">
+            <div class="deposit-address-wrapper" v-if="!walletIsLock">
               <h3>Deposit Address</h3>
               <div class="address">{{ defaultAddress }}</div>
               <van-button color="#ECEEF8" class="copy-address" @click="copyAddress">
@@ -101,7 +101,7 @@ Vue.use(CountDown);
 Vue.use(Dialog);
 
 export default {
-  name: "Recharge",
+  name: "Deposit",
   components: {
     'v-exchangeList': ExchangeList,
     'v-tokenAmount': TokenAmount,
@@ -219,7 +219,8 @@ export default {
           to: res.to,
           type: TRANSACTION_TYPE['L1ToL2'],
           status,
-          value: info.amount
+          value: info.amount,
+          block_num: transactionWaitRes.blockNumber,
         }
         this.addHistoryData = _.cloneDeep(submitData);
         await this.addHistory(submitData);

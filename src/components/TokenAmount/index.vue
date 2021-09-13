@@ -1,32 +1,43 @@
 <template>
   <div class="token-amount-wrap">
     <van-row class="token-amount-wrap-inner">
-      <van-col span="12" @click="choseToken">
-        <div class="slect-token-wrap flex">
-          <i class="token token-ETH"></i>
-          <span class="token-span">ETH</span>
-          <!-- TODO hide -->
-          <i class="icon-selected" style="display:none;"></i>
-          <van-button color="#E4E6F5" size="mini" style="" class="max-button">
-            <span slots="default" class="max-button-inner">Max</span>
-          </van-button>
+      <van-row class="top">
+        <van-col span="12" @click="choseToken">
+          <div class="slect-token-wrap flex">
+            <i class="token token-ETH"></i>
+            <span class="token-span">ETH</span>
+            <!-- TODO hide -->
+            <i class="icon-selected" style="display:none;"></i>
+            <!-- <van-button color="#E4E6F5" size="mini" style="" class="max-button">
+              <span slots="default" class="max-button-inner">Max</span>
+            </van-button> -->
+            <a class="max-button">Max</a>
+          </div>
+          <!-- <span>Balance：{{ availableBalance }} ETH</span> -->
+        </van-col>
+        <van-col span="12" style="text-align:right">
+          <div class="flex flex-column">
+            <van-field
+              v-model="number"
+              type="number"
+              label=""
+              placeholder="0.0"
+              :formatter="formatter"
+              class="recharge-amount-input"
+              :disabled="this.walletIsLock"
+              @input="handleInputTokenAmountChange" />
+            <!-- <span>Amount</span> -->
+          </div>
+        </van-col>
+      </van-row>
+      <div class="bottom">
+        <div>
+          <span>Balance：{{ availableBalance|showAvailableBalance }} ETH</span>
         </div>
-        <span>Balance：{{ availableBalance }} ETH</span>
-      </van-col>
-      <van-col span="12" style="text-align:right">
-        <div class="flex flex-column">
-          <van-field
-            v-model="number"
-            type="number"
-            label=""
-            placeholder="0.0"
-            :formatter="formatter"
-            class="recharge-amount-input"
-            :disabled="this.walletIsLock"
-            @input="handleInputTokenAmountChange" />
+        <div style="text-align:right">
           <span>Amount</span>
         </div>
-      </van-col>
+      </div>
     </van-row>
     <!-- TODO -->
     <!-- <div class="amount-fee-tip" v-show="type=='withdraw'" style="display:none!important"> -->
@@ -48,6 +59,7 @@
       key="unlockWalletButton"
       :show="showUnlockWalletButton"
       :showLockIcon="false"
+      :expectNetType="expectNetType"
       v-show="walletIsLock" />
     <van-popup round closeable v-model="showTokenSelect" position="bottom" :style="{ minHeight: '30%' }">
       <div class="token-select-wrap">
@@ -109,7 +121,7 @@ Vue.use(Search);
 export default {
   name: "common-recharge-amount",
   props: {
-    'type': String, // recharge | transfer | withdraw
+    'type': String, // deposit | transfer | withdraw
     'buttonCode': Number,
     'buttonTxt': {
       type: String,
@@ -119,6 +131,14 @@ export default {
   },
   components: {
     "v-unlockwallet": UnlockWallet,
+  },
+  filters: {
+    showAvailableBalance(amount) {
+      if (parseFloat(amount)) {
+        return parseFloat(amount).toFixed(6)
+      }
+      return amount
+    }
   },
   data() {
     return {
@@ -176,6 +196,12 @@ export default {
     }
   },
   computed: {
+    expectNetType() {
+      if (this.type === 'deposit') {
+        return 'l1'
+      }
+      return 'l2'
+    },
     dynamicButtonTxt() {
       // return this.buttonTxt;
       return this.buttonText;
@@ -190,7 +216,7 @@ export default {
       return !this.metamaskInstall || this.walletIsLock;
     },
     typeTxt() {
-      const erum = { recharge: 'Deposit', transfer: 'Send', withdraw: 'Withdraw' };
+      const erum = { deposit: 'Deposit', transfer: 'Send', withdraw: 'Withdraw' };
       return erum[this.type];
     },
   },
@@ -219,11 +245,11 @@ export default {
     },
     async getAvailableBalance() {
       const type = this.type
-      const bridgeType = type === 'recharge'? 'l1':'l2';
+      const bridgeType = type === 'deposit'? 'l1':'l2';
       const bridge = initBrideByTransanctionType(bridgeType);
       let balance;
       switch(type) {
-        case 'recharge':
+        case 'deposit':
           balance = await bridge.getAndUpdateL1EthBalance();
           break;
         case 'withdraw':

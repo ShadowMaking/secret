@@ -4,23 +4,21 @@
       <h3 class="exchange-list-title">Transactions</h3>
       <!-- TODO need Pagination -->
       <div class="exchange-list" v-if="historyList.length>0 && !walletIsLock">
-        <div v-for="(item,index) in historyList" :key="`history-${index}`" @click="getExchangeDetail(item)">
-          <mt-cell is-link class="exchange-list-item">
-            <div slot="title" class="flex flex-column mt10">
-              <span class="transaction-title"><i :class="iconClass(item)"></i>{{ item.typeTxt }} ETH</span>
-              <span class="exchange-status pending" v-show="showStatus(item)">Confirming</span>
-              <span class="exchange-status success" v-show="showStatusSuccess(item)">Succeed</span>
-              <span class="exchange-status fail" v-show="showStatusFail(item)">Failed</span>
-            </div>
-            <div class="flex flex-column">
-              <span class="exchange-amount">
-                {{exchangeValue(item)}} ETH
-                <span style="display:none">($ {{item.gasPrice}})</span>
-              </span>
-              <span class="exchange-time">{{item.dateTitme}}</span>
-            </div>
-          </mt-cell>
-        </div>
+        <mt-cell is-link class="exchange-list-item"  v-for="(item,index) in historyList" :key="`history-${index}`" @click.native="getExchangeDetail(item)">
+          <div slot="title" class="flex flex-column transaction-type-info">
+            <span class="transaction-title"><i :class="iconClass(item)"></i>{{ item.typeTxt }} ETH</span>
+            <span class="exchange-status pending" v-show="showStatus(item)">Confirming</span>
+            <span class="exchange-status success" v-show="showStatusSuccess(item)">Succeed</span>
+            <span class="exchange-status fail" v-show="showStatusFail(item)">Failed</span>
+          </div>
+          <div class="flex flex-column transaction-amount-info">
+            <span class="exchange-amount">
+              {{exchangeValue(item)}} ETH
+              <span style="display:none">($ {{item.gasPrice}})</span>
+            </span>
+            <span class="exchange-time">{{item.dateTitme}}</span>
+          </div>
+        </mt-cell>
         <div @click="getExchangeDetail" style="display:none">
           <mt-cell is-link class="exchange-list-item" >
             <div slot="title" class="flex flex-column mt10">
@@ -179,8 +177,17 @@ export default {
       if (isPc()) { return 'center' };
       return 'bottom';
     },
-    toBroswer() {
-      Toast('Coming Soon')
+    toBroswer(record) {
+      let openUrl = 'http://explorer.ieigen.com';
+      if (record) {
+        const { type, txid } = record.info
+        openUrl = `http://explorer.ieigen.com/#/tx?tstr=${txid}`
+        if (type === TRANSACTION_TYPE['L1ToL2'] || type === TRANSACTION_TYPE['L1ToL1']) {
+          Toast('Coming Soon')
+          return;
+        }
+      }
+      window.open(openUrl)
     },
     copyAddress(txt) {
       copyTxt(txt)
@@ -248,7 +255,6 @@ export default {
           statusTxt = 'Succeed'
           break;
       }
-      const browser = ''; // TODO
       const info = [
         {title: 'Hash', value: record.txid, key:'hash', info: record},
         {title: 'Time', value: date, key:'data', info: record},

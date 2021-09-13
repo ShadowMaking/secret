@@ -2,7 +2,7 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import Home from '../views/Home/index';
 
-const Recharge = () => import('../views/Recharge/index')
+const Deposit = () => import('../views/Deposit/index')
 const Transfer = () => import('../views/Transfer/index')
 const Withdraw = () => import('../views/Withdraw/index')
 
@@ -45,13 +45,13 @@ const routes = [
     component: Home,
   },
   {
-    path: '/recharge',
-    name: 'recharge',
+    path: '/deposit',
+    name: 'deposit',
     meta: {
       title: "deposit"
     },
-    component: Recharge,
-    // component: () => import(/* webpackChunkName: "recharge" */ '../views/Recharge/index'),
+    component: Deposit,
+    // component: () => import(/* webpackChunkName: "deposit" */ '../views/Deposit/index'),
   },
   {
     path: '/transfer',

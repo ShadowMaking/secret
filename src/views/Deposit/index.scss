@@ -1,9 +1,9 @@
 @import '@/app.scss';
-.recharge-page {
+.deposit-page {
   font-size: rem(13);
   background: #F7F8F8;
   align-items: flex-start;
-  .recharge-toL2-tip {
+  .deposit-toL2-tip {
     padding-right: rem(10);
     >div{
       margin: rem(10) rem(3);
@@ -27,7 +27,7 @@
       }
     }
   }
-  .recharge-opt-area {
+  .deposit-opt-area {
     background: #fff;
     margin-bottom: rem(20);
     min-height: rem(30);
@@ -51,7 +51,7 @@
       width: 100%;
       padding: rem(20);
     }
-    .recharge-address-wrapper {
+    .deposit-address-wrapper {
       padding: 0 rem(15);
       h3{
         font-size: rem(15);
