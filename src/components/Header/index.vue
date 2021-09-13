@@ -77,7 +77,7 @@ export default {
     navTxt() {
       const routeName = this.$route.name;
       switch(routeName) {
-        case 'recharge':
+        case 'deposit':
           return 'Deposit';
         case 'transfer':
           return 'Send';

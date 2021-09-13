@@ -24,11 +24,11 @@
         <span class="tip">L2 Total Assets($)</span>
       </div>
       <div class="account-balance">
-        <span class="balance">L1 Total Assets(ETH)：{{ balanceL1 }}</span>
-        <span class="balance">L2 Total Assets(ETH)：{{ balanceL2 }}</span>
+        <span class="balance">L1 Total Assets(ETH)：{{ balanceL1|showAvailableBalance }}</span>
+        <span class="balance">L2 Total Assets(ETH)：{{ balanceL2|showAvailableBalance }}</span>
       </div>
       <div class="flex page-home-opt-wrap">
-        <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('recharge')">Deposit</mt-button>
+        <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('deposit')">Deposit</mt-button>
         <mt-button type="primary" size="large" class="button button-with-radius" @click="toPage('transfer')">Send</mt-button>
         <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('withdraw')">Withdraw</mt-button>
       </div>
@@ -83,6 +83,14 @@ export default {
       refreshLoading: false,
     }
   },
+  filters: {
+    showAvailableBalance(amount) {
+      if (!isNaN(amount)) {
+        return parseFloat(amount).toFixed(6)
+      }
+      return amount
+    }
+  },
   computed: {
     walletIsLock() {
       return this.$store.state.metamask.walletIsLock;
@@ -122,13 +130,13 @@ export default {
       const { provider, networkId } = await getInjectedWeb3();
       const netMode = getNetMode(networkId);
       switch(pageType) {
-        case "recharge":
+        case "deposit":
           if (netMode !== 'l1') {
             this.expectNetType = 'l1';
             this.showNetTip = true;
             return
           }
-          this.$router.push({ name: 'recharge' })
+          this.$router.push({ name: 'deposit' })
           break;
         case "transfer":
           if (netMode !== 'l2') {

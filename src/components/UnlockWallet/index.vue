@@ -5,7 +5,7 @@
       <mt-button type="primary" size="large" class="button button-large" @click="unlockWallet">Unlock Wallet</mt-button>
     </div>
     <v-walletstatus :show="installWalletModal" key="installWalletModal" @childEvent="closeWalletstatusPop" />
-    <v-netTipPopup :show="showNetTip" key="netTipModal-1" @childEvent="closeNetTip"/>
+    <v-netTipPopup :show="showNetTip" key="netTipModal-1" :showType="netTipPopupShowType" @childEvent="closeNetTip"/>
   </div>
 </template>
 
@@ -24,6 +24,9 @@ export default {
   props: {
     showLockIcon: {
       default: true
+    },
+    expectNetType: {
+      default: ''
     }
   },
   components: {
@@ -44,6 +47,9 @@ export default {
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
     },
+    netTipPopupShowType() {
+      return this.expectNetType
+    },
   },
   methods: {
     closeNetTip() {
@@ -57,7 +63,8 @@ export default {
         // check netType
         const { networkId } = await getInjectedWeb3();
         const netMode = getNetMode(networkId);
-        if (netMode !== "l1" && netMode !== "l2") {
+        const disabled = this.expectNetType === 'l1' && netMode !== "l1" || this.expectNetType === 'l2' && netMode !== "l2"
+        if (netMode !== "l1" && netMode !== "l2" || disabled) {
           this.showNetTip = true;
           return
         }

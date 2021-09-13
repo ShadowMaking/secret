@@ -44,7 +44,7 @@
       },
       setExpectNetType(routeName) {
         switch(routeName) {
-          case 'recharge':
+          case 'deposit':
             this.expectNetType = 'l1';
             break;
           case 'withdraw':

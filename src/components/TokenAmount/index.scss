@@ -6,6 +6,13 @@
     padding: rem(15);
     border: rem(1) solid #F2F2F2;
     // margin-bottom: rem(40);
+    .top{}
+    .bottom{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: rem(11);
+    }
     .slect-token-wrap{
       display: flex;
       align-items: center;
@@ -21,11 +28,14 @@
         margin: 0 rem(5);
       }
       .max-button {
-        margin-left: rem(5);
-        .max-button-inner {
-          color: #495ABE;
-          padding: 0 4px;
-        }
+        margin-left: rem(10);
+        background: #E4E6F5;
+        padding: 0 4px;
+        color: #495ABE;
+        height: 18px;
+        line-height: 18px;
+        text-align: center;
+        font-size: rem(11);
       }
       .token-span{
         font-size: rem(19);

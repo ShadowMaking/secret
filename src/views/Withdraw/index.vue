@@ -247,7 +247,8 @@ export default {
           to,
           type: TRANSACTION_TYPE['L2ToL1'],
           status,
-          value: info.amount
+          value: info.amount,
+          block_num: transactionWaitRes.blockNumber,
         }
         this.addHistoryData = _.cloneDeep(submitData);
         await this.addHistory(submitData);
