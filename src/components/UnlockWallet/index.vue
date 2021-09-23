@@ -15,7 +15,8 @@ import { Button } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
 import WalletStatus from '@/components/WalletStatus';
 import NetTipModal from '@/components/NetTipModal';
-import { getInjectedWeb3, getNetMode } from '@/utils/web3'
+import { getSelectedChainID, getNetMode, metamaskIsConnect } from '@/utils/web3'
+import { initTokenTime, updateLoginTime, tokenIsExpires } from '@/utils/auth'
 
 Vue.component(Button.name, Button)
 
@@ -61,7 +62,7 @@ export default {
     async unlockWallet() {
       if (this.metamaskInstall) {
         // check netType
-        const { networkId } = await getInjectedWeb3();
+        const networkId = getSelectedChainID();
         const netMode = getNetMode(networkId);
         const disabled = this.expectNetType === 'l1' && netMode !== "l1" || this.expectNetType === 'l2' && netMode !== "l2"
         if (netMode !== "l1" && netMode !== "l2" || disabled) {
@@ -69,26 +70,32 @@ export default {
           return
         }
         this.showNetTip = false;
-        // const accounts = this.$store.state.metamask.accountsArr;
-        // await ethereum.request({ method: 'eth_requestAccounts' });
-        await ethereum.request({
-          method: 'wallet_requestPermissions',
-          params:  [{ "eth_accounts": {} }]
-        })
+        if (!metamaskIsConnect()) {
+          await ethereum.request({
+            method: 'wallet_requestPermissions',
+            params:  [{ "eth_accounts": {} }]
+          })
+        }
         const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
-        const selectedAccountAddress = accounts[0];
+        const selectedAccountAddress = window.ethereum.selectedAddress;
         await this.$store.dispatch("WalletAccountsAddress", {accounts})
-        const message = `
-          Access Eigen account.
-          Only sign this message for a trusted client!
-        `;
-        const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), selectedAccountAddress);
-        // when signRes has value declare sign sucess
+        let signRes;
         let _isLock = true;
-        signRes!==undefined && (_isLock = false) 
-        await this.$store.dispatch('WalletLockStatus', {isLock:_isLock});
+        if (tokenIsExpires()) {
+          const message = `
+            Access Eigen account.
+            Only sign this message for a trusted client!
+          `;
+          // when signRes has value declare sign sucess
+          signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), selectedAccountAddress);
+          signRes!==undefined && (_isLock = false)
+          signRes!==undefined && (initTokenTime())
+        } else {
+          _isLock = false
+          updateLoginTime()
+        }
+        await this.$store.dispatch('WalletLockStatus', {isLock: _isLock});
         this.$eventBus.$emit('updateAddress', {address: selectedAccountAddress});
-        
         this.$eventBus.$emit('updateAvailableBanlanceForL1L2');
         return
       }

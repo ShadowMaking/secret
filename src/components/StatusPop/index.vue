@@ -1,9 +1,10 @@
 <template>
-  <van-popup v-model="showPopup" class="status-popUp flex flex-center flex-column">
-    <i :class="['icon', {'icon-success':status==='success','icon-failed':status!=='success'}]"></i>
+  <!-- :close-on-click-overlay="false" -->
+  <van-popup v-model="showPopup" class="status-popUp flex flex-center flex-column" @close="closeModal">
+    <i :class="['icon', {'icon-success':status==='success','icon-failed':status==='fail','icon-warning':status==='warning'}]"></i>
     <span class="main-txt">{{ title }}</span>
     <span class="supplement-txt" v-show="status==='success' && timeTxt">{{ timeTxt }}</span>
-    <span class="supplement-txt" v-show="status==='success' && tip">{{ tip }}</span>
+    <span class="supplement-txt" v-show="(status==='success'||status==='warning') && tip">{{ tip }}</span>
     <van-button block color="#495ABF" class="button" @click="submitOk">{{ buttonTxt}}</van-button>
   </van-popup>
 </template>
@@ -42,11 +43,15 @@ export default {
     },
   },
   methods: {
+    closeModal() {
+      this.showPopup = false;
+      this.$emit('childEvent',{show: false, submit: false});
+    },
     submitOk() {
       if (this.needColse) {
         this.showPopup = false;
       }
-      this.$emit('childEvent',{show: false});
+      this.$emit('childEvent',{show: false, submit: true});
     },
   },
 }

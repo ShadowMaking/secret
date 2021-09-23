@@ -33,8 +33,7 @@ $footerHeight: 270px;
   padding-bottom: 50px;
   overflow: hidden;
 }
-
-@media screen and (min-width: 768px) {
+@media screen and (min-width: 769px) {
   #app {
     width: rem(350);
     border: rem(1) solid #eee;

@@ -32,3 +32,10 @@ export const compareDate = (arrKey, align='positive') => (a,b) => {
     return  y.minus(x)
   }
 }
+
+export const retainDecimals = (value, n) => {
+  if (parseFloat(value) === 0) {
+    return parseFloat(value).toFixed(1)
+  }
+  return Math.round(value*Math.pow(10, n)) / Math.pow(10, n)
+}

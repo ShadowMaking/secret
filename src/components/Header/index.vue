@@ -8,9 +8,15 @@
         </div>
         <img :src="DEFAULTIMG.LOGO" class="logo" @click="toPageHome" v-show="$route.name==='home'"/>
       </div>
-      <span slot="right" v-if="address!==''"  class="header-address"  @click="copyHash()">{{ `${address.slice(0,6)}...${address.slice(-4)}` }}</span>
+      <span slot="right" v-if="address!==''"  class="header-address"  @click="showAccoutAddress">
+        {{ `${address.slice(0,6)}...${address.slice(-4)}` }}
+        <i class="link-icon"></i>
+      </span>
       <div slot="right" v-else >
-        <a @click="chooseWallet" class="linkWallet">Connect Wallet</a>
+        <a @click="chooseWallet" class="linkWallet">
+          <span>Connect Wallet</span>
+          <i class="link-icon"></i>
+        </a>
         <i class="icon night" style="display:none"></i>
         <i class="icon language" style="display:none"></i>
       </div>
@@ -23,8 +29,24 @@
         </div>
       </div>
     </van-popup>
+    <van-popup v-model="showAccountPopup" round key="showAccount">
+      <div class="show-accrout-address-popup">
+        <div class="header"><h3>Account</h3></div>
+        <div class="inner-wraper">
+          <div class="flex flex-content-between">
+            <span>Connected to Metamask</span>
+            <a class="disconnect" @click="disconnect">Disconnect</a>
+          </div>
+          <div class="address">{{ address }}</div>
+          <div class="flex">
+            <a class="copy-a" @click="copyAddress"><i class="a-icon "></i>Copy Address</a>
+            <a class="view-in-explorer-a" @click="toExplorer"><i class="a-icon"></i>View in Explorer</a>
+          </div>
+        </div>
+      </div>
+    </van-popup>
     <v-walletstatus :show="installWalletModal" key="installWalletModal" />
-    <v-netTipPopup :show="showNetTip" key="netTipModal" />
+    <v-netTipPopup :show="showNetTip" key="netTipModal" :showType="expectNetType" />
   </div>
 </template>
 
@@ -35,8 +57,9 @@ import { DEFAULTIMG } from '@/utils/global';
 import { Popup, Button as VanButton, Toast, Icon } from 'vant';
 import WalletStatus from '@/components/WalletStatus';
 import NetTipModal from '@/components/NetTipModal';
-import { getSelectedChainID, getInjectedWeb3, getNetMode, initBrideByTransanctionType } from '@/utils/web3'
+import { getSelectedChainID, getNetMode, getExpectNetTypeByRouteName, metamaskIsConnect } from '@/utils/web3'
 import { copyTxt, isPc } from '@/utils/index';
+import { initTokenTime, updateLoginTime, removeTokens, tokenIsExpires } from '@/utils/auth'
 
 Vue.use(Popup);
 Vue.use(VanButton);
@@ -55,6 +78,7 @@ export default {
       address: '',
       walletIsLock: true,
       showNetTip: false,
+      showAccountPopup: false,
     }
   },
   components: {
@@ -65,9 +89,14 @@ export default {
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall
     },
+    expectNetType() {
+      return getExpectNetTypeByRouteName(this.$route.name)
+    },
   },
   watch: {
-    '$store.state.metamask.accountsArr': function (res) { }
+    '$store.state.metamask.accountsArr': function (res) {
+      this.address = res.length&&res[0] || ''
+    }
   },
   methods: {
     checkBrower() {
@@ -85,10 +114,23 @@ export default {
           return 'Withdraw';
       }
     },
-    copyHash() {
+    showAccoutAddress() {
+      this.showAccountPopup = true;
+    },
+    copyAddress() {
       if (copyTxt(this.address)) {
-        Toast.success('copy success');
+        Toast.success('Success');
       }
+    },
+    toExplorer() {
+      window.open(`//explorer.ieigen.com/#/address?adr=${this.address}`)
+    },
+    async disconnect() {
+      await this.$store.dispatch("WalletAccountsAddress", {accounts:[]})
+      await this.$store.dispatch('WalletLockStatus', {isLock: true});
+      this.$eventBus.$emit('disconnect');
+      removeTokens();
+      this.showAccountPopup = false;
     },
     back() {
       this.$router.go(-1);
@@ -110,34 +152,43 @@ export default {
         this.installWalletModal = true;
       } else {
         // check netType
-        const { networkId } = await getInjectedWeb3();
+        const networkId = getSelectedChainID();
         const netMode = getNetMode(networkId);
-        if (netMode !== "l1" && netMode !== "l2") {
+        const disabled = this.expectNetType === 'l1' && netMode !== "l1" || this.expectNetType === 'l2' && netMode !== "l2"
+        if (netMode !== "l1" && netMode !== "l2" || disabled) {
           this.showNetTip = true;
           return
         }
-        await ethereum.request({
-          method: 'wallet_requestPermissions',
-          params:  [{ "eth_accounts": {} }]
-        })
+        if (!metamaskIsConnect()) {
+          await ethereum.request({
+            method: 'wallet_requestPermissions',
+            params:  [{ "eth_accounts": {} }]
+          })
+        }
         const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
-        const selectedAccountAddress = accounts[0];
+        const selectedAccountAddress = window.ethereum.selectedAddress;
+        await this.$store.dispatch("WalletAccountsAddress", {accounts})
         console.log('currentSelectedAccountAddress', selectedAccountAddress)
-        const message = `
-          Access Eigen account.
-          Only sign this message for a trusted client!
-        `;
-        const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), selectedAccountAddress);
-        console.log('signRes', signRes)
-        let _isLock = true;
-        // when signRes has value declare sign sucess
-        signRes!==undefined && (_isLock = false);
 
+        let signRes;
+        let _isLock = true;
+        if (tokenIsExpires()) {
+          const message = `
+            Access Eigen account.
+            Only sign this message for a trusted client!
+          `;
+          // when signRes has value declare sign sucess
+          signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), selectedAccountAddress);
+          signRes!==undefined && (_isLock = false)
+          signRes!==undefined && (initTokenTime())
+        } else {
+          _isLock = false
+          updateLoginTime()
+        }
+        console.log('signRes', signRes)
         this.walletIsLock = _isLock;
         await this.$store.dispatch('WalletLockStatus', {isLock: _isLock});
         this.$eventBus.$emit('updateAddress', {address: selectedAccountAddress});
-        this.updateAddress({address: selectedAccountAddress})
-        // await ethereum.request({ method: 'eth_personalSign' });
         this.checkNetPair()
       }
     },
@@ -148,14 +199,22 @@ export default {
       const netId = getSelectedChainID();
       console.log('netId', netId)
     },
-    handleWatchResetStatus() {
+    handleDisconnect() {
       this.address = '';
+      this.walletIsLock = true;
+    },
+    handleAccountsChanged(data) {
+      this.address = data.accounts.length&&data.accounts[0] || ''
+    },
+    handleChainChanged() {
       this.walletIsLock = true;
     },
   },
   async mounted() {
     this.$eventBus.$on('updateAddress', this.updateAddress);
-    this.$eventBus.$on('resetStatus', this.handleWatchResetStatus);
+    this.$eventBus.$on('chainChanged', this.handleChainChanged);
+    this.$eventBus.$on('accountsChanged', this.handleAccountsChanged);
+    this.$eventBus.$on('disconnect', this.handleDisconnect);
   },
 };
 </script>
