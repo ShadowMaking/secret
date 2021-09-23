@@ -26,6 +26,17 @@
     border-radius: rem(14);
     padding: rem(5) rem(10);
     font-size: rem(15);
+    i.link-icon{
+      background: url("~@/assets/icon_link_blue.png") center center no-repeat;
+      background-size: 100% 100%;
+    }
+  }
+  .link-icon {
+    display: inline-block;
+    width: rem(12);
+    height: rem(12);
+    vertical-align: middle;
+    margin: 0 rem(5);
   }
   .linkWallet {
     color: #236BFB; vertical-align: middle; display: inline-block; margin-top: 2px;
@@ -36,6 +47,10 @@
     color: #333333;
     font-family: PingFangSC-Regular, PingFang SC;
     font-weight: 400;
+    i.link-icon{
+      background: url("~@/assets/icon_link_black.png") center center no-repeat;
+      background-size: 100% 100%;
+    }
   }
   .icon {
     width: rem(20);
@@ -66,6 +81,61 @@
       background-size: 100% 100%;
       vertical-align: middle;
       margin-right: rem(15);
+    }
+  }
+}
+
+.show-accrout-address-popup {
+  width: 100%;
+  min-width: 300px;
+  background: #FFFFFF;
+  border-radius: rem(20) rem(20) 0px 0px;
+  padding: rem(10);
+  .header{
+    margin-bottom: 10px;
+    padding: 0 10px;
+    h3 {
+      font-size: rem(20);
+      color: #333;
+    }
+  }
+  .inner-wraper {
+    background: #fafafa;
+    padding: 15px 10px;
+    border-radius: 8px;
+    font-size: rem(15);
+    color: #606265;
+    .address {
+      color: #333;
+      margin: 20px 0;
+      font-size: rem(16);
+      line-height: 24px;
+    }
+    a{
+      color: #606265;
+    }
+    a.disconnect{
+      padding: 5px;
+      background: #E4E6F5;
+      color: #495ABE;
+      font-size: rem(12);
+      border-radius: 8px;
+    }
+    .a-icon {
+      display: inline-block;
+      width: rem(15);
+      height: rem(15);
+      vertical-align: middle;
+      margin-right: 5px;
+    }
+    .copy-a { margin-right: 15px;}
+    .copy-a i {
+      background: url("~@/assets/icon_copy.png") center center no-repeat;
+      background-size: 100% 100%;
+    }
+    .view-in-explorer-a i {
+      background: url("~@/assets/icon_out.png") center center no-repeat;
+      background-size: 100% 100%;
     }
   }
 }

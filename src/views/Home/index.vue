@@ -29,7 +29,7 @@
       </div>
       <div class="flex page-home-opt-wrap">
         <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('deposit')">Deposit</mt-button>
-        <mt-button type="primary" size="large" class="button button-with-radius" @click="toPage('transfer')">Send</mt-button>
+        <mt-button type="primary" size="large" class="button button-with-radius" @click="toPage('send')">Send</mt-button>
         <mt-button type="default" size="large" class="button button-with-radius" @click="toPage('withdraw')">Withdraw</mt-button>
       </div>
     </div>
@@ -37,7 +37,7 @@
       <v-unlockwallet key="unlockWalletButton" />
     </div>
     <v-exchangeList key="comon-exchangeList" type="all" v-show="!walletIsLock" />
-    <v-netTipPopup :show="showNetTip" key="netTipModal" :showType="expectNetType"/>
+    <v-netTipPopup :show="showNetTip" key="netTipModal" :showType="expectNetType" @childEvent="closeNetTip" />
     <v-walletstatus :show="installWalletModal" key="installWalletModal" @childEvent="closeWalletstatusPop" />
   </div>
 </template>
@@ -49,17 +49,17 @@ import { Col, Row } from 'vant';
 import ExchangeList from '@/components/ExchangeList';
 import UnlockWallet from '@/components/UnlockWallet';
 import WalletStatus from '@/components/WalletStatus';
-import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
+import { utils } from 'ethers'
 import { DEFAULTIMG } from '@/utils/global';
-import { getSelectedChainID, getInjectedWeb3, getNetMode, initBrideByTransanctionType } from '@/utils/web3'
+import { getSelectedChainID, getNetMode, initBrideByTransanctionType } from '@/utils/web3'
 import NetTipModal from '@/components/NetTipModal';
+import { retainDecimals } from '@/utils/number'
 
 Vue.component(Button.name, Button)
 Vue.component(Cell.name, Cell)
 Vue.component(Popup.name, Popup)
 Vue.use(Col);
 Vue.use(Row);
-const { parseEther } = utils;
 
 export default {
   name: 'Home',
@@ -86,7 +86,7 @@ export default {
   filters: {
     showAvailableBalance(amount) {
       if (!isNaN(amount)) {
-        return parseFloat(amount).toFixed(6)
+        return retainDecimals(amount, 6)
       }
       return amount
     }
@@ -114,6 +114,9 @@ export default {
     closeWalletstatusPop() {
       this.installWalletModal = false;
     },
+    closeNetTip() {
+      this.showNetTip = false;
+    },
     getExchangeDetail() {
       this.popupVisible = true;
     },
@@ -127,7 +130,7 @@ export default {
         this.$router.push({ name: pageType });
         return
       }
-      const { provider, networkId } = await getInjectedWeb3();
+      const networkId = getSelectedChainID();
       const netMode = getNetMode(networkId);
       switch(pageType) {
         case "deposit":
@@ -138,13 +141,13 @@ export default {
           }
           this.$router.push({ name: 'deposit' })
           break;
-        case "transfer":
+        case "send":
           if (netMode !== 'l2') {
             this.expectNetType = 'l2';
             this.showNetTip = true;
             return
           }
-          this.$router.push({ name: 'transfer' })
+          this.$router.push({ name: 'send' })
           break;
         case "withdraw":
           if (netMode !== 'l2') {
@@ -171,37 +174,6 @@ export default {
       this.balance = '0.0'
       this.balanceL1 = '0.0'
       this.balanceL2 = '0.0'
-    },
-    async unlockWallet() {
-      if (this.metamaskInstall) {
-        const accounts = this.$store.state.metamask.accountsArr;
-        if (accounts.length === 0) { // not login
-          // await ethereum.request({ method: 'eth_requestAccounts' });
-          await ethereum.request({
-            method: 'wallet_requestPermissions',
-            params:  [{ "eth_accounts": {} }]
-          })
-          const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
-          const selectedAccountAddress = accounts[0];
-          const message = `
-            Access Eigen account.
-            Only sign this message for a trusted client!
-          `;
-          const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), selectedAccountAddress);
-
-          await this.$store.dispatch("WalletAccountsAddress", {accounts})
-          let _isLock = true;
-          // when signRes has value declare sign sucess
-          signRes!==undefined && (_isLock = false);
-
-          this.walletIsLock = _isLock;
-          await this.$store.dispatch('WalletLockStatus', {isLock: _isLock});
-          this.$eventBus.$emit('updateAddress', {address: selectedAccountAddress});
-          // this.checkNetPair()
-          return
-        }
-      }
-      this.installWalletModal = true;
     },
     async updateAvailableBanlanceForL1L2(balanceObj) {
       const netMode = getNetMode();
@@ -237,7 +209,9 @@ export default {
       await this.updateAvailableBanlanceForL1L2();
     }
     this.$eventBus.$on('updateAvailableBanlanceForL1L2', this.updateAvailableBanlanceForL1L2);
-    this.$eventBus.$on('resetStatus', this.handleWatchResetStatus);
+    this.$eventBus.$on('chainChanged', this.handleWatchResetStatus);
+    this.$eventBus.$on('accountsChanged', this.handleWatchResetStatus);
+    this.$eventBus.$on('disconnect', this.handleWatchResetStatus);
   },
   
 };

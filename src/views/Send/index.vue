@@ -1,6 +1,6 @@
 <template>
-  <div class="transfer-page">
-    <div class="transfer-toL2-tip flex">
+  <div class="send-page">
+    <div class="send-toL2-tip flex">
       <div><i class="info_icon"></i></div>
       <div class="flex flex-column">
         <p>Send to L2</p>
@@ -9,11 +9,11 @@
         </div>
       </div>
     </div>
-    <div class="transfer-opt-area">
+    <div class="send-opt-area">
       <div class="flex flex-center address-wrapper">
         <div class="address-wrapper-inner">
           <van-field
-            v-model="transferAddress"
+            v-model="sendAddress"
             rows="2"
             autosize
             label=""
@@ -26,12 +26,18 @@
         </div>
       </div>
       <span class="tip"><i class="info_icon"></i>Do not enter any exchange address!</span>
-      <v-tokenAmount key="tokenAmount-transfer" type="transfer" @childEvent="submitTransfer" />
+      <v-tokenAmount
+        key="tokenAmount-send"
+        type="send"
+        @childEvent="submitSend"
+        :address="sendAddress"
+        :buttonCode="tokenAmountButtonTxtCode"
+        :buttonTxt="tokenAmountButtonTxt" />
     </div>
     <v-exchangeList key="comon-exchangeList" type="L2ToL2" v-show="!walletIsLock" />
     <van-popup v-model="tipShow" class="safe-tip-toast" overlay-class="noneOverlay">
       <i class=""></i>
-      <span>Aaddress and Amount have been encrypted and protected!</span>
+      <span>Address and Amount have been encrypted and protected!</span>
     </van-popup>
     <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
       <div class="inner-wrapper">
@@ -49,7 +55,7 @@
     <van-popup v-model="showRefresh" class="status-popUp-refresh flex flex-center flex-column">
       <i class="icon icon-failed"></i>
       <span class="main-txt">No Transactions</span>
-      <span class="supplement-txt">Refresh to get histoty</span>
+      <span class="supplement-txt">Refresh to get history</span>
       <van-button block color="#495ABF" class="button" @click="retryAddHistory">{{ refreshing?"Refresh...":"Refresh"}}</van-button>
     </van-popup>
     <v-netTipPopup :show="showNetTip" key="netTipModal" showType="l2"/>
@@ -90,7 +96,7 @@ export default {
       // tip: 'You can check the transaction details in the transaction record',
       timeTxt: 'Will take effect in one minute',
       popStatus: "success",
-      transferAddress: '',
+      sendAddress: '',
       showNetTip: false,
       show: false,
       tipTxt: 'Confirm On The Wallet',
@@ -98,6 +104,8 @@ export default {
       addHistoryData: null,
       showRefresh: false,
       refreshing: false,
+      tokenAmountButtonTxtCode: 1,
+      tokenAmountButtonTxt: 'Enter The Amount',
     }
   },
   computed: {
@@ -110,19 +118,20 @@ export default {
   },
   methods: {
     changeVisible(eventInfo) {
+      // if (!eventInfo.submit) { return }
       this.showStatusPop = eventInfo.show;
     },
-    async submitTransfer(info) {
+    async submitSend(info) {
       this.showStatusPop = false;
-      const transferToAddress = this.transferAddress;
+      const toAddress = this.sendAddress;
       const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
       const selectedAccountAddress = accounts[0];
-      if (!utils.isAddress(transferToAddress)) {
+      if (!utils.isAddress(toAddress)) {
         Toast('Wrong Address')
         return
       }
       
-      if (transferToAddress.toLocaleUpperCase() === selectedAccountAddress.toLocaleUpperCase()) {
+      if (toAddress.toLocaleUpperCase() === selectedAccountAddress.toLocaleUpperCase()) {
         Toast("Don't enter your own address")
         return
       }
@@ -132,7 +141,7 @@ export default {
       const transferAmount = utils.parseEther(info.amount);
       const transferParams = [{
         from: selectedAccountAddress,
-        to: transferToAddress,
+        to: toAddress,
         gas: web3utils.toHex('21000'), // 21000的16进制 '0x5208
         gasPrice: '0',
         value: transferAmount.toHexString()
@@ -151,7 +160,7 @@ export default {
         const submitData = {
           txid: res,
           from: transferParams['from'] || selectedAccountAddress,
-          to: transferParams['to'] || transferToAddress,
+          to: transferParams['to'] || toAddress,
           type: TRANSACTION_TYPE['L2ToL2'],
           status: 1,
           value: info.amount
@@ -206,7 +215,14 @@ export default {
       }
     },
     handleAddressInputChange(value) {
-
+      this.sendAddress = value;
+      if (!utils.isAddress(value)) {
+        this.tokenAmountButtonTxt = 'Invalid Address'
+        this.tokenAmountButtonTxtCode = 2
+        return;
+      }
+      this.tokenAmountButtonTxt = 'Enter The Amount'
+      this.tokenAmountButtonTxtCode = 1
     },
     handleAddressInputFocus() {
       this.tipShow = true;

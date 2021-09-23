@@ -59,7 +59,7 @@
     <van-popup v-model="showRefresh" class="status-popUp-refresh flex flex-center flex-column">
       <i class="icon icon-failed"></i>
       <span class="main-txt">No Transactions</span>
-      <span class="supplement-txt">Refresh to get histoty</span>
+      <span class="supplement-txt">Refresh to get history</span>
       <van-button block color="#495ABF" class="button" @click="retryAddHistory">{{ refreshing?"Refresh...":"Refresh"}}</van-button>
     </van-popup>
     <v-netTipPopup :show="showNetTip" key="netTipModal" showType="l1"/>
@@ -127,6 +127,7 @@ export default {
       addHistoryData: null,
       showRefresh: false,
       refreshing: false,
+      defaultAddress: this.$store.state.metamask.accountsArr[0] || "",
     }
   },
   watch: {
@@ -151,9 +152,6 @@ export default {
     },
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall;
-    },
-    defaultAddress() {
-      return this.$store.state.metamask.accountsArr[0] || '';
     },
   },
   methods: {
@@ -286,7 +284,8 @@ export default {
         this.showNetTip = false;
       }
     },
-    changeVisible() {
+    changeVisible(eventInfo) {
+      if (!eventInfo.submit) { return }
       if (this.popStatus === 'success') {
         this.$router.push({ name: 'home' });
       }
@@ -308,6 +307,7 @@ export default {
   },
   mounted() {
     this.$eventBus.$on('chainChanged', this.handleChainChanged);
+    this.$eventBus.$on('updateAddress', (info)=>{ this.defaultAddress = info.address; });
   },
 }
 </script>

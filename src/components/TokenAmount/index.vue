@@ -100,15 +100,24 @@
         </div>
       </div>
     </van-popup>
+    <v-statusPop
+      status="warning"
+      title="Sign Lose Efficacy"
+      timeTxt=""
+      tip="Sign Again"
+      :show="showStatusPop"
+      @childEvent="changeVisible" />
   </div>
 </template>
 <script>
 import Vue from 'vue';
 import { Button, Col, Row, Field, Popup, Search } from 'vant';
 import UnlockWallet from '@/components/UnlockWallet';
+import StatusPop from '@/components/StatusPop';
 import { minus, lteZero, isZero } from '@/utils/number'
-import { providers, utils, Wallet, BigNumber, constants } from 'ethers'
+import { utils, BigNumber } from 'ethers'
 import { initBrideByTransanctionType } from '@/utils/web3'
+import { initTokenTime, updateLoginTime, tokenIsExpires } from '@/utils/auth'
 const { parseEther, formatEther } = utils;
 
 Vue.use(Button);
@@ -121,16 +130,18 @@ Vue.use(Search);
 export default {
   name: "common-recharge-amount",
   props: {
-    'type': String, // deposit | transfer | withdraw
+    'type': String, // deposit | send | withdraw
     'buttonCode': Number,
     'buttonTxt': {
       type: String,
       default: 'Enter The Amount'
     },
     'disabled': Boolean,
+    'address': String,
   },
   components: {
     "v-unlockwallet": UnlockWallet,
+    'v-statusPop': StatusPop,
   },
   filters: {
     showAvailableBalance(amount) {
@@ -148,7 +159,8 @@ export default {
       availableBalance: '0.0',
       buttonColor: '#A4ACDF',
       buttonDisabled: true,
-      buttonText: this.buttonTxt
+      buttonText: this.buttonTxt,
+      showStatusPop: false,
     }
   },
   watch: {
@@ -156,7 +168,7 @@ export default {
       this.buttonText = this.buttonTxt;
     },
     buttonCode: {
-      handler(newV, oldV) {
+      async handler(newV, oldV) {
         let buttonColor = this.buttonColor;
         let buttonDisabled = this.buttonDisabled;
         switch(newV) {
@@ -165,9 +177,10 @@ export default {
               buttonColor = 'A4ACDF'
               buttonDisabled = true;
             } else {
-              buttonColor = '#495ABE';
-              buttonDisabled = false;
-              this.buttonText = 'Confirm';
+              await this.setButtonStatusByBalance();
+              // buttonColor = '#495ABE';
+              // buttonDisabled = false;
+              // this.buttonText = 'Confirm';
             }
             break;
           case 2: // 2: 'invalid address'
@@ -197,13 +210,9 @@ export default {
   },
   computed: {
     expectNetType() {
-      if (this.type === 'deposit') {
-        return 'l1'
-      }
-      return 'l2'
+      return this.type === 'deposit' ? 'l1' : 'l2';
     },
     dynamicButtonTxt() {
-      // return this.buttonTxt;
       return this.buttonText;
     },
     metamaskInstall() {
@@ -216,7 +225,7 @@ export default {
       return !this.metamaskInstall || this.walletIsLock;
     },
     typeTxt() {
-      const erum = { deposit: 'Deposit', transfer: 'Send', withdraw: 'Withdraw' };
+      const erum = { deposit: 'Deposit', send: 'Send', withdraw: 'Withdraw' };
       return erum[this.type];
     },
   },
@@ -235,7 +244,30 @@ export default {
       this.showTokenSelect = true
     },
     submitTranction() {
+      // check sign wether lose effect
+      /* if (tokenIsExpires()) {
+        this.showStatusPop = true
+      } else {
+        this.$emit('childEvent',{amount: this.number});
+      } */
       this.$emit('childEvent',{amount: this.number});
+    },
+    changeVisible(eventInfo) {
+      this.showStatusPop = false
+      eventInfo.submit && (this.signToMetamask())
+    },
+    async signToMetamask() {
+      const selectedAccountAddress = window.ethereum.selectedAddress;
+      const message = `
+        Access Eigen account.
+        Only sign this message for a trusted client!
+      `;
+      // when signRes has value declare sign sucess
+      const signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), selectedAccountAddress);
+      if (signRes!==undefined) {
+        initTokenTime()
+        this.$emit('childEvent',{amount: this.number});
+      }
     },
     handleWatchResetStatus() {
       this.number = '';
@@ -255,26 +287,30 @@ export default {
         case 'withdraw':
           balance = await bridge.getAndUpdateL2EthBalance();
           break;
-        case 'transfer':
+        case 'send':
           balance = await bridge.getAndUpdateL2EthBalance();
           break;
       }
       return balance;
     },
     async handleInputTokenAmountChange(tokenAmount) {
+      this.number = tokenAmount
       if (!tokenAmount || isZero(tokenAmount)) {
         this.buttonText = 'Enter The Amount';
         this.buttonColor = '#A4ACDF';
         this.buttonDisabled = true;
         return;
       }
-      let availableBalance = this.availableBalance;
-      if (!availableBalance) {
-        let _availableBalance = await this.getAvailableBalance();
-        availableBalance = formatEther(_availableBalance);
+      if (!utils.isAddress(this.address)) {
+        this.buttonText = 'Invalid Address'
+        this.buttonColor = '#A4ACDF';
+        this.buttonDisabled = true;
+        return;
       }
-      const formatAmount = parseEther(tokenAmount);
-      const _minus  = minus(parseEther(availableBalance).toString(), formatAmount.toString())
+      await this.setButtonStatusByBalance(tokenAmount);
+    },
+    async setButtonStatusByBalance(tokenAmount) {
+      const _minus = await this.getMinus(tokenAmount||this.number);
       if (lteZero(_minus, false)) {
         this.buttonText = 'Insufficient Balance';
         this.buttonColor = '#A4ACDF';
@@ -284,7 +320,17 @@ export default {
         this.buttonColor = '#495ABE';
         this.buttonDisabled = false;
       }
+    },
+    async getMinus(tokenAmount) {
+      let availableBalance = this.availableBalance;
+      if (!availableBalance) {
+        let _availableBalance = await this.getAvailableBalance();
+        availableBalance = formatEther(_availableBalance);
+      }
+      const formatAmount = parseEther(tokenAmount);
+      const _minus  = minus(parseEther(availableBalance).toString(), formatAmount.toString())
       console.log(`ETH Balance-${availableBalance}；input ETH为-${formatEther(formatAmount)}`)
+      return _minus
     },
   },
   async mounted() {
@@ -294,7 +340,9 @@ export default {
         this.availableBalance = formatEther(balance);
       }
     }
-    this.$eventBus.$on('resetStatus', this.handleWatchResetStatus);
+    this.$eventBus.$on('chainChanged', this.handleWatchResetStatus);
+    this.$eventBus.$on('accountsChanged', this.handleWatchResetStatus);
+    this.$eventBus.$on('disconnect', this.handleWatchResetStatus);
   }
 }
 </script>

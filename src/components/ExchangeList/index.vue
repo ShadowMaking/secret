@@ -128,7 +128,7 @@ import { TRANSACTION_TYPE } from '@/api/transaction';
 import { Popup, Toast, Popover, List } from 'vant';
 import moment from 'moment'
 import { utils } from 'ethers';
-import { Bridge, OutgoingMessageState } from 'arb-ts';
+import { OutgoingMessageState } from 'arb-ts';
 import { initBrideByTransanctionType, getNetMode } from '@/utils/web3';
 import { copyTxt, isPc } from '@/utils/index';
 import { compareDate } from '@/utils/number';

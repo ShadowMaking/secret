@@ -27,6 +27,7 @@
         key="tokenAmount-withdraw"
         type="withdraw"
         @childEvent="submitWithdraw"
+        :address="withDrawAddress"
         :buttonCode="tokenAmountButtonTxtCode"
         :buttonTxt="tokenAmountButtonTxt" />
     </div>
@@ -47,7 +48,7 @@
     <van-popup v-model="showRefresh" class="status-popUp-refresh flex flex-center flex-column">
       <i class="icon icon-failed"></i>
       <span class="main-txt">No Transactions</span>
-      <span class="supplement-txt">Refresh to get histoty</span>
+      <span class="supplement-txt">Refresh to get history</span>
       <van-button block color="#495ABF" class="button" @click="retryAddHistory">{{ refreshing?"Refresh...":"Refresh"}}</van-button>
     </van-popup>
     <v-netTipPopup :show="showNetTip" key="netTipModal" showType="l2"/>
@@ -123,7 +124,8 @@ export default {
   },
   methods: {
     setMyAddress() { },
-    changeVisible() {
+    changeVisible(eventInfo) {
+      if (!eventInfo.submit) { return }
       if (this.popStatus === 'success') {
         this.$router.push({ name: 'home' });
       }
@@ -260,7 +262,6 @@ export default {
           return
         }
         console.log(error)
-        // Toast.fail(`未知错误`);
         this.showStatusPop = true;
         this.statusPopTitle = 'Withdraw Failed'
         this.popStatus = 'fail';

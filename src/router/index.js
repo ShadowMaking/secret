@@ -3,7 +3,7 @@ import VueRouter from 'vue-router';
 import Home from '../views/Home/index';
 
 const Deposit = () => import('../views/Deposit/index')
-const Transfer = () => import('../views/Transfer/index')
+const Send = () => import('../views/Send/index')
 const Withdraw = () => import('../views/Withdraw/index')
 
 // cache origin push method
@@ -54,13 +54,13 @@ const routes = [
     // component: () => import(/* webpackChunkName: "deposit" */ '../views/Deposit/index'),
   },
   {
-    path: '/transfer',
-    name: 'transfer',
+    path: '/send',
+    name: 'send',
     meta: {
-      title: "transfer"
+      title: "send"
     },
-    component: Transfer,
-    // component: () => import(/* webpackChunkName: "transfer" */ '../views/Transfer/index'),
+    component: Send,
+    // component: () => import(/* webpackChunkName: "send" */ '../views/Send/index'),
   },
   {
     path: '/withdraw',

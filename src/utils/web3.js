@@ -7,6 +7,7 @@ import { MessageBox } from 'mint-ui';
 import { dev_host } from '@/utils/global';
 import { NETWORKS } from '@/utils/netWork'
 // import { NETWORKS } from '@/utils/netWork_arb'
+import { initTokenTime, updateLoginTime } from '@/utils/auth'
 
 
 const NETWORK_VERSION = {
@@ -81,7 +82,7 @@ export const init = (callback) =>{
       .catch(function (reason) {
         if (reason === "User rejected provider access") {
         } else {
-          MessageBox('提示', "There was a problem signing you in");
+          MessageBox('Tip', "There was a problem signing you in");
         }
       }).then(function (accounts) {
         // if (ethereum.networkVersion !== NETWORK_VERSION['mian_ethernet]) { }
@@ -168,4 +169,25 @@ export const initBrideByTransanctionType = (transanctionType='l1') => {
     l2Signer,
   )
   return bridge
+}
+
+export const metamaskIsConnect = () => {
+  return window.ethereum && window.ethereum.selectedAddress
+}
+
+export const getExpectNetTypeByRouteName = (routeName) => {
+  let type = '';
+  switch (routeName) {
+    case 'deposit':
+      type = 'l1';
+      break;
+    case 'send':
+    case 'withdraw':
+      type = 'l2';
+      break;
+    default:
+      type = '';
+      break;
+  }
+  return type
 }

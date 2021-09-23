@@ -31,7 +31,7 @@ export const bridgeAboutWalletForRPC = () => {
 export async function getAvailableBalanceForL1() {
   const bridge = bridgeAboutWalletForRPC();
   const walletL1EthBalance = await bridge.getAndUpdateL1EthBalance();
-  // console.log('L1可用余额(wei): ',walletL1EthBalance.toString())
+  // console.log('L1 avalibale balance(wei): ',walletL1EthBalance.toString())
   return walletL1EthBalance
 }
 

@@ -19,19 +19,18 @@ module.exports = {
     hotOnly: false,
     /* proxy: {
       "/api": {
-        target: "http://dev-deliver-secret.eigen.com:8090",
-        // target: "http://rpc.ieigen.com",
+        target: "http://rpc.ieigen.com",
         changeOrigin: true,
         secure: false,
         ws: true,
         pathRewirte: {
-          "^/api": "/api"
+          "^/api": "/"
         }
       }
     }, */
     before: app => { }
   },
-  // 全局引入scss报错处理
+  // resolve import scss error in lobal
   css: {
     loaderOptions: {
       sass: {
@@ -51,15 +50,14 @@ module.exports = {
   },
   configureWebpack: config => {
     if (isProduction) {
-      // 开启gzip压缩
       config.plugins.push(new CompressionWebpackPlugin({
         algorithm: 'gzip',
         test: /\.js$|\.html$|\.json$|\.css/,  // test: /\.js$|\.html$|\.css/,
-        threshold: 10240,                     // 对超过10k的数据进行压缩
+        threshold: 10240,                     // deal > 10k file
         deleteOriginalAssets: false,
-        minRatio: 0.8                         // 只有压缩率小于这个值的资源才会被处理
+        minRatio: 0.8
       }))
-      // 开启分离js
+      // separate js
       /* config.optimization = {
         runtimeChunk: 'single',
         splitChunks: {
@@ -103,7 +101,7 @@ module.exports = {
               name: `chunk-common`,
               minChunks: 2,
               priority: -20,
-              minSize: 60000, // 大小超过60kb的模块才会被提取,防止一堆小chunck
+              minSize: 60000, // deal modules about size >60kb, avoid generate a lots of litter chunck
               chunks: 'initial',
               reuseExistingChunk: true
             }

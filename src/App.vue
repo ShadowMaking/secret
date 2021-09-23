@@ -16,7 +16,7 @@
   import NetTipModal from '@/components/NetTipModal';
   import { NETWORKS } from '@/utils/netWork'
   // import { NETWORKS } from '@/utils/netWork_arb'
-  import { checkMetamask } from "@/utils/auth";
+  import { checkMetamask, removeTokens } from "@/utils/auth";
 
   export default {
     name: 'APP',
@@ -55,6 +55,12 @@
             this.expectNetType="";
             break;
         }
+      },
+      hanleClick(ev) {
+        ev = ev || window.event;
+        // ev.preventDefault()
+        const target = ev.target || ev.srcElement
+        // console.log('click event')
       },
     },
     created () {
@@ -96,27 +102,26 @@
         });
         ethereum.on('disconnect', async (error) => {
           console.log('disconnect')
+          removeTokens()
         });
         ethereum.on('chainChanged', async (chainId) => {
           const netId = this.web3.utils.hexToNumberString(chainId)
           console.log('chainChanged', netId)
           this.checkNet(netId);
+          await this.$store.dispatch("WalletAccountsAddress", {accounts:[]})
+          await this.$store.dispatch('WalletLockStatus', {isLock: true});
           this.$eventBus.$emit('chainChanged', {netId, showTip: this.showNetTip });
-          // if (this.showNetTip) {
-            // reset wallet status
-            await this.$store.dispatch("WalletAccountsAddress", {accounts:[]})
-            await this.$store.dispatch('WalletLockStatus', {isLock: true});
-            this.$eventBus.$emit('resetStatus');
-          // }
+          removeTokens()
         });
         ethereum.on('accountsChanged', async (accounts) => {
           console.log('accountsChanged', accounts)
           await this.$store.dispatch("WalletAccountsAddress", {accounts})
           await this.$store.dispatch('WalletLockStatus', {isLock: true});
-          this.$eventBus.$emit('resetStatus');
+          this.$eventBus.$emit('accountsChanged', { accounts });
           if (accounts.length === 0) { // disconnect 
             console.log('disconnect')
           }
+          removeTokens()
         });
       }
       this.$router.beforeEach((to, from, next) => {
@@ -126,7 +131,13 @@
         this.setExpectNetType(to.name);
         next();
       })
-    },
+
+      /* document.onclick = _.throttle(this.hanleClick);
+      document.ontouchend = _.throttle(this.hanleClick); */
+      
+      // document.ontouchstart = _.throttle(this.hanleClick);
+      // document.onscroll = _.throttle(this.hanleClick);
+    }
   }
 </script>
 
