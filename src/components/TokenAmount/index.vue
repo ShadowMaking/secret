@@ -301,7 +301,7 @@ export default {
         this.buttonDisabled = true;
         return;
       }
-      if (!utils.isAddress(this.address)) {
+      if (this.address && !utils.isAddress(this.address) && this.type !== 'deposit') {
         this.buttonText = 'Invalid Address'
         this.buttonColor = '#A4ACDF';
         this.buttonDisabled = true;
