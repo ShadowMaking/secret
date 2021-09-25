@@ -106,6 +106,7 @@ export default {
         params,
         id: 0
       })
+      this.closePopup()
     },
   },
 }

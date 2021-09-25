@@ -45,7 +45,7 @@
         </div>
       </div>
     </van-popup>
-    <v-walletstatus :show="installWalletModal" key="installWalletModal" />
+    <v-walletstatus :show="installWalletModal" key="installWalletModal" :installOtherWallet="installOtherWallet" />
     <v-netTipPopup :show="showNetTip" key="netTipModal" :showType="expectNetType" />
   </div>
 </template>
@@ -57,7 +57,7 @@ import { DEFAULTIMG } from '@/utils/global';
 import { Popup, Button as VanButton, Toast, Icon } from 'vant';
 import WalletStatus from '@/components/WalletStatus';
 import NetTipModal from '@/components/NetTipModal';
-import { getSelectedChainID, getNetMode, getExpectNetTypeByRouteName, metamaskIsConnect } from '@/utils/web3'
+import { getSelectedChainID, getNetMode, getExpectNetTypeByRouteName, metamaskIsConnect, installWeb3Wallet } from '@/utils/web3'
 import { copyTxt, isPc } from '@/utils/index';
 import { initTokenTime, updateLoginTime, removeTokens, tokenIsExpires } from '@/utils/auth'
 
@@ -79,6 +79,7 @@ export default {
       walletIsLock: true,
       showNetTip: false,
       showAccountPopup: false,
+      installOtherWallet: false,
     }
   },
   components: {
@@ -147,10 +148,8 @@ export default {
     // unlock wallet and sign
     async connectWallet() {
       this.popupVisible = false;
-      
-      if (!this.metamaskInstall) {
-        this.installWalletModal = true;
-      } else {
+
+      if (this.metamaskInstall) {
         // check netType
         const networkId = getSelectedChainID();
         const netMode = getNetMode(networkId);
@@ -190,6 +189,15 @@ export default {
         await this.$store.dispatch('WalletLockStatus', {isLock: _isLock});
         this.$eventBus.$emit('updateAddress', {address: selectedAccountAddress});
         this.checkNetPair()
+        return
+      }
+      this.installWalletModal = true;
+      // exist install other web3 wallet
+      if (!installWeb3Wallet()) {
+        this.installOtherWallet = false
+      } else {
+        console.log('already install other web3 wallet')
+        this.installOtherWallet = true
       }
     },
     updateAddress(info) {
