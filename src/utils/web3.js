@@ -172,7 +172,11 @@ export const initBrideByTransanctionType = (transanctionType='l1') => {
 }
 
 export const metamaskIsConnect = () => {
-  return window.ethereum && window.ethereum.selectedAddress
+  return window.ethereum && window.ethereum.isMetaMask && window.ethereum.selectedAddress
+}
+
+export const installWeb3Wallet = () => {
+  return typeof window.ethereum !== "undefined"
 }
 
 export const getExpectNetTypeByRouteName = (routeName) => {

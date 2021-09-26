@@ -4,20 +4,38 @@
   width: rem(300);
   border: rem(1) solid #ccc;
   border-radius: rem(10);
-  padding: rem(50) 0 rem(20);
-  .install-button-outer {
-    border: rem(1) solid #AA2E26;
-    border-radius: rem(10);
+  .detect-metamask {
+    padding: rem(50) 0 rem(20);
+    .install-button-outer {
+      border: rem(1) solid #AA2E26;
+      border-radius: rem(10);
+    }
+    .install-button{
+      width: rem(180);
+      border-radius: rem(10);
+      border: none;
+    }
+    .install-guid {
+      display: block;
+      margin: rem(15);
+      font-size: rem(13);
+      a { color: #733EE4;}
+    }
   }
-  .install-button{
-    width: rem(180);
-    border-radius: rem(10);
-    border: none;
-  }
-  .install-guid {
-    display: block;
-    margin: rem(15);
-    font-size: rem(13);
-    a { color: #733EE4;}
+  .otherWalletTipCon {
+    padding: rem(20) rem(14) rem(30);
+    .tip-title {
+      font-size: rem(16);
+      font-weight: 600;
+      margin-bottom: 10px;
+      margin-bottom: rem(20);
+    }
+    span{
+      display: block;
+      margin-bottom: 3px;
+      font-size: rem(12);
+      a { color: #733EE4;}
+      a:hover { text-decoration: underline;}
+    }
   }
 }

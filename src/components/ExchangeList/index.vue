@@ -70,7 +70,7 @@
     <div class="seeMore" v-show="allList.length>20"><a @click='toBroswer'>see more</a></div>
     <!-- get-container="#app"  -->
     <!-- Transaction Details -->
-    <van-popup v-model="popupVisible" round :position="checkBrower()" get-container="#app"   :style="{ minHeight: '40%' }" class="common-bottom-popup exchange-detail-popup">
+    <van-popup v-model="transactionDetailVisible" round :position="checkBrower()" get-container="#app"   :style="{ minHeight: '40%' }" class="common-bottom-popup exchange-detail-popup">
       <div class="common-exchange-detail-wrap">
         <div class="header">
           <h3>Transaction Details</h3>
@@ -119,6 +119,7 @@
         <span class="tip">Waiting...</span>
       </div>
     </van-popup>
+    <v-netTipPopup :show="showNetTip" key="netTipModal-transactionlist" showType="l2" @childEvent="closeNetTip"/>
   </div>
 </template>
 <script>
@@ -132,6 +133,7 @@ import { OutgoingMessageState } from 'arb-ts';
 import { initBrideByTransanctionType, getNetMode } from '@/utils/web3';
 import { copyTxt, isPc } from '@/utils/index';
 import { compareDate } from '@/utils/number';
+import NetTipModal from '@/components/NetTipModal';
 
 Vue.use(Popup);
 Vue.use(Popover);
@@ -145,12 +147,15 @@ export default {
       default: 'all'
     },
   },
+  components: {
+    "v-netTipPopup": NetTipModal,
+  },
   data() {
     return {
       TRANSACTION_TYPE,
       showPopover: false,
       DEFAULTIMG,
-      popupVisible: false,
+      transactionDetailVisible: false,
       allList: [],
       historyList: [],
       showUpdate: false,
@@ -158,6 +163,7 @@ export default {
       infoRecord: null,
       show: false,
       loadingHistoryList: false,
+      showNetTip: false,
     }
   },
   computed: {
@@ -173,6 +179,10 @@ export default {
     }
   },
   methods: {
+    closeNetTip() {
+      this.showNetTip = false;
+      this.transactionDetailVisible = false;
+    },
     checkBrower() {
       if (isPc()) { return 'center' };
       return 'bottom';
@@ -267,7 +277,7 @@ export default {
       console.log('record', record);
       this.infoRecord = record;
       this.detaiInfo = info;
-      this.popupVisible = true;
+      this.transactionDetailVisible = true;
       if (record.status === '0') {
         console.log('need refresh')
         this.showUpdate = true
@@ -278,7 +288,8 @@ export default {
       // judge the networkType
       const netType = getNetMode();
       if (netType !== 'l2') {
-        Toast('Need change network to L2');
+        console.log('Need change network to L2');
+        this.showNetTip = true;
         return;
       }
       const info = this.infoRecord;
@@ -352,11 +363,11 @@ export default {
             status: 2,
           })
           .then(res=>{
-            this.popupVisible = false;
+            this.transactionDetailVisible = false;
             this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
           })
           .catch(err=>{
-            this.popupVisible = false;
+            this.transactionDetailVisible = false;
             Toast.fail(`Refresh success，but error whenupdate history`);
           })
         }

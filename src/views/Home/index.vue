@@ -38,7 +38,7 @@
     </div>
     <v-exchangeList key="comon-exchangeList" type="all" v-show="!walletIsLock" />
     <v-netTipPopup :show="showNetTip" key="netTipModal" :showType="expectNetType" @childEvent="closeNetTip" />
-    <v-walletstatus :show="installWalletModal" key="installWalletModal" @childEvent="closeWalletstatusPop" />
+    <v-walletstatus :show="installWalletModal" key="installWalletModal" @childEvent="closeWalletstatusPop" :installOtherWallet="installOtherWallet" />
   </div>
 </template>
 
@@ -51,7 +51,7 @@ import UnlockWallet from '@/components/UnlockWallet';
 import WalletStatus from '@/components/WalletStatus';
 import { utils } from 'ethers'
 import { DEFAULTIMG } from '@/utils/global';
-import { getSelectedChainID, getNetMode, initBrideByTransanctionType } from '@/utils/web3'
+import { getSelectedChainID, getNetMode, initBrideByTransanctionType, installWeb3Wallet } from '@/utils/web3'
 import NetTipModal from '@/components/NetTipModal';
 import { retainDecimals } from '@/utils/number'
 
@@ -81,6 +81,7 @@ export default {
       balanceL1: '0.0',
       balanceL2: '0.0',
       refreshLoading: false,
+      installOtherWallet: false,
     }
   },
   filters: {
@@ -122,10 +123,21 @@ export default {
     },
     async toPage(pageType) {
       this.showNetTip = false;
-      if (!this.metamaskInstall) {
+
+      if (!installWeb3Wallet()) {
         this.installWalletModal = true;
+        this.installOtherWallet = false
         return
       }
+
+      // exist install other web3 wallet
+      if (installWeb3Wallet() && !this.metamaskInstall) {
+        console.log('already install other web3 wallet')
+        this.installWalletModal = true;
+        this.installOtherWallet = true
+        return
+      }
+
       if (this.showUnlockWalletButton) {
         this.$router.push({ name: pageType });
         return

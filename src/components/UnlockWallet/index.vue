@@ -4,7 +4,7 @@
       <div :class="['flex', 'flex-center', {'margin10':!showLockIcon}]"><img :src="DEFAULTIMG.LOCK" v-show="showLockIcon"/></div>
       <mt-button type="primary" size="large" class="button button-large" @click="unlockWallet">Unlock Wallet</mt-button>
     </div>
-    <v-walletstatus :show="installWalletModal" key="installWalletModal" @childEvent="closeWalletstatusPop" />
+    <v-walletstatus :show="installWalletModal" key="installWalletModal" @childEvent="closeWalletstatusPop" :installOtherWallet="installOtherWallet" />
     <v-netTipPopup :show="showNetTip" key="netTipModal-1" :showType="netTipPopupShowType" @childEvent="closeNetTip"/>
   </div>
 </template>
@@ -15,7 +15,7 @@ import { Button } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
 import WalletStatus from '@/components/WalletStatus';
 import NetTipModal from '@/components/NetTipModal';
-import { getSelectedChainID, getNetMode, metamaskIsConnect } from '@/utils/web3'
+import { getSelectedChainID, getNetMode, metamaskIsConnect, installWeb3Wallet } from '@/utils/web3'
 import { initTokenTime, updateLoginTime, tokenIsExpires } from '@/utils/auth'
 
 Vue.component(Button.name, Button)
@@ -39,6 +39,7 @@ export default {
       DEFAULTIMG,
       installWalletModal: false,
       showNetTip: false,
+      installOtherWallet: false
     }
   },
   computed: {
@@ -99,7 +100,16 @@ export default {
         this.$eventBus.$emit('updateAvailableBanlanceForL1L2');
         return
       }
+
       this.installWalletModal = true;
+
+      // exist install other web3 wallet
+      if (!installWeb3Wallet()) {
+        this.installOtherWallet = false
+      } else {
+        console.log('already install other web3 wallet')
+        this.installOtherWallet = true
+      }
     },
     async handleChainChanged({netId, showTip}) {
       const netMode = getNetMode(netId);
