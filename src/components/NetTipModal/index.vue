@@ -125,7 +125,9 @@ export default {
       this.closeNetTipPopup();
       const netType = this.expectSwitchNetType;
       const params = [];
+      let chainId;
       if (netType === 'l1') {
+        chainId = L1ChainID
         params.push({
           "chainId": L1ChainID, // Hexadecimal
           "chainName": "SecretL1",
@@ -134,6 +136,7 @@ export default {
         })
       }
       if (netType === 'l2') {
+        chainId = L2ChainID
         params.push({
           "chainId": L2ChainID,
           "chainName": "SecretL2",
@@ -148,7 +151,7 @@ export default {
         id: 0
       })
       .then(res=>{
-        callback && callback(res)
+        callback && callback(res, this.web3.utils.hexToNumberString(chainId))
       })
       .catch(err=>console.log(err))
     },
@@ -169,11 +172,11 @@ export default {
     },
     // TODO
     async confirmAddToken() {
-      this.switchNet(async res=>{
+      this.switchNet(async (res, chainId)=>{
         // confirm already switch net
-        const mode = getNetMode(getSelectedChainID())
-        if (mode !== "l1" || mode !== "l2") { return }
+        const mode = getNetMode(chainId || getSelectedChainID())
         const netType = this.expectSwitchNetType;
+        if (netType !== mode) { return }
         if (netType === 'l1') {
           const L1PromiseSequence = [];
           TOKEN_L1.forEach(async item => {
