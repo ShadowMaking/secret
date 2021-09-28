@@ -1,5 +1,5 @@
 
-
+.token-tip-modal,
 .net-tip-modal {
   padding: rem(20);
   width: rem(300);
@@ -18,5 +18,12 @@
       color: #236BFB;
       margin: rem(5);
     }
+  }
+}
+.token-tip-modal {
+  padding: 0 rem(20) rem(20);
+  .tip-content {
+    margin: 5px 0 0;
+    line-height: 20px;
   }
 }
