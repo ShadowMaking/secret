@@ -168,29 +168,6 @@ export default {
       const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
       console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString())
     },
-    initBridge() {
-      const connectAddress = window.ethereum.selectedAddress;
-      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
-      const netId = getSelectedChainID();
-      const currentNet = NETWORKS[netId];
-      const partnerNet = NETWORKS[currentNet['partnerChainID']];
-      const tokenBridge = currentNet['tokenBridge'];
-
-      const ethProvider = metamaskProvider
-      const arbProvider = new ethers.providers.JsonRpcProvider(
-        partnerNet['url']
-      )
-      const l1Signer = ethProvider.getSigner(0);
-      const l2Signer = arbProvider.getSigner(connectAddress);
-      const bridge = new Bridge(
-        tokenBridge['l1Address'],
-        tokenBridge['l2Address'],
-        l1Signer,
-        l2Signer,
-      )
-      this.bridge = bridge;
-      return bridge
-    },
     depositFailed(error) {
       this.show = false;
       if (error.code == '4001') {
@@ -237,7 +214,7 @@ export default {
       const { symbol } = info.tokenInfo
       const tokenAddress = getTokenAddress(symbol)
       // bridge.deposit(tokenAddress, BigNumber.from('800'))
-      bridge.deposit(tokenAddress, BigNumber.from(info.amount))
+      bridge.deposit(tokenAddress, this.web3.utils.toHex(info.amount*1000000000000000000))
       .then(async res=>{
         await this.depositSuccess(res, info)
       })
