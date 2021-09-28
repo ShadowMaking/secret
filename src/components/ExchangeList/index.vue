@@ -6,14 +6,14 @@
       <div class="exchange-list" v-if="historyList.length>0 && !walletIsLock">
         <mt-cell is-link class="exchange-list-item"  v-for="(item,index) in historyList" :key="`history-${index}`" @click.native="getExchangeDetail(item)">
           <div slot="title" class="flex flex-column transaction-type-info">
-            <span class="transaction-title"><i :class="iconClass(item)"></i>{{ item.typeTxt }} ETH</span>
+            <span class="transaction-title"><i :class="iconClass(item)"></i>{{ item.typeTxt }} {{ item.name }}</span>
             <span class="exchange-status pending" v-show="showStatus(item)">Confirming</span>
             <span class="exchange-status success" v-show="showStatusSuccess(item)">Succeed</span>
             <span class="exchange-status fail" v-show="showStatusFail(item)">Failed</span>
           </div>
           <div class="flex flex-column transaction-amount-info">
             <span class="exchange-amount">
-              {{exchangeValue(item)}} ETH
+              {{exchangeValue(item)}} {{ item.name }}
               <span style="display:none">($ {{item.gasPrice}})</span>
             </span>
             <span class="exchange-time">{{item.dateTitme}}</span>
@@ -130,7 +130,7 @@ import { Popup, Toast, Popover, List } from 'vant';
 import moment from 'moment'
 import { utils } from 'ethers';
 import { OutgoingMessageState } from 'arb-ts';
-import { initBrideByTransanctionType, getNetMode } from '@/utils/web3';
+import { initBrideByNetType, getNetMode } from '@/utils/web3';
 import { copyTxt, isPc } from '@/utils/index';
 import { compareDate } from '@/utils/number';
 import NetTipModal from '@/components/NetTipModal';
@@ -241,9 +241,9 @@ export default {
       return item.value
     },
     getExchangeDetail(record) {
-      const { typeTxt, createdAt, value, type, status } = record;
+      const { typeTxt, createdAt, value, type, status, name } = record;
       const date = moment(createdAt).format('DD/MM/YYYY HH:mm:ss')
-      const opt = `${typeTxt} ${value} ETH`;
+      const opt = `${typeTxt} ${value} ${name}`;
       let statusTxt = '';
       if (status===0) {
         // statusTxt = 'Transaction Failed'
@@ -296,7 +296,7 @@ export default {
       console.log('info', info)
 
       this.show = true;
-      const bridge = initBrideByTransanctionType('l2');
+      const bridge = initBrideByNetType('l2')['bridge'];
       const txnHash = info.txid;
       const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(txnHash);
       if (!initiatingTxnReceipt){

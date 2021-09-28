@@ -76,14 +76,15 @@ import NetTipModal from '@/components/NetTipModal';
 import UnlockWallet from '@/components/UnlockWallet';
 import { wait, prettyLog } from '@/utils/index'
 import { Tab, Tabs, Button, Col, Row, Toast, Popup, CountDown, Dialog } from 'vant';
-import { getNetMode, getSelectedChainID, initBrideByTransanctionType } from '@/utils/web3'
-import { utils, ethers } from 'ethers'
+import { getNetMode, getSelectedChainID, initBrideByNetType } from '@/utils/web3'
+import { utils, ethers, BigNumber } from 'ethers'
 import { DEFAULTIMG } from '@/utils/global';
 import { NETWORKS } from '@/utils/netWork'
 // import { NETWORKS } from '@/utils/netWork_arb'
 import { Bridge } from 'arb-ts';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { copyTxt } from '@/utils/index';
+import { getTokenAddress } from '@/utils/token';
 import QRCode from 'qrcodejs2'
 import { utils as web3utils } from 'web3';
 
@@ -190,6 +191,60 @@ export default {
       this.bridge = bridge;
       return bridge
     },
+    depositFailed(error) {
+      this.show = false;
+      if (error.code == '4001') {
+        Toast('Cancel Transaction')
+        return
+      }
+      console.log(error)
+      this.showStatusPop = true;
+      this.statusPopTitle = 'Deposit Failed'
+      this.popStatus = 'fail';
+    },
+    async depositSuccess(depositRes, info) {
+      this.tipTxt = 'In progress, waitting';
+      const txHash = depositRes.hash;
+      const transactionWaitRes = await depositRes.wait();
+      const { confirmations, from, to, transactionHash, status } = transactionWaitRes
+      console.log('transaction success! res:',depositRes,'waitRes:',transactionWaitRes)
+      const submitData = {
+        txid: txHash,
+        from: depositRes.from,
+        to: depositRes.to,
+        type: TRANSACTION_TYPE['L1ToL2'],
+        status,
+        value: info.amount,
+        block_num: transactionWaitRes.blockNumber,
+        name: info.tokenInfo.symbol,
+      }
+      this.addHistoryData = _.cloneDeep(submitData);
+      await this.addHistory(submitData);
+    },
+    async ethDeposit(info) {
+      const bridge = initBrideByNetType('l1')['bridge'];
+      const ethToL2DepositAmount = parseEther(info.amount);
+      bridge.depositETH(ethToL2DepositAmount) // bridge.depositETH(ethToL2DepositAmount, {gas: web3utils.toHex('21000')})
+      .then(async res=>{
+        await this.depositSuccess(res, info)
+      })
+      .catch(error => {
+        this.depositFailed(error)
+      })
+    },
+    async tokenDeposit(info) {
+      const bridge = initBrideByNetType('l1')['bridge'];
+      const { symbol } = info.tokenInfo
+      const tokenAddress = getTokenAddress(symbol)
+      // bridge.deposit(tokenAddress, BigNumber.from('800'))
+      bridge.deposit(tokenAddress, BigNumber.from(info.amount))
+      .then(async res=>{
+        await this.depositSuccess(res, info)
+      })
+      .catch(error => {
+        this.depositFailed(error)
+      })
+    },
     async submitRecharge(info) {
       this.showStatusPop = false;
       this.tipTxt = 'Confirm On The Wallet';
@@ -200,40 +255,16 @@ export default {
         Toast.fail(`Wrong Address`);
         return;
       }
-      const bridge = this.bridge || this.initBridge();
-      // const bridge = initBrideByTransanctionType('l1');
-      const ethToL2DepositAmount = parseEther(info.amount);
-      // bridge.depositETH(ethToL2DepositAmount, {gas: web3utils.toHex('21000')})
-      bridge.depositETH(ethToL2DepositAmount)
-      .then(async res=>{
-        this.tipTxt = 'In progress, waitting';
-        const txHash = res.hash;
-        const transactionWaitRes = await res.wait();
-        const { confirmations, from, to, transactionHash, status } = transactionWaitRes
-        console.log('transaction success! res:',res,'waitRes:',transactionWaitRes)
-        const submitData = {
-          txid: txHash,
-          from: res.from || connectAddress,
-          to: res.to,
-          type: TRANSACTION_TYPE['L1ToL2'],
-          status,
-          value: info.amount,
-          block_num: transactionWaitRes.blockNumber,
-        }
-        this.addHistoryData = _.cloneDeep(submitData);
-        await this.addHistory(submitData);
-      })
-      .catch(error => {
-        this.show = false;
-        if (error.code == '4001') {
-          Toast('Cancel Transaction')
-          return
-        }
-        console.log(error)
-        this.showStatusPop = true;
-        this.statusPopTitle = 'Deposit Failed'
-        this.popStatus = 'fail';
-      })
+
+      const { symbol, isToken } = info.tokenInfo
+      switch (symbol) {
+        case 'ETH':
+          await this.ethDeposit(info)
+          break;
+        case 'EETL1':
+          await this.tokenDeposit(info)
+          break;
+      }
     },
     async addHistory(data) {
       const submitData = data || this.addHistoryData;

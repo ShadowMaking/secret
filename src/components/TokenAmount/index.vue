@@ -2,18 +2,13 @@
   <div class="token-amount-wrap">
     <van-row class="token-amount-wrap-inner">
       <van-row class="top">
-        <van-col span="12" @click="choseToken">
+        <van-col span="12">
           <div class="slect-token-wrap flex">
-            <i class="token token-ETH"></i>
-            <span class="token-span">ETH</span>
-            <!-- TODO hide -->
-            <i class="icon-selected" style="display:none;"></i>
-            <!-- <van-button color="#E4E6F5" size="mini" style="" class="max-button">
-              <span slots="default" class="max-button-inner">Max</span>
-            </van-button> -->
-            <a class="max-button">Max</a>
+            <i class="token token-ETH" @click="showChooseTokenModal"></i>
+            <span class="token-span" @click="showChooseTokenModal">{{ selectedTokenInfo.symbol }}</span>
+            <i class="icon-selected" @click="showChooseTokenModal" v-show="type!=='send'"></i>
+            <a class="max-button" @click="setInputAmountMax">Max</a>
           </div>
-          <!-- <span>Balance：{{ availableBalance }} ETH</span> -->
         </van-col>
         <van-col span="12" style="text-align:right">
           <div class="flex flex-column">
@@ -26,13 +21,12 @@
               class="recharge-amount-input"
               :disabled="this.walletIsLock"
               @input="handleInputTokenAmountChange" />
-            <!-- <span>Amount</span> -->
           </div>
         </van-col>
       </van-row>
       <div class="bottom">
         <div>
-          <span>Balance：{{ availableBalance|showAvailableBalance }} ETH</span>
+          <span>Balance：{{ selectedTokenInfo.balance }} {{ selectedTokenInfo.symbol }}</span>
         </div>
         <div style="text-align:right">
           <span>Amount</span>
@@ -61,7 +55,7 @@
       :showLockIcon="false"
       :expectNetType="expectNetType"
       v-show="walletIsLock" />
-    <van-popup round closeable v-model="showTokenSelect" position="bottom" :style="{ minHeight: '30%' }">
+    <van-popup round closeable v-model="showTokenSelect" :position="checkBrower()" :style="{ minHeight: '30%' }">
       <div class="token-select-wrap">
         <div class="header"><h3>Choose Token</h3></div>
         <div class="choose-token-list">
@@ -69,31 +63,21 @@
           <div class="common-base-token">
             <p>Common bases<i></i></p>
             <div class="common-bases-list">
-              <span><i class="token token-ETH"></i><span>ETH</span></span>
-              <span><i class="token token-DAI"></i><span>DAI</span></span>
+              <a v-for="i in commomToken" :key="i">
+                <i :class="['token', `token-${i}`]"></i><span>{{ i }}</span>
+              </a>
             </div>
           </div>
           <ul class="choose-token-list-ul">
-            <li>
+            <li v-for="(item, index) in tokenList" :key="`token-${index}`" @click="selectToken(item)">
               <van-row class="flex" justify="space-between">
                 <van-col span="12">
                   <div class="flex">
-                    <i class="token token-ETH"></i>
-                    <div class="token-name"><span>ETH</span><span>Ether</span></div>
+                    <i :class="['token', `token-${item.symbol}`]"></i>
+                    <div class="token-name"><span>{{ item.symbol }}</span><span>{{ item.symbol }}</span></div>
                   </div>
                 </van-col>
-                <van-col span="12" class="textAlignRight token-balance"><span>0.098766544</span></van-col>
-              </van-row>
-            </li>
-            <li>
-              <van-row class="flex" justify="space-between">
-                <van-col span="12">
-                  <div class="flex">
-                    <i class="token token-DAI"></i>
-                    <div class="token-name"><span>ETH</span><span>DAI</span></div>
-                  </div>
-                </van-col>
-                <van-col span="12" class="textAlignRight token-balance"><span>0.098</span></van-col>
+                <van-col span="12" class="textAlignRight token-balance"><span>{{ item.balance }}</span></van-col>
               </van-row>
             </li>
           </ul>
@@ -114,9 +98,12 @@ import Vue from 'vue';
 import { Button, Col, Row, Field, Popup, Search } from 'vant';
 import UnlockWallet from '@/components/UnlockWallet';
 import StatusPop from '@/components/StatusPop';
-import { minus, lteZero, isZero } from '@/utils/number'
+import { minus, lteZero, isZero, retainDecimals } from '@/utils/number'
 import { utils, BigNumber } from 'ethers'
-import { initBrideByTransanctionType } from '@/utils/web3'
+import * as ethers from 'ethers'
+import { initBrideByNetType } from '@/utils/web3'
+import { isPc } from '@/utils/index';
+import { checkIsTokenBySymbol } from '@/utils/token';
 import { initTokenTime, updateLoginTime, tokenIsExpires } from '@/utils/auth'
 const { parseEther, formatEther } = utils;
 
@@ -143,24 +130,21 @@ export default {
     "v-unlockwallet": UnlockWallet,
     'v-statusPop': StatusPop,
   },
-  filters: {
-    showAvailableBalance(amount) {
-      if (parseFloat(amount)) {
-        return parseFloat(amount).toFixed(6)
-      }
-      return amount
-    }
-  },
   data() {
     return {
       number: '',
       showTokenSelect: false,
       serchTokenValue: '',
-      availableBalance: '0.0',
+      ethAvailableBalance: '0.0',
+      selectedTokenInfo: { symbol:'ETH', balance: 0.0 },
       buttonColor: '#A4ACDF',
       buttonDisabled: true,
       buttonText: this.buttonTxt,
       showStatusPop: false,
+      commomToken: ["ETH"],
+      tokenList: [
+        { symbol:'ETH', balance: 0.0 },
+      ],
     }
   },
   watch: {
@@ -169,28 +153,19 @@ export default {
     },
     buttonCode: {
       async handler(newV, oldV) {
-        let buttonColor = this.buttonColor;
-        let buttonDisabled = this.buttonDisabled;
         switch(newV) {
           case 1: // 1: 'Enter The Amount'
             if (isZero(this.number)) {
-              buttonColor = 'A4ACDF'
-              buttonDisabled = true;
+              this.setButtonDisabled('Enter The Amount');
             } else {
               await this.setButtonStatusByBalance();
-              // buttonColor = '#495ABE';
-              // buttonDisabled = false;
-              // this.buttonText = 'Confirm';
             }
             break;
           case 2: // 2: 'invalid address'
           default:
-            buttonColor = 'A4ACDF'
-            buttonDisabled = true;
+            this.setButtonDisabled('invalid address');
             break;
         }
-        this.buttonColor = buttonColor;
-        this.buttonDisabled = buttonDisabled;
       },
       deep: true,
     },
@@ -203,8 +178,11 @@ export default {
     },
     '$store.state.metamask.walletIsLock': async function (res) {
       if (!this.walletIsLock) {
-        const balance = await this.getAvailableBalance()
-        this.availableBalance = balance && (formatEther(balance)) || 0;
+        const balance = await this.getETHAvailableBalance()
+        this.ethAvailableBalance = this.dealAvailableBalance(balance && (formatEther(balance)) || 0);
+        this.selectedTokenInfo = { symbol:'ETH', balance: this.ethAvailableBalance }
+        const tokenList = await this.getTokenList()
+        this.tokenList = tokenList
       }
     }
   },
@@ -230,6 +208,17 @@ export default {
     },
   },
   methods: {
+    dealAvailableBalance(amount) {
+      // TODO
+      if (!isNaN(amount)) {
+        return retainDecimals(amount, 6)
+      }
+      return amount
+    },
+    checkBrower() {
+      if (isPc()) { return 'center' };
+      return 'bottom';
+    },
     formatter(value) {
       const vls = value.split('.');
       if (vls.length > 1) {
@@ -237,11 +226,19 @@ export default {
       }
       return value;
     },
-    choseToken() {
-      // TODO  only ETH
-      return
-      if (this.walletIsLock) { return }
+    showChooseTokenModal() {
+      if (this.walletIsLock || this.type === 'send') { return }
       this.showTokenSelect = true
+    },
+    setInputAmountMax() {
+      this.number = this.selectedTokenInfo.balance
+    },
+    selectToken(record) {
+      const { symbol, balance } = record;
+      this.selectedTokenInfo = { symbol, balance }
+      this.showTokenSelect = false
+      this.number = undefined
+      this.setButtonDisabled('Enter The Amount');
     },
     submitTranction() {
       // check sign wether lose effect
@@ -250,7 +247,13 @@ export default {
       } else {
         this.$emit('childEvent',{amount: this.number});
       } */
-      this.$emit('childEvent',{amount: this.number});
+      this.$emit('childEvent',{
+        amount: this.number,
+        tokenInfo: {
+          symbol: this.selectedTokenInfo.symbol,
+          isToken: checkIsTokenBySymbol(this.selectedTokenInfo.symbol)
+        }
+      });
     },
     changeVisible(eventInfo) {
       this.showStatusPop = false
@@ -269,24 +272,62 @@ export default {
         this.$emit('childEvent',{amount: this.number});
       }
     },
-    handleWatchResetStatus() {
-      this.number = '';
-      this.availableBalance = '0.0';
+    setButtonDisabled(btxt) {
+      this.buttonText = btxt;
       this.buttonColor = '#A4ACDF';
       this.buttonDisabled = true;
     },
-    async getAvailableBalance() {
+    handleWatchResetStatus() {
+      this.number = '';
+      this.ethAvailableBalance = '0.0';
+      this.selectedTokenInfo = { symbol:'ETH', balance: this.ethAvailableBalance }
+      this.setButtonDisabled('Enter The Amount');
+    },
+    async getL1tokenBalance(bridge) {
+      const l1tokenAddress = '0x0c1ffAf1aA49178921fd23baA85ff84E50402814';
+      const abi = L1TokenABIJSON.abi;
+      const l1signerOrProvider = new ethers.providers.Web3Provider(window.ethereum);
+
+      // for L1
+      const ethProvider = new ethers.providers.Web3Provider(window.ethereum);
+      const arbProvider = new ethers.providers.JsonRpcProvider('https://rpc.ieigen.com/eig/')
+      const l1Signer = ethProvider.getSigner(0);
+      const l2Signer = arbProvider.getSigner(window.ethereum.selectedAddress);
+
+
+      // const myContract = new ethers.Contract( l1tokenAddress , abi , l1signerOrProvider )
+      const myContract = new ethers.Contract( l1tokenAddress , abi , l1Signer )
+      console.log('myContract', myContract)
+
+      const balance = await myContract.balanceOf('0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9');
+      // const balance = await myContract.balanceOf(l1tokenAddress);
+      console.log(this.web3.utils.hexToNumberString(balance))  // balance.toString()
+      console.log(formatEther(balance.toString()))
+
+      // test deposit
+      // const amountnum = BigNumber.from('0.0000000000000001')  // 0.0000000000498798
+      const amountnum = BigNumber.from('800')  // 0.0000000000498798  18次方
+      // const amountnum = formatEther('1') 
+      console.log(amountnum)
+
+      bridge.deposit(l1tokenAddress, amountnum)
+      .then(async res=>{
+        console.log(res)
+      })
+      .catch(error => {
+        console.log(error)
+      })
+    },
+    async getETHAvailableBalance() {
       const type = this.type
       const bridgeType = type === 'deposit'? 'l1':'l2';
-      const bridge = initBrideByTransanctionType(bridgeType);
+      const bridge = initBrideByNetType(bridgeType)['bridge'];
       let balance;
       switch(type) {
         case 'deposit':
           balance = await bridge.getAndUpdateL1EthBalance();
           break;
         case 'withdraw':
-          balance = await bridge.getAndUpdateL2EthBalance();
-          break;
         case 'send':
           balance = await bridge.getAndUpdateL2EthBalance();
           break;
@@ -296,15 +337,11 @@ export default {
     async handleInputTokenAmountChange(tokenAmount) {
       this.number = tokenAmount
       if (!tokenAmount || isZero(tokenAmount)) {
-        this.buttonText = 'Enter The Amount';
-        this.buttonColor = '#A4ACDF';
-        this.buttonDisabled = true;
+        this.setButtonDisabled('Enter The Amount');
         return;
       }
       if (this.address && !utils.isAddress(this.address) && this.type !== 'deposit') {
-        this.buttonText = 'Invalid Address'
-        this.buttonColor = '#A4ACDF';
-        this.buttonDisabled = true;
+        this.setButtonDisabled('Invalid Address');
         return;
       }
       await this.setButtonStatusByBalance(tokenAmount);
@@ -312,9 +349,7 @@ export default {
     async setButtonStatusByBalance(tokenAmount) {
       const _minus = await this.getMinus(tokenAmount||this.number);
       if (lteZero(_minus, false)) {
-        this.buttonText = 'Insufficient Balance';
-        this.buttonColor = '#A4ACDF';
-        this.buttonDisabled = true;
+        this.setButtonDisabled('Insufficient Balance');
       } else {
         this.buttonText = 'Confirm';
         this.buttonColor = '#495ABE';
@@ -322,23 +357,54 @@ export default {
       }
     },
     async getMinus(tokenAmount) {
-      let availableBalance = this.availableBalance;
-      if (!availableBalance) {
-        let _availableBalance = await this.getAvailableBalance();
-        availableBalance = formatEther(_availableBalance);
+      let { symbol, balance: currentTokenBalance } = this.selectedTokenInfo;
+      if (!currentTokenBalance && !checkIsTokenBySymbol(symbol)) {
+        let availableBalance = await this.getETHAvailableBalance();
+        currentTokenBalance = formatEther(availableBalance);
       }
       const formatAmount = parseEther(tokenAmount);
-      const _minus  = minus(parseEther(availableBalance).toString(), formatAmount.toString())
-      console.log(`ETH Balance-${availableBalance}；input ETH为-${formatEther(formatAmount)}`)
+      const _minus  = minus(parseEther(currentTokenBalance+'').toString(), formatAmount.toString())
+      console.log(`current token balance-${currentTokenBalance}；input amout为-${formatEther(formatAmount)}`)
       return _minus
+    },
+    async genTokenBalance(token) {
+      const netType = this.expectNetType
+      const selectedAccountAddress = window.ethereum.selectedAddress
+      const { bridge, ethProvider, arbProvider, l1Signer, l2Signer } = initBrideByNetType(netType);
+      const { tokenType, tokenAddress, symbol, decimals, image, json } = token;
+      const abi = json.abi;
+      const myContract = new ethers.Contract(tokenAddress, abi, netType === 'l1' ? l1Signer : l2Signer)
+      console.log('myContract', myContract)
+
+      const balance = await myContract.balanceOf(selectedAccountAddress);
+      console.log(this.web3.utils.hexToNumberString(balance))  // balance.toString()
+      console.log(formatEther(balance.toString()))
+
+      return this.dealAvailableBalance(formatEther(balance.toString()))
+    },
+    async getTokenList() {
+      const res = await this.$store.dispatch('GetTokenByNetType', { netType: this.expectNetType});
+      const list = res.tokenList;
+      const tokenList = [{
+        symbol: "ETH",
+        balance: this.ethAvailableBalance,
+      }]
+      for(let i=0; i<list.length; i+=1) {
+        const balance = await this.genTokenBalance(list[i]);
+        tokenList.push({ symbol: list[i]['symbol'], balance: balance })
+      }
+      return tokenList;
     },
   },
   async mounted() {
     if (!this.walletIsLock) {
-      const balance = await this.getAvailableBalance();
+      const balance = await this.getETHAvailableBalance();
       if (BigNumber.isBigNumber(balance)) {
-        this.availableBalance = formatEther(balance);
+        this.ethAvailableBalance = this.dealAvailableBalance(formatEther(balance));
+        this.selectedTokenInfo = { symbol:'ETH', balance: this.ethAvailableBalance }
       }
+      const tokenList = await this.getTokenList()
+      this.tokenList = tokenList
     }
     this.$eventBus.$on('chainChanged', this.handleWatchResetStatus);
     this.$eventBus.$on('accountsChanged', this.handleWatchResetStatus);

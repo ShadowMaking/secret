@@ -163,7 +163,8 @@ export default {
           to: transferParams['to'] || toAddress,
           type: TRANSACTION_TYPE['L2ToL2'],
           status: 1,
-          value: info.amount
+          value: info.amount,
+          name: info.tokenInfo.symbol,
         }
         this.addHistoryData = _.cloneDeep(submitData);
         await this.addHistory(submitData);
