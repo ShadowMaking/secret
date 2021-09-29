@@ -1,18 +1,20 @@
 .component-unlockwallet {
   .no-connect-wallet {
-    padding-bottom: rem(100);
-    .margin10 { margin: rem(10); }
+    padding-bottom: 100px;
+    .margin10 { margin: 10px; }
     >div{
-      margin: rem(30) 0;
+      margin: 30px 0;
       img {
-        width: rem(84);
-        height: rem(134);
+        width: 84px;
+        height: 134px;
       }
     }
     .button-large {
       // width: 90%;
-      height: rem(40);
+      height: 55px;
+      font-size: .9375rem;
       // transform: translateX(6%);
+      border-radius: 6px;
     } 
   }
 }

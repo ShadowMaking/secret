@@ -1,13 +1,13 @@
 .status-popUp {
   background: #fff;
   text-align: center;
-  border-radius: rem(10);
-  padding: rem(30);
-  width: rem(330);
+  border-radius: 10px;
+  padding: 30px;
+  width: 330px;
   .icon {
     display: block;
-    width: rem(71);
-    height: rem(71);
+    width: 71px;
+    height: 71px;
   }
   .icon-success {
     background: url("~@/assets/icon_success.png") center center no-repeat;
@@ -22,17 +22,17 @@
     background-size: 100% 100%;
   }
   .main-txt {
-    font-size: rem(23);
+    font-size: 1.4375rem;
     color: #333333;
-    margin: rem(20) 0 rem(15);
+    margin: 20px 0 15px;
   }
   .supplement-txt {
-    font-size: rem(13);
+    font-size: .8125rem;
     color: #606265;
-    line-height: rem(18);
+    line-height: 18px;
   }
   .supplement-txt + .button {
-    margin-top: rem(20);
-    border-radius: rem(5);
+    margin-top: 20px;
+    border-radius: 5px;
   }
 }

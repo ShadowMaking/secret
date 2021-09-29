@@ -1,27 +1,27 @@
 @import '@/app.scss';
 .send-page {
-  font-size: rem(15);
+  font-size: .9375rem;
   background: #F7F8F8;
   align-items: flex-start;
   i.info_icon {
     display: inline-block;
-    height: rem(20);
-    width: rem(20);
+    height: 20px;
+    width: 20px;
     background: url('~@/assets/icon_notice.png') center center no-repeat;
     vertical-align: middle;
     background-size: contain;
   }
   .send-toL2-tip {
-    padding-right: rem(10);
+    padding-right: 10px;
     >div{
-      margin: rem(10) rem(3);
+      margin: 10px 3px;
     }
     .expand {
       .expand-tip {
-        font-size: rem(12);
+        font-size: .75rem;
         color: #606265;
-        height: rem(48);
-        line-height: rem(16);
+        height: 48px;
+        line-height: 16px;
         word-break: break-word;
         @include text-more-ellipsis(2);
         word-break: break-word;
@@ -30,28 +30,28 @@
   }
   .send-opt-area {
     background: #fff;
-    margin-bottom: rem(20);
-    min-height: rem(30);
-    padding: 0 0 rem(20);
+    margin-bottom: 20px;
+    min-height: 30px;
+    padding: 0 0 20px;
     .address-wrapper {
-      padding: rem(20) rem(20) 0;
+      padding: 20px 20px 0;
       .address-wrapper-inner{
         width: 100%;
-        border-radius: rem(5);
-        border: rem(1) solid #f2f2f2;
+        border-radius: 5px;
+        border: 1px solid #f2f2f2;
         color: #333;
         ::v-deep.van-field__control{
-          font-size: rem(15);
+          font-size: .9375rem;
           font-family: PingFangSC-Regular, PingFang SC;
-          line-height: rem(35);
+          line-height: 35px;
         }
       }
     }
     .tip {
       display: block;
-      font-size: rem(15);
+      font-size: .9375rem;
       color: #606265;
-      margin: rem(13) 0 0 rem(20);
+      margin: 13px 0 0 20px;
       display: flex;
       align-items: center;
     }
@@ -59,21 +59,21 @@
   .safe-tip-toast {
     background: #060E3D;
     color: #fff;
-    font-size: rem(15);
-    padding: rem(16);
+    font-size: .9375rem;
+    padding: 16px;
     text-align: center;
     width: 88%;
-    max-width: rem(370);
-    border-radius: rem(10);
+    max-width: 370px;
+    border-radius: 10px;
     opacity: 0.8;
     i{
       display: inline-block;
-      height: rem(20);
-      width: rem(20);
+      height: 20px;
+      width: 20px;
       background: url('~@/assets/icon_safe.png') center center no-repeat;
       background-size: 100% 100%;
       vertical-align: middle;
-      margin-right: rem(10);
+      margin-right: 10px;
     }
     span{ word-break: break-word; }
   }
