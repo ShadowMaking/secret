@@ -18,7 +18,7 @@
       title="Token Tip"
       show-cancel-button
       confirmButtonText="Add Token"
-      cancelButtonText="Switch Net"
+      cancelButtonText="Switch Network"
       @confirm="confirmAddToken"
       @cancel="switchNet"
       confirmButtonColor="#495ABE">
@@ -27,6 +27,7 @@
         <div class="tip-content">You can click to add, or ignore if you already add</div>
       </div>
     </van-dialog>
+    <a class="hide" ref="addTokenRef" @click="addToken"></a>
   </div>
 </template>
 <script>
@@ -36,6 +37,7 @@ import { ethRPC, arbRPC, L1ChainID, L2ChainID } from '@/utils/netWork'
 import { installWeb3Wallet, getNetMode, getSelectedChainID, initBrideByNetType } from '@/utils/web3'
 import WalletStatus from '@/components/WalletStatus';
 import { TOKEN_L1, TOKEN_L2 }  from '@/utils/token';
+import { wait }  from '@/utils/index';
 // import { ethRPC, arbRPC, NETWORKS, L1ChainID, L2ChainID } from '@/utils/netWork_arb'
 
 Vue.use(Popup);
@@ -76,7 +78,7 @@ export default {
       installWalletModal: false,
       installOtherWallet: false,
       showTokenTipPopup: false,
-      expectSwitchNetType: '',
+      expectSwitchNetType: '', // l1 || l2
     }
   },
   methods: {
@@ -155,48 +157,34 @@ export default {
       })
       .catch(err=>console.log(err))
     },
-    async addToken(tokenInfo) {
-      return await ethereum.request({
-        jsonrpc: "2.0",
-        method: 'wallet_watchAsset',
-        params: {
-          "type": tokenInfo['tokenType'],
-          "options": {
-            "address": tokenInfo['tokenAddress'],
-            "symbol": tokenInfo['symbol'],
-            "decimals": tokenInfo['decimals'],
-          }
-        },
-        id: 0
-      })
+    async addToken() {
+      const netType = this.expectSwitchNetType;
+      const list = _.cloneDeep([].concat(netType === 'l1' ? TOKEN_L1 : TOKEN_L2))
+      for(let i = 0; i < list.length; i += 1) {
+        await ethereum.request({
+          jsonrpc: "2.0",
+          method: 'wallet_watchAsset',
+          params: {
+            "type": list[i]['tokenType'],
+            "options": {
+              "address": list[i]['tokenAddress'],
+              "symbol": list[i]['symbol'],
+              "decimals": list[i]['decimals'],
+            }
+          },
+          id: Math.random()
+        })
+      }
     },
     // TODO
     async confirmAddToken() {
-      this.switchNet(async (res, chainId)=>{
+      this.switchNet((res, chainId) => {
         // confirm already switch net
         const mode = getNetMode(chainId || getSelectedChainID())
         const netType = this.expectSwitchNetType;
         if (netType !== mode) { return }
-        if (netType === 'l1') {
-          const L1PromiseSequence = [];
-          TOKEN_L1.forEach(async item => {
-            L1PromiseSequence.push(this.addToken(item))
-          })
-          /* const list = [].concat(TOKEN_L1,TOKEN_L2)
-          for(let i = 0; i<list.length;i+=1) {
-            L1PromiseSequence.push(this.addToken(list[i]))
-          } */
-          const [...l1TokenRes] = await Promise.all(L1PromiseSequence)
-          console.log(l1TokenRes)
-        }
-        if (netType === 'l2') {
-          const L2PromiseSequence = [];
-          TOKEN_L2.forEach(async item => {
-            L2PromiseSequence.push(this.addToken(item))
-          })
-          const [...l2TokenRes] = await Promise.all(L2PromiseSequence)
-          console.log(l2TokenRes)
-        }
+        wait()
+        this.$refs.addTokenRef.click()
       })
     },
     async addAndSwitchNet(netType) {
@@ -216,7 +204,6 @@ export default {
       this.showTokenTipPopup = true;
       this.expectSwitchNetType = netType;
       this.closeNetTipPopup();
-      return
     },
   },
 }
