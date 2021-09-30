@@ -81,10 +81,46 @@
   .token-select-wrap {
     min-width: 350px;
     padding: rem(20);
+    min-height: 400px;
     h3 {
       // font-size: rem(25);
       font-size: 25px;
       color: #333333;
+    }
+    .token-search-wrapper {
+      position: relative;
+      .serach-token-input { padding: 10px 0 5px; }
+      .token-search-result-wrapper {
+        position: absolute;
+        width: 100%;
+      }
+      .token-search-result {
+        background: #fff;
+        border: 1px solid #f7f8fa;
+        border-radius: 0 0 5px 5px;
+        width: 95%;
+        li {
+          font-size: 14px;
+          padding: 10px;
+        }
+        li:hover {
+          color: #495ABE;
+          background: #f7f8fa;
+          font-weight: 600;
+        }
+      }
+      .token-search-result-none-data {
+        background: #fff;
+        border: 1px solid #f7f8fa;
+        border-radius: 0 0 5px 5px;
+        width: 95%;
+        height: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 14px;
+        color: #E4E6F5;
+      }
     }
     .serach-token-input { padding: rem(10) 0; }
     .common-base-token {
@@ -120,6 +156,9 @@
         border-radius: rem(10);
         font-size: 15px;
         vertical-align: middle;
+        display: flex;
+        align-items: center;
+        width: 60px;
       }
     }
     .choose-token-list-ul {
@@ -136,7 +175,10 @@
         }
         .token-balance { color: #333333; font-size: 15px; }
       }
-      li:hover{ background: #f7f8fa;}
+      li:hover{
+        /* background: #f7f8fa;  */color: #495ABE;
+        .token-balance { color: #495ABE; }
+      }
     }
   }
   

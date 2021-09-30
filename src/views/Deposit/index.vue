@@ -31,7 +31,7 @@
               <h3>Deposit Address</h3>
               <div class="address">{{ defaultAddress }}</div>
               <van-button color="#ECEEF8" class="copy-address" @click="copyAddress">
-                <span slots="default" style="color:#495ABE">Copy Address</span>
+                <span slots="default" style="color:#495ABE">{{ copyButtonTxt}}</span>
               </van-button>
               <span>
                 <span>EigenSecret supported assets only.</span>
@@ -129,6 +129,7 @@ export default {
       showRefresh: false,
       refreshing: false,
       defaultAddress: this.$store.state.metamask.accountsArr[0] || "",
+      copyButtonTxt: 'Copy Address',
     }
   },
   watch: {
@@ -157,11 +158,12 @@ export default {
   },
   methods: {
     copyAddress() {
-      if (this.walletIsLock) {
-        return;
-      }
+      if (this.walletIsLock) { return; }
       copyTxt(this.defaultAddress)
-      Toast.success('Success')
+      this.copyButtonTxt = 'Address Copied'
+      window.setTimeout(()=>{
+        this.copyButtonTxt = 'Copy Address'
+      },800)
     },
     async getWalletBalance() {
       const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()

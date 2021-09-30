@@ -55,12 +55,35 @@
       :showLockIcon="false"
       :expectNetType="expectNetType"
       v-show="walletIsLock" />
-    <van-popup round closeable v-model="showTokenSelect" :position="checkBrower()" :style="{ minHeight: '30%' }">
+    <van-popup round closeable v-model="showTokenSelect" :position="checkBrower()" :style="{ minHeight: '30%' }" @close="closeChooseTokenModal">
       <div class="token-select-wrap">
         <div class="header"><h3>Choose Token</h3></div>
         <div class="choose-token-list">
-          <van-search v-model="serchTokenValue" placeholder="token name" class="serach-token-input"/>
-          <div class="common-base-token">
+          <div class="token-search-wrapper">
+            <van-search
+              v-model="serchTokenValue"
+              placeholder="token name"
+              class="serach-token-input"
+              show-action
+              :clearable="false"
+              @search="onSearch"
+              @cancel="onCancel"
+              @clear="onCancel"
+              @input="handleWatchInput" >
+              <template #action>
+                <div @click="onSearch"></div>
+              </template>
+            </van-search>
+            <div class="token-search-result-wrapper" v-show="showSearchResult">
+              <ul class="token-search-result" v-show="searchResult.length>0">
+                <li v-for="(item,index) in searchResult" :key="index" @click="selectToken(item)">
+                  {{ `${item.symbol} (${item.balance})` }}
+                </li>
+              </ul>
+              <div :class="['token-search-result-none-data', {'hide': searchResult.length!==0}]">none data</div>
+            </div>
+          </div>
+          <div class="common-base-token" v-show="!showSearchResult">
             <p>Common bases<i></i></p>
             <div class="common-bases-list">
               <a v-for="i in commomToken" :key="i">
@@ -68,7 +91,7 @@
               </a>
             </div>
           </div>
-          <ul class="choose-token-list-ul">
+          <ul class="choose-token-list-ul"  v-show="!showSearchResult">
             <li v-for="(item, index) in tokenList" :key="`token-${index}`" @click="selectToken(item)">
               <van-row class="flex" justify="space-between">
                 <van-col span="12">
@@ -101,6 +124,7 @@ import StatusPop from '@/components/StatusPop';
 import { minus, lteZero, isZero, retainDecimals } from '@/utils/number'
 import { utils, BigNumber } from 'ethers'
 import * as ethers from 'ethers'
+import _ from 'lodash'
 import { initBrideByNetType } from '@/utils/web3'
 import { isPc } from '@/utils/index';
 import { checkIsTokenBySymbol } from '@/utils/token';
@@ -145,6 +169,8 @@ export default {
       tokenList: [
         { symbol:'ETH', balance: 0.0 },
       ],
+      showSearchResult: false,
+      searchResult: []
     }
   },
   watch: {
@@ -208,6 +234,26 @@ export default {
     },
   },
   methods: {
+    generateSearchResult(data) {
+      return data.map(item => {
+        const target = _.find(this.tokenList, { symbol: item.symbol })
+        const balance = target && target.balance || 0.0
+        return { symbol: item.symbol, balance }
+      })
+    },
+    async onSearch(val) {
+      this.serchTokenValue = val;
+      const result = await this.$store.dispatch('SearchToken', { token: val, netType: this.expectNetType })
+      this.searchResult = this.generateSearchResult(_.cloneDeep(result))
+      this.showSearchResult = true
+      console.log('result',result, this.searchResult)
+    },
+    onCancel() {
+      this.serchTokenValue = undefined
+    },
+    handleWatchInput(val) {
+      !val && (this.showSearchResult = false)
+    },
     dealAvailableBalance(amount) {
       // TODO
       if (!isNaN(amount)) {
@@ -225,6 +271,11 @@ export default {
         return `${parseInt(vls[0])}.${vls[1]}`;
       }
       return value;
+    },
+    closeChooseTokenModal() {
+      this.showTokenSelect = false
+      this.showSearchResult = false
+      this.serchTokenValue = undefined
     },
     showChooseTokenModal() {
       if (this.walletIsLock || this.type === 'send') { return }
