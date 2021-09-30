@@ -70,6 +70,7 @@ import { NETWORKS } from '@/utils/netWork'
 // import { NETWORKS } from '@/utils/netWork_arb'
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { utils, ethers } from 'ethers'
+import { BigNumber } from "bignumber.js";
 
 
 Vue.use(Popup);
@@ -268,7 +269,9 @@ export default {
       const { symbol } = info.tokenInfo
       const tokenAddress = getTokenAddress(symbol)
       // bridge.withdraw(tokenAddress, BigNumber.from('800'))
-      bridge.withdraw(tokenAddress, BigNumber.from(info.amount))
+      const withdrawTokenNum = this.web3.utils.toHex(BigNumber(Number(info.amount*1000000000000000000)).toFixed())
+      console.log('withdrawTokenNum', withdrawTokenNum)
+      bridge.withdraw(tokenAddress, withdrawTokenNum)
       .then(async res=>{
         await this.withdrawSuccess(res, info)
       })

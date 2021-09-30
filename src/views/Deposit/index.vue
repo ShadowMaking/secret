@@ -77,7 +77,7 @@ import UnlockWallet from '@/components/UnlockWallet';
 import { wait, prettyLog } from '@/utils/index'
 import { Tab, Tabs, Button, Col, Row, Toast, Popup, CountDown, Dialog } from 'vant';
 import { getNetMode, getSelectedChainID, initBrideByNetType } from '@/utils/web3'
-import { utils, ethers, BigNumber } from 'ethers'
+import { utils, ethers } from 'ethers'
 import { DEFAULTIMG } from '@/utils/global';
 import { NETWORKS } from '@/utils/netWork'
 // import { NETWORKS } from '@/utils/netWork_arb'
@@ -86,6 +86,7 @@ import { TRANSACTION_TYPE } from '@/api/transaction';
 import { copyTxt } from '@/utils/index';
 import { getTokenAddress } from '@/utils/token';
 import QRCode from 'qrcodejs2'
+import { BigNumber } from "bignumber.js";
 import { utils as web3utils } from 'web3';
 
 const { parseEther } = utils;
@@ -216,7 +217,9 @@ export default {
       const { symbol } = info.tokenInfo
       const tokenAddress = getTokenAddress(symbol)
       // bridge.deposit(tokenAddress, BigNumber.from('800'))
-      bridge.deposit(tokenAddress, this.web3.utils.toHex(info.amount*1000000000000000000))
+      const depositTokenNum = this.web3.utils.toHex(BigNumber(Number(info.amount*1000000000000000000)).toFixed())
+      console.log('depositTokenNum', depositTokenNum)
+      bridge.deposit(tokenAddress, depositTokenNum)
       .then(async res=>{
         await this.depositSuccess(res, info)
       })
