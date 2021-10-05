@@ -77,7 +77,7 @@ import UnlockWallet from '@/components/UnlockWallet';
 import { wait, prettyLog } from '@/utils/index'
 import { Tab, Tabs, Button, Col, Row, Toast, Popup, CountDown, Dialog } from 'vant';
 import { getNetMode, getSelectedChainID, initBrideByNetType } from '@/utils/web3'
-import { utils, ethers } from 'ethers'
+import { utils, ethers, BigNumber as ethBigNumber } from 'ethers'
 import { DEFAULTIMG } from '@/utils/global';
 import { NETWORKS } from '@/utils/netWork'
 // import { NETWORKS } from '@/utils/netWork_arb'
@@ -213,13 +213,24 @@ export default {
       })
     },
     async tokenDeposit(info) {
+      const connectAddress = window.ethereum.selectedAddress;
       const bridge = initBrideByNetType('l1')['bridge'];
       const { symbol } = info.tokenInfo
       const tokenAddress = getTokenAddress(symbol)
       // bridge.deposit(tokenAddress, BigNumber.from('800'))
       const depositTokenNum = this.web3.utils.toHex(BigNumber(Number(info.amount*1000000000000000000)).toFixed())
+      const l1GasPrice = 1;
+      const gasLimit = 594949;
+      const maxGas = 9646610;
       console.log('depositTokenNum', depositTokenNum)
-      bridge.deposit(tokenAddress, depositTokenNum)
+      bridge.deposit(tokenAddress, depositTokenNum,
+      {
+        maxGas: ethBigNumber.from(maxGas),
+        gasPriceBid:ethBigNumber.from(1),
+        maxSubmissionPrice: ethBigNumber.from(1)
+      },
+      connectAddress, // l1TestWallet.address,
+      { gasLimit, gasPrice: l1GasPrice })
       .then(async res=>{
         await this.depositSuccess(res, info)
       })

@@ -36,4 +36,4 @@ const getTokenAddress = (symbol) => {
   return target && target['tokenAddress']
 }
 
-export { TOKEN_L1, TOKEN_L2, checkIsTokenBySymbol, getTokenAddress }
+export { TOKEN_L1, TOKEN_L2, checkIsTokenBySymbol, getTokenAddress, L1TokenABIJSON, L2TokenABIJSON }
