@@ -67,11 +67,11 @@ import { getDefaultAddress } from '@/utils/auth'
 import { getNetMode, getSelectedChainID, initBrideByNetType } from '@/utils/web3'
 import { Bridge, OutgoingMessageState } from 'arb-ts';
 import { NETWORKS } from '@/utils/netWork'
+import { getTokenAddress, L2TokenABIJSON } from '@/utils/token';
 // import { NETWORKS } from '@/utils/netWork_arb'
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { utils, ethers } from 'ethers'
 import { BigNumber } from "bignumber.js";
-
 
 Vue.use(Popup);
 Vue.use(CountDown);
@@ -265,13 +265,19 @@ export default {
       })
     },
     async tokenWithdraw(info) {
-      const bridge = initBrideByNetType('l2')['bridge'];
       const { symbol } = info.tokenInfo
       const tokenAddress = getTokenAddress(symbol)
-      // bridge.withdraw(tokenAddress, BigNumber.from('800'))
-      const withdrawTokenNum = this.web3.utils.toHex(BigNumber(Number(info.amount*1000000000000000000)).toFixed())
-      console.log('withdrawTokenNum', withdrawTokenNum)
-      bridge.withdraw(tokenAddress, withdrawTokenNum)
+      const abi = L2TokenABIJSON.abi;
+      const { l2Signer } = initBrideByNetType('l2');
+      const myContract = new ethers.Contract(tokenAddress, abi, l2Signer)
+      console.log('myContract', myContract)
+      const connectAddress = window.ethereum.selectedAddress;
+      const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(info.amount*1000000000000000000)).toFixed())
+      console.log('tokenWithdrawAmount', tokenWithdrawAmount)
+      myContract.withdraw(
+        connectAddress, // l1TestWallet.address,
+        tokenWithdrawAmount,
+        { gasLimit: 600000, gasPrice: 1 })
       .then(async res=>{
         await this.withdrawSuccess(res, info)
       })
@@ -295,7 +301,7 @@ export default {
         case 'ETH':
           await this.ethWithdraw(info)
           break;
-        case 'EETL1':
+        case 'EETL2':
           await this.tokenWithdraw(info)
           break;
       }
@@ -313,13 +319,13 @@ export default {
         this.show = false;
         console.log('Transaction success，but error when add history')
       } else  {
-        await wait();
         this.show = false;
+
         // prettyLog('Transaction is in progress，waiting for 10s....')
         this.showStatusPop = true;
         this.statusPopTitle = 'Withdraw Submitted'
         this.popStatus = 'success';
-        // await wait(10000);
+        await wait();
         this.showStatusPop = false;
         this.$router.push({ name: 'home' });
         // this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});

@@ -103,8 +103,10 @@
                 {{ item.key==='hash'?`${item.value.substr(0,6)}...${item.value.substr(-4)}`:item.value }}
                 <!-- <span v-show="item.key==='hash'" class="copy-tip">（copy）</span> -->
               </span>
+              <!-- <a class="refres-button" @click="speed(item)"
+                v-show="item.info['type']=='2'&&item.key==='status'&&item.info['status']===1">Refresh</a> -->
               <a class="refres-button" @click="speed(item)"
-                v-show="item.info['type']=='2'&&item.key==='status'&&item.info['status']===1">Refresh</a>
+                v-show="showRefresh(item)">Refresh</a>
             </span>
           </li>
         </ul>
@@ -179,6 +181,14 @@ export default {
     }
   },
   methods: {
+    isTokenTransaction(name="ETH") {
+      return name!=='ETH'
+    },
+    showRefresh(record) {
+      const { info, key } = record
+      const { type, status, name='ETH' } = info
+      return type == '2'&& key === 'status' && status === 1 && !this.isTokenTransaction(name)
+    },
     closeNetTip() {
       this.showNetTip = false;
       this.transactionDetailVisible = false;
@@ -209,10 +219,13 @@ export default {
       }
     },
     showStatus(record) {
-      return record.status===1 && record.type === TRANSACTION_TYPE['L2ToL1'];
+      return record.status===1 && record.type === TRANSACTION_TYPE['L2ToL1'] && !this.isTokenTransaction(record.name);
     },
     showStatusSuccess(record) {
-      return record.type === TRANSACTION_TYPE['L2ToL1']?record.status===2:record.status === 1
+      if (!this.isTokenTransaction(record.name)) {
+        return record.type === TRANSACTION_TYPE['L2ToL1']?record.status===2:record.status === 1
+      }
+      return record.status === 1
     },
     showStatusFail(record) {
       return record.status === 0
@@ -255,7 +268,7 @@ export default {
           statusTxt = 'Failed'
           break;
         case 1:
-          if (type === TRANSACTION_TYPE['L2ToL1']) {
+          if (type === TRANSACTION_TYPE['L2ToL1'] && !this.isTokenTransaction(name)) {
             statusTxt = 'Confirming'
           } else {
             statusTxt = 'Succeed'
