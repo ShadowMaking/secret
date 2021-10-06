@@ -1,44 +1,43 @@
 .token-amount-wrap {
   background: #fff;
-  padding: rem(20) rem(20) 0;
+  padding: 20px 20px 0;
   &-inner{
-    // padding: rem(20) rem(30);
-    padding: rem(15);
-    border: rem(1) solid #F2F2F2;
+    padding: 15px;
+    border: 1px solid #F2F2F2;
     // margin-bottom: rem(40);
     .top{}
     .bottom{
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: rem(11);
+      font-size: .6875rem;
     }
     .slect-token-wrap{
       display: flex;
       align-items: center;
       .icon-selected{
         display: inline-block;
-        width: rem(20);
-        height: rem(20);
+        width: 20px;
+        height: 20px;
         vertical-align: middle;
       }
       .icon-selected{
         background: url('~@/assets/icon_down.png') center center no-repeat;
         background-size: 100% 100%;
-        margin: 0 rem(5);
+        margin: 0 5px;
       }
       .max-button {
-        margin-left: rem(10);
+        margin-left: 10px;
         background: #E4E6F5;
         padding: 0 4px;
         color: #495ABE;
         height: 18px;
         line-height: 18px;
         text-align: center;
-        font-size: rem(11);
+        font-size: .6875rem;
       }
       .token-span{
-        font-size: rem(19);
+        font-size: 1.1875rem;
         font-weight: bolder;
         vertical-align: bottom;
       }
@@ -46,16 +45,16 @@
     .slect-token-wrap + span,
     .recharge-amount + span {
       color: #606265;
-      font-size: rem(13);
+      font-size: .8125rem;
       display: block;
-      margin: rem(10) 0;
+      margin: 10px 0;
     }
     .recharge-amount-input {
-      font-size: rem(25);
+      font-size: 1.5625rem;
       font-weight: bolder;
       color: #C0C4CC;
       padding: 0;
-      +span{ font-size: rem(13); margin: rem(6) 0; color: #606265;}
+      +span{ font-size: .8125rem; margin: 6px 0; color: #606265;}
       ::v-deep input{
         text-align: right;
         color: #606265;
@@ -68,56 +67,56 @@
   .amount-fee-tip {
     .tip {
       display: block;
-      font-size: rem(11);
+      font-size: .6875rem;
       color: #606265;
-      margin: rem(5) 0 0 0;
+      margin: 5px 0 0 0;
     }
   }
   .opt-button {
-    margin-top: rem(20);
-    font-size: rem(18);
-    padding: rem(20);
+    margin-top: 20px;
+    font-size: 1.125rem;
+    padding: 20px;
   }
   .token-select-wrap {
-    padding: rem(20);
+    padding: 20px;
     h3 {
-      font-size: rem(25);
+      font-size: 1.5625rem;
       color: #333333;
     }
-    .serach-token-input { padding: rem(10) 0; }
+    .serach-token-input { padding: 10px 0; }
     .common-base-token {
-      p{ font-size: rem(15); color: #333;}
+      p{ font-size: .9375rem; color: #333;}
       p i {
-        width: rem(20);
-        height: rem(20);
+        width: 20px;
+        height: 20px;
         display: inline-block;
         background: url("~@/assets/icon_question.png") center center no-repeat;
         background-size: 100% 100%;
         vertical-align: middle;
-        margin-left: rem(5);
+        margin-left: 5px;
       }
     }
     .common-bases-list {
-      margin: rem(15) 0 0;
-      padding-bottom: rem(15);
-      border-bottom: rem(1) solid #F7F8F8;
+      margin: 15px 0 0;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #F7F8F8;
       > span {
         display: inline-block;
         background: #F7F8F8;
         color: #333;
-        padding: rem(10) rem(15);
-        margin-right: rem(10);
-        border-radius: rem(10);
+        padding: 10px 15px;
+        margin-right: 10px;
+        border-radius: 10px;
       }
     }
     .choose-token-list-ul {
-      padding: rem(10) 0;
+      padding: 10px 0;
       li {
-        margin: 0 0 rem(20);
-        .token-name { font-size: rem(15); }
+        margin: 0 0 20px;
+        .token-name { font-size: .9375rem; }
         .token-name :nth-child(2){
           display: block;
-          font-size: rem(11);
+          font-size: .6875rem;
           color: #C0C4CC;
         }
         .token-balance { color: #333333;}
@@ -128,18 +127,18 @@
   
   .token{
     display: inline-block;
-    width: rem(20);
-    height: rem(20);
+    width: 20px;
+    height: 20px;
     vertical-align: middle;
   }
   .token-ETH{
     background: url('~@/assets/icon_token_eth.png') center center no-repeat;
     background-size: 100% 100%;
-    margin-right: rem(5);
+    margin-right: 5px;
   }
   .token-DAI{
     background: url('~@/assets/icon_token_dai.png') center center no-repeat;
     background-size: 100% 100%;
-    margin-right: rem(5);
+    margin-right: 5px;
   }
 }

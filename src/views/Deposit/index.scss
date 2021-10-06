@@ -1,27 +1,27 @@
 @import '@/app.scss';
 .deposit-page {
-  font-size: rem(13);
+  font-size: .8125rem;
   background: #F7F8F8;
   align-items: flex-start;
   .deposit-toL2-tip {
-    padding-right: rem(10);
+    padding-right: 10px;
     >div{
-      margin: rem(10) rem(3);
+      margin: 10px 3px;
     }
     i.info_icon {
       display: inline-block;
-      height: rem(20);
-      width: rem(20);
+      height: 20px;
+      width: 20px;
       background: url('~@/assets/icon_notice.png') center center no-repeat;
       vertical-align: middle;
       background-size: contain;
     }
     .expand {
       .expand-tip {
-        font-size: rem(12);
+        font-size: .75rem;
         color: #606265;
-        height: rem(48);
-        line-height: rem(16);
+        height: 48px;
+        line-height: 1rem;
         @include text-more-ellipsis(2);
         word-break: break-word;
       }
@@ -29,32 +29,32 @@
   }
   .deposit-opt-area {
     background: #fff;
-    margin-bottom: rem(20);
-    min-height: rem(30);
-    padding: 0 0 rem(20);
-    ::v-deep.van-tab { font-size: rem(15); border-bottom: 1px solid #f2f2f2;}
+    margin-bottom: 20px;
+    min-height: 30px;
+    padding: 0 0 20px;
+    ::v-deep.van-tab { font-size: .9375rem; border-bottom: 1px solid #f2f2f2;}
     ::v-deep.van-tab--active { color: #495ABE;}
     ::v-deep.van-tabs__line {
       width: 20%;
-      height: rem(1);
+      height: 1px;
       background-color: #495ABE;
     }
     .img-QR {
-      width: rem(155);
-      height: rem(155);
-      margin: rem(40) 0 rem(28);
+      width: 155px;
+      height: 155px;
+      margin: 40px 0 28px;
       display: flex;
       justify-content: center;
       flex-direction: column;
     }
     .unlock-wallet-button-wrapper {
       width: 100%;
-      padding: rem(20);
+      padding: 20px;
     }
     .deposit-address-wrapper {
-      padding: 0 rem(15);
+      padding: 0 15px;
       h3{
-        font-size: rem(15);
+        font-size: 15px;
         color: #333;
         font-family: PingFangSC-Regular, PingFang SC;
         font-weight: 400;
@@ -62,27 +62,27 @@
       }
       .address {
         background: #F7F8F8;
-        padding: rem(15);
+        padding: 15px;
         color: #333;
-        font-size: rem(13);
-        line-height: rem(18);
-        border-radius: rem(5);
-        margin: rem(10) 0 rem(20);
+        font-size: .8125rem;
+        line-height: 18px;
+        border-radius: 5px;
+        margin: 10px 0 20px;
       }
       .copy-address {
         display: block;
-        padding: 0 rem(21);
-        border-radius: rem(5);
+        padding: 0 21px;
+        border-radius: 5px;
         left: 50%;
         transform: translate(-50%, 0);
       }
       .copy-address + span {
-        font-size: rem(13);
+        font-size: .8125rem;
         color: #606265;
         display: block;
         text-align: center;
-        margin-top: rem(30);
-        span{ display: block; margin-bottom: rem(5); }
+        margin-top: 30px;
+        span{ display: block; margin-bottom: 5px; }
       }
     }
   }

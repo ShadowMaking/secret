@@ -1,10 +1,10 @@
 .page-home {
-  font-size: rem(14);
+  font-size: .875rem;
   &-account{
     text-align: center;
     position: relative;
-    height: rem(324);
-    padding: rem(15);
+    height: 324px;
+    padding: 15px;
     background: url('~@/assets/home-bg.png') center center no-repeat;
     // border: 1px solid #ccc;
     // background-color: #eee;
@@ -12,15 +12,15 @@
     .button-update {
       background: #544FDF;
       background: linear-gradient(270deg, rgba(121, 110, 241, 0) 0%, #544FDF 100%);
-      border-radius: 0px rem(100) rem(100) 0px;
+      border-radius: 0px 100px 100px 0px;
       color: #fff;
       position: absolute;
       left: 0;
-      top: rem(45);
-      font-size: rem(16);
+      top: 45px;
+      font-size: 1rem;
       .ico-ipdate {
-        width: rem(22);
-        height: rem(22);
+        width: 22px;
+        height: 22px;
         // background: url('~@/assets/icon_update.png') center center no-repeat;
         background: url('~@/assets/retina/icon_update@3x.png') center center no-repeat;
         vertical-align: middle;
@@ -55,27 +55,27 @@
     }
     .account-info {
       .balance {
-        font-size: rem(31);
+        font-size: 1.9375rem;
         color: #fff;
         font-weight: bold;
       }
       .tip {
         color: #fff;
-        margin: rem(5) 0 rem(20);
+        margin: 5px 0 20px;
       }
     }
     .account-balance{
       width: 100%;
       text-align: left;
-      margin: rem(-20) 0 rem(20);
+      margin: -20px 0 20px;
       .balance {
         display: block;
         color: #fff;
         font-weight: bold;
-        font-size: rem(16);
+        font-size: 1rem;
       }
       .balance:nth-of-type(1){
-        margin: rem(26) 0 rem(10);
+        margin: 26px 0 10px;
       }
     }
   }
@@ -87,13 +87,15 @@
     .button {
       color: #495ABE;
       background: #fff;
+      font-size: .9375rem;
+      border-radius: 10px;
     }
     .button:nth-child(2){ 
-      margin: 0 rem(10);
+      margin: 0 10px;
     }
   }
   .unlock-wallet-button-wrapper {
-    padding: 0 rem(20);
+    padding: 0 20px;
   }
   // status for no connect wallet
   /* &-no-connect-wallet {
@@ -113,5 +115,5 @@
   } */
 }
 .exchange-detail-popup {
-  min-height: rem(375);
+  min-height: 375px;
 }
