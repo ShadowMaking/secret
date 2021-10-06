@@ -1,37 +1,37 @@
 .withdraw-page {
   background: #fff;
-  font-size: rem(13);
-  .myAddress{ padding: rem(5);}
+  font-size: .8125rem;
+  .myAddress{ padding: 5px;}
   .top-address {
-    padding: rem(10) rem(20);
-    font-size: rem(15);
+    padding: 10px 20px;
+    font-size: .9375rem;
   }
   .withdraw-opt-area {
     background: #fff;
-    margin-bottom: rem(20);
-    min-height: rem(30);
-    padding: 0 0 rem(20);
+    margin-bottom: 20px;
+    min-height: 30px;
+    padding: 0 0 20px;
     .address-wrapper {
-      padding: 0 rem(20) 0;
+      padding: 0 20px 0;
       .address-wrapper-inner{
         width: 100%;
-        border-radius: rem(5);
-        border: rem(1) solid #f2f2f2;
+        border-radius: 5px;
+        border: 1px solid #f2f2f2;
         color: #333;
         ::v-deep.van-field__control{
-          font-size: rem(15);
+          font-size: .9375rem;
           font-family: PingFangSC-Regular, PingFang SC;
-          line-height: rem(35);
+          line-height: 35px;
         }
       }
       .address-textarea {
-        border: rem(1) solid #F2F2F2;
-        border-radius: rem(5);
-        padding: rem(15);
+        border: 1px solid #F2F2F2;
+        border-radius: 5px;
+        padding: 15px;
         color: #333;
-        font-size: rem(13);
+        font-size: .8125rem;
         min-width: 100%;
-        height: rem(66);
+        height: 66px;
         resize: none;
       }
     }

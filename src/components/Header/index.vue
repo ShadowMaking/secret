@@ -109,7 +109,7 @@ export default {
       switch(routeName) {
         case 'deposit':
           return 'Deposit';
-        case 'transfer':
+        case 'send':
           return 'Send';
         case 'withdraw':
           return 'Withdraw';

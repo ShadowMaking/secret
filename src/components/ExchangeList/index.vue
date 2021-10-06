@@ -67,7 +67,7 @@
         <span>No Transactions</span>
       </div>
     </div>
-    <div class="seeMore" v-show="allList.length>20"><a @click='toBroswer'>see more</a></div>
+    <div class="seeMore" v-show="allList.length>20"><a @click='toBroswer()'>see more</a></div>
     <!-- get-container="#app"  -->
     <!-- Transaction Details -->
     <van-popup v-model="transactionDetailVisible" round :position="checkBrower()" get-container="#app"   :style="{ minHeight: '40%' }" class="common-bottom-popup exchange-detail-popup">
@@ -198,10 +198,10 @@ export default {
       return 'bottom';
     },
     toBroswer(record) {
-      let openUrl = 'http://explorer.ieigen.com';
+      let openUrl = '//explorer.ieigen.com';
       if (record) {
         const { type, txid } = record.info
-        openUrl = `http://explorer.ieigen.com/#/tx?tstr=${txid}`
+        openUrl = `//explorer.ieigen.com/#/tx?tstr=${txid}`
         if (type === TRANSACTION_TYPE['L1ToL2'] || type === TRANSACTION_TYPE['L1ToL1']) {
           Toast('Coming Soon')
           return;

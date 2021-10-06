@@ -21,8 +21,8 @@ $footerHeight: 270px;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   margin: 0 auto;
-  font-size: rem(13);
-
+  font-size: .8125rem;
+  height: 100%;
 }
 .main-page {
   width: 100%;
@@ -35,11 +35,11 @@ $footerHeight: 270px;
 }
 @media screen and (min-width: 769px) {
   #app {
-    width: rem(350);
-    border: rem(1) solid #eee;
+    width: 512px;
+    border: 1px solid #f2f2f2;
   }
   .common-bottom-popup{
-    max-width: rem(350);
+    max-width: 512px;
   }
 }
 
@@ -192,12 +192,12 @@ a{
 
 .button {
   cursor: pointer;
-  padding: rem(10);
-  font-size: rem(15);
+  padding: 10px;
+  font-size: .9375rem;
   color: #fff;
   background: #495ABE;
   &.button-with-radius {
-    border-radius: rem(10);
+    border-radius: 10px;
   }
 }
 .icon {
@@ -208,8 +208,8 @@ a{
 .textAlignRight { text-align: right;}
 
 .waiting-modal {
-  width: rem(200);
-  height: rem(200);
+  width: 200px;
+  height: 200px;
   ::v-deep.van-count-down{
     text-align: center;
   }
@@ -219,16 +219,16 @@ a{
     align-items: center;
     flex-direction: column;
     .confirm_icon{
-      width: rem(50);
-      height: rem(50);
+      width: 50px;
+      height: 50px;
       display: block;
       background: url('~@/assets/icon_sign_in.png') center center no-repeat;
       background-size: 100% 100%;
     }
     .tip{
       display: block;
-      font-size: rem(15);
-      margin-top: rem(10);
+      font-size: .9375rem;
+      margin-top: 10px;
     }
   }
 }
@@ -237,13 +237,13 @@ a{
 .status-popUp-refresh {
   background: #fff;
   text-align: center;
-  border-radius: rem(10);
-  padding: rem(30);
-  width: rem(330);
+  border-radius: 10px;
+  padding: 30px;
+  width: 330px;
   .icon {
     display: block;
-    width: rem(71);
-    height: rem(71);
+    width: 71px;
+    height: 71px;
   }
   .icon-success {
     background: url("~@/assets/icon_success.png") center center no-repeat;
@@ -254,18 +254,18 @@ a{
     background-size: 100% 100%;
   }
   .main-txt {
-    font-size: rem(23);
+    font-size: 1.4375rem;
     color: #333333;
-    margin: rem(20) 0 rem(15);
+    margin: 20px 0 15px;
   }
   .supplement-txt {
-    font-size: rem(13);
+    font-size: .8125rem;
     color: #606265;
-    line-height: rem(18);
+    line-height: 18px;
   }
   .supplement-txt + .button {
-    margin-top: rem(20);
-    border-radius: rem(5);
+    margin-top: 20px;
+    border-radius: 5px;
   }
 }
 
