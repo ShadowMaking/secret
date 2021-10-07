@@ -187,7 +187,8 @@ export default {
     showRefresh(record) {
       const { info, key } = record
       const { type, status, name='ETH' } = info
-      return type == '2'&& key === 'status' && status === 1 && !this.isTokenTransaction(name)
+      // return type == '2'&& key === 'status' && status === 1 && !this.isTokenTransaction(name)
+      return type == '2'&& key === 'status' && status === 1
     },
     closeNetTip() {
       this.showNetTip = false;
@@ -219,13 +220,15 @@ export default {
       }
     },
     showStatus(record) {
-      return record.status===1 && record.type === TRANSACTION_TYPE['L2ToL1'] && !this.isTokenTransaction(record.name);
+      // return record.status===1 && record.type === TRANSACTION_TYPE['L2ToL1'] && !this.isTokenTransaction(record.name);
+      return record.status===1 && record.type === TRANSACTION_TYPE['L2ToL1'];
     },
     showStatusSuccess(record) {
-      if (!this.isTokenTransaction(record.name)) {
+      /* if (!this.isTokenTransaction(record.name)) {
         return record.type === TRANSACTION_TYPE['L2ToL1']?record.status===2:record.status === 1
       }
-      return record.status === 1
+      return record.status === 1 */
+      return record.type === TRANSACTION_TYPE['L2ToL1']?record.status===2:record.status === 1
     },
     showStatusFail(record) {
       return record.status === 0

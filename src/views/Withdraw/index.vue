@@ -64,11 +64,8 @@ import StatusPop from '@/components/StatusPop';
 import NetTipModal from '@/components/NetTipModal';
 import { wait, prettyLog } from '@/utils/index'
 import { getDefaultAddress } from '@/utils/auth'
-import { getNetMode, getSelectedChainID, initBrideByNetType } from '@/utils/web3'
-import { Bridge, OutgoingMessageState } from 'arb-ts';
-import { NETWORKS } from '@/utils/netWork'
+import { getNetMode, initBrideByNetType } from '@/utils/web3'
 import { getTokenAddress, L2TokenABIJSON } from '@/utils/token';
-// import { NETWORKS } from '@/utils/netWork_arb'
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { utils, ethers } from 'ethers'
 import { BigNumber } from "bignumber.js";
@@ -141,83 +138,6 @@ export default {
       this.tokenAmountButtonTxt = 'Enter The Amount'
       this.tokenAmountButtonTxtCode = 1
     },
-    initBridge() {
-      const connectAddress = window.ethereum.selectedAddress;
-      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
-      const netId = getSelectedChainID();
-      const currentNet = NETWORKS[netId];
-      const partnerNet = NETWORKS[currentNet['partnerChainID']];
-      const tokenBridge = currentNet['tokenBridge'];
-
-      const ethProvider = new ethers.providers.JsonRpcProvider(
-        partnerNet['url']
-      )
-      const arbProvider = metamaskProvider
-      const l1Signer = ethProvider.getSigner(connectAddress)
-      const l2Signer = arbProvider.getSigner(0)
-      
-      const bridge = new Bridge(
-        tokenBridge['l1Address'],
-        tokenBridge['l2Address'],
-        l1Signer,
-        l2Signer,
-      )
-      this.bridge = bridge;
-      return bridge
-    },
-    async executeConfirmTransaction(withrawTxHash) {
-      const bridge = this.bridge || this.initBridge();
-      const txnHash = withrawTxHash;
-      const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(txnHash);
-      if (!initiatingTxnReceipt){
-        return {
-          success: false,
-          msg: `No Arbitrum transaction found with provided txn hash: ${txnHash}`
-        };
-      }
-      const outGoingMessagesFromTxn = await bridge.getWithdrawalsInL2Transaction(initiatingTxnReceipt)
-      if (outGoingMessagesFromTxn.length === 0){
-        return {
-          success: false,
-          msg: `Txn ${txnHash} did not initiate an outgoing messages`
-        };
-      }
-      const { batchNumber, indexInBatch } = outGoingMessagesFromTxn[0]
-      const outgoingMessageState = await bridge.getOutGoingMessageState(
-        batchNumber,
-        indexInBatch
-      )
-      console.log(`Waiting for message to be confirmed: Batchnumber: ${batchNumber}, IndexInBatch ${indexInBatch}`)
-
-      if (!outgoingMessageState === OutgoingMessageState.CONFIRMED) {
-        let msg = '';
-        switch (outgoingMessageState) {
-          case OutgoingMessageState.NOT_FOUND: {
-            msg = 'Message not found; something strange and bad happened'
-            break
-          }
-          case OutgoingMessageState.EXECUTED: {
-            msg = `Message already executed! Nothing else to do here`
-            break
-          }
-          case OutgoingMessageState.UNCONFIRMED: {
-            msg = `Message not yet confirmed; we'll wait a bit and try again`
-            break
-          }
-          default:
-            break
-        }
-        return { success: false, msg };
-      }
-      const res = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
-      
-      const rec = await res.wait()
-      if (rec.confirmations === 1) {
-        console.log('Done! Your transaction is executed')
-        return { success: true }
-      }
-      return { success: false };
-    },
     withdrawFailed(error) {
       this.show = false;
       if (error.code == '4001') {
@@ -277,7 +197,7 @@ export default {
       myContract.withdraw(
         connectAddress, // l1TestWallet.address,
         tokenWithdrawAmount,
-        { gasLimit: 600000, gasPrice: 1 })
+        { gasLimit: 600000, gasPrice: 100 })
       .then(async res=>{
         await this.withdrawSuccess(res, info)
       })
@@ -362,7 +282,6 @@ export default {
   },
 }
 </script>
-
 <style lang="scss" scoped>
   @import 'index';
 </style>
