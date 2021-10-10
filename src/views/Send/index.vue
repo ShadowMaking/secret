@@ -70,11 +70,13 @@ import TokenAmount from '@/components/TokenAmount';
 import StatusPop from '@/components/StatusPop';
 import NetTipModal from '@/components/NetTipModal';
 import { Popup, Field, Toast } from 'vant';
-import { getNetMode } from '@/utils/web3';
+import { getNetMode, initBrideByNetType } from '@/utils/web3';
 import { wait, prettyLog } from '@/utils/index'
-import { utils } from 'ethers';
+import { getTokenAddress, L2TokenABIJSON } from '@/utils/token';
+import { utils, ethers } from 'ethers'
 import { utils as web3utils } from 'web3';
 import { TRANSACTION_TYPE } from '@/api/transaction';
+import { BigNumber } from "bignumber.js";
 
 Vue.use(Popup);
 Vue.use(Field);
@@ -147,14 +149,14 @@ export default {
           break;
       }
     },
-    async sendSuccess(res, info, address, transferParams) {
+    async sendSuccess(res, info, address) {
       const { selectedConnectAddress, toAddress } = address;
       this.tipTxt = 'In progress,waitting';
       // prettyLog('Transaction is in progress，waiting for 10s....')
       const submitData = {
         txid: res,
-        from: transferParams['from'] || selectedConnectAddress,
-        to: transferParams['to'] || toAddress,
+        from: selectedConnectAddress,
+        to: toAddress,
         type: TRANSACTION_TYPE['L2ToL2'],
         status: 1,
         value: info.amount,
@@ -194,21 +196,21 @@ export default {
         id: 0
       })
       .then(async res=>{
-        await this.sendSuccess(res, info, address, transferParams)
+        await this.sendSuccess(res, info, address)
       })
       .catch(error=>{
         this.sendFailed(error)
       })
     },
-    async tokenSend(res, info, address, transferParams) {
+    async tokenSend(info, address) {
       Toast('Commming soon')
-      const { selectedConnectAddress, toAddress } = address;
+      const { toAddress } = address;
       const { symbol } = info.tokenInfo
       const tokenAddress = getTokenAddress(symbol)
       const abi = L2TokenABIJSON.abi;
       const { l2Signer } = initBrideByNetType('l2');
       const myContract = new ethers.Contract(tokenAddress, abi, l2Signer)
-      // const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(info.amount*1000000000000000000)).toFixed())
+      const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(info.amount*1000000000000000000)).toFixed())
       console.log('tokenWithdrawAmount', info.amount)
       // address, bytes memory cipher_amount
       // myContract.cipherTransfer(
@@ -218,10 +220,10 @@ export default {
       )
       .then(async res=>{
         console.log(res)
-        // await this.withdrawSuccess(res, info)
+        await this.sendSuccess(res, info, address)
       })
       .catch(error => {
-        this.withdrawFailed(error)
+        this.sendFailed(error)
       })
     },
     async addHistory(data) {

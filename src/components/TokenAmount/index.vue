@@ -176,7 +176,7 @@ export default {
   },
   filters: {
     showBalance(balance) {
-      if (isNaN(balance)) {
+      if (isNaN(balance) && balance!=='0x') {
         return `${balance.substr(0,8)}...${balance.substr(-6)}`
       }
       return balance
@@ -338,6 +338,11 @@ export default {
       this.buttonColor = '#A4ACDF';
       this.buttonDisabled = true;
     },
+    enableSubmitButton() {
+      this.buttonText = 'Confirm';
+      this.buttonColor = '#495ABE';
+      this.buttonDisabled = false;
+    },
     handleWatchResetStatus() {
       this.number = '';
       this.ethAvailableBalance = '0.0';
@@ -373,13 +378,17 @@ export default {
       await this.setButtonStatusByBalance(tokenAmount);
     },
     async setButtonStatusByBalance(tokenAmount) {
+      // TODO need encrpt to balance
+      if (this.type === 'send') {
+        this.enableSubmitButton()
+        return
+      }
+
       const _minus = await this.getMinus(tokenAmount||this.number);
       if (lteZero(_minus, false)) {
         this.setButtonDisabled('Insufficient Balance');
       } else {
-        this.buttonText = 'Confirm';
-        this.buttonColor = '#495ABE';
-        this.buttonDisabled = false;
+        this.enableSubmitButton()
       }
     },
     async getMinus(tokenAmount) {
@@ -405,7 +414,7 @@ export default {
       // show the encryt balance when the transaction type is send
       if (this.type === 'send') {
         const cipherBalance = await myContract.cipherBalanceOf(selectedAccountAddress);
-        const convertCipherBalance = this.web3.utils.hexToAscii(cipherBalance)
+        const convertCipherBalance = cipherBalance === '0x' ? cipherBalance : this.web3.utils.hexToAscii(cipherBalance)
         console.log(cipherBalance, convertCipherBalance)
         return convertCipherBalance
       } else {
