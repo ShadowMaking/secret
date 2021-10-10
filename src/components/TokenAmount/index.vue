@@ -177,7 +177,7 @@ export default {
   filters: {
     showBalance(balance) {
       if (isNaN(balance)) {
-        return `${balance.substr(0,8)}...${balance.substr(-8)}`
+        return `${balance.substr(0,8)}...${balance.substr(-6)}`
       }
       return balance
     }
