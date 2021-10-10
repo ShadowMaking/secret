@@ -221,7 +221,7 @@ export default {
         case 'ETH':
           await this.ethWithdraw(info)
           break;
-        case 'EETL2':
+        case 'xEIG':
           await this.tokenWithdraw(info)
           break;
       }

@@ -6,8 +6,8 @@ import _ from 'lodash'
 const TOKEN_L1 = [
   {
     "tokenType": 'ERC20',
-    "tokenAddress": "0xceD8dFd4b63e8B035f3B05fb36398C70E2900262",
-    "symbol": "EETL1",
+    "tokenAddress": "0xEe5455B2CacEC0f516362B8E88B0a145046B47f8",
+    "symbol": "EIG",
     "decimals": 18,
     // "image": "https: //foo.io/token-image.svg",
     "json": L1TokenABIJSON,
@@ -18,8 +18,8 @@ const TOKEN_L1 = [
 const TOKEN_L2 = [
   {
     "tokenType": 'ERC20',
-    "tokenAddress": "0x32D292d23A277410e23Ef29e79E2FD165FCD8F3E",
-    "symbol": "EETL2",
+    "tokenAddress": "0x200CE14abF65Df2F7eB9e377AC765C09E13010Df",
+    "symbol": "xEIG",
     "decimals": 18,
     // "image": "https: //foo.io/token-image.svg",
     "json": L2TokenABIJSON,

@@ -254,7 +254,7 @@ export default {
         case 'ETH':
           await this.ethDeposit(info)
           break;
-        case 'EETL1':
+        case 'EIG':
           await this.tokenDeposit(info)
           break;
       }

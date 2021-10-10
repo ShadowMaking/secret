@@ -6,7 +6,8 @@
           <div class="slect-token-wrap flex">
             <i class="token token-ETH" @click="showChooseTokenModal"></i>
             <span class="token-span" @click="showChooseTokenModal">{{ selectedTokenInfo.symbol }}</span>
-            <i class="icon-selected" @click="showChooseTokenModal" v-show="type!=='send'"></i>
+            <!-- <i class="icon-selected" @click="showChooseTokenModal" v-show="type!=='send'"></i> -->
+            <i class="icon-selected" @click="showChooseTokenModal"></i>
             <a class="max-button" @click="setInputAmountMax">Max</a>
           </div>
         </van-col>
@@ -100,7 +101,7 @@
                     <div class="token-name"><span>{{ item.symbol }}</span><span>{{ item.symbol }}</span></div>
                   </div>
                 </van-col>
-                <van-col span="12" class="textAlignRight token-balance"><span>{{ item.balance }}</span></van-col>
+                <van-col span="12" class="textAlignRight token-balance"><span>{{ item.balance|showBalance }}</span></van-col>
               </van-row>
             </li>
           </ul>
@@ -171,6 +172,14 @@ export default {
       ],
       showSearchResult: false,
       searchResult: []
+    }
+  },
+  filters: {
+    showBalance(balance) {
+      if (isNaN(balance)) {
+        return `${balance.substr(0,8)}...${balance.substr(-8)}`
+      }
+      return balance
     }
   },
   watch: {
@@ -278,7 +287,8 @@ export default {
       this.serchTokenValue = undefined
     },
     showChooseTokenModal() {
-      if (this.walletIsLock || this.type === 'send') { return }
+      // if (this.walletIsLock || this.type === 'send') { return }
+      if (this.walletIsLock) { return }
       this.showTokenSelect = true
     },
     setInputAmountMax() {
@@ -333,41 +343,6 @@ export default {
       this.ethAvailableBalance = '0.0';
       this.selectedTokenInfo = { symbol:'ETH', balance: this.ethAvailableBalance }
       this.setButtonDisabled('Enter The Amount');
-    },
-    async getL1tokenBalance(bridge) {
-      const l1tokenAddress = '0x0c1ffAf1aA49178921fd23baA85ff84E50402814';
-      const abi = L1TokenABIJSON.abi;
-      const l1signerOrProvider = new ethers.providers.Web3Provider(window.ethereum);
-
-      // for L1
-      const ethProvider = new ethers.providers.Web3Provider(window.ethereum);
-      const arbProvider = new ethers.providers.JsonRpcProvider('https://rpc.ieigen.com/eig/')
-      const l1Signer = ethProvider.getSigner(0);
-      const l2Signer = arbProvider.getSigner(window.ethereum.selectedAddress);
-
-
-      // const myContract = new ethers.Contract( l1tokenAddress , abi , l1signerOrProvider )
-      const myContract = new ethers.Contract( l1tokenAddress , abi , l1Signer )
-      console.log('myContract', myContract)
-
-      const balance = await myContract.balanceOf('0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9');
-      // const balance = await myContract.balanceOf(l1tokenAddress);
-      console.log(this.web3.utils.hexToNumberString(balance))  // balance.toString()
-      console.log(formatEther(balance.toString()))
-
-      // test deposit
-      // const amountnum = BigNumber.from('0.0000000000000001')  // 0.0000000000498798
-      const amountnum = BigNumber.from('800')  // 0.0000000000498798  18次方
-      // const amountnum = formatEther('1') 
-      console.log(amountnum)
-
-      bridge.deposit(l1tokenAddress, amountnum)
-      .then(async res=>{
-        console.log(res)
-      })
-      .catch(error => {
-        console.log(error)
-      })
     },
     async getETHAvailableBalance() {
       const type = this.type
@@ -427,11 +402,18 @@ export default {
       const myContract = new ethers.Contract(tokenAddress, abi, netType === 'l1' ? l1Signer : l2Signer)
       console.log('myContract', myContract)
 
-      const balance = await myContract.balanceOf(selectedAccountAddress);
-      console.log(this.web3.utils.hexToNumberString(balance))  // balance.toString()
-      console.log(formatEther(balance.toString()))
-
-      return this.dealAvailableBalance(formatEther(balance.toString()))
+      // show the encryt balance when the transaction type is send
+      if (this.type === 'send') {
+        const cipherBalance = await myContract.cipherBalanceOf(selectedAccountAddress);
+        const convertCipherBalance = this.web3.utils.hexToAscii(cipherBalance)
+        console.log(cipherBalance, convertCipherBalance)
+        return convertCipherBalance
+      } else {
+        const balance = await myContract.balanceOf(selectedAccountAddress);
+        console.log(this.web3.utils.hexToNumberString(balance))  // balance.toString()
+        console.log(formatEther(balance.toString()))
+        return this.dealAvailableBalance(formatEther(balance.toString()))
+      }
     },
     async getTokenList() {
       const res = await this.$store.dispatch('GetTokenByNetType', { netType: this.expectNetType});

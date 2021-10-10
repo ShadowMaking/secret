@@ -124,23 +124,63 @@ export default {
     async submitSend(info) {
       this.showStatusPop = false;
       const toAddress = this.sendAddress;
-      const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
-      const selectedAccountAddress = accounts[0];
+      // const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
+      // const selectedAccountAddress = accounts[0];
+      const selectedConnectAddress = window.ethereum.selectedAddress;
       if (!utils.isAddress(toAddress)) {
         Toast('Wrong Address')
         return
       }
       
-      if (toAddress.toLocaleUpperCase() === selectedAccountAddress.toLocaleUpperCase()) {
+      if (toAddress.toLocaleUpperCase() === selectedConnectAddress.toLocaleUpperCase()) {
         Toast("Don't enter your own address")
         return
       }
 
+      const { symbol, isToken } = info.tokenInfo
+      switch (symbol) {
+        case 'ETH':
+          await this.ethSend(info, { selectedConnectAddress, toAddress })
+          break;
+        case 'xEIG':
+          await this.tokenSend(info, { selectedConnectAddress, toAddress })
+          break;
+      }
+    },
+    async sendSuccess(res, info, address, transferParams) {
+      const { selectedConnectAddress, toAddress } = address;
+      this.tipTxt = 'In progress,waitting';
+      // prettyLog('Transaction is in progress，waiting for 10s....')
+      const submitData = {
+        txid: res,
+        from: transferParams['from'] || selectedConnectAddress,
+        to: transferParams['to'] || toAddress,
+        type: TRANSACTION_TYPE['L2ToL2'],
+        status: 1,
+        value: info.amount,
+        name: info.tokenInfo.symbol,
+      }
+      this.addHistoryData = _.cloneDeep(submitData);
+      await this.addHistory(submitData);
+    },
+    sendFailed(error) {
+      this.show = false;
+      if (error.code == '4001') {
+        Toast('Cancel Transaction')
+        return
+      }
+      console.log(error)
+      this.showStatusPop = true;
+      this.statusPopTitle = 'Transfer Failed'
+      this.popStatus = 'fail';
+    },
+    async ethSend(info, address) {
       this.tipTxt = 'Confirm On The Wallet';
       this.show = true;
       const transferAmount = utils.parseEther(info.amount);
+      const { selectedConnectAddress, toAddress } = address;
       const transferParams = [{
-        from: selectedAccountAddress,
+        from: selectedConnectAddress,
         to: toAddress,
         gas: web3utils.toHex('21000'), // 21000的16进制 '0x5208
         gasPrice: '0',
@@ -154,31 +194,34 @@ export default {
         id: 0
       })
       .then(async res=>{
-        this.tipTxt = 'In progress,waitting';
-        // await wait(10000);
-        // prettyLog('Transaction is in progress，waiting for 10s....')
-        const submitData = {
-          txid: res,
-          from: transferParams['from'] || selectedAccountAddress,
-          to: transferParams['to'] || toAddress,
-          type: TRANSACTION_TYPE['L2ToL2'],
-          status: 1,
-          value: info.amount,
-          name: info.tokenInfo.symbol,
-        }
-        this.addHistoryData = _.cloneDeep(submitData);
-        await this.addHistory(submitData);
+        await this.sendSuccess(res, info, address, transferParams)
       })
       .catch(error=>{
-        this.show = false;
-        if (error.code == '4001') {
-          Toast('Cancel Transaction')
-          return
-        }
-        console.log(error)
-        this.showStatusPop = true;
-        this.statusPopTitle = 'Transfer Failed'
-        this.popStatus = 'fail';
+        this.sendFailed(error)
+      })
+    },
+    async tokenSend(res, info, address, transferParams) {
+      Toast('Commming soon')
+      const { selectedConnectAddress, toAddress } = address;
+      const { symbol } = info.tokenInfo
+      const tokenAddress = getTokenAddress(symbol)
+      const abi = L2TokenABIJSON.abi;
+      const { l2Signer } = initBrideByNetType('l2');
+      const myContract = new ethers.Contract(tokenAddress, abi, l2Signer)
+      // const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(info.amount*1000000000000000000)).toFixed())
+      console.log('tokenWithdrawAmount', info.amount)
+      // address, bytes memory cipher_amount
+      // myContract.cipherTransfer(
+      myContract.transfer(
+        toAddress,
+        tokenWithdrawAmount
+      )
+      .then(async res=>{
+        console.log(res)
+        // await this.withdrawSuccess(res, info)
+      })
+      .catch(error => {
+        this.withdrawFailed(error)
       })
     },
     async addHistory(data) {
