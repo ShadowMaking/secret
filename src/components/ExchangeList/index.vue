@@ -78,13 +78,13 @@
         <ul v-for="(item,index) in detaiInfo" :key="`exchange-${index}`">
           <li
             class="flex flex-content-between common-exchange-detail-item"
-            v-if="item.key==='from'" v-show="item['info']['type']==(TRANSACTION_TYPE['L2ToL1']||TRANSACTION_TYPE['L2ToL2'])">
+            v-if="item.key==='from'" v-show="showFromOrToAddress(item)">
             <span class="title">{{ item.title }}</span>
             <span class="flex flex-center" @click="copyAddress(item.value)">{{ `${item.value.substr(0,6)}...${item.value.substr(-4)}` }}</span>
           </li>
           <li
             class="flex flex-content-between common-exchange-detail-item"
-            v-else-if="item.key==='to'" v-show="item['info']['type']==(TRANSACTION_TYPE['L2ToL1']||TRANSACTION_TYPE['L2ToL2'])">
+            v-else-if="item.key==='to'" v-show="showFromOrToAddress(item)">
             <span class="title">{{ item.title }}</span>
             <span class="flex flex-center" @click="copyAddress(item.value)">{{ `${item.value.substr(0,6)}...${item.value.substr(-4)}` }}</span>
           </li>
@@ -181,6 +181,9 @@ export default {
     }
   },
   methods: {
+    showFromOrToAddress(record) {
+      return record['info']['type']==TRANSACTION_TYPE['L2ToL1'] || record['info']['type']==TRANSACTION_TYPE['L2ToL2']
+    },
     isTokenTransaction(name="ETH") {
       return name!=='ETH'
     },
