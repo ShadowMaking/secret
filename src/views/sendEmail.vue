@@ -43,7 +43,8 @@ export default {
         clientId: this.CLIENT_ID,
         discoveryDocs: this.DISCOVERY_DOCS,
         scope: this.SCOPES
-      }).then(function () {
+      // }).then(function () {
+      }).then( ()=> {
         // Listen for sign-in state changes.
         gapi.auth2.getAuthInstance().isSignedIn.listen(this.updateSigninStatus);
 
@@ -51,7 +52,8 @@ export default {
         this.updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
         authorizeButton.onclick = this.handleAuthClick;
         signoutButton.onclick = this.handleSignoutClick;
-      }, function(error) {
+      // }, function(error) {
+      }, (error) => {
         this.appendPre(JSON.stringify(error, null, 2));
       });
     },
@@ -99,7 +101,8 @@ export default {
     listLabels() {
       gapi.client.gmail.users.labels.list({
         'userId': 'me'
-      }).then(function(response) {
+      // }).then(function(response) {
+      }).then((response) => {
         var labels = response.result.labels;
         this.appendPre('Labels:');
 
