@@ -5,6 +5,7 @@ import Home from '../views/Home/index';
 const Deposit = () => import('../views/Deposit/index')
 const Send = () => import('../views/Send/index')
 const Withdraw = () => import('../views/Withdraw/index')
+const SendEmail = () => import('../views/sendEmail')
 
 // cache origin push method
 const originalPush = VueRouter.prototype.push
@@ -74,6 +75,14 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     // component: () => import(/* webpackChunkName: "withdraw" */ '../views/Withdraw/index'),
   },
+  {
+    path: 'sendEmail',
+    name: 'sendEmail',
+    meta: {
+      title: "sendEmail"
+    },
+    component: SendEmail,
+  }
 ];
 
 const router = new VueRouter({
