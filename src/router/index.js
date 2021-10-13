@@ -76,7 +76,7 @@ const routes = [
     // component: () => import(/* webpackChunkName: "withdraw" */ '../views/Withdraw/index'),
   },
   {
-    path: 'sendEmail',
+    path: '/sendEmail',
     name: 'sendEmail',
     meta: {
       title: "sendEmail"
