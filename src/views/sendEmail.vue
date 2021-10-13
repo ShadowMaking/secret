@@ -39,10 +39,10 @@ export default {
      */
     initClient() {
       gapi.client.init({
-        apiKey: API_KEY,
-        clientId: CLIENT_ID,
-        discoveryDocs: DISCOVERY_DOCS,
-        scope: SCOPES
+        apiKey: this.API_KEY,
+        clientId: this.CLIENT_ID,
+        discoveryDocs: this.DISCOVERY_DOCS,
+        scope: this.SCOPES
       }).then(function () {
         // Listen for sign-in state changes.
         gapi.auth2.getAuthInstance().isSignedIn.listen(this.updateSigninStatus);
