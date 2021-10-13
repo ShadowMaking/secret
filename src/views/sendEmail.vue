@@ -10,8 +10,8 @@
 </template>
 <script>
 import '@/utils/gapi.js';
-var authorizeButton = document.getElementById('authorize_button');
-var signoutButton = document.getElementById('signout_button');
+// var authorizeButton = document.getElementById('authorize_button');
+// var signoutButton = document.getElementById('signout_button');
 export default {
   name:'Test',
   data(){
@@ -43,21 +43,24 @@ export default {
         clientId: this.CLIENT_ID,
         discoveryDocs: this.DISCOVERY_DOCS,
         scope: this.SCOPES
-      // }).then(function () {
       }).then( ()=> {
         // Listen for sign-in state changes.
         gapi.auth2.getAuthInstance().isSignedIn.listen(this.updateSigninStatus);
 
         // Handle the initial sign-in state.
         this.updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+        var authorizeButton = document.getElementById('authorize_button');
+        var signoutButton = document.getElementById('signout_button');
         authorizeButton.onclick = this.handleAuthClick;
         signoutButton.onclick = this.handleSignoutClick;
-      // }, function(error) {
       }, (error) => {
         this.appendPre(JSON.stringify(error, null, 2));
       });
     },
     updateSigninStatus(isSignedIn) {
+      console.log('isSignedIn',isSignedIn)
+      var authorizeButton = document.getElementById('authorize_button');
+      var signoutButton = document.getElementById('signout_button');
       if (isSignedIn) {
         authorizeButton.style.display = 'none';
         signoutButton.style.display = 'block';
@@ -101,7 +104,6 @@ export default {
     listLabels() {
       gapi.client.gmail.users.labels.list({
         'userId': 'me'
-      // }).then(function(response) {
       }).then((response) => {
         var labels = response.result.labels;
         this.appendPre('Labels:');
