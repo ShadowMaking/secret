@@ -109,7 +109,7 @@ export default {
         this.appendPre('Labels:');
 
         if (labels && labels.length > 0) {
-          for (i = 0; i < labels.length; i++) {
+          for (let i = 0; i < labels.length; i++) {
             var label = labels[i];
             this.appendPre(label.name)
           }
