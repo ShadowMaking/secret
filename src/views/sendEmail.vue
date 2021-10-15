@@ -24,7 +24,7 @@ export default {
       DISCOVERY_DOCS : ["https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest"],
       // Authorization scopes required by the API; multiple scopes can be
       // included, separated by spaces.
-      SCOPES: 'https://www.googleapis.com/auth/gmail.readonly',
+      SCOPES: 'https://www.googleapis.com/auth/gmail.readonly ' + 'https://www.googleapis.com/auth/gmail.send',
     }
   },
   methods: {
