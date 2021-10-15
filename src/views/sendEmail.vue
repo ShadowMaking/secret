@@ -4,6 +4,7 @@
     <!--Add buttons to initiate auth sequence and sign out-->
     <button id="authorize_button" style="display: none;" @click="handleAuthClick">Authorize</button>
     <button id="signout_button" style="display: none;" @click="handleSignoutClick">Sign Out</button>
+    <button id="send" style="" @click="sendEmail">SendEmail</button>
 
     <pre id="content" style="white-space: pre-wrap;"></pre>
   </div>
@@ -117,6 +118,34 @@ export default {
           this.appendPre('No Labels found.');
         }
       });
+    },
+
+
+    sendEmail(){
+      const headers_obj = {
+            'To': 'skyeGao0817@gmail.com',
+            'Subject': 'test email'
+          };
+      const message = 'test message';
+
+      var email = '';
+      
+
+      for(var header in headers_obj)
+        email += header += ": "+headers_obj[header]+"\r\n";
+
+      email += "\r\n" + message;
+
+      var sendRequest = gapi.client.gmail.users.messages.send({
+        'userId': 'me',
+        'resource': {
+          'raw': window.btoa(email).replace(/\+/g, '-').replace(/\//g, '_')
+        }
+      });
+      sendRequest.execute(this.sendCallback)
+    },
+    sendCallback(a,b,c) {
+      console.log(a,b,c)
     },
   },
   mounted() {
