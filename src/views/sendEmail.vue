@@ -137,7 +137,7 @@ export default {
       email += "\r\n" + message;
 
       var sendRequest = gapi.client.gmail.users.messages.send({
-        'userId': 'me',
+        'userId': '110349428895823128288',
         'resource': {
           'raw': window.btoa(email).replace(/\+/g, '-').replace(/\//g, '_')
         }
