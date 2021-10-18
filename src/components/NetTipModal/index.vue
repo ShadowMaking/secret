@@ -17,10 +17,10 @@
       v-model="showTokenTipPopup"
       title="Token Tip"
       show-cancel-button
-      confirmButtonText="Add Token"
-      cancelButtonText="Switch Network"
-      @confirm="confirmAddToken"
-      @cancel="switchNet"
+      confirmButtonText="Switch Network"
+      cancelButtonText="Add Token"
+      @confirm="switchNet"
+      @cancel="confirmAddToken"
       confirmButtonColor="#495ABE">
       <div class="token-tip-modal">
         <div class="tip-content">We provide Token on this Network</div>
@@ -34,7 +34,7 @@
 import Vue from 'vue';
 import { Popup, Dialog } from 'vant';
 import { ethRPC, arbRPC, L1ChainID, L2ChainID } from '@/utils/netWork'
-import { installWeb3Wallet, getNetMode, getSelectedChainID, initBrideByNetType } from '@/utils/web3'
+import { installWeb3Wallet, installWeb3WalletMetamask, getNetMode, getSelectedChainID, initBrideByNetType } from '@/utils/web3'
 import WalletStatus from '@/components/WalletStatus';
 import { TOKEN_L1, TOKEN_L2 }  from '@/utils/token';
 import { wait }  from '@/utils/index';
@@ -63,7 +63,7 @@ export default {
   },
   computed: {
     metamaskInstall() {
-      return this.$store.state.metamask.metamaskInstall;
+      return this.$store.state.metamask.metamaskInstall || installWeb3WalletMetamask();
     },
   },
   watch: {

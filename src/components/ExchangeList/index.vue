@@ -130,7 +130,7 @@ import { DEFAULTIMG } from '@/utils/global';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { Popup, Toast, Popover, List } from 'vant';
 import moment from 'moment'
-import { utils } from 'ethers';
+import { utils, ethers } from 'ethers';
 import { OutgoingMessageState } from 'arb-ts';
 import { initBrideByNetType, getNetMode } from '@/utils/web3';
 import { copyTxt, isPc } from '@/utils/index';
@@ -487,6 +487,13 @@ export default {
   },
   async mounted() {
     this.$eventBus.$on('handleUpdateTransactionHistory', this.handleSearchTransactionHistoryList)
+    /* const etherscanProvider = new ethers.providers.EtherscanProvider();
+    const address = window.ethereum.selectedAddress
+    etherscanProvider.getHistory(address).then((history) => {
+      history.forEach((tx) => {
+        console.log('tx',tx);
+      })
+    }); */
   },
   
 };

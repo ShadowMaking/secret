@@ -124,6 +124,10 @@ export default {
       this.showStatusPop = eventInfo.show;
     },
     async submitSend(info) {
+      this.tipShow = true;
+      setTimeout(()=>{ this.tipShow = false }, 2000);
+      await wait(1500)
+
       this.showStatusPop = false;
       const toAddress = this.sendAddress;
       // const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
@@ -151,16 +155,17 @@ export default {
     },
     async sendSuccess(res, info, address) {
       const { selectedConnectAddress, toAddress } = address;
+      const symbolName = info.tokenInfo.symbol || 'ETH'
       this.tipTxt = 'In progress,waitting';
       // prettyLog('Transaction is in progress，waiting for 10s....')
       const submitData = {
-        txid: res,
+        txid: symbolName === 'ETH' ? res : res.hash,
         from: selectedConnectAddress,
         to: toAddress,
         type: TRANSACTION_TYPE['L2ToL2'],
         status: 1,
         value: info.amount,
-        name: info.tokenInfo.symbol,
+        name: symbolName,
       }
       this.addHistoryData = _.cloneDeep(submitData);
       await this.addHistory(submitData);
@@ -203,7 +208,6 @@ export default {
       })
     },
     async tokenSend(info, address) {
-      Toast('Commming soon')
       const { toAddress } = address;
       const { symbol } = info.tokenInfo
       const tokenAddress = getTokenAddress(symbol)
@@ -211,13 +215,10 @@ export default {
       const { l2Signer } = initBrideByNetType('l2');
       const myContract = new ethers.Contract(tokenAddress, abi, l2Signer)
       const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(info.amount*1000000000000000000)).toFixed())
-      console.log('tokenWithdrawAmount', info.amount)
-      // address, bytes memory cipher_amount
-      // myContract.cipherTransfer(
-      myContract.transfer(
-        toAddress,
-        tokenWithdrawAmount
-      )
+      const cipher_tokenWithdrawAmount = await myContract.encrypt(info.amount, { gasLimit: 594949, gasPrice: 1 })
+      console.log('tokenWithdrawAmount', info.amount, tokenWithdrawAmount)
+      // address, uint256
+      myContract.transfer(toAddress, tokenWithdrawAmount)
       .then(async res=>{
         console.log(res)
         await this.sendSuccess(res, info, address)
@@ -225,6 +226,16 @@ export default {
       .catch(error => {
         this.sendFailed(error)
       })
+      
+      // address, bytes(cipher_amount)
+      /* myContract.cipherTransfer(toAddress, cipher_tokenWithdrawAmount)
+      .then(async res=>{
+        console.log(res)
+        await this.sendSuccess(res, info, address)
+      })
+      .catch(error => {
+        this.sendFailed(error)
+      }) */
     },
     async addHistory(data) {
       const submitData = data || this.addHistoryData;
@@ -271,10 +282,7 @@ export default {
       this.tokenAmountButtonTxtCode = 1
     },
     handleAddressInputFocus() {
-      this.tipShow = true;
-      setTimeout(()=>{
-        this.tipShow = false;
-      }, 2000)
+      return
     },
     async handleChainChanged({netId, showTip}) {
       if (showTip) {
@@ -289,9 +297,13 @@ export default {
         this.showNetTip = false;
       }
     },
+    handleDisconnect() {
+      this.sendAddress = ''
+    },
   },
   mounted() {
     this.$eventBus.$on('chainChanged', this.handleChainChanged);
+    this.$eventBus.$on('disconnect', this.handleDisconnect);
   },
 }
 </script>

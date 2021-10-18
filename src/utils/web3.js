@@ -179,6 +179,9 @@ export const metamaskIsConnect = () => {
 export const installWeb3Wallet = () => {
   return typeof window.ethereum !== "undefined"
 }
+export const installWeb3WalletMetamask = () => {
+  return typeof window.ethereum !== "undefined" && window.ethereum.isMetaMask
+}
 
 export const getExpectNetTypeByRouteName = (routeName) => {
   let type = '';

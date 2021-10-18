@@ -57,7 +57,7 @@ import { DEFAULTIMG } from '@/utils/global';
 import { Popup, Button as VanButton, Toast, Icon } from 'vant';
 import WalletStatus from '@/components/WalletStatus';
 import NetTipModal from '@/components/NetTipModal';
-import { getSelectedChainID, getNetMode, getExpectNetTypeByRouteName, metamaskIsConnect, installWeb3Wallet } from '@/utils/web3'
+import { getSelectedChainID, getNetMode, getExpectNetTypeByRouteName, metamaskIsConnect, installWeb3Wallet, installWeb3WalletMetamask } from '@/utils/web3'
 import { copyTxt, isPc } from '@/utils/index';
 import { initTokenTime, updateLoginTime, removeTokens, tokenIsExpires } from '@/utils/auth'
 
@@ -88,7 +88,7 @@ export default {
   },
   computed: {
     metamaskInstall() {
-      return this.$store.state.metamask.metamaskInstall
+      return this.$store.state.metamask.metamaskInstall || installWeb3WalletMetamask()
     },
     expectNetType() {
       return getExpectNetTypeByRouteName(this.$route.name)

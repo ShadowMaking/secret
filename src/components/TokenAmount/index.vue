@@ -27,7 +27,7 @@
       </van-row>
       <div class="bottom">
         <div>
-          <span>Balance：{{ selectedTokenInfo.balance }} {{ selectedTokenInfo.symbol }}</span>
+          <span>Balance：{{ selectedTokenInfo.balance|showBalance(self, selectedTokenInfo) }} {{ selectedTokenInfo.symbol }}</span>
         </div>
         <div style="text-align:right">
           <span>Amount</span>
@@ -101,7 +101,7 @@
                     <div class="token-name"><span>{{ item.symbol }}</span><span>{{ item.symbol }}</span></div>
                   </div>
                 </van-col>
-                <van-col span="12" class="textAlignRight token-balance"><span>{{ item.balance|showBalance }}</span></van-col>
+                <van-col span="12" class="textAlignRight token-balance"><span>{{ item.balance|showBalance(self, item) }}</span></van-col>
               </van-row>
             </li>
           </ul>
@@ -123,7 +123,8 @@ import { Button, Col, Row, Field, Popup, Search } from 'vant';
 import UnlockWallet from '@/components/UnlockWallet';
 import StatusPop from '@/components/StatusPop';
 import { minus, lteZero, isZero, retainDecimals } from '@/utils/number'
-import { utils, BigNumber } from 'ethers'
+import { utils, BigNumber as ethBigNumber } from 'ethers'
+import { BigNumber } from "bignumber.js";
 import * as ethers from 'ethers'
 import _ from 'lodash'
 import { initBrideByNetType } from '@/utils/web3'
@@ -157,6 +158,7 @@ export default {
   },
   data() {
     return {
+      self: this,
       number: '',
       showTokenSelect: false,
       serchTokenValue: '',
@@ -175,9 +177,11 @@ export default {
     }
   },
   filters: {
-    showBalance(balance) {
-      if (isNaN(balance) && balance!=='0x') {
-        return `${balance.substr(0,8)}...${balance.substr(-6)}`
+    showBalance(balance, self, record) {
+      const isToken = record.symbol !== 'ETH';
+      if (self.type==='send' && (isNaN(balance) && balance!=='0x' || isToken)) {
+        const convertCipherBalance = balance === '0x' ? balance : self.web3.utils.hexToAscii(balance)
+        return `${convertCipherBalance.substr(0,8)}...${convertCipherBalance.substr(-6)}`
       }
       return balance
     }
@@ -287,11 +291,14 @@ export default {
       this.serchTokenValue = undefined
     },
     showChooseTokenModal() {
-      // if (this.walletIsLock || this.type === 'send') { return }
       if (this.walletIsLock) { return }
       this.showTokenSelect = true
     },
     setInputAmountMax() {
+      if (this.walletIsLock || this.type === 'send' && this.selectedTokenInfo.symbol !== 'ETH') {
+        console.log('can not set max input because of the encrpt balance')
+        return
+      }
       this.number = this.selectedTokenInfo.balance
     },
     selectToken(record) {
@@ -375,12 +382,34 @@ export default {
         this.setButtonDisabled('Invalid Address');
         return;
       }
+      
       await this.setButtonStatusByBalance(tokenAmount);
     },
     async setButtonStatusByBalance(tokenAmount) {
+      const symbol = this.selectedTokenInfo.symbol
       // TODO need encrpt to balance
-      if (this.type === 'send') {
-        this.enableSubmitButton()
+      if (this.type === 'send' && symbol !== "ETH") {
+        this.setButtonDisabled('Insufficient Balance');
+        const target = _.find(this.tokenList, { symbol: this.selectedTokenInfo.symbol })
+        if (!target) { return }
+
+        const netType = this.expectNetType
+        const { bridge, ethProvider, arbProvider, l1Signer, l2Signer } = initBrideByNetType(netType);
+        const { tokenType, tokenAddress, symbol, decimals, image, json } = target;
+        const abi = json.abi;
+        const myContract = new ethers.Contract(tokenAddress, abi, netType === 'l1' ? l1Signer : l2Signer)
+        console.log('myContract', myContract)
+        // const encrptDis = await myContract.encrypt(tokenAmount, { gasLimit: 594949, gasPrice: 1 })
+        // const decrpyDis = await myContract.decrypt(encrptDis)
+        const { balance: currentTokenBalance } = this.selectedTokenInfo;
+        const balanceAmout = await myContract.decrypt(currentTokenBalance)
+        // bytes, uint256
+        const compareResult = await myContract.compareCipherPlain(currentTokenBalance, tokenAmount) // -1||0||1
+        const exchangeCompareResult = this.web3.utils.hexToNumber(compareResult)
+        console.log('decrpt_balanceAmout', this.web3.utils.hexToAscii(balanceAmout), tokenAmount, compareResult, exchangeCompareResult)
+        if (exchangeCompareResult >= 0) {
+          this.enableSubmitButton()
+        }
         return
       }
 
@@ -402,7 +431,7 @@ export default {
       console.log(`current token balance-${currentTokenBalance}；input amout为-${formatEther(formatAmount)}`)
       return _minus
     },
-    async genTokenBalance(token) {
+    async getTokenBalance(token) {
       const netType = this.expectNetType
       const selectedAccountAddress = window.ethereum.selectedAddress
       const { bridge, ethProvider, arbProvider, l1Signer, l2Signer } = initBrideByNetType(netType);
@@ -415,8 +444,13 @@ export default {
       if (this.type === 'send') {
         const cipherBalance = await myContract.cipherBalanceOf(selectedAccountAddress);
         const convertCipherBalance = cipherBalance === '0x' ? cipherBalance : this.web3.utils.hexToAscii(cipherBalance)
-        console.log(cipherBalance, convertCipherBalance)
-        return convertCipherBalance
+        // console.log(cipherBalance, convertCipherBalance)
+        return cipherBalance
+
+        /* const balance = await myContract.balanceOf(selectedAccountAddress);
+        console.log(this.web3.utils.hexToNumberString(balance))  // balance.toString()
+        console.log(formatEther(balance.toString()))
+        return this.dealAvailableBalance(formatEther(balance.toString())) */
       } else {
         const balance = await myContract.balanceOf(selectedAccountAddress);
         console.log(this.web3.utils.hexToNumberString(balance))  // balance.toString()
@@ -432,8 +466,8 @@ export default {
         balance: this.ethAvailableBalance,
       }]
       for(let i=0; i<list.length; i+=1) {
-        const balance = await this.genTokenBalance(list[i]);
-        tokenList.push({ symbol: list[i]['symbol'], balance: balance })
+        const balance = await this.getTokenBalance(list[i]);
+        tokenList.push({ symbol: list[i]['symbol'], balance: balance, ...list[i] })
       }
       return tokenList;
     },
@@ -441,7 +475,7 @@ export default {
   async mounted() {
     if (!this.walletIsLock) {
       const balance = await this.getETHAvailableBalance();
-      if (BigNumber.isBigNumber(balance)) {
+      if (ethBigNumber.isBigNumber(balance)) {
         this.ethAvailableBalance = this.dealAvailableBalance(formatEther(balance));
         this.selectedTokenInfo = { symbol:'ETH', balance: this.ethAvailableBalance }
       }
