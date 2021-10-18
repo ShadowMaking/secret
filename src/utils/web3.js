@@ -131,8 +131,8 @@ export const getNetMode = (nId) => {
   return ''
 }
 
-// transanctionType - l1||l2
-export const initBrideByTransanctionType = (transanctionType='l1') => {
+// netType - l1||l2
+export const initBrideByNetType = (netType='l1') => {
   const connectAddress = window.ethereum.selectedAddress;
   const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
   const netId = getSelectedChainID();
@@ -147,14 +147,14 @@ export const initBrideByTransanctionType = (transanctionType='l1') => {
   let arbProvider;
   let l1Signer;
   let l2Signer;
-  if (transanctionType === 'l1') {
+  if (netType === 'l1') {
     ethProvider = metamaskProvider
     arbProvider = new ethers.providers.JsonRpcProvider(
       partnerNet['url'] // 8547
     )
     l1Signer = ethProvider.getSigner(0);
     l2Signer = arbProvider.getSigner(connectAddress);
-  } else if (transanctionType === 'l2') {
+  } else if (netType === 'l2') {
     ethProvider = new ethers.providers.JsonRpcProvider(
       partnerNet['url'] // 7545
     )
@@ -168,7 +168,8 @@ export const initBrideByTransanctionType = (transanctionType='l1') => {
     l1Signer,
     l2Signer,
   )
-  return bridge
+  // return bridge
+  return { bridge, ethProvider, arbProvider, l1Signer, l2Signer }
 }
 
 export const metamaskIsConnect = () => {
@@ -177,6 +178,9 @@ export const metamaskIsConnect = () => {
 
 export const installWeb3Wallet = () => {
   return typeof window.ethereum !== "undefined"
+}
+export const installWeb3WalletMetamask = () => {
+  return typeof window.ethereum !== "undefined" && window.ethereum.isMetaMask
 }
 
 export const getExpectNetTypeByRouteName = (routeName) => {

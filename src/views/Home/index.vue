@@ -51,7 +51,7 @@ import UnlockWallet from '@/components/UnlockWallet';
 import WalletStatus from '@/components/WalletStatus';
 import { utils } from 'ethers'
 import { DEFAULTIMG } from '@/utils/global';
-import { getSelectedChainID, getNetMode, initBrideByTransanctionType, installWeb3Wallet } from '@/utils/web3'
+import { getSelectedChainID, getNetMode, initBrideByNetType, installWeb3Wallet } from '@/utils/web3'
 import NetTipModal from '@/components/NetTipModal';
 import { retainDecimals } from '@/utils/number'
 
@@ -192,7 +192,7 @@ export default {
       if (!netMode) { return; }
       this.balanceL1 = '...';
       this.balanceL2 = '...';
-      const bridge = initBrideByTransanctionType(netMode);
+      const bridge = initBrideByNetType(netMode)['bridge'];
       const balanceForL1 = await bridge.getAndUpdateL1EthBalance();
       const balanceForL2 = await bridge.getAndUpdateL2EthBalance();
       this.balanceL1 = utils.formatEther(balanceForL1);

@@ -70,11 +70,13 @@ import TokenAmount from '@/components/TokenAmount';
 import StatusPop from '@/components/StatusPop';
 import NetTipModal from '@/components/NetTipModal';
 import { Popup, Field, Toast } from 'vant';
-import { getNetMode } from '@/utils/web3';
+import { getNetMode, initBrideByNetType } from '@/utils/web3';
 import { wait, prettyLog } from '@/utils/index'
-import { utils } from 'ethers';
+import { getTokenAddress, L2TokenABIJSON } from '@/utils/token';
+import { utils, ethers } from 'ethers'
 import { utils as web3utils } from 'web3';
 import { TRANSACTION_TYPE } from '@/api/transaction';
+import { BigNumber } from "bignumber.js";
 
 Vue.use(Popup);
 Vue.use(Field);
@@ -122,25 +124,70 @@ export default {
       this.showStatusPop = eventInfo.show;
     },
     async submitSend(info) {
+      this.tipShow = true;
+      setTimeout(()=>{ this.tipShow = false }, 2000);
+      await wait(1500)
+
       this.showStatusPop = false;
       const toAddress = this.sendAddress;
-      const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
-      const selectedAccountAddress = accounts[0];
+      // const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
+      // const selectedAccountAddress = accounts[0];
+      const selectedConnectAddress = window.ethereum.selectedAddress;
       if (!utils.isAddress(toAddress)) {
         Toast('Wrong Address')
         return
       }
       
-      if (toAddress.toLocaleUpperCase() === selectedAccountAddress.toLocaleUpperCase()) {
+      if (toAddress.toLocaleUpperCase() === selectedConnectAddress.toLocaleUpperCase()) {
         Toast("Don't enter your own address")
         return
       }
 
+      const { symbol, isToken } = info.tokenInfo
+      switch (symbol) {
+        case 'ETH':
+          await this.ethSend(info, { selectedConnectAddress, toAddress })
+          break;
+        case 'xEIG':
+          await this.tokenSend(info, { selectedConnectAddress, toAddress })
+          break;
+      }
+    },
+    async sendSuccess(res, info, address) {
+      const { selectedConnectAddress, toAddress } = address;
+      const symbolName = info.tokenInfo.symbol || 'ETH'
+      this.tipTxt = 'In progress,waitting';
+      // prettyLog('Transaction is in progress，waiting for 10s....')
+      const submitData = {
+        txid: symbolName === 'ETH' ? res : res.hash,
+        from: selectedConnectAddress,
+        to: toAddress,
+        type: TRANSACTION_TYPE['L2ToL2'],
+        status: 1,
+        value: info.amount,
+        name: symbolName,
+      }
+      this.addHistoryData = _.cloneDeep(submitData);
+      await this.addHistory(submitData);
+    },
+    sendFailed(error) {
+      this.show = false;
+      if (error.code == '4001') {
+        Toast('Cancel Transaction')
+        return
+      }
+      console.log(error)
+      this.showStatusPop = true;
+      this.statusPopTitle = 'Transfer Failed'
+      this.popStatus = 'fail';
+    },
+    async ethSend(info, address) {
       this.tipTxt = 'Confirm On The Wallet';
       this.show = true;
       const transferAmount = utils.parseEther(info.amount);
+      const { selectedConnectAddress, toAddress } = address;
       const transferParams = [{
-        from: selectedAccountAddress,
+        from: selectedConnectAddress,
         to: toAddress,
         gas: web3utils.toHex('21000'), // 21000的16进制 '0x5208
         gasPrice: '0',
@@ -154,31 +201,41 @@ export default {
         id: 0
       })
       .then(async res=>{
-        this.tipTxt = 'In progress,waitting';
-        // await wait(10000);
-        // prettyLog('Transaction is in progress，waiting for 10s....')
-        const submitData = {
-          txid: res,
-          from: transferParams['from'] || selectedAccountAddress,
-          to: transferParams['to'] || toAddress,
-          type: TRANSACTION_TYPE['L2ToL2'],
-          status: 1,
-          value: info.amount
-        }
-        this.addHistoryData = _.cloneDeep(submitData);
-        await this.addHistory(submitData);
+        await this.sendSuccess(res, info, address)
       })
       .catch(error=>{
-        this.show = false;
-        if (error.code == '4001') {
-          Toast('Cancel Transaction')
-          return
-        }
-        console.log(error)
-        this.showStatusPop = true;
-        this.statusPopTitle = 'Transfer Failed'
-        this.popStatus = 'fail';
+        this.sendFailed(error)
       })
+    },
+    async tokenSend(info, address) {
+      const { toAddress } = address;
+      const { symbol } = info.tokenInfo
+      const tokenAddress = getTokenAddress(symbol)
+      const abi = L2TokenABIJSON.abi;
+      const { l2Signer } = initBrideByNetType('l2');
+      const myContract = new ethers.Contract(tokenAddress, abi, l2Signer)
+      const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(info.amount*1000000000000000000)).toFixed())
+      const cipher_tokenWithdrawAmount = await myContract.encrypt(info.amount, { gasLimit: 594949, gasPrice: 1 })
+      console.log('tokenWithdrawAmount', info.amount, tokenWithdrawAmount)
+      // address, uint256
+      myContract.transfer(toAddress, tokenWithdrawAmount)
+      .then(async res=>{
+        console.log(res)
+        await this.sendSuccess(res, info, address)
+      })
+      .catch(error => {
+        this.sendFailed(error)
+      })
+      
+      // address, bytes(cipher_amount)
+      /* myContract.cipherTransfer(toAddress, cipher_tokenWithdrawAmount)
+      .then(async res=>{
+        console.log(res)
+        await this.sendSuccess(res, info, address)
+      })
+      .catch(error => {
+        this.sendFailed(error)
+      }) */
     },
     async addHistory(data) {
       const submitData = data || this.addHistoryData;
@@ -225,10 +282,7 @@ export default {
       this.tokenAmountButtonTxtCode = 1
     },
     handleAddressInputFocus() {
-      this.tipShow = true;
-      setTimeout(()=>{
-        this.tipShow = false;
-      }, 2000)
+      return
     },
     async handleChainChanged({netId, showTip}) {
       if (showTip) {
@@ -243,9 +297,13 @@ export default {
         this.showNetTip = false;
       }
     },
+    handleDisconnect() {
+      this.sendAddress = ''
+    },
   },
   mounted() {
     this.$eventBus.$on('chainChanged', this.handleChainChanged);
+    this.$eventBus.$on('disconnect', this.handleDisconnect);
   },
 }
 </script>

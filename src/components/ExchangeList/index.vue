@@ -6,14 +6,14 @@
       <div class="exchange-list" v-if="historyList.length>0 && !walletIsLock">
         <mt-cell is-link class="exchange-list-item"  v-for="(item,index) in historyList" :key="`history-${index}`" @click.native="getExchangeDetail(item)">
           <div slot="title" class="flex flex-column transaction-type-info">
-            <span class="transaction-title"><i :class="iconClass(item)"></i>{{ item.typeTxt }} ETH</span>
+            <span class="transaction-title"><i :class="iconClass(item)"></i>{{ item.typeTxt }} {{ item.name }}</span>
             <span class="exchange-status pending" v-show="showStatus(item)">Confirming</span>
             <span class="exchange-status success" v-show="showStatusSuccess(item)">Succeed</span>
             <span class="exchange-status fail" v-show="showStatusFail(item)">Failed</span>
           </div>
           <div class="flex flex-column transaction-amount-info">
             <span class="exchange-amount">
-              {{exchangeValue(item)}} ETH
+              {{exchangeValue(item)}} {{ item.name }}
               <span style="display:none">($ {{item.gasPrice}})</span>
             </span>
             <span class="exchange-time">{{item.dateTitme}}</span>
@@ -67,7 +67,7 @@
         <span>No Transactions</span>
       </div>
     </div>
-    <div class="seeMore" v-show="allList.length>20"><a @click='toBroswer'>see more</a></div>
+    <div class="seeMore" v-show="allList.length>20"><a @click='toBroswer()'>see more</a></div>
     <!-- get-container="#app"  -->
     <!-- Transaction Details -->
     <van-popup v-model="transactionDetailVisible" round :position="checkBrower()" get-container="#app"   :style="{ minHeight: '40%' }" class="common-bottom-popup exchange-detail-popup">
@@ -78,13 +78,13 @@
         <ul v-for="(item,index) in detaiInfo" :key="`exchange-${index}`">
           <li
             class="flex flex-content-between common-exchange-detail-item"
-            v-if="item.key==='from'" v-show="item['info']['type']==(TRANSACTION_TYPE['L2ToL1']||TRANSACTION_TYPE['L2ToL2'])">
+            v-if="item.key==='from'" v-show="showFromOrToAddress(item)">
             <span class="title">{{ item.title }}</span>
             <span class="flex flex-center" @click="copyAddress(item.value)">{{ `${item.value.substr(0,6)}...${item.value.substr(-4)}` }}</span>
           </li>
           <li
             class="flex flex-content-between common-exchange-detail-item"
-            v-else-if="item.key==='to'" v-show="item['info']['type']==(TRANSACTION_TYPE['L2ToL1']||TRANSACTION_TYPE['L2ToL2'])">
+            v-else-if="item.key==='to'" v-show="showFromOrToAddress(item)">
             <span class="title">{{ item.title }}</span>
             <span class="flex flex-center" @click="copyAddress(item.value)">{{ `${item.value.substr(0,6)}...${item.value.substr(-4)}` }}</span>
           </li>
@@ -103,8 +103,10 @@
                 {{ item.key==='hash'?`${item.value.substr(0,6)}...${item.value.substr(-4)}`:item.value }}
                 <!-- <span v-show="item.key==='hash'" class="copy-tip">（copy）</span> -->
               </span>
+              <!-- <a class="refres-button" @click="speed(item)"
+                v-show="item.info['type']=='2'&&item.key==='status'&&item.info['status']===1">Refresh</a> -->
               <a class="refres-button" @click="speed(item)"
-                v-show="item.info['type']=='2'&&item.key==='status'&&item.info['status']===1">Refresh</a>
+                v-show="showRefresh(item)">Refresh</a>
             </span>
           </li>
         </ul>
@@ -128,9 +130,9 @@ import { DEFAULTIMG } from '@/utils/global';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { Popup, Toast, Popover, List } from 'vant';
 import moment from 'moment'
-import { utils } from 'ethers';
+import { utils, ethers } from 'ethers';
 import { OutgoingMessageState } from 'arb-ts';
-import { initBrideByTransanctionType, getNetMode } from '@/utils/web3';
+import { initBrideByNetType, getNetMode } from '@/utils/web3';
 import { copyTxt, isPc } from '@/utils/index';
 import { compareDate } from '@/utils/number';
 import NetTipModal from '@/components/NetTipModal';
@@ -179,6 +181,18 @@ export default {
     }
   },
   methods: {
+    showFromOrToAddress(record) {
+      return record['info']['type']==TRANSACTION_TYPE['L2ToL1'] || record['info']['type']==TRANSACTION_TYPE['L2ToL2']
+    },
+    isTokenTransaction(name="ETH") {
+      return name!=='ETH'
+    },
+    showRefresh(record) {
+      const { info, key } = record
+      const { type, status, name='ETH' } = info
+      // return type == '2'&& key === 'status' && status === 1 && !this.isTokenTransaction(name)
+      return type == '2'&& key === 'status' && status === 1
+    },
     closeNetTip() {
       this.showNetTip = false;
       this.transactionDetailVisible = false;
@@ -188,10 +202,10 @@ export default {
       return 'bottom';
     },
     toBroswer(record) {
-      let openUrl = 'http://explorer.ieigen.com';
+      let openUrl = '//explorer.ieigen.com';
       if (record) {
         const { type, txid } = record.info
-        openUrl = `http://explorer.ieigen.com/#/tx?tstr=${txid}`
+        openUrl = `//explorer.ieigen.com/#/tx?tstr=${txid}`
         if (type === TRANSACTION_TYPE['L1ToL2'] || type === TRANSACTION_TYPE['L1ToL1']) {
           Toast('Coming Soon')
           return;
@@ -209,9 +223,14 @@ export default {
       }
     },
     showStatus(record) {
+      // return record.status===1 && record.type === TRANSACTION_TYPE['L2ToL1'] && !this.isTokenTransaction(record.name);
       return record.status===1 && record.type === TRANSACTION_TYPE['L2ToL1'];
     },
     showStatusSuccess(record) {
+      /* if (!this.isTokenTransaction(record.name)) {
+        return record.type === TRANSACTION_TYPE['L2ToL1']?record.status===2:record.status === 1
+      }
+      return record.status === 1 */
       return record.type === TRANSACTION_TYPE['L2ToL1']?record.status===2:record.status === 1
     },
     showStatusFail(record) {
@@ -241,9 +260,9 @@ export default {
       return item.value
     },
     getExchangeDetail(record) {
-      const { typeTxt, createdAt, value, type, status } = record;
+      const { typeTxt, createdAt, value, type, status, name } = record;
       const date = moment(createdAt).format('DD/MM/YYYY HH:mm:ss')
-      const opt = `${typeTxt} ${value} ETH`;
+      const opt = `${typeTxt} ${value} ${name}`;
       let statusTxt = '';
       if (status===0) {
         // statusTxt = 'Transaction Failed'
@@ -255,7 +274,7 @@ export default {
           statusTxt = 'Failed'
           break;
         case 1:
-          if (type === TRANSACTION_TYPE['L2ToL1']) {
+          if (type === TRANSACTION_TYPE['L2ToL1'] && !this.isTokenTransaction(name)) {
             statusTxt = 'Confirming'
           } else {
             statusTxt = 'Succeed'
@@ -296,7 +315,7 @@ export default {
       console.log('info', info)
 
       this.show = true;
-      const bridge = initBrideByTransanctionType('l2');
+      const bridge = initBrideByNetType('l2')['bridge'];
       const txnHash = info.txid;
       const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(txnHash);
       if (!initiatingTxnReceipt){
@@ -468,6 +487,13 @@ export default {
   },
   async mounted() {
     this.$eventBus.$on('handleUpdateTransactionHistory', this.handleSearchTransactionHistoryList)
+    /* const etherscanProvider = new ethers.providers.EtherscanProvider();
+    const address = window.ethereum.selectedAddress
+    etherscanProvider.getHistory(address).then((history) => {
+      history.forEach((tx) => {
+        console.log('tx',tx);
+      })
+    }); */
   },
   
 };

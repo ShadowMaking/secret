@@ -5,11 +5,8 @@
   </div>
 </template>
 <script>
-import Web3 from "web3";
-import { utils, ethers } from 'ethers'
-import ArbTokenBridgeABI from './ArbTokenBridge.json'
+import { utils } from 'ethers'
 import MetaCoinABI from '@/utils/MetaCoin.json'
-import { getNetMode, getSelectedChainID, initBrideByTransanctionType } from '@/utils/web3';
 
 export default {
   name:'Test',

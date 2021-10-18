@@ -64,13 +64,11 @@ import StatusPop from '@/components/StatusPop';
 import NetTipModal from '@/components/NetTipModal';
 import { wait, prettyLog } from '@/utils/index'
 import { getDefaultAddress } from '@/utils/auth'
-import { getNetMode, getSelectedChainID, initBrideByTransanctionType } from '@/utils/web3'
-import { Bridge, OutgoingMessageState } from 'arb-ts';
-import { NETWORKS } from '@/utils/netWork'
-// import { NETWORKS } from '@/utils/netWork_arb'
+import { getNetMode, initBrideByNetType } from '@/utils/web3'
+import { getTokenAddress, L2TokenABIJSON } from '@/utils/token';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { utils, ethers } from 'ethers'
-
+import { BigNumber } from "bignumber.js";
 
 Vue.use(Popup);
 Vue.use(CountDown);
@@ -140,82 +138,72 @@ export default {
       this.tokenAmountButtonTxt = 'Enter The Amount'
       this.tokenAmountButtonTxtCode = 1
     },
-    initBridge() {
-      const connectAddress = window.ethereum.selectedAddress;
-      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
-      const netId = getSelectedChainID();
-      const currentNet = NETWORKS[netId];
-      const partnerNet = NETWORKS[currentNet['partnerChainID']];
-      const tokenBridge = currentNet['tokenBridge'];
-
-      const ethProvider = new ethers.providers.JsonRpcProvider(
-        partnerNet['url']
-      )
-      const arbProvider = metamaskProvider
-      const l1Signer = ethProvider.getSigner(connectAddress)
-      const l2Signer = arbProvider.getSigner(0)
-      
-      const bridge = new Bridge(
-        tokenBridge['l1Address'],
-        tokenBridge['l2Address'],
-        l1Signer,
-        l2Signer,
-      )
-      this.bridge = bridge;
-      return bridge
+    withdrawFailed(error) {
+      this.show = false;
+      if (error.code == '4001') {
+        Toast('Cancel Transaction')
+        return
+      }
+      console.log(error)
+      this.showStatusPop = true;
+      this.statusPopTitle = 'Withdraw Failed'
+      this.popStatus = 'fail';
     },
-    async executeConfirmTransaction(withrawTxHash) {
-      const bridge = this.bridge || this.initBridge();
-      const txnHash = withrawTxHash;
-      const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(txnHash);
-      if (!initiatingTxnReceipt){
-        return {
-          success: false,
-          msg: `No Arbitrum transaction found with provided txn hash: ${txnHash}`
-        };
-      }
-      const outGoingMessagesFromTxn = await bridge.getWithdrawalsInL2Transaction(initiatingTxnReceipt)
-      if (outGoingMessagesFromTxn.length === 0){
-        return {
-          success: false,
-          msg: `Txn ${txnHash} did not initiate an outgoing messages`
-        };
-      }
-      const { batchNumber, indexInBatch } = outGoingMessagesFromTxn[0]
-      const outgoingMessageState = await bridge.getOutGoingMessageState(
-        batchNumber,
-        indexInBatch
-      )
-      console.log(`Waiting for message to be confirmed: Batchnumber: ${batchNumber}, IndexInBatch ${indexInBatch}`)
+    async withdrawSuccess(withdrawRes, info) {
+      this.tipTxt = 'In progress, waitting';
+      const txHash = withdrawRes.hash;
+      const transactionWaitRes = await withdrawRes.wait();
+      const { confirmations, from, to, transactionHash, status } = transactionWaitRes
+      console.log('transaction success! res:',withdrawRes,'waitRes:',transactionWaitRes)
 
-      if (!outgoingMessageState === OutgoingMessageState.CONFIRMED) {
-        let msg = '';
-        switch (outgoingMessageState) {
-          case OutgoingMessageState.NOT_FOUND: {
-            msg = 'Message not found; something strange and bad happened'
-            break
-          }
-          case OutgoingMessageState.EXECUTED: {
-            msg = `Message already executed! Nothing else to do here`
-            break
-          }
-          case OutgoingMessageState.UNCONFIRMED: {
-            msg = `Message not yet confirmed; we'll wait a bit and try again`
-            break
-          }
-          default:
-            break
-        }
-        return { success: false, msg };
+      const submitData = {
+        txid: transactionHash||txHash,
+        from,
+        to,
+        type: TRANSACTION_TYPE['L2ToL1'],
+        status,
+        value: info.amount,
+        block_num: transactionWaitRes.blockNumber,
+        name: info.tokenInfo.symbol,
       }
-      const res = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
-      
-      const rec = await res.wait()
-      if (rec.confirmations === 1) {
-        console.log('Done! Your transaction is executed')
-        return { success: true }
-      }
-      return { success: false };
+      this.addHistoryData = _.cloneDeep(submitData);
+      await this.addHistory(submitData);
+    },
+    async ethWithdraw(info) {
+      const bridge = initBrideByNetType('l2')['bridge'];
+      const ethFromL2WithdrawAmount = parseEther(info.amount);
+      let destinationAddress = await bridge.l2Signer.getAddress();
+      console.log(destinationAddress, this.withDrawAddress); // TODO 
+      // gasPrice : gwei（1000000000=1gwei）
+      bridge.withdrawETH(ethFromL2WithdrawAmount, undefined, {gasLimit: '21000', gasPrice:'100000000000' })
+      // bridge.withdrawETH(ethFromL2WithdrawAmount)
+      .then(async res=>{
+        await this.withdrawSuccess(res, info)
+      })
+      .catch(error => {
+        this.withdrawFailed(error)
+      })
+    },
+    async tokenWithdraw(info) {
+      const { symbol } = info.tokenInfo
+      const tokenAddress = getTokenAddress(symbol)
+      const abi = L2TokenABIJSON.abi;
+      const { l2Signer } = initBrideByNetType('l2');
+      const myContract = new ethers.Contract(tokenAddress, abi, l2Signer)
+      console.log('myContract', myContract)
+      const connectAddress = window.ethereum.selectedAddress;
+      const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(info.amount*1000000000000000000)).toFixed())
+      console.log('tokenWithdrawAmount', tokenWithdrawAmount)
+      myContract.withdraw(
+        connectAddress, // l1TestWallet.address,
+        tokenWithdrawAmount,
+        { gasLimit: 600000, gasPrice: 100 })
+      .then(async res=>{
+        await this.withdrawSuccess(res, info)
+      })
+      .catch(error => {
+        this.withdrawFailed(error)
+      })
     },
     async submitWithdraw(info) {
       this.showStatusPop = false;
@@ -228,44 +216,15 @@ export default {
         return;
       }
 
-      const bridge = initBrideByTransanctionType('l2');
-      // const bridge = this.bridge || this.initBridge();
-      const ethFromL2WithdrawAmount = parseEther(info.amount);
-      let destinationAddress = await bridge.l2Signer.getAddress();
-      console.log(destinationAddress, this.withDrawAddress); // TODO 
-      // gasPrice : gwei（1000000000=1gwei）
-      bridge.withdrawETH(ethFromL2WithdrawAmount, undefined, {gasLimit: '21000', gasPrice:'100000000000' })
-      // bridge.withdrawETH(ethFromL2WithdrawAmount)
-      .then(async res=>{
-        this.tipTxt = 'In progress, waitting';
-        const txHash = res.hash;
-        const transactionWaitRes = await res.wait();
-        const { confirmations, from, to, transactionHash, status } = transactionWaitRes
-        console.log('transaction success! res:',res,'waitRes:',transactionWaitRes)
-
-        const submitData = {
-          txid: transactionHash||txHash,
-          from,
-          to,
-          type: TRANSACTION_TYPE['L2ToL1'],
-          status,
-          value: info.amount,
-          block_num: transactionWaitRes.blockNumber,
-        }
-        this.addHistoryData = _.cloneDeep(submitData);
-        await this.addHistory(submitData);
-      })
-      .catch(error => {
-        this.show = false;
-        if (error.code == '4001') {
-          Toast('Cancel Transaction')
-          return
-        }
-        console.log(error)
-        this.showStatusPop = true;
-        this.statusPopTitle = 'Withdraw Failed'
-        this.popStatus = 'fail';
-      })
+      const { symbol, isToken } = info.tokenInfo
+      switch (symbol) {
+        case 'ETH':
+          await this.ethWithdraw(info)
+          break;
+        case 'xEIG':
+          await this.tokenWithdraw(info)
+          break;
+      }
     },
     async addHistory(data) {
       const submitData = data || this.addHistoryData;
@@ -280,13 +239,13 @@ export default {
         this.show = false;
         console.log('Transaction success，but error when add history')
       } else  {
-        await wait();
         this.show = false;
+
         // prettyLog('Transaction is in progress，waiting for 10s....')
         this.showStatusPop = true;
         this.statusPopTitle = 'Withdraw Submitted'
         this.popStatus = 'success';
-        // await wait(10000);
+        await wait();
         this.showStatusPop = false;
         this.$router.push({ name: 'home' });
         // this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L2ToL1'});
@@ -323,7 +282,6 @@ export default {
   },
 }
 </script>
-
 <style lang="scss" scoped>
   @import 'index';
 </style>

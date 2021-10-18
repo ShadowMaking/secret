@@ -9,7 +9,7 @@ import Web3 from "web3";
 import { utils, ethers } from 'ethers'
 import ArbTokenBridgeABI from './ArbTokenBridge.json'
 import CABI from './MetaCoinABI.json'
-import { getNetMode, getSelectedChainID, initBrideByTransanctionType } from '@/utils/web3';
+import { getNetMode, getSelectedChainID, initBrideByNetType } from '@/utils/web3';
 
 export default {
   name:'Test',
@@ -17,7 +17,7 @@ export default {
     // only L2
     async contract() {
       /* let abi = ArbTokenBridgeABI.abi;
-      const bridge = initBrideByTransanctionType('l2');
+      const bridge = initBrideByNetType('l2')['bridge'];
       let contractAddress = "0xF9642f5aEfD3a56818A4ed0cb66804F210a634eD";
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       let contract = new ethers.Contract(contractAddress, abi, provider);

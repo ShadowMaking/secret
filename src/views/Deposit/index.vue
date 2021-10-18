@@ -31,7 +31,7 @@
               <h3>Deposit Address</h3>
               <div class="address">{{ defaultAddress }}</div>
               <van-button color="#ECEEF8" class="copy-address" @click="copyAddress">
-                <span slots="default" style="color:#495ABE">Copy Address</span>
+                <span slots="default" style="color:#495ABE">{{ copyButtonTxt}}</span>
               </van-button>
               <span>
                 <span>EigenSecret supported assets only.</span>
@@ -76,15 +76,17 @@ import NetTipModal from '@/components/NetTipModal';
 import UnlockWallet from '@/components/UnlockWallet';
 import { wait, prettyLog } from '@/utils/index'
 import { Tab, Tabs, Button, Col, Row, Toast, Popup, CountDown, Dialog } from 'vant';
-import { getNetMode, getSelectedChainID, initBrideByTransanctionType } from '@/utils/web3'
-import { utils, ethers } from 'ethers'
+import { getNetMode, getSelectedChainID, initBrideByNetType } from '@/utils/web3'
+import { utils, ethers, BigNumber as ethBigNumber } from 'ethers'
 import { DEFAULTIMG } from '@/utils/global';
 import { NETWORKS } from '@/utils/netWork'
 // import { NETWORKS } from '@/utils/netWork_arb'
 import { Bridge } from 'arb-ts';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { copyTxt } from '@/utils/index';
+import { getTokenAddress } from '@/utils/token';
 import QRCode from 'qrcodejs2'
+import { BigNumber } from "bignumber.js";
 import { utils as web3utils } from 'web3';
 
 const { parseEther } = utils;
@@ -128,6 +130,7 @@ export default {
       showRefresh: false,
       refreshing: false,
       defaultAddress: this.$store.state.metamask.accountsArr[0] || "",
+      copyButtonTxt: 'Copy Address',
     }
   },
   watch: {
@@ -156,39 +159,84 @@ export default {
   },
   methods: {
     copyAddress() {
-      if (this.walletIsLock) {
-        return;
-      }
+      if (this.walletIsLock) { return; }
       copyTxt(this.defaultAddress)
-      Toast.success('Success')
+      this.copyButtonTxt = 'Address Copied'
+      window.setTimeout(()=>{
+        this.copyButtonTxt = 'Copy Address'
+      },800)
     },
     async getWalletBalance() {
       const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
       const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
       console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString())
     },
-    initBridge() {
+    depositFailed(error) {
+      this.show = false;
+      if (error.code == '4001') {
+        Toast('Cancel Transaction')
+        return
+      }
+      console.log(error)
+      this.showStatusPop = true;
+      this.statusPopTitle = 'Deposit Failed'
+      this.popStatus = 'fail';
+    },
+    async depositSuccess(depositRes, info) {
+      this.tipTxt = 'In progress, waitting';
+      const txHash = depositRes.hash;
+      const transactionWaitRes = await depositRes.wait();
+      const { confirmations, from, to, transactionHash, status } = transactionWaitRes
+      console.log('transaction success! res:',depositRes,'waitRes:',transactionWaitRes)
+      const submitData = {
+        txid: txHash,
+        from: depositRes.from,
+        to: depositRes.to,
+        type: TRANSACTION_TYPE['L1ToL2'],
+        status,
+        value: info.amount,
+        block_num: transactionWaitRes.blockNumber,
+        name: info.tokenInfo.symbol,
+      }
+      this.addHistoryData = _.cloneDeep(submitData);
+      await this.addHistory(submitData);
+    },
+    async ethDeposit(info) {
+      const bridge = initBrideByNetType('l1')['bridge'];
+      const ethToL2DepositAmount = parseEther(info.amount);
+      bridge.depositETH(ethToL2DepositAmount) // bridge.depositETH(ethToL2DepositAmount, {gas: web3utils.toHex('21000')})
+      .then(async res=>{
+        await this.depositSuccess(res, info)
+      })
+      .catch(error => {
+        this.depositFailed(error)
+      })
+    },
+    async tokenDeposit(info) {
       const connectAddress = window.ethereum.selectedAddress;
-      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
-      const netId = getSelectedChainID();
-      const currentNet = NETWORKS[netId];
-      const partnerNet = NETWORKS[currentNet['partnerChainID']];
-      const tokenBridge = currentNet['tokenBridge'];
-
-      const ethProvider = metamaskProvider
-      const arbProvider = new ethers.providers.JsonRpcProvider(
-        partnerNet['url']
-      )
-      const l1Signer = ethProvider.getSigner(0);
-      const l2Signer = arbProvider.getSigner(connectAddress);
-      const bridge = new Bridge(
-        tokenBridge['l1Address'],
-        tokenBridge['l2Address'],
-        l1Signer,
-        l2Signer,
-      )
-      this.bridge = bridge;
-      return bridge
+      const bridge = initBrideByNetType('l1')['bridge'];
+      const { symbol } = info.tokenInfo
+      const tokenAddress = getTokenAddress(symbol)
+      // bridge.deposit(tokenAddress, BigNumber.from('800'))
+      const depositTokenNum = this.web3.utils.toHex(BigNumber(Number(info.amount*1000000000000000000)).toFixed())
+      const l1GasPrice = 1;
+      const gasLimit = 594949;
+      const maxGas = 9646610;
+      console.log('depositTokenNum', depositTokenNum)
+      bridge.deposit(tokenAddress, depositTokenNum,
+      {
+        maxGas: ethBigNumber.from(maxGas),
+        gasPriceBid:ethBigNumber.from(1),
+        maxSubmissionPrice: ethBigNumber.from(1)
+      },
+      connectAddress, // l1TestWallet.address,
+      { gasLimit, gasPrice: l1GasPrice })
+      .then(async res=>{
+        await this.depositSuccess(res, info)
+      })
+      .catch(error => {
+        this.depositFailed(error)
+      })
     },
     async submitRecharge(info) {
       this.showStatusPop = false;
@@ -200,40 +248,16 @@ export default {
         Toast.fail(`Wrong Address`);
         return;
       }
-      const bridge = this.bridge || this.initBridge();
-      // const bridge = initBrideByTransanctionType('l1');
-      const ethToL2DepositAmount = parseEther(info.amount);
-      // bridge.depositETH(ethToL2DepositAmount, {gas: web3utils.toHex('21000')})
-      bridge.depositETH(ethToL2DepositAmount)
-      .then(async res=>{
-        this.tipTxt = 'In progress, waitting';
-        const txHash = res.hash;
-        const transactionWaitRes = await res.wait();
-        const { confirmations, from, to, transactionHash, status } = transactionWaitRes
-        console.log('transaction success! res:',res,'waitRes:',transactionWaitRes)
-        const submitData = {
-          txid: txHash,
-          from: res.from || connectAddress,
-          to: res.to,
-          type: TRANSACTION_TYPE['L1ToL2'],
-          status,
-          value: info.amount,
-          block_num: transactionWaitRes.blockNumber,
-        }
-        this.addHistoryData = _.cloneDeep(submitData);
-        await this.addHistory(submitData);
-      })
-      .catch(error => {
-        this.show = false;
-        if (error.code == '4001') {
-          Toast('Cancel Transaction')
-          return
-        }
-        console.log(error)
-        this.showStatusPop = true;
-        this.statusPopTitle = 'Deposit Failed'
-        this.popStatus = 'fail';
-      })
+
+      const { symbol, isToken } = info.tokenInfo
+      switch (symbol) {
+        case 'ETH':
+          await this.ethDeposit(info)
+          break;
+        case 'EIG':
+          await this.tokenDeposit(info)
+          break;
+      }
     },
     async addHistory(data) {
       const submitData = data || this.addHistoryData;

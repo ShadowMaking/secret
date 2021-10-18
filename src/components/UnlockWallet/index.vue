@@ -15,7 +15,7 @@ import { Button } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
 import WalletStatus from '@/components/WalletStatus';
 import NetTipModal from '@/components/NetTipModal';
-import { getSelectedChainID, getNetMode, metamaskIsConnect, installWeb3Wallet } from '@/utils/web3'
+import { getSelectedChainID, getNetMode, metamaskIsConnect, installWeb3Wallet, installWeb3WalletMetamask } from '@/utils/web3'
 import { initTokenTime, updateLoginTime, tokenIsExpires } from '@/utils/auth'
 
 Vue.component(Button.name, Button)
@@ -47,7 +47,7 @@ export default {
       return this.$store.state.metamask.walletIsLock;
     },
     metamaskInstall() {
-      return this.$store.state.metamask.metamaskInstall;
+      return this.$store.state.metamask.metamaskInstall || installWeb3WalletMetamask();
     },
     netTipPopupShowType() {
       return this.expectNetType
