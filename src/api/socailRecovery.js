@@ -3,7 +3,8 @@ import request from '@/utils/request';
 export const getMyFriendsList = (data) => {
   const userId = data['userId'];
   return request({
-    url: `/api/user?action=friends&user_id=${userId}`,
+    // url: `/api/user?action=friends&user_id=${userId}`,
+    url: `/api/user?action=strangers&user_id=${userId}`,
     method: 'get',
   })
 }
