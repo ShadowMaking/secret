@@ -171,8 +171,9 @@ export default {
     },
     updateSigninStatus(isSignedIn) {
       this.sendEmailUserIsSign = isSignedIn
+      console.log('isSignedIn', isSignedIn)
       if (isSignedIn) {
-        this.sendEmailUserID = gapi.auth2.getAuthInstance().currentUser['Ud']['wa']
+        this.sendEmailUserID = gapi.auth2.getAuthInstance().currentUser.get().getId()
         console.log('isSignedIn',isSignedIn, this.sendEmailUserID)
       }
     },
