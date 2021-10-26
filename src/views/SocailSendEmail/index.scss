@@ -1,0 +1,217 @@
+.social-recovery-page{
+  font-size: .9375rem;
+  h4{
+    font-size: 1.2rem;
+    font-weight: bolder;
+    color: #333;
+    text-align: center;
+  }
+  span.tip{
+    font-size: 1rem;
+    color: #9E9E9E;
+    display: block;
+    line-height: 23px;
+    margin-bottom: 20px;
+    word-break: break-word;
+  }
+  .opt-wrapper {
+    margin: 60px 0 30px;
+  }
+  .recovery-setting-tip {
+    padding: 20px;
+    h4 { margin: 50px; }
+  }
+  .recovery-type{ padding: 10px 0; }
+}
+.choose-friends-component {
+  padding: 20px;
+  h4 { margin: 0 0 50px; }
+  .no-friends {
+    color: #eee;
+    border: 1px solid #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 200px;
+  }
+}
+
+/* add friend page */
+.add-friends-page {
+  padding: 20px;
+  font-size: .9375rem;
+  h4{
+    font-size: 1.2rem;
+    font-weight: bolder;
+    color: #333;
+    text-align: center;
+    margin: 30px 0;
+    .button-update {
+      // background: #544FDF;
+      background: #2196f3;
+      // background: linear-gradient(270deg, rgba(121, 110, 241, 0) 0%, #544FDF 100%);
+      border-radius: 0px 100px 100px 0px;
+      color: #fff;
+      position: absolute;
+      left: 0;
+      top: 55px;
+      font-size: 1rem;
+      .ico-ipdate {
+        width: 22px;
+        height: 22px;
+        background: url('~@/assets/retina/icon_update@3x.png') center center no-repeat;
+        vertical-align: middle;
+        margin: -4px 4px 0 0;
+        background-size: contain;
+      }
+      .ico-ipdate.spin{
+        animation: spin 1s infinite linear;
+        -moz-animation: spin 1s infinite linear;
+        -webkit-animation: spin 1s infinite linear;
+        -o-animation: refreshing 1s infinite linear;
+      }
+      @-moz-keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      @-webkit-keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      @-o-keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    }
+  }
+  span.tip{
+    font-size: 1rem;
+    color: #9E9E9E;
+    display: block;
+    line-height: 23px;
+    margin-bottom: 20px;
+    word-break: break-word;
+  }
+}
+.add-friends-page,
+.choose-friends-component,
+.confirm-friends-component {
+  .friend-list-wrapper{
+    position: relative;
+    .serach-friend-input {
+      padding: 10px 0 5px;
+      ::v-deep.van-cell { line-height: 30px;}
+    }
+    .friend-list {
+      margin-top: 15px;
+    }
+    .friend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding: 10px;
+      .account-info {
+        display: flex;
+        align-items: center;
+        .portraitImg {
+          width: 30px;
+          height: 30px;
+          display: block;
+          border-radius: 50%;
+          background: cornflowerblue;
+        }
+        .info{
+          margin-left: 10px;
+          .name{ display: block; font-size: 1rem; font-weight: bolder;}
+          .address{ display: block; font-size: .9375rem; color: #9E9E9E; margin-top: 6px;}
+        }
+      }
+      .status {
+        .add-button { padding: 0 10px;}
+      }
+    }
+  }
+}
+
+/* confirm friends and create recovery */
+.confirm-friends-component {
+  padding: 20px;
+  h4 { margin: 0 0 50px; }
+  .no-friends {
+    color: #eee;
+    border: 1px solid #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 200px;
+  }
+  .reviewer-nmmbers{
+    .tip{
+      padding-left: 20px;
+      font-size: 1rem;
+      color: #9E9E9E;
+      display: block;
+      line-height: 23px;
+      margin-bottom: 20px;
+      word-break: break-word;
+    }
+  }
+}
+
+.recovery-result-status {
+  padding: 20px;
+  .icon-success{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+  }
+  .success-tip {
+    font-size: 15px;
+    color: #333;
+    text-align: center;
+    margin: 10px;
+    span{ display: block; margin-bottom: 10px;}
+  }
+}
+
+/* google-auth-dialog */
+.google-auth-dialog{
+  padding: 30px 0;
+  position: relative;
+  .closeDialog{
+    position: absolute;
+    top: -30px;
+    right: 30px;
+    color: #9E9E9E;
+  }
+  .tip{
+    display: block;
+    font-size: 1rem;
+    color: #9E9E9E;
+    display: block;
+    line-height: 23px;
+    margin-bottom: 20px;
+    word-break: break-word;
+    text-align: center;
+  }
+  .btn-wrapper{
+    text-align: center;
+  }
+  .btn{
+    padding: 0 10px;
+    margin: 0 10px;
+  }
+}
+

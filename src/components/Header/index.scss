@@ -15,6 +15,18 @@
     display: flex;
     .back-icon { margin-right: 5px;}
   }
+  .header-right {
+    display: flex;
+    align-items: center;
+    .account{
+      display: block;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      background: #607d8b;
+      margin-left: 10px;
+    }
+  }
   .logo {
     width: 123px;
     height: 26px;
@@ -137,6 +149,70 @@
     .view-in-explorer-a i {
       background: url("~@/assets/icon_out.png") center center no-repeat;
       background-size: 100% 100%;
+    }
+  }
+}
+
+
+.account-popover{
+  font-size: 0.875rem;
+  color: #6a737d;
+  width: 300px;
+  padding: 10px;
+  // background: rgba(0, 0, 0, 0.8);
+  box-shadow: rgb(0 0 0 / 15%) 0 2px 2px 2px;
+  .account-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 0;
+    >span{
+      font-size: .9375rem;
+      color: #000;
+    }
+    .lockbutton{
+      padding: 0 20px;
+    }
+  }
+  .accountlist {
+    max-height: 256px;
+    overflow-y: auto;
+    font-size: .9375rem;
+    li {
+      cursor: pointer;
+      margin: 5px;
+      display: flex;
+      align-items: center;
+      padding: 8px 5px;
+      .active-status-icon {
+        margin-right: 10px;
+        visibility: hidden;
+      }
+      .account-text {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        span{
+          display: block;
+          margin-bottom: 5px;
+        }
+      }
+    }
+    li.active{
+      .account-text {
+        span:first-child {color: #236BFB;}
+      }
+      .active-status-icon {
+        color: #236BFB;
+        visibility: visible;
+      }
+    }
+  }
+  .account-setting-wrapper{
+    padding: 10px;
+    .opt-item {
+      padding: 13px 0;
+      .opt-icon {margin-right: 5px; vertical-align: middle;}
     }
   }
 }

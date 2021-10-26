@@ -3,7 +3,7 @@
     <div id="nav">
       <!-- <router-link to="/">Home</router-link> |
       <router-link to="/about">About</router-link> -->
-      <v-header></v-header>
+      <v-header v-if="headerIsShow"></v-header>
     </div>
     <router-view :key="$route.path" />
     <v-netTipPopup :show="showNetTip" :showCloseIcon="true" key="netTipModal" :showType="expectNetType" />
@@ -24,6 +24,7 @@
       return {
         showNetTip: false,
         expectNetType: '',
+        headerIsShow: true,
       };
     },
     components: {
@@ -124,11 +125,16 @@
           removeTokens()
         });
       }
+      if (/tlogin/.test(window.location.pathname) || /tlogin/.test(window.location.hash)) {
+        this.headerIsShow = false
+      }
       this.$router.beforeEach((to, from, next) => {
         if (to.meta.title) {
           document.title = to.meta.title;
         }
         this.setExpectNetType(to.name);
+        this.headerIsShow = true;
+        to.meta.hideHeader && (this.headerIsShow = false);
         next();
       })
 

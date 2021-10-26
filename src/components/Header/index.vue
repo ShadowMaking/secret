@@ -6,12 +6,65 @@
           <van-icon name="arrow-left" class="back-icon" size="18"/>
           <span>{{ navTxt() }}</span>
         </div>
-        <img :src="DEFAULTIMG.LOGO" class="logo" @click="toPageHome" v-show="$route.name==='home'"/>
+        <img :src="DEFAULTIMG.LOGO" class="logo" @click="toPage('home')" v-show="$route.name==='home'"/>
       </div>
-      <span slot="right" v-if="address!==''"  class="header-address"  @click="showAccoutAddress">
+      <div slot="right" v-if="address!==''" class="header-right">
+        <span @click="showAccoutAddress" class="header-address">
+          {{ `${address.slice(0,6)}...${address.slice(-4)}` }}
+          <i class="link-icon"></i>
+        </span>
+        <van-popover
+          key="accountSetpopover"
+          v-model="showAccountSetPopover"
+          trigger="click"
+          placement="bottom-end">
+          <div class="account-popover">
+            <div class="van-hairline--bottom account-header">
+              <span>My Account</span>
+              <van-button plain type="info" class="lockbutton" size="small" @click="disconnect">Disconnect</van-button>
+            </div>
+            <ul class="accountlist">
+              <li class="active">
+                <van-icon name="success" class="active-status-icon"/>
+                <div class="account-text">
+                  <span>{{ address }}</span>
+                </div>
+              </li>
+            </ul>
+            <div class="account-setting-wrapper van-hairline--top">
+              <div class="opt-item van-hairline--bottom" @click="toPage('backup', 'create')">
+               <!--  <van-icon name="plus" class="opt-icon" />
+                <span>Create Secret</span> -->
+                <router-link to="/backup?type=create">
+                  <van-icon name="plus" class="opt-icon" />
+                  <span>Create Secret</span>
+                </router-link>
+              </div>
+              <div class="opt-item van-hairline--bottom" @click="toPage('backup', 'import')">
+                <!-- <van-icon name="down" class="opt-icon" />
+                <span>Import Secret</span> -->
+                <router-link to="/backup?type=import">
+                  <van-icon name="down" class="opt-icon" />
+                  <span>Import Secret</span>
+                </router-link>
+              </div>
+              <div class="opt-item van-hairline--bottom" @click="toPage('srecovery')">
+                <van-icon name="cluster-o" class="opt-icon" />
+                <span>Social Recovery</span>
+              </div>
+              <div class="opt-item van-hairline--bottom" @click="toPage('addfrinds')">
+                <van-icon name="plus" class="opt-icon" />
+                <span>Add Friends</span>
+              </div>
+            </div>
+          </div>
+          <template #reference><div class="account"></div></template>
+        </van-popover>
+      </div>
+      <!-- <span slot="right" v-if="address!==''"  class="header-address"  @click="showAccoutAddress">
         {{ `${address.slice(0,6)}...${address.slice(-4)}` }}
         <i class="link-icon"></i>
-      </span>
+      </span> -->
       <div slot="right" v-else >
         <a @click="chooseWallet" class="linkWallet">
           <span>Connect Wallet</span>
@@ -54,7 +107,7 @@
 import Vue from 'vue';
 import { Header, Button } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
-import { Popup, Button as VanButton, Toast, Icon } from 'vant';
+import { Popup, Button as VanButton, Toast, Icon, Popover } from 'vant';
 import WalletStatus from '@/components/WalletStatus';
 import NetTipModal from '@/components/NetTipModal';
 import { getSelectedChainID, getNetMode, getExpectNetTypeByRouteName, metamaskIsConnect, installWeb3Wallet, installWeb3WalletMetamask } from '@/utils/web3'
@@ -65,6 +118,7 @@ Vue.use(Popup);
 Vue.use(VanButton);
 Vue.use(Toast);
 Vue.use(Icon);
+Vue.use(Popover);
 Vue.component(Header.name, Header)
 Vue.component(Button.name, Button)
 
@@ -80,6 +134,8 @@ export default {
       showNetTip: false,
       showAccountPopup: false,
       installOtherWallet: false,
+
+      showAccountSetPopover: false,
     }
   },
   components: {
@@ -136,9 +192,16 @@ export default {
     back() {
       this.$router.go(-1);
     },
-    toPageHome() {
-      if (this.$route.name ==='home') {return;}
-      this.$router.push({ name: 'home' });
+    toPage(pageName, queryStr) {
+      this.showAccountSetPopover = false
+      // if (this.$route.name === pageName) {return;}
+      if (pageName === 'backup') {
+        return
+        // this.$router.push({ name: pageName, query: {type: queryStr, sid: Math.ceil(Math.random()*100)} });
+        // this.$router.push({ path: `/backup`, query: {type: queryStr, sid: Math.ceil(Math.random()*100)} });
+        this.$router.push({ path: `/backup?type=${queryStr}`, query: {type: queryStr, sid: Math.ceil(Math.random()*100)} });
+      }
+      this.$router.push({ name: pageName });
     },
     chooseWallet() {
       this.popupVisible = true;
@@ -210,12 +273,15 @@ export default {
     handleDisconnect() {
       this.address = '';
       this.walletIsLock = true;
+      this.showAccountSetPopover = false
     },
     handleAccountsChanged(data) {
       this.address = data.accounts.length&&data.accounts[0] || ''
+      this.showAccountSetPopover = false
     },
     handleChainChanged() {
       this.walletIsLock = true;
+      this.showAccountSetPopover = false
     },
   },
   async mounted() {

@@ -28,3 +28,10 @@ export const  isPc = () => {
   })
   return flag
 }
+
+export const getQueryString = (name, str) => {
+  if (!str) { return null }
+	var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+	var r = str.match(reg);
+	if (r != null) return unescape(r[2]); return null;
+}

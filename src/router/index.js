@@ -5,6 +5,11 @@ import Home from '../views/Home/index';
 const Deposit = () => import('../views/Deposit/index')
 const Send = () => import('../views/Send/index')
 const Withdraw = () => import('../views/Withdraw/index')
+const ThirdLogin = () => import('../views/ThirdLogin/index')
+const Backup = () => import('../views/Backup/index')
+const SocailSendEmail = () => import('../views/SocailSendEmail/index')
+const AddFriends = () => import('../views/SocailSendEmail/AddFriends')
+const SocailRecovery = () => import('../views/SocailRecovery/index')
 
 // cache origin push method
 const originalPush = VueRouter.prototype.push
@@ -74,10 +79,51 @@ const routes = [
     // which is lazy-loaded when the route is visited.
     // component: () => import(/* webpackChunkName: "withdraw" */ '../views/Withdraw/index'),
   },
+  {
+    path: '/tlogin',
+    name: 'tlogin',
+    meta: {
+      title: "thirdLogin",
+      hideHeader: true,
+    },
+    component: ThirdLogin,
+  },
+  {
+    path: '/backup',
+    name: 'backup',
+    meta: {
+      title: "backup",
+    },
+    component: Backup,
+  },
+  {
+    path: '/ssendemail',
+    name: 'ssendemail',
+    meta: {
+      title: "ssendemail",
+    },
+    component: SocailSendEmail,
+  },
+  {
+    path: '/srecovery',
+    name: 'srecovery',
+    meta: {
+      title: "srecovery",
+    },
+    component: SocailRecovery,
+  },
+  {
+    path: '/addfrinds',
+    name: 'addfrinds',
+    meta: {
+      title: "addfrinds",
+    },
+    component: AddFriends,
+  },
 ];
 
 const router = new VueRouter({
-  mode: 'hash',
+  mode: 'history', // 'hash'
   base: process.env.BASE_URL,
   routes,
 });

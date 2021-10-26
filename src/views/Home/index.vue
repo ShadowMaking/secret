@@ -39,27 +39,41 @@
     <v-exchangeList key="comon-exchangeList" type="all" v-show="!walletIsLock" />
     <v-netTipPopup :show="showNetTip" key="netTipModal" :showType="expectNetType" @childEvent="closeNetTip" />
     <v-walletstatus :show="installWalletModal" key="installWalletModal" @childEvent="closeWalletstatusPop" :installOtherWallet="installOtherWallet" />
+    <van-notify v-model="showNotify" type="warning">
+      <div >
+        <van-icon name="close" @click="closeNotify"/>
+        <span>
+          <van-icon name="bell" style="margin-right: 4px;" />
+        You don't have a key backup yet. Please <a @click="backUp">implement  it now</a>
+        </span>
+      </div>
+    </van-notify>
+    <v-backupModal :show="showBackupMethod" @childEvent="showBackupMethod=false" />
   </div>
 </template>
 
 <script>
 import Vue from 'vue';
 import { Button, Cell, Popup } from 'mint-ui';
-import { Col, Row } from 'vant';
+import { Col, Row, Tag, Notify } from 'vant';
 import ExchangeList from '@/components/ExchangeList';
 import UnlockWallet from '@/components/UnlockWallet';
 import WalletStatus from '@/components/WalletStatus';
 import { utils } from 'ethers'
 import { DEFAULTIMG } from '@/utils/global';
-import { getSelectedChainID, getNetMode, initBrideByNetType, installWeb3Wallet } from '@/utils/web3'
+import { getSelectedChainID, getNetMode, initBrideByNetType, installWeb3Wallet, installWeb3WalletMetamask } from '@/utils/web3'
 import NetTipModal from '@/components/NetTipModal';
+import BackUpMethodModal from '@/components/BackUpMethod';
 import { retainDecimals } from '@/utils/number'
+import { getQueryString } from '@/utils/index'
 
 Vue.component(Button.name, Button)
 Vue.component(Cell.name, Cell)
 Vue.component(Popup.name, Popup)
 Vue.use(Col);
 Vue.use(Row);
+Vue.use(Tag);
+Vue.use(Notify);
 
 export default {
   name: 'Home',
@@ -68,6 +82,7 @@ export default {
     "v-unlockwallet": UnlockWallet,
     "v-netTipPopup": NetTipModal,
     "v-walletstatus": WalletStatus,
+    "v-backupModal": BackUpMethodModal,
   },
   data() {
     return {
@@ -82,6 +97,8 @@ export default {
       balanceL2: '0.0',
       refreshLoading: false,
       installOtherWallet: false,
+      showNotify: false,
+      showBackupMethod: false,
     }
   },
   filters: {
@@ -97,7 +114,7 @@ export default {
       return this.$store.state.metamask.walletIsLock;
     },
     metamaskInstall() {
-      return this.$store.state.metamask.metamaskInstall;
+      return this.$store.state.metamask.metamaskInstall || installWeb3WalletMetamask();
     },
     showUnlockWalletButton() {
       return !this.metamaskInstall || this.walletIsLock;
@@ -105,7 +122,9 @@ export default {
   },
   watch: {
     '$store.state.metamask.walletIsLock': function (res) {
+      this.showNotify = false
       if (!this.walletIsLock) {
+        this.showNotify = true
         this.$eventBus.$emit('updateAvailableBanlanceForL1L2');
       }
     }
@@ -213,8 +232,20 @@ export default {
         this.showNetTip = false;
       }
     },
+    closeNotify() {
+      this.showNotify = false
+    },
+    backUp() {
+      // this.showBackupMethod = true
+      this.$router.push({ name: 'backup' });
+    },
   },
   async mounted() {
+    const search = window.location.search.split('=')
+    const googleUserId = search.length && search[1]
+    if (googleUserId) {
+      await this.$store.dispatch('StoreGoogleUserId', {userId: googleUserId })
+    }
     this.$eventBus.$on('chainChanged', this.handleChainChanged);
 
     if (!this.walletIsLock) {
@@ -224,6 +255,10 @@ export default {
     this.$eventBus.$on('chainChanged', this.handleWatchResetStatus);
     this.$eventBus.$on('accountsChanged', this.handleWatchResetStatus);
     this.$eventBus.$on('disconnect', this.handleWatchResetStatus);
+  },
+  created() {
+    const token = getQueryString('access_token', window.location.href.split('#')[1])
+    console.log('token', token)
   },
   
 };

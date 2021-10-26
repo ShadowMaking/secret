@@ -1,0 +1,68 @@
+
+/* social-recovery-reult-view-page */
+.social-recovery-reult-view-page {
+  padding: 0 20px;
+  .opt-wrapper {
+    margin: 60px 0 30px;
+  }
+  .result-view-wrapper{
+    padding: 0 20px 0;
+    .result-view-wrapper-inner{
+      width: 100%;
+      border-radius: 5px;
+      border: 1px solid #f2f2f2;
+      color: #333;
+      ::v-deep.van-field__control{
+        font-size: .9375rem;
+        line-height: 35px;
+        word-break: break-word;
+      }
+    }
+  }
+}
+
+/* social-recovery-enter-secretkey-page */
+.social-recovery-enter-secretkey-page {
+  padding: 0 20px;
+  .opt-wrapper {
+    margin: 60px 0 30px;
+  }
+  .friend-list {
+    margin-top: 15px;
+  }
+  .friend-item {
+    margin-bottom: 20px;
+    padding: 10px;
+    .account-info {
+      display: flex;
+      align-items: center;
+      .portraitImg {
+        width: 30px;
+        height: 30px;
+        display: block;
+        border-radius: 50%;
+        background: cornflowerblue;
+      }
+      .info{
+        margin-left: 10px;
+        .name{ display: block; font-size: 1rem; font-weight: bolder;}
+        .address{ display: block; font-size: .9375rem; color: #9E9E9E; margin-top: 6px;}
+      }
+    }
+    ::v-deep input{
+      border: 1px solid #ebedf0;
+      border-radius: 5px;
+      padding: 5px;
+      line-height: 30px;
+    }
+  }
+  .no-friends {
+    color: #eee;
+    border: 1px solid #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 200px;
+  }
+}
