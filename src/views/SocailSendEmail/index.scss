@@ -100,7 +100,28 @@
     margin-bottom: 20px;
     word-break: break-word;
   }
+  .add-friend-by-email-wrap{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    .gmail-input-wrapper{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .add-button { padding: 0 5px;}
+    .van-cell { width: auto;}
+    ::v-deep input{
+      width: 100px;
+      border: 1px solid #ebedf0;
+      border-radius: 5px;
+      padding: 5px;
+      line-height: 30px;
+    }
+  }
 }
+
+
 .add-friends-page,
 .choose-friends-component,
 .confirm-friends-component {

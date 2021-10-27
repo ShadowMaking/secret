@@ -24,6 +24,25 @@
           <div @click="onCancelSearch"></div>
         </template>
       </van-search>
+      <!-- add friend by google email -->
+      <div class="add-friend-by-email-wrap">
+        <div class="gmail-input-wrapper">
+          <van-field
+            v-model="prefixGmail"
+            label=""
+            placeholder="add friend's email"
+          />
+          <span>@gmail.com</span>
+        </div>
+        <van-button
+          icon="plus"
+          plain
+          color="#495ABE"
+          size="small"
+          class="add-button"
+          :disabled="!prefixGmail"
+          @click="addFriend">Add</van-button>
+      </div>
       <!-- friends list -->
       <van-list
         class="friend-list"
@@ -41,15 +60,18 @@
             </div>
           </div>
           <div class="status">
+            <!-- 1:mutual  2:waiting 3:confirming -->
             <van-icon name="exchange" size="25" color="#61D375" v-if="item.status===1" />
-            <van-button
+            <van-icon name="clock-o" size="25" color="#61D375" v-else-if="item.status===2" />
+            <van-icon name="question-o" size="25" color="#61D375" v-else-if="item.status===3" @click="dealRequet(item)"/>
+            <!-- <van-button
               v-else
               icon="plus"
               plain
               color="#495ABE"
               size="small"
               class="add-button"
-              @click="addFriend">Add</van-button>
+              @click="addFriend">Add</van-button> -->
           </div>
         </div>
       </van-list>
@@ -59,7 +81,7 @@
 </template>
 <script>
 import Vue from 'vue';
-import { Toast, Popup, Button, List, Cell, Icon, Search } from 'vant';
+import { Toast, Popup, Button, List, Cell, Icon, Search, Field, Dialog } from 'vant';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 
 Vue.use(Toast)
@@ -69,6 +91,8 @@ Vue.use(List)
 Vue.use(Icon)
 Vue.use(Cell)
 Vue.use(Search)
+Vue.use(Field)
+Vue.use(Dialog)
 
 export default {
   name: "AddFriends",
@@ -76,22 +100,17 @@ export default {
     return {
       searchKey: '',
       refreshLoading: false,
-      friendsList: [{
-        name: 'skyeGao',
-        address: '0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9',
-        status: 0, // 0-not friend 1-is friend
-      },{
-        name: 'skyeGao',
-        address: '0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9',
-        status: 1,
-      }],
+      friendsList: [], // {id,name,email,status}
       loading: false,
       finished: false,
-      total: 0
+      total: 0,
+      prefixGmail: '',
     }
   },
   computed: {
-    
+    thirdUserId() {
+     return getFromStorage('gUID')
+    },
   },
   filters: {
     showAddress(str) {
@@ -101,16 +120,42 @@ export default {
   },
   methods: {
     async refresh() {
+      if (!this.thirdUserId) { return }
       this.refreshLoading = true;
-      setTimeout(()=>{
-        this.refreshLoading = false;
-      },800)
+      // this.loading = true
+      // this.finished = false
+      this.friendsList = [];
+      await this.getAllMyFriendsList()
+      this.refreshLoading = false;
+      // this.loading = false
+      // this.finished = false
     },
     toPage(routeNme) {
       this.$router.push({ name: routeNme })
     },
-    addFriend() {
-
+    async addFriend() {
+      if (!this.thirdUserId) {
+        Toast('请进行社交登录')
+        return
+      }
+      const userId = getFromStorage('gUID')
+      if (!userId||!this.prefixGmail) {
+        console.log('can detect userID after third login')
+        Toast('error')
+        return
+      }
+      const data = {
+        fromUserID: userId,
+        toUserEmail: `${this.prefixGmail}@gmail.com`
+      }
+      const { hasError, list, error } = await this.$store.dispatch('AddFrined', data);
+      if (!hasError) {
+        this.prefixGmail = ''
+        this.friendsList = [];
+        this.getAllMyFriendsList()
+      } else {
+        Toast(error)
+      }
     },
     onSearchFriend(val) {
       console.log(val)
@@ -150,27 +195,71 @@ export default {
         return {
           id: item['user_id'],
           name: item['name'],
-          email: item['email']
+          email: item['email'],
+          status: item['status'],
         }
       })
     },
-    async getStrangerFriendsList() {
+    async getAllMyFriendsList() {
       const userId = getFromStorage('gUID')
       if (!userId) {
         console.log('can detect userID after third login') 
         return
       }
-      const { hasError, list, error } = await this.$store.dispatch('GetStrangerFriendsList', {userId});
+      const { hasError, list, error } = await this.$store.dispatch('GetMyFriendsList', {userId});
       if (!hasError) {
         this.friendsList = this.generateFriendsList(list)
         this.total = list.length // TODO
-        // this.friendsIdsMap = this.generateFriendsIdsMap(list)
       }
+    },
+    async dealRequet(record) {
+      // <van-icon name="close" />
+      // <van-icon name="passed" />
+      const userId = getFromStorage('gUID')
+      if (!userId) {
+        console.log('can detect userID after third login') 
+        Toast('error')
+        return
+      }
+      Dialog.confirm({
+        title: 'Tip',
+        message: '请处理处理好友请求',
+        showCancelButton: true,
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Reject',
+        closeOnClickOverlay: true
+      })
+      .then(async () => {
+        const cdata = {
+          fromUserID: record.id,
+          toUserID: userId,
+        }
+        const { hasError, list, error } = await this.$store.dispatch('ConfirmForAddFrined', cdata);
+        if (!hasError) {
+          this.friendsList = [];
+          this.getAllMyFriendsList()
+        } else {
+          Toast(error)
+        }
+      })
+      .catch(async () => {
+        const rdata = {
+          fromUserID: record.id,
+          toUserID: userId,
+        }
+        const { hasError, list, error } = await this.$store.dispatch('RejectForAddFrined', rdata);
+        if (!hasError) {
+          this.friendsList = [];
+          this.getAllMyFriendsList()
+        } else {
+          Toast(error)
+        }
+      });
     },
   },
   mounted() {
     this.friendsList = [];
-    this.getStrangerFriendsList()
+    this.getAllMyFriendsList()
   },
 }
 </script>

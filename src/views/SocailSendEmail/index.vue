@@ -93,9 +93,16 @@ export default {
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall || installWeb3WalletMetamask();
     },
+    thirdUserId() {
+     return getFromStorage('gUID')
+    },
   },
   methods: {
     confirmRecoveryType() {
+      if (!this.thirdUserId) {
+        Toast('请进行社交登录')
+        return
+      }
       const mnemonic = getFromStorage('mnemonic')
       const privateKey = getFromStorage('privateKey')
       const disabled = !mnemonic && !privateKey || this.recoveryType === 'mnemonic' && !mnemonic || this.recoveryType === 'privateKey' && !privateKey
@@ -109,12 +116,16 @@ export default {
     },
     async selectedFriendsCallback(friendsLists) {
       console.log(friendsLists, this.recoveryType)
-      const storeRes = await this.$store.dispatch('StoreSelectedFrindsInfo', {list: friendsLists}); // TODO
       this.selectedFriendsList = _.cloneDeep(friendsLists)
       this.showChooseFriend = false
       this.confirmChooseFriend = true
     },
     async createRecoveryCallback(number) {
+      const userId = getFromStorage('gUID')
+      if (!userId) {
+        Toast('error')
+        return
+      }
       let secretWords
       if (this.recoveryType === 'mnemonic') {
         secretWords = getFromStorage('mnemonic')
@@ -129,18 +140,19 @@ export default {
         this.secretWords = secretWords;
         // this.confirmChooseFriend = false
         // this.showStatus = true
-        // this.splitSecretAndSendEmail(secretWords, number, this.selectedFriendsList)
+        
+        const storeRes = await this.$store.dispatch('SaveRecoveryData', {
+          fromUserID: userId,
+          recoveryNum: this.recoveryNumber,
+          selectedFriendsList: this.selectedFriendsList.map(i=>({ user_id:i.id, email:i.email, name:i.name })),
+        });
+        const { hasError } = storeRes // TODO
         return
       }
       Toast('No Data For Recovery')
     },
-    // split mnemonic or privateKey and send Email for frinds
-    splitSecretAndSendEmail() {
-
-    },
     handleClientLoad() {
       gapi.load('client:auth2', this.initAPIClient);
-
     },
     initAPIClient() {
       const CLIENT_ID = '1012137303359-sr6326jclcoqula7jsgm0mdnqtchler6.apps.googleusercontent.com'
@@ -190,8 +202,6 @@ export default {
       const splis = split(secretWords, 'CUSTOM')
       console.log('splis', splis)
 
-      // TODO 
-      // const res = await this.$store.dispatch('StoreSelectedFriendsAndRecoveryNum', {list, num:this.recoveryNumber})
       const mesList = []
       list.forEach((i,index)=>{
         const headers_obj = {

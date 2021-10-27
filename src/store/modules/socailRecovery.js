@@ -9,7 +9,9 @@ import {
   addFrined,
   removeFriend,
   confirmForAddFrined,
-  rejectForAddFrined } from '@/api/socailRecovery';
+  rejectForAddFrined,
+  getRecoveryData,
+  saveRecoveryData, } from '@/api/socailRecovery';
 
 const socailRecovery = {
   state: {
@@ -131,6 +133,33 @@ const socailRecovery = {
           resolve({ hasError: true, error: message });
         }).catch(error => {
           resolve({ hasError: true, error });
+        })
+      })
+    },
+    SaveRecoveryData({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        saveRecoveryData(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false  })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
+    GetRecoveryData({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        getRecoveryData(params).then(response => {
+          const { errno, data, message } = response.data
+          const friendsList = data && data.friends && window.JSON.parse(data.friends) || []
+          if (errno === 0) {
+            resolve({ hasError: false, list: friendsList, recoveryNumber: data.total_shared_num })
+          }
+          resolve({ hasError: true, list: [], error: message });
+        }).catch(error => {
+          resolve({ hasError: true, list: [], error });
         })
       })
     },

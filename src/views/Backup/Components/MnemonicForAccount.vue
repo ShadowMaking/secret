@@ -56,7 +56,7 @@
 </template>
 <script>
 import Vue from 'vue';
-import { Icon, Tab, Tabs, Step, Steps, Field, Form, Popup, Picker } from 'vant';
+import { Icon, Tab, Tabs, Step, Steps, Field, Form, Popup, Picker, Toast } from 'vant';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
 import MenonicGenerate from '@/components/SocialRecovery/MenonicGenerate'
 import MenonicBackup from '@/components/SocialRecovery/MenonicBackup'
@@ -74,6 +74,7 @@ Vue.use(Field);
 Vue.use(Form);
 Vue.use(Popup);
 Vue.use(Picker);
+Vue.use(Toast);
 
 export default {
   name: 'MnemonicForAccount',
@@ -115,6 +116,9 @@ export default {
       const list = this.mnemonic && this.mnemonic.split(' ') || []
       return this.mnemonic && this.mnemonic.split(' ')||[];
     },
+    thirdUserId() {
+     return getFromStorage('gUID')
+    },
   },
   methods: {
     generateMnemonic() {
@@ -125,6 +129,10 @@ export default {
       this.mnemonic = mnemonic
     },
     menonicbackupConfirmCallback() {
+      if (!this.thirdUserId) {
+        Toast('请进行社交登录')
+        return
+      }
       this.conformList = _.cloneDeep(this.mnemonic);
       this.activeStepForMnemonic = 1;
     },
@@ -146,6 +154,10 @@ export default {
     },
     handlesnputFocus() {},
     confirmImportMnemonic() {
+      if (!this.thirdUserId) {
+        Toast('请进行社交登录')
+        return
+      }
       const mnStr = this.importMnemonic
       this.mnemonic = mnStr.split(' ').filter(i=>!!i).join(' ')
       this.showImport = false

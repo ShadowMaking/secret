@@ -96,20 +96,6 @@ export default {
     toPage(routeNme) {
       this.$router.push({ name: routeNme })
     },
-    confirm() {
-      const friendsIds = Object.keys(this.friendsIdsMap).filter(i=>this.friendsIdsMap[i]).map(i => i.split('-')[0]) || []
-      if (!friendsIds.length) {
-        Toast('Please select friend')
-        return
-      }
-      const friendsInfoList = friendsIds.map(fid => {
-        const friend = _.find(this.friendsList, {id: ~~fid})
-        if (friend) {
-          return { ...friend }
-        }
-      })
-      this.$emit('childEvent', friendsInfoList);
-    },
     generateFriendsList(list) {
       return list.map(item=>{
         return {
@@ -126,22 +112,36 @@ export default {
       })
       return objMap
     },
-    async getStrangerFriendsList() {
+    async getMyFriendsList() {
       const userId = getFromStorage('gUID')
       if (!userId) {
         console.log('can detect userID after third login') 
         return
       }
-      const { hasError, list, error } = await this.$store.dispatch('GetMyFriendsList', {userId});
+      const { hasError, list, error } = await this.$store.dispatch('GetMyFriendsList', {userId, status: 1});
       if (!hasError) {
         this.friendsList = this.generateFriendsList(list)
         this.friendsIdsMap = this.generateFriendsIdsMap(list)
       }
     },
+    confirm() {
+      const friendsIds = Object.keys(this.friendsIdsMap).filter(i=>this.friendsIdsMap[i]).map(i => i.split('-')[0]) || []
+      if (!friendsIds.length) {
+        Toast('Please select friend')
+        return
+      }
+      const friendsInfoList = friendsIds.map(fid => {
+        const friend = _.find(this.friendsList, {id: ~~fid})
+        if (friend) {
+          return { ...friend }
+        }
+      })
+      this.$emit('childEvent', friendsInfoList);
+    },
   },
   mounted() {
     this.friendsList = [];
-    this.getStrangerFriendsList()
+    this.getMyFriendsList()
     
     // test
     /* const splis = split('0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9', 'WEAK')

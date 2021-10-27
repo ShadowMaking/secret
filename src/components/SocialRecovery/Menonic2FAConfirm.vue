@@ -42,13 +42,14 @@
 </template>
 <script>
 import Vue from 'vue';
-import { Button, Field } from 'vant';
+import { Button, Field, Toast } from 'vant';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
 import QRCode from 'qrcodejs2'
 import _ from 'lodash'
 
 Vue.use(Button);
 Vue.use(Field);
+Vue.use(Toast);
 
 export default {
   name: 'memonicBackup',
@@ -62,6 +63,9 @@ export default {
   computed: {
     walletIsLock() {
       return this.$store.state.metamask.walletIsLock;
+    },
+    thirdUserId() {
+     return getFromStorage('gUID')
     },
   },
   methods: {
@@ -81,6 +85,10 @@ export default {
       })
     },
     backupMenonic() {
+      if (!this.thirdUserId) {
+        Toast('请进行社交登录')
+        return
+      }
       this.showMenonicTip = false;
       this.showMenonic = true;
       this.creatQrCode();

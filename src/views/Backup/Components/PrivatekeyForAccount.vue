@@ -44,7 +44,7 @@
           block
           color="#495ABE"
           :disabled="!privateKey"
-          @click="activeStepForPrivateKey=1">Next</van-button>
+          @click="privateKeyCreateNext">Next</van-button>
       </div>
     </div>
     <!-- 2FA -->
@@ -64,7 +64,7 @@
 </template>
 <script>
 import Vue from 'vue';
-import { Icon, Tab, Tabs, Step, Steps, Field, Form, Dialog, Popup, Picker } from 'vant';
+import { Icon, Tab, Tabs, Step, Steps, Field, Form, Dialog, Popup, Picker, Toast } from 'vant';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
 import Menonic2FAConfirm from '@/components/SocialRecovery/Menonic2FAConfirm'
 import MenonicConfirmComplete from '@/components/SocialRecovery/MenonicConfirmComplete'
@@ -81,6 +81,7 @@ Vue.use(Form);
 Vue.use(Dialog);
 Vue.use(Popup);
 Vue.use(Picker);
+Vue.use(Toast);
 
 export default {
   name: 'PrivatekeyForAccount',
@@ -115,8 +116,18 @@ export default {
     walletIsLock() {
       return this.$store.state.metamask.walletIsLock;
     },
+    thirdUserId() {
+     return getFromStorage('gUID')
+    },
   },
   methods: {
+    privateKeyCreateNext() {
+      if (!this.thirdUserId) {
+        Toast('请进行社交登录')
+        return
+      }
+      this.activeStepForPrivateKey = 1
+    },
     generatePrivatekey() {
       return generate_key()
     },
@@ -135,6 +146,10 @@ export default {
     },
     handlesnputFocus() {},
     confirmImportPrivatekey() {
+      if (!this.thirdUserId) {
+        Toast('请进行社交登录')
+        return
+      }
       const pvkStr = this.importPrivatekey
       this.privateKey = pvkStr.trim()
       this.showImport = false
