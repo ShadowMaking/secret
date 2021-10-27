@@ -1,29 +1,38 @@
 import axios from 'axios'
+import { stringify } from 'qs';
 import { getCookie } from '@/utils/auth'
 
 const protocol = location.protocol;
 export const WEBSITE_BASEURL = protocol + '//rpc.ieigen.com';
+
+axios.defaults.withCredentials = true;
 
  // create an axios instance
  const service = axios.create({
    baseURL: WEBSITE_BASEURL,
    timeout: 500000000 // request timeout
  })
+
+//  service.defaults.withCredentials = true;
  
  // request interceptor
  service.interceptors.request.use(
-   config => {
-     // Do something before request is sent
-     if (getCookie('login')) {
-       config.headers['y-token'] = getCookie('login')
-     }
-     return config
-   },
-   error => {
-     // Do something with request error
-     console.log(error) // for debug
-     Promise.reject(error)
-   }
+  config => {
+    // Do something before request is sent
+    if (getCookie('login')) {
+      config.headers['y-token'] = getCookie('login')
+    }
+    /* if (config.method === 'post') {
+      config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      config.data = stringify(config.data); //（key=val&key=val）
+    } */
+    return config
+  },
+  error => {
+    // Do something with request error
+    console.log(error) // for debug
+    Promise.reject(error)
+  }
  )
  
  // response interceptor
