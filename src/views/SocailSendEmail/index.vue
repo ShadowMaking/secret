@@ -173,10 +173,10 @@ export default {
 
         // Handle the initial sign-in state.
         this.updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
-        var authorizeButton = document.getElementById('authorize_button');
-        var signoutButton = document.getElementById('signout_button');
-        authorizeButton.onclick = this.handleAuthClick;
-        signoutButton.onclick = this.handleSignoutClick;
+        // var authorizeButton = document.getElementById('authorize_button');
+        // var signoutButton = document.getElementById('signout_button');
+        // authorizeButton.onclick = this.handleAuthClick;
+        // signoutButton.onclick = this.handleSignoutClick;
       }, (error) => {
         // this.appendPre(JSON.stringify(error, null, 2));
       });
@@ -215,10 +215,11 @@ export default {
           email += header += ": "+headers_obj[header]+"\r\n";
         }
         // email += "\r\n" + message;
-        email += `\r\nHello：\r\n 这是一封来自您的好友${userName}发送重要邮件。内容为：${message}。\r\n请您务必妥善保管好该内容。`;
+        email += "\r\nHello,\r\n"+`这是一封来自您的好友${userName}发送重要邮件.内容为：${message}.\r\n请您务必妥善保管好该内容.`;
         mesList.push(email)
+        console.log('email', email)
       })
-
+      console.log('mesList', mesList)
       const prom = []
       mesList.forEach(mi=>{
         prom.push(this.sendItem(mi))
@@ -236,6 +237,7 @@ export default {
       
     },
     sendItem(message){
+      console.log('message', message)
       const userID = this.sendEmailUserID
       return new Promise(function (resolve, reject) {
         const sendRequest = gapi.client.gmail.users.messages.send({
