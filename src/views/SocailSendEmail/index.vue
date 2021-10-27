@@ -214,8 +214,8 @@ export default {
         for(var header in headers_obj){
           email += header += ": "+headers_obj[header]+"\r\n";
         }
-        // email += "\r\n" + message;
-        email += "\r\nHello,\r\n"+`这是一封来自您的好友${userName}发送重要邮件.内容为：${message}.\r\n请您务必妥善保管好该内容.`;
+        email += "\r\n" + message;
+        // email += "\r\nHello,\r\n"+`这是一封来自您的好友${userName}发送重要邮件.内容为：${message}.\r\n请您务必妥善保管好该内容.`;
         mesList.push(email)
         console.log('email', email)
       })
