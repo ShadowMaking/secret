@@ -56,25 +56,18 @@
 </template>
 <script>
 import Vue from 'vue';
-import { Icon, Tab, Tabs, Step, Steps, Field, Form, Popup, Picker, Toast } from 'vant';
+import _ from 'lodash'
+import { Tab, Tabs, Field } from 'vant';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
 import MenonicGenerate from '@/components/SocialRecovery/MenonicGenerate'
 import MenonicBackup from '@/components/SocialRecovery/MenonicBackup'
 import Menonic2FAConfirm from '@/components/SocialRecovery/Menonic2FAConfirm'
 import MenonicConfirmComplete from '@/components/SocialRecovery/MenonicConfirmComplete'
-import _ from 'lodash'
 import { SecLevelEnum, generate_mnemonic, generate_key, split } from '@/utils/secretshare'
 
-Vue.use(Icon);
 Vue.use(Tab);
 Vue.use(Tabs);
-Vue.use(Step);
-Vue.use(Steps);
 Vue.use(Field);
-Vue.use(Form);
-Vue.use(Popup);
-Vue.use(Picker);
-Vue.use(Toast);
 
 export default {
   name: 'MnemonicForAccount',
@@ -104,7 +97,7 @@ export default {
       typeList: [{ key: 'mnemonic', text: 'Mnemonic'}, { key: 'privateKey', text: 'privateKey' }],
       /* for import */
       importMnemonic: '',
-      showImport: this.type==='import'
+      showImport: this.type==='import',
     }
   },
   computed: {
@@ -122,6 +115,7 @@ export default {
   },
   methods: {
     generateMnemonic() {
+      if (!this.thirdUserId) { return }
       return generate_mnemonic(this.strength);
     },
     updateMnemonic() {
@@ -130,7 +124,7 @@ export default {
     },
     menonicbackupConfirmCallback() {
       if (!this.thirdUserId) {
-        Toast('请进行社交登录')
+        this.$emit('notLogin');
         return
       }
       this.conformList = _.cloneDeep(this.mnemonic);
@@ -155,7 +149,7 @@ export default {
     handlesnputFocus() {},
     confirmImportMnemonic() {
       if (!this.thirdUserId) {
-        Toast('请进行社交登录')
+        this.$emit('notLogin');
         return
       }
       const mnStr = this.importMnemonic

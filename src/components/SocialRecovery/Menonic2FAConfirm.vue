@@ -45,6 +45,10 @@
           :disabled="!codeFor2FA||codeFor2FA.length!==6||verifyIsLoading">{{ verifyIsLoading?"waiting...":"Confirm" }}</van-button>
       </div>
     </div>
+    <v-thirdlogintip
+      key="thirdlogintip"
+      :show="showThirdLoginTip"
+      @childEvent="closeThirdLoginTip" />
   </div>
 </template>
 <script>
@@ -53,6 +57,7 @@ import { Button, Field, Toast } from 'vant';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
 import QRCode from 'qrcodejs2'
 import _ from 'lodash'
+import ThirdLoginTip from '@/components/ThirdLoginTip';
 
 Vue.use(Button);
 Vue.use(Field);
@@ -67,7 +72,11 @@ export default {
       codeFor2FA: '',
       qrCodeUrl: '',
       verifyIsLoading: false,
+      showThirdLoginTip: false,
     }
+  },
+  components: {
+    'v-thirdlogintip': ThirdLoginTip,
   },
   computed: {
     walletIsLock() {
@@ -95,7 +104,8 @@ export default {
     },
     backupMenonic() {
       if (!this.thirdUserId) {
-        Toast('请进行社交登录')
+        this.showThirdLoginTip = true
+        console.log('need login')
         return
       }
       this.showMenonicTip = false;
@@ -122,6 +132,9 @@ export default {
         this.qrCodeUrl = data
       }
     },
+    closeThirdLoginTip(info) {
+      this.showThirdLoginTip = info.show
+    }
   },
   async mounted() {
     await this.getOTPAuthUrl();

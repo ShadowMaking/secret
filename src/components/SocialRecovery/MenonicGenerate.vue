@@ -5,8 +5,8 @@
         <span class="tip">请按顺序抄写助记词，确保备份正确</span>
         <van-button color="#495ABE" plain @click="update" size="small" class="update-mnemonic">update</van-button>
       </div>
-      <div class="menonic">
-        <van-grid :column-num="3">
+      <div class="mnemonic-wrapper">
+        <van-grid :column-num="3" v-if="sourceData.length">
           <van-grid-item v-for="(item,index) in sourceData" :key="index" :text="item" />
         </van-grid>
       </div>

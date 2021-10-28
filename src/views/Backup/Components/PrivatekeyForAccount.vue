@@ -123,12 +123,13 @@ export default {
   methods: {
     privateKeyCreateNext() {
       if (!this.thirdUserId) {
-        Toast('请进行社交登录')
+        this.$emit('notLogin');
         return
       }
       this.activeStepForPrivateKey = 1
     },
     generatePrivatekey() {
+      if (!this.thirdUserId) { return }
       return generate_key()
     },
     privateKey2FAConfirmCallback() {
@@ -147,7 +148,7 @@ export default {
     handlesnputFocus() {},
     confirmImportPrivatekey() {
       if (!this.thirdUserId) {
-        Toast('请进行社交登录')
+        this.$emit('notLogin');
         return
       }
       const pvkStr = this.importPrivatekey

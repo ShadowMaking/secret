@@ -30,7 +30,7 @@
           <van-field
             v-model="prefixGmail"
             label=""
-            placeholder="add friend's email"
+            placeholder="enter friend's email"
           />
           <span>@gmail.com</span>
         </div>
@@ -82,12 +82,17 @@
         <span>no friends</span>
       </div>
     </div>
+    <v-thirdlogintip
+      key="thirdlogintip"
+      :show="showThirdLoginTip"
+      @childEvent="closeThirdLoginTip" />
   </div>
 </template>
 <script>
 import Vue from 'vue';
 import { Toast, Popup, Button, List, Cell, Icon, Search, Field, Dialog } from 'vant';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
+import ThirdLoginTip from '@/components/ThirdLoginTip';
 
 Vue.use(Toast)
 Vue.use(Popup)
@@ -111,7 +116,11 @@ export default {
       total: 0,
       prefixGmail: '',
       addIsLoading: false,
+      showThirdLoginTip: false,
     }
+  },
+  components: {
+    'v-thirdlogintip': ThirdLoginTip,
   },
   computed: {
     thirdUserId() {
@@ -196,7 +205,8 @@ export default {
     },
     async addFriend() {
       if (!this.thirdUserId) {
-        Toast('请进行社交登录')
+        this.showThirdLoginTip = true
+        console.log('need login')
         return
       }
       this.addIsLoading = true;
@@ -264,6 +274,9 @@ export default {
         }
       });
     },
+    closeThirdLoginTip(info) {
+      this.showThirdLoginTip = info.show
+    }
   },
   mounted() {
     this.friendsList = [];

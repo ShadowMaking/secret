@@ -42,6 +42,10 @@
         </div>
       </div>
     </van-dialog>
+    <v-thirdlogintip
+      key="thirdlogintip"
+      :show="showThirdLoginTip"
+      @childEvent="closeThirdLoginTip" />
   </div>
 </template>
 <script>
@@ -55,6 +59,7 @@ import ConfirmFriends from './ConfirmFriends'
 import StatusView from './Status'
 import '@/utils/gapi.js';
 import { SecLevelEnum, generate_mnemonic, generate_key, split, combine, setCustom } from '@/utils/secretshare'
+import ThirdLoginTip from '@/components/ThirdLoginTip';
 
 Vue.use(Toast)
 Vue.use(Popup)
@@ -70,6 +75,7 @@ export default {
     'v-chooseFriends': ChooseFriends,
     'v-confirmFriends': ConfirmFriends,
     'v-statusView': StatusView,
+    'v-thirdlogintip': ThirdLoginTip,
   },
   data() {
     return {
@@ -86,6 +92,7 @@ export default {
       sendEmailUserIsSign: false, // send email need user sign
       showGoogleAuthDialog: false,
       sendEmailUserID: '',
+      showThirdLoginTip: false,
     }
   },
   computed: {
@@ -110,7 +117,8 @@ export default {
   methods: {
     confirmRecoveryType() {
       if (!this.thirdUserId) {
-        Toast('请进行社交登录')
+        this.showThirdLoginTip = true
+        console.log('need login')
         return
       }
       const mnemonic = getFromStorage('mnemonic')
@@ -266,9 +274,9 @@ export default {
         })
       })
     },
-    sendCallback(a,b,c) {
-      console.log(a,b,c)
-    },
+    closeThirdLoginTip(info) {
+      this.showThirdLoginTip = info.show
+    }
   },
   mounted() {
     if (this.$route.query && this.$route.query.type) {
