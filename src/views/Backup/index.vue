@@ -7,26 +7,26 @@
       <van-tabs @click="oncheckCreateType" v-model="activeCreateWalletType" animated>
         <van-tab name="create" title="Create" class="inner-type-wrapper">
           <span class="tip">If you change browsers or move computers, you will need this mnemonic phrase and you will be able to access your account through it.Keep the mnemonic phrase in a safe place.</span>
-          <van-field v-model="createType" label="Type" readonly class="createType-select" @click="showSelectType"/>
+          <van-field v-model="createType" label="Type" readonly class="createType-select" :disabled="createTypeDisabled" @click="showSelectType('create')"/>
           <!-- create mnemonic -->
           <div class="type-create" v-show="createType==='mnemonic'">
-            <v-mnemonicType type="create" @notLogin="handleNotLogin" />
+            <v-mnemonicType type="create" @notLogin="handleNotLogin" @createComplete="hanldeCreateComplete" />
           </div>
           <!-- create privateKey -->
           <div class="type-privatekey" v-show="createType==='privateKey'">
-            <v-privatekeyType type="create" @notLogin="handleNotLogin" />
+            <v-privatekeyType type="create" @notLogin="handleNotLogin" @createComplete="hanldeCreateComplete"/>
           </div>
         </van-tab>
         <van-tab name="import" title="Import" class="inner-type-wrapper">
           <span class="tip">You can choose to backup by mnemonic phrase or json key</span>
-          <van-field v-model="importType" label="Type" readonly class="createType-select" @click="showSelectType"/>
+          <van-field v-model="importType" label="Type" readonly class="createType-select" :disabled="importTypeDisabled" @click="showSelectType('import')"/>
           <!-- import mnemonic -->
           <div class="type-create" v-show="importType==='mnemonic'">
-            <v-mnemonicType type="import" @notLogin="handleNotLogin" />
+            <v-mnemonicType type="import" @notLogin="handleNotLogin" @createComplete="hanldeCreateComplete" />
           </div>
           <!-- import privateKey -->
           <div class="type-privatekey" v-show="importType==='privateKey'">
-            <v-privatekeyType type="import" @notLogin="handleNotLogin" />
+            <v-privatekeyType type="import" @notLogin="handleNotLogin" @createComplete="hanldeCreateComplete" />
           </div>
         </van-tab>
       </van-tabs>
@@ -74,7 +74,9 @@ export default {
       showCreateTypePopup: false,
       typeList: [{ key: 'mnemonic', text: 'Mnemonic'}, { key: 'privateKey', text: 'privateKey' }],
       selectType: 'mnemonic',
-      showThirdLoginTip: false
+      showThirdLoginTip: false,
+      createTypeDisabled: false,
+      importTypeDisabled: false,
     }
   },
   watch: {
@@ -111,7 +113,9 @@ export default {
       }
       // this.showWalletTip = false
     },
-    showSelectType() {
+    showSelectType(type) {
+      const disabled = type === 'create' && this.createTypeDisabled || type === 'import' && this.importTypeDisabled;
+      if (disabled) { return }
       this.showCreateTypePopup =  true
     },
     onConfirmSelectType(val) {
@@ -125,7 +129,11 @@ export default {
     },
     closeThirdLoginTip(info) {
       this.showThirdLoginTip = info.show
-    }
+    },
+    hanldeCreateComplete() {
+      this.activeCreateWalletType==='create'&&(this.createTypeDisabled = true)
+      this.activeCreateWalletType==='import'&&(this.importTypeDisabled = true)
+    },
   },
   created() {
   },

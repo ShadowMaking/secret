@@ -11,6 +11,9 @@
             </div>
           </div>
           <van-field
+            rows="2"
+            type="textarea"
+            class="split-input"
             :value="friendsInputValsMap[`${[item.id]}-inputVal`]"
             placeholder="enter split"
             @input="(val)=>{changeInputVal(val, item)}" />

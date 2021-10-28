@@ -212,7 +212,8 @@
     padding: 10px;
     .opt-item {
       padding: 13px 0;
-      .opt-icon {margin-right: 5px; vertical-align: middle;}
+      .opt-icon {margin-right: 5px; vertical-align: middle; font-size: 16px;}
+      span, i { color: #333; }
     }
   }
 }

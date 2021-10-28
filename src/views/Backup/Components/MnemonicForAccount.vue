@@ -127,6 +127,7 @@ export default {
         this.$emit('notLogin');
         return
       }
+      this.$emit('createComplete', {});
       this.conformList = _.cloneDeep(this.mnemonic);
       this.activeStepForMnemonic = 1;
     },
@@ -152,6 +153,7 @@ export default {
         this.$emit('notLogin');
         return
       }
+      this.$emit('createComplete', {});
       const mnStr = this.importMnemonic
       this.mnemonic = mnStr.split(' ').filter(i=>!!i).join(' ')
       this.showImport = false

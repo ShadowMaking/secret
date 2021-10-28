@@ -126,6 +126,7 @@ export default {
         this.$emit('notLogin');
         return
       }
+      this.$emit('createComplete', {});
       this.activeStepForPrivateKey = 1
     },
     generatePrivatekey() {
@@ -151,6 +152,7 @@ export default {
         this.$emit('notLogin');
         return
       }
+      this.$emit('createComplete', {});
       const pvkStr = this.importPrivatekey
       this.privateKey = pvkStr.trim()
       this.showImport = false

@@ -53,7 +53,7 @@
                 <span>Social Recovery</span>
               </div>
               <div class="opt-item van-hairline--bottom" @click="toPage('addfriends')">
-                <van-icon name="plus" class="opt-icon" />
+                <van-icon name="friends-o" class="opt-icon" />
                 <span>Friends</span>
               </div>
             </div>
