@@ -44,11 +44,15 @@ VueRouter.prototype.replace = function (location, onResolve, onReject) {
 Vue.use(VueRouter);
 
 const routes = [
-  /* {
+  {
     path: '/',
-    name: 'home',
-    component: Home,
-  }, */
+    name: 'tlogin',
+    meta: {
+      title: "thirdLogin",
+      hideHeader: true,
+    },
+    component: ThirdLogin,
+  },
   {
     path: '/home',
     name: 'home',
@@ -85,16 +89,6 @@ const routes = [
     // component: () => import(/* webpackChunkName: "withdraw" */ '../views/Withdraw/index'),
   },
   {
-    // path: '/tlogin',
-    path: '/',
-    name: 'tlogin',
-    meta: {
-      title: "thirdLogin",
-      hideHeader: true,
-    },
-    component: ThirdLogin,
-  },
-  {
     path: '/backup',
     name: 'backup',
     meta: {
@@ -119,10 +113,10 @@ const routes = [
     component: SocailRecovery,
   },
   {
-    path: '/addfrinds',
-    name: 'addfrinds',
+    path: '/addfriends',
+    name: 'addfriends',
     meta: {
-      title: "addfrinds",
+      title: "addfriends",
     },
     component: AddFriends,
   },

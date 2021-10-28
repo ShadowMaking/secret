@@ -24,7 +24,7 @@
       </div>
     </div>
     <div class="opt-wrapper" v-if="friendsList.length===0">
-      <van-button block color="#495ABE" @click="toPage('addfrinds')">Add Frineds</van-button>
+      <van-button block color="#495ABE" @click="toPage('addfriends')">Add Frineds</van-button>
     </div>
     <div class="opt-wrapper" v-if="friendsList.length">
       <van-button block color="#495ABE" :disabled="selectedFriends.length===0 || selectedFriends.length===1" @click="confirm">Confirm</van-button>

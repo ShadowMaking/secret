@@ -52,7 +52,7 @@
                 <van-icon name="cluster-o" class="opt-icon" />
                 <span>Social Recovery</span>
               </div>
-              <div class="opt-item van-hairline--bottom" @click="toPage('addfrinds')">
+              <div class="opt-item van-hairline--bottom" @click="toPage('addfriends')">
                 <van-icon name="plus" class="opt-icon" />
                 <span>Friends</span>
               </div>
