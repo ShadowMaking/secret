@@ -44,8 +44,13 @@ VueRouter.prototype.replace = function (location, onResolve, onReject) {
 Vue.use(VueRouter);
 
 const routes = [
-  {
+  /* {
     path: '/',
+    name: 'home',
+    component: Home,
+  }, */
+  {
+    path: '/home',
     name: 'home',
     component: Home,
   },
@@ -80,7 +85,8 @@ const routes = [
     // component: () => import(/* webpackChunkName: "withdraw" */ '../views/Withdraw/index'),
   },
   {
-    path: '/tlogin',
+    // path: '/tlogin',
+    path: '/',
     name: 'tlogin',
     meta: {
       title: "thirdLogin",
