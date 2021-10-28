@@ -8,33 +8,25 @@
           autosize
           label=""
           type="textarea"
-          :disabled="false"
           placeholder=""
-          :readonly="true" />
+          :readonly="true"
+          @click="copyViewTxt" />
       </div>
     </div>
     <div class="opt-wrapper">
-      <van-button block color="#495ABE" class="mb10" @click="confirmView">Confirm</van-button>
+      <van-button block color="#495ABE" class="mb10" @click="confirmView" :disabled="!str">Confirm</van-button>
     </div>
   </div>
 </template>
 <script>
 import Vue from 'vue';
-import { Icon, Tab, Tabs, Step, Steps, Field, Form, Popup, Picker } from 'vant';
+import { Field, Toast } from 'vant';
+import { copyTxt } from '@/utils/index';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
-import Menonic2FAConfirm from '@/components/SocialRecovery/Menonic2FAConfirm'
 import _ from 'lodash'
-import { SecLevelEnum, generate_mnemonic, generate_key, split } from '@/utils/secretshare'
 
-Vue.use(Icon);
-Vue.use(Tab);
-Vue.use(Tabs);
-Vue.use(Step);
-Vue.use(Steps);
 Vue.use(Field);
-Vue.use(Form);
-Vue.use(Popup);
-Vue.use(Picker);
+Vue.use(Toast);
 
 export default {
   name: "RecoveryResultView",
@@ -55,6 +47,11 @@ export default {
     },
   },
   methods: {
+    copyViewTxt() {
+      if (copyTxt(this.str)) {
+        Toast.success('Copied');
+      }
+    },
     confirmView() {
       this.$emit('childEvent', {});
     },

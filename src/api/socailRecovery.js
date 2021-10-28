@@ -92,3 +92,23 @@ export const saveRecoveryData = (data) => {
     data: _data,
   })
 }
+
+export const getOTPAuthUrl = (data) => {
+  const userId = data['userId'];
+  return request({
+    url: `/api/otpauth?user_id=${userId}`,
+    method: 'get',
+  })
+}
+
+export const verifyCode = (data) => {
+  const _data = {
+    user_id: ~~data.userId,
+    code: data.code,
+  }
+  return request({
+    url: `/api/otpauth`,
+    method: 'post',
+    data: _data,
+  })
+}

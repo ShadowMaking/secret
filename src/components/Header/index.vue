@@ -54,7 +54,7 @@
               </div>
               <div class="opt-item van-hairline--bottom" @click="toPage('addfrinds')">
                 <van-icon name="plus" class="opt-icon" />
-                <span>Add Friends</span>
+                <span>Friends</span>
               </div>
             </div>
           </div>

@@ -6,14 +6,14 @@
       <span class="tip">Through the friends you added, send your key fragments to your friend's mailbox for backup, so as to restore the key of your personal account</span>
       <van-field name="recoveryType" label="recoveryType" class="recovery-type">
         <template #input>
-          <van-radio-group v-model="recoveryType" direction="horizontal">
+          <van-radio-group v-model="recoveryType" direction="horizontal" :disabled="recoveryTypeDisabled">
             <van-radio name="mnemonic">Mnemonic</van-radio>
             <van-radio name="privateKey">privateKey</van-radio>
           </van-radio-group>
         </template>
       </van-field>
       <div class="opt-wrapper">
-        <van-button block color="#495ABE" @click="confirmRecoveryType">Confirm</van-button>
+        <van-button block color="#495ABE" @click="confirmRecoveryType">{{ step1ButtonTxt}}</van-button>
       </div>
     </div>
     <div v-show="showChooseFriend">
@@ -37,7 +37,7 @@
         <span v-show="sendEmailUserIsSign" class="tip">已授权，点击下方按钮，发送邮件</span>
         <div class="btn-wrapper">
           <van-button @click="signInForGoogle" v-show="!sendEmailUserIsSign" class="btn">Authorize</van-button>
-          <van-button @click="signOutForGoogle" v-show="sendEmailUserIsSign" class="btn">SignOut</van-button>
+          <van-button @click="signOutForGoogle" v-show="sendEmailUserIsSign" class="btn">撤销授权</van-button>
           <van-button @click="sendEmail" v-show="sendEmailUserIsSign" class="btn">Send Email</van-button>
         </div>
       </div>
@@ -77,6 +77,8 @@ export default {
       showChooseFriend: false,
       confirmChooseFriend: false,
       recoveryType: 'mnemonic', // mnemonic || privateKey
+      recoveryTypeDisabled: false,
+      step1ButtonTxt: 'Confirm',
       showStatus: false,
       selectedFriendsList: [],
       recoveryNumber: 1,
@@ -96,6 +98,14 @@ export default {
     thirdUserId() {
      return getFromStorage('gUID')
     },
+  },
+  watch: {
+    $route(to, from) {
+      if (this.$route.query.type) {
+        console.log(this.$route.query.type, to, from)
+        // this.activeCreateWalletType = this.$route.query.type
+      }
+    }
   },
   methods: {
     confirmRecoveryType() {
@@ -228,6 +238,7 @@ export default {
       .then(res=>{
         console.log(res)
         this.confirmChooseFriend = false
+        this.showGoogleAuthDialog = false
         this.showStatus = true
       })
       .catch(err=>{
@@ -260,6 +271,11 @@ export default {
     },
   },
   mounted() {
+    if (this.$route.query && this.$route.query.type) {
+      this.recoveryTypeDisabled = true
+      this.step1ButtonTxt = 'Next'
+      this.recoveryType = this.$route.query.type === 'pk' ? 'privateKey' : 'mnemonic'
+    }
     this.handleClientLoad()
   },
 }

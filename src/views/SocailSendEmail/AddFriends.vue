@@ -1,7 +1,7 @@
 <template>
   <div class="add-friends-page">
     <h4>
-      <span>Add Friends</span>
+      <span>Friends</span>
       <a class="button button-with-radius button-update" @click="refresh">
         <i :class="['icon','ico-ipdate', {'spin': refreshLoading}]"></i>
         Refresh
@@ -40,11 +40,12 @@
           color="#495ABE"
           size="small"
           class="add-button"
-          :disabled="!prefixGmail"
+          :disabled="!prefixGmail||addIsLoading"
           @click="addFriend">Add</van-button>
       </div>
       <!-- friends list -->
       <van-list
+        v-if="friendsList.length"
         class="friend-list"
         v-model="loading"
         :finished="finished"
@@ -75,8 +76,12 @@
           </div>
         </div>
       </van-list>
+      <!-- no-friends -->
+      <div class="no-friends" v-else>
+        <van-icon name="closed-eye" color="#eee" size="40"/>
+        <span>no friends</span>
+      </div>
     </div>
-    
   </div>
 </template>
 <script>
@@ -105,6 +110,7 @@ export default {
       finished: false,
       total: 0,
       prefixGmail: '',
+      addIsLoading: false,
     }
   },
   computed: {
@@ -132,30 +138,6 @@ export default {
     },
     toPage(routeNme) {
       this.$router.push({ name: routeNme })
-    },
-    async addFriend() {
-      if (!this.thirdUserId) {
-        Toast('请进行社交登录')
-        return
-      }
-      const userId = getFromStorage('gUID')
-      if (!userId||!this.prefixGmail) {
-        console.log('can detect userID after third login')
-        Toast('error')
-        return
-      }
-      const data = {
-        fromUserID: userId,
-        toUserEmail: `${this.prefixGmail}@gmail.com`
-      }
-      const { hasError, list, error } = await this.$store.dispatch('AddFrined', data);
-      if (!hasError) {
-        this.prefixGmail = ''
-        this.friendsList = [];
-        this.getAllMyFriendsList()
-      } else {
-        Toast(error)
-      }
     },
     onSearchFriend(val) {
       console.log(val)
@@ -212,6 +194,32 @@ export default {
         this.total = list.length // TODO
       }
     },
+    async addFriend() {
+      if (!this.thirdUserId) {
+        Toast('请进行社交登录')
+        return
+      }
+      this.addIsLoading = true;
+      const userId = getFromStorage('gUID')
+      if (!userId||!this.prefixGmail) {
+        console.log('can detect userID after third login')
+        Toast('error')
+        return
+      }
+      const data = {
+        fromUserID: userId,
+        toUserEmail: `${this.prefixGmail}@gmail.com`
+      }
+      const { hasError, list, error } = await this.$store.dispatch('AddFrined', data);
+      this.addIsLoading = false;
+      if (!hasError) {
+        this.prefixGmail = ''
+        this.friendsList = [];
+        this.getAllMyFriendsList()
+      } else {
+        Toast(error)
+      }
+    },
     async dealRequet(record) {
       // <van-icon name="close" />
       // <van-icon name="passed" />
@@ -223,7 +231,7 @@ export default {
       }
       Dialog.confirm({
         title: 'Tip',
-        message: '请处理处理好友请求',
+        message: '请处理好友请求',
         showCancelButton: true,
         confirmButtonText: 'Confirm',
         cancelButtonText: 'Reject',

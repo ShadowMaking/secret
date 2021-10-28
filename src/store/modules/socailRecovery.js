@@ -11,7 +11,9 @@ import {
   confirmForAddFrined,
   rejectForAddFrined,
   getRecoveryData,
-  saveRecoveryData, } from '@/api/socailRecovery';
+  saveRecoveryData,
+  getOTPAuthUrl,
+  verifyCode } from '@/api/socailRecovery';
 
 const socailRecovery = {
   state: {
@@ -160,6 +162,32 @@ const socailRecovery = {
           resolve({ hasError: true, list: [], error: message });
         }).catch(error => {
           resolve({ hasError: true, list: [], error });
+        })
+      })
+    },
+    GetOTPAuthUrl({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        getOTPAuthUrl(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false, data })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
+    VerifyCode({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        verifyCode(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0 && data) {
+            resolve({ hasError: false  })
+          }
+          resolve({ hasError: true, error: 'Error Code' });
+        }).catch(error => {
+          resolve({ hasError: true, error: 'Error Code' });
         })
       })
     },

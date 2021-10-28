@@ -40,13 +40,11 @@ axios.defaults.withCredentials = true;
    // response => response,
    response => {
      const res = response.data
-     if (res.errno&&res.errno !== 0) {
+     /* if (res.errno&&res.errno !== 0) {
        switch (res.errno) {
          case 1:
            return Promise.reject('error')
-         case 3:
-         case 4:
-         case 5:
+         case 2:
            return response
          default:
            console.log('error', res.message);
@@ -55,7 +53,8 @@ axios.defaults.withCredentials = true;
        // return Promise.reject('error')
      } else {
        return response
-     }
+     } */
+     return response
    },
    error => {
      console.log('err' + error) // for debug

@@ -33,8 +33,7 @@
 </template>
 <script>
 import Vue from 'vue';
-import { Icon, Tab, Tabs, Step, Steps, Field, Form, Popup, Picker } from 'vant';
-import { saveToStorage, getFromStorage } from '@/utils/storage';
+import { Step, Steps } from 'vant';
 import Menonic2FAConfirm from '@/components/SocialRecovery/Menonic2FAConfirm'
 import ResultView from './components/RecoveryView'
 import SecretKey from './components/SecretKey'
@@ -42,15 +41,8 @@ import RecoveryType from './components/RecoveryType'
 import _ from 'lodash'
 import { SecLevelEnum, generate_mnemonic, generate_key, split } from '@/utils/secretshare'
 
-Vue.use(Icon);
-Vue.use(Tab);
-Vue.use(Tabs);
 Vue.use(Step);
 Vue.use(Steps);
-Vue.use(Field);
-Vue.use(Form);
-Vue.use(Popup);
-Vue.use(Picker);
 
 export default {
   name: "SocialRecovery",
@@ -62,6 +54,7 @@ export default {
   },
   data() {
     return {
+      recoveryStr: '',
       activeStepForSrecovery: 0, // 0-Type 1-2FA 2-SecretKey 3-complete
     }
   },

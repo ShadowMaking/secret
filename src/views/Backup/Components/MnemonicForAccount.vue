@@ -147,7 +147,7 @@ export default {
         mnemonic: this.mnemonic,
         updateType: 'store'
       })
-      this.$router.push({ name: 'ssendemail' })
+      this.$router.push({ name: 'ssendemail', query: {type: 'mn'} })
     },
     handleInputChange(value) {
       console.log(value)

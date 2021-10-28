@@ -139,7 +139,7 @@ export default {
         privateKey: this.privateKey,
         updateType: 'store'
       })
-      this.$router.push({ name: 'ssendemail' })
+      this.$router.push({ name: 'ssendemail', query: {type: 'pk'} })
     },
     handleInputChange(value) {
       console.log(value)

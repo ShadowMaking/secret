@@ -14,7 +14,7 @@
         </ul>
       </div>
       <div class="opt-wrapper">
-        <van-button block color="#495ABE" class="mb10" @click="backupMenonic">Confirm</van-button>
+        <van-button block color="#495ABE" class="mb10" @click="backupMenonic">Next</van-button>
       </div>
     </div>
     <!-- 2FA验证 -->
@@ -33,9 +33,16 @@
       </div>
       <van-field
         v-model="codeFor2FA"
-        placeholder="Please enter 6-digit" />
+        type="digit"
+        placeholder="please enter 6-digit"
+        :minlength="6"
+        :maxlength="6" />
       <div class="opt-wrapper">
-        <van-button block color="#495ABE" class="mb10" @click="confirmBackUp">submit</van-button>
+        <van-button
+          block color="#495ABE"
+          class="mb10"
+          @click="confirmBackUp"
+          :disabled="!codeFor2FA||codeFor2FA.length!==6||verifyIsLoading">{{ verifyIsLoading?"waiting...":"Confirm" }}</van-button>
       </div>
     </div>
   </div>
@@ -57,7 +64,9 @@ export default {
     return{
       showMenonicTip: true,
       showMenonic: false,
-      codeFor2FA: ''
+      codeFor2FA: '',
+      qrCodeUrl: '',
+      verifyIsLoading: false,
     }
   },
   computed: {
@@ -76,7 +85,7 @@ export default {
         return;
       }
       new QRCode(this.$refs.qrCodeUrl, {
-        text: '0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9',
+        text: this.qrCodeUrl,
         width: 120,
         height: 120,
         colorDark: '#000000',
@@ -93,14 +102,32 @@ export default {
       this.showMenonic = true;
       this.creatQrCode();
     },
-    confirmBackUp() {
-      this.showMenonicTip = false;
-      this.showMenonic = false;
-      this.$emit('childEvent');
+    async confirmBackUp() {
+      this.verifyIsLoading = true;
+      const verifyRes = await this.$store.dispatch('VerifyCode', { userId: this.thirdUserId, code: this.codeFor2FA})
+      this.verifyIsLoading = false
+      if (!verifyRes.hasError) {
+        this.showMenonicTip = false;
+        this.showMenonic = false;
+        this.$emit('childEvent', this.codeFor2FA);
+      } else {
+        Toast(verifyRes.error)
+      }
+    },
+    async getOTPAuthUrl() {
+      if (!this.thirdUserId) { return }
+      const res = await this.$store.dispatch('GetOTPAuthUrl', { userId: this.thirdUserId})
+      const { hasError, data } = res;
+      if (!hasError) {
+        this.qrCodeUrl = data
+      }
     },
   },
-  mounted() {
-    this.creatQrCode();
+  async mounted() {
+    await this.getOTPAuthUrl();
+    if (this.qrCodeUrl) {
+      this.creatQrCode();
+    }
   },
 }
 </script>
