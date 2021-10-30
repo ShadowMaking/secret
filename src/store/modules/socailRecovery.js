@@ -38,7 +38,7 @@ const socailRecovery = {
       }
     },
     SET_SETTING_DATA: (state, info) => {
-      state.settingData = info.settingData
+      state.settingData = info && info.settingData || null
     }
   },
   actions: {
@@ -255,17 +255,18 @@ const socailRecovery = {
     UpdateBackupSettingDataForStorage({ commit }, data) {
       return new Promise(resolve => {
         const { settingData, updateType } = data
-        commit('SET_SETTING_DATA', settingData)
         switch(updateType) {
           case 'store':
+            commit('SET_SETTING_DATA', settingData)
             saveToStorage({ 'settingdata': _.cloneDeep(settingData) });
             resolve()
             break;
           case 'get':
-            const _data = getInfoFromStorageByKey('settingdata');
-            resolve({data: _data})
+            const sdata = getInfoFromStorageByKey('settingdata');
+            resolve(sdata)
             break;
           case 'remove':
+            commit('SET_SETTING_DATA', null)
             removeFromStorage(['settingdata'])
             resolve()
             break
