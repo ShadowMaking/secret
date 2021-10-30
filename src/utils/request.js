@@ -56,10 +56,10 @@ axios.defaults.withCredentials = true;
      const res = response.data
      if (res.errno&&res.errno !== 0) {
        switch (res.errno) {
-         case -1: // need login
+         case 1: // need login
           const userId = getFromStorage('gUID')
           const token = getAuthToken('gtoken')
-          const url = `${window.location.origin}?id=${userId}&auth_token=${token}`
+          const url = `${window.location.protocol}//secret.ieigen.com?id=${userId}&auth_token=${token}`
           window.location.href=url
           return Promise.reject('error')
          default:
