@@ -39,6 +39,17 @@ const thirdLogin = {
         }
       })
     },
+    StoreGoogleAuthToken({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        const authToken = params.authToken;
+        if (authToken) {
+          saveToStorage({ 'gtoken': authToken })
+          resolve({ hasError: false })
+        } else {
+          resolve({ hasError: true  })
+        }
+      })
+    },
   }
 }
 

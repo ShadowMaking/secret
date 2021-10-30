@@ -2,6 +2,7 @@ import Cookies from 'js-cookie';
 import { DOMAIN } from '@/utils/global';
 import { utils} from 'ethers'
 import web3 from 'web3'
+import { saveToStorage, getFromStorage } from '@/utils/storage';
 
 let expiresAddTime = 120;   // token will lose efficacy after 120 minutes
 
@@ -22,6 +23,7 @@ export const setCookie = (key, data) => {
 
 export const getCookieFromDocument = (key) => {
   const documentCookie = document.cookie
+  console.log('documentCookie', documentCookie)
   let str
   if (documentCookie) {
     const cookieList = documentCookie.split(';')
@@ -104,4 +106,8 @@ export const updateLoginTime = (type='sign') => {
 export const removeTokens = () => {
   Cookies.remove(window.TOKEN_NAME)
   Cookies.remove(window.TOKEN_NAME_LOCK)
+}
+
+export const getAuthToken = (key) => {
+  return getFromStorage(key)
 }

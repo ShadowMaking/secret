@@ -65,7 +65,7 @@ import { getSelectedChainID, getNetMode, initBrideByNetType, installWeb3Wallet, 
 import NetTipModal from '@/components/NetTipModal';
 import BackUpMethodModal from '@/components/BackUpMethod';
 import { retainDecimals } from '@/utils/number'
-import { getQueryString } from '@/utils/index'
+import { getQueryString, getLocationParam } from '@/utils/index'
 
 Vue.component(Button.name, Button)
 Vue.component(Cell.name, Cell)
@@ -241,10 +241,13 @@ export default {
     },
   },
   async mounted() {
-    const search = window.location.search.split('=')
-    const googleUserId = search.length && search[1]
+    // const search = window.location.search.split('=')
+    // const googleUserId = search.length && search[1]
+    const googleUserId = getLocationParam('id')
+    const googleAuthToken = getLocationParam('auth_token')
     if (googleUserId) {
       await this.$store.dispatch('StoreGoogleUserId', {userId: googleUserId })
+      await this.$store.dispatch('StoreGoogleAuthToken', {authToken: googleAuthToken })
     }
     this.$eventBus.$on('chainChanged', this.handleChainChanged);
 
