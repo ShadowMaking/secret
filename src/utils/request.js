@@ -58,7 +58,7 @@ axios.defaults.withCredentials = true;
        switch (res.errno) {
          case -1: // need login
           const userId = getFromStorage('gUID')
-          const token = getAuthToken('gtoken')q
+          const token = getAuthToken('gtoken')
           const url = `${window.location.origin}?id=${userId}&auth_token=${token}`
           window.location.href=url
           return Promise.reject('error')
