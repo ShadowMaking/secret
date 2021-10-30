@@ -216,7 +216,7 @@ export default {
     signOutForGoogle(event) {
       gapi.auth2.getAuthInstance().signOut();
     },
-    sendEmail(){
+    async sendEmail(){
       const list = this.selectedFriendsList
       const numRange = [list.length, this.recoveryNumber]
       const secretWords = this.secretWords;
@@ -224,11 +224,13 @@ export default {
       console.log('splis', splis)
 
       const userName = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getName()
+      const backupSeetingData = await this.$store.dispatch('UpdateBackupSettingDataForStorage', { updateType:'get' })
+      const backupName = backupSeetingData && backupSeetingData.name
       const mesList = []
       list.forEach((i,index)=>{
         const headers_obj = {
           'To': i.email,
-          'Subject': 'EigenSecretSplit'
+          'Subject': `EigenSecretSplit For ${backupName}`
         };
         const message = splis[index];
         let email = '';
@@ -259,7 +261,7 @@ export default {
       
     },
     sendItem(message){
-      console.log('message', message)
+      console.log('message', message) // TODO
       const userID = this.sendEmailUserID
       return new Promise(function (resolve, reject) {
         const sendRequest = gapi.client.gmail.users.messages.send({

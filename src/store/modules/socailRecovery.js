@@ -256,12 +256,20 @@ const socailRecovery = {
       return new Promise(resolve => {
         const { settingData, updateType } = data
         commit('SET_SETTING_DATA', settingData)
-        if (updateType === 'store') {
-          saveToStorage({ 'settingdata': _.cloneDeep(settingData) });
-        } else {
-          removeFromStorage(['settingdata'])
+        switch(updateType) {
+          case 'store':
+            saveToStorage({ 'settingdata': _.cloneDeep(settingData) });
+            resolve()
+            break;
+          case 'get':
+            const _data = getInfoFromStorageByKey('settingdata');
+            resolve({data: _data})
+            break;
+          case 'remove':
+            removeFromStorage(['settingdata'])
+            resolve()
+            break
         }
-        resolve()
       })
     },
     
