@@ -20,6 +20,21 @@ export const setCookie = (key, data) => {
   });
 }
 
+export const getCookieFromDocument = (key) => {
+  const documentCookie = document.cookie
+  let str
+  if (documentCookie) {
+    const cookieList = documentCookie.split(';')
+    cookieList.some(item=>{
+      if(item.split('=')[0]===key) {
+        str = item.split('=')[1]
+        return true
+      }
+    })
+    return str
+  }
+}
+
 // accountInfo = { address:'' }
 export const getAccount = () => {
   if (getCookie('account')) {
