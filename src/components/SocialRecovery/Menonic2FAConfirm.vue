@@ -145,7 +145,7 @@ export default {
     },
     async confirmBackUp() {
       this.verifyIsLoading = true;
-      /* const verifyRes = await this.$store.dispatch('VerifyCode', { userId: this.thirdUserId, code: this.codeFor2FA})
+      const verifyRes = await this.$store.dispatch('VerifyCode', { userId: this.thirdUserId, code: this.codeFor2FA})
       this.verifyIsLoading = false
       if (!verifyRes.hasError) {
         this.showMenonicTip = false;
@@ -153,15 +153,15 @@ export default {
         this.$emit('childEvent', this.codeFor2FA);
       } else {
         Toast(verifyRes.error)
-      } */
-      const verifyRes = await this.$store.dispatch('VerifyOTPCode', { userId: this.thirdUserId, code: this.codeFor2FA})
+      }
+      /* const verifyRes = await this.$store.dispatch('VerifyOTPCode', { userId: this.thirdUserId, code: this.codeFor2FA})
       if (!verifyRes.hasError) {
         this.showMenonicTip = false;
         this.showMenonic = false;
         this.$emit('childEvent', this.codeFor2FA);
       } else {
         Toast(verifyRes.error)
-      }
+      } */
     },
     async getOTPAuthUrl(needDestroy) {
       if (!this.thirdUserId) { return }

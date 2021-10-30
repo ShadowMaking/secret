@@ -1,74 +1,91 @@
 import request from '@/utils/request';
 
+// get guardians list(we can filter the status, e.g,get only mutual staus guardian)
 export const getMyFriendsList = (data) => {
   const userId = data['userId'];
-  let url = `/api/user?action=friends&user_id=${userId}`
-  data['status']&& (url = `${url}&status=${data['status']}`)
+  const _data = {
+    action: 'guardians',
+    status: data['status'],
+  }
   return request({
-    url: url,
+    url: `/api/user/${userId}`,
     method: 'get',
+    params: _data
   })
 }
 
+// get strangers list
 export const getStrangerFriendsList = (data) => {
   const userId = data['userId'];
+  const _data = {
+    action: 'strangers',
+  }
   return request({
-    url: `/api/user?action=strangers&user_id=${userId}`,
+    url: `/api/user/${userId}`,
     method: 'get',
+    params: _data
   })
 }
 
+// send a guardian request(or user email instead)
 export const addFrined = (data) => {
+  const userId =  ~~data.fromUserID
   const _data = {
-    action: 'friend_request',
-    requester_id: ~~data.fromUserID,
-    responder_email: data.toUserEmail
+    guardian_email: data.toUserEmail,
+    // guardian_id: 
   }
   return request({
-    url: '/api/user',
+    url: `/api/user/${userId}/guardian`,
     method: 'post',
     data: _data,
   })
 }
 
+// remove a guardian
 export const removeFriend = (data) => {
+  const userId =  ~~data.fromUserID
   const _data = {
-    requester_id: data.fromUserID,
-    responder_id: data.toUserID
+    // guardian_email: data.toUserEmail,
+    guardian_id: data.toUserID,
   }
   return request({
-    url: '/api/user?action=friend_remove',
-    method: 'post',
+    url: `/api/user/${userId}/guardian`,
+    method: 'delete',
     data: _data,
   })
 }
 
+// confirm a guardian request(or user email instead)
 export const confirmForAddFrined = (data) => {
+  const userId = ~~data.fromUserID
   const _data = {
-    action: 'friend_confirm',
-    requester_id: ~~data.fromUserID,
-    responder_id: ~~data.toUserID  // responder_email: data.toUserEmail
+    action: 'confirm',
+    guardian_id: ~~data.toUserID,  // responder_email: data.toUserEmail
+    // guardian_email: data.toUserEmail
   }
   return request({
-    url: '/api/user',
-    method: 'post',
+    url: `/api/user/${userId}/guardian`,
+    method: 'put',
     data: _data,
   })
 }
 
+// reject a guardian request(or user email instead)
 export const rejectForAddFrined = (data) => {
+  const userId = ~~data.fromUserID
   const _data = {
-    action: 'friend_reject',
-    requester_id: ~~data.fromUserID,
-    responder_id: ~~data.toUserID
+    action: 'reject',
+    guardian_id: ~~data.toUserID,  // responder_email: data.toUserEmail
+    // guardian_email: data.toUserEmail,
   }
   return request({
-    url: '/api/user',
-    method: 'post',
+    url: `/api/user/${userId}/guardian`,
+    method: 'put',
     data: _data,
   })
 }
 
+// 
 export const getRecoveryData = (data) => {
   const userId = data['userId'];
   return request({
@@ -133,7 +150,7 @@ export const saveOTPSecret = (data) => {
   }
   return request({
     url: `/api/user/${userId}/otpauth`,
-    method: 'post',
+    method: 'put',
     data: _data,
   })
 }
