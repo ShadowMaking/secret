@@ -7,14 +7,38 @@
       <van-tabs @click="oncheckCreateType" v-model="activeCreateWalletType" animated>
         <van-tab name="create" title="Create" class="inner-type-wrapper">
           <span class="tip">If you change browsers or move computers, you will need this mnemonic phrase and you will be able to access your account through it.Keep the mnemonic phrase in a safe place.</span>
-          <van-field v-model="createType" label="Type" readonly class="createType-select" :disabled="createTypeDisabled" @click="showSelectType('create')"/>
+          <!-- backup-setting -->
+          <div class="backup-setting-wrapper">
+            <van-cell-group>
+              <van-field v-model="createType" label="Type" readonly class="createType-select" :disabled="createTypeDisabled" @click="showSelectType('create')"/>
+              <van-field v-model="backupName" label="名称" placeholder="请输入备份名称" :disabled="createTypeDisabled" />
+              <van-field
+                v-model="backupComment"
+                rows="1"
+                :disabled="createTypeDisabled"
+                autosize
+                label="备注"
+                type="textarea"
+                maxlength="150"
+                show-word-limit
+                placeholder="请输入备注" />
+            </van-cell-group>
+          </div>
           <!-- create mnemonic -->
           <div class="type-create" v-if="createType==='mnemonic'">
-            <v-mnemonicType type="create" @notLogin="handleNotLogin" @createComplete="hanldeCreateComplete" />
+            <v-mnemonicType
+              type="create"
+              @notLogin="handleNotLogin"
+              :settingData="settingData"
+              @createComplete="hanldeCreateComplete" />
           </div>
           <!-- create privateKey -->
           <div class="type-privatekey" v-if="createType==='privateKey'">
-            <v-privatekeyType type="create" @notLogin="handleNotLogin" @createComplete="hanldeCreateComplete"/>
+            <v-privatekeyType
+              type="create"
+              @notLogin="handleNotLogin"
+              :settingData="settingData"
+              @createComplete="hanldeCreateComplete"/>
           </div>
         </van-tab>
         <van-tab name="import" title="Import" class="inner-type-wrapper">
@@ -77,7 +101,18 @@ export default {
       showThirdLoginTip: false,
       createTypeDisabled: false,
       importTypeDisabled: false,
+
+      backupName: '',
+      backupComment: '',
     }
+  },
+  computed: {
+    settingData() {
+      return {
+        name: this.backupName,
+        desc: this.backupComment
+      };
+    },
   },
   watch: {
     $route(to, from) {

@@ -13,6 +13,7 @@
         v-show="activeStepForSrecovery===0"
         @childEvent="typefirmCallback" /> -->
       <!-- 2FA -->
+      <!-- backup name list -->
       <v-2FA
         key="srecovery-2FAconfirm"
         v-show="activeStepForSrecovery===0"

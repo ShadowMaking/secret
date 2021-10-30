@@ -158,12 +158,15 @@ export default {
         this.secretWords = secretWords;
         // this.confirmChooseFriend = false
         // this.showStatus = true
-        
-        const storeRes = await this.$store.dispatch('SaveRecoveryData', {
+        const backUpSeetingData = getFromStorage('settingdata') && window.JSON.parse(getFromStorage('settingdata'))
+        const recoverData = {
           fromUserID: userId,
           recoveryNum: this.recoveryNumber,
           selectedFriendsList: this.selectedFriendsList.map(i=>({ user_id:i.id, email:i.email, name:i.name })),
-        });
+        }
+        backUpSeetingData && (recoverData['name'] = backUpSeetingData.name)
+        backUpSeetingData && (recoverData['desc'] = backUpSeetingData.desc)
+        const storeRes = await this.$store.dispatch('SaveRecoveryData', {...recoverData});
         const { hasError } = storeRes // TODO
         return
       }

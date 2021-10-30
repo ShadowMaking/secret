@@ -15,6 +15,7 @@ import {
   getOTPAuthUrl,
   verifyCode,
   saveOTPSecret, } from '@/api/socailRecovery';
+import _ from 'lodash'
 
 import TOTP from 'totp.js'
 
@@ -36,6 +37,9 @@ const socailRecovery = {
         [info.userId]: info.secret
       }
     },
+    SET_SETTING_DATA: (state, info) => {
+      state.settingData = info.settingData
+    }
   },
   actions: {
     UpdateMnemonicForStorage({ commit }, data) {
@@ -248,6 +252,19 @@ const socailRecovery = {
         })
       })
     },
+    UpdateBackupSettingDataForStorage({ commit }, data) {
+      return new Promise(resolve => {
+        const { settingData, updateType } = data
+        commit('SET_SETTING_DATA', settingData)
+        if (updateType === 'store') {
+          saveToStorage({ 'settingdata': _.cloneDeep(settingData) });
+        } else {
+          removeFromStorage(['settingdata'])
+        }
+        resolve()
+      })
+    },
+    
   }
 }
 

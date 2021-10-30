@@ -59,7 +59,7 @@
 <script>
 import Vue from 'vue';
 import _ from 'lodash'
-import { Tab, Tabs, Field } from 'vant';
+import { Tab, Tabs, Field, Toast } from 'vant';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
 import MenonicGenerate from '@/components/SocialRecovery/MenonicGenerate'
 import MenonicBackup from '@/components/SocialRecovery/MenonicBackup'
@@ -77,7 +77,11 @@ export default {
     type: {
       type: String,
       default: 'create', // create || import
-    }
+    },
+    settingData: {
+      type: Object,
+      default: null, // {name:'',desc:''}
+    },
   },
   components: {
     'v-menonicGenerate': MenonicGenerate,
@@ -129,6 +133,11 @@ export default {
         this.$emit('notLogin');
         return
       }
+      const notSettingData = !this.settingData || this.settingData && !this.settingData.name
+      if (notSettingData) {
+        Toast('请设置备份名称')
+        return
+      }
       this.$emit('createComplete', {});
       this.conformList = _.cloneDeep(this.mnemonic);
       this.activeStepForMnemonic = 1;
@@ -142,6 +151,10 @@ export default {
     async completeCallback() {
       await this.$store.dispatch('UpdateMnemonicForStorage', {
         mnemonic: this.mnemonic,
+        updateType: 'store'
+      })
+      await this.$store.dispatch('UpdateBackupSettingDataForStorage', {
+        settingData: this.settingData,
         updateType: 'store'
       })
       this.$router.push({ name: 'ssendemail', query: {type: 'mn'} })
