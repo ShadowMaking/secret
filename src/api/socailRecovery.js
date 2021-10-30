@@ -97,11 +97,13 @@ export const getRecoveryData = (data) => {
 // {"user_id": 2, "total_shared_num": 1, "threshold": 1, "friends": [{"user_id": 2, "email": "a@b.com"}, {"user_id": 3, "email": "c@d.com"}]}
 export const saveRecoveryData = (data) => {
   const _data = {
-    action: 'friend_reject',
+    // action: 'friend_reject',
     user_id: ~~data.fromUserID,
     total_shared_num: ~~data.recoveryNum,
     threshold: 1,
-    friends: data.selectedFriendsList
+    friends: data.selectedFriendsList,
+    name: data.name,
+    desc: data.desc,
   }
   return request({
     url: '/api/recovery',
