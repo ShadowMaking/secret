@@ -167,9 +167,8 @@ const socailRecovery = {
       return new Promise((resolve, reject) => {
         getRecoveryData(params).then(response => {
           const { errno, data, message } = response.data
-          const friendsList = data && data.friends && window.JSON.parse(data.friends) || []
           if (errno === 0) {
-            resolve({ hasError: false, list: friendsList, recoveryNumber: data.total_shared_num })
+            resolve({ hasError: false, list: data })
           }
           resolve({ hasError: true, list: [], error: message });
         }).catch(error => {
@@ -271,6 +270,17 @@ const socailRecovery = {
             resolve()
             break
         }
+      })
+    },
+    UpdateSelectedBackupForStorage({ commit }, data) {
+      return new Promise(resolve => {
+        const { backupId, type } = data
+        if (type === 'store') {
+          saveToStorage({ backupId });
+        } else {
+          removeFromStorage(['backupId'])
+        }
+        resolve()
       })
     },
     

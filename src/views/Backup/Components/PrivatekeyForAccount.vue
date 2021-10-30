@@ -91,7 +91,11 @@ export default {
     type: {
       type: String,
       default: 'create', // create || import
-    }
+    },
+    settingData: {
+      type: Object,
+      default: null, // {name:'',desc:''}
+    },
   },
   data() {
     return{
@@ -128,6 +132,10 @@ export default {
         this.$emit('notLogin');
         return
       }
+      if (!this.hasBackupSettingData()) {
+        Toast('请设置备份名称')
+        return
+      }
       this.$emit('createComplete', {});
       this.activeStepForPrivateKey = 1
     },
@@ -143,6 +151,10 @@ export default {
         privateKey: this.privateKey,
         updateType: 'store'
       })
+      await this.$store.dispatch('UpdateBackupSettingDataForStorage', {
+        settingData: this.settingData,
+        updateType: 'store'
+      })
       this.$router.push({ name: 'ssendemail', query: {type: 'pk'} })
     },
     handleInputChange(value) {
@@ -154,10 +166,17 @@ export default {
         this.$emit('notLogin');
         return
       }
+      if (!this.hasBackupSettingData()) {
+        Toast('请设置备份名称')
+        return
+      }
       this.$emit('createComplete', {});
       const pvkStr = this.importPrivatekey
       this.privateKey = pvkStr.trim()
       this.showImport = false
+    },
+    hasBackupSettingData() {
+      return !(!this.settingData || this.settingData && !this.settingData.name)
     },
   },
   mounted() {

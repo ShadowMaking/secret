@@ -99,12 +99,18 @@ export default {
         console.log('can detect userID after third login') 
         return
       }
+      const backupId = getFromStorage('backupId')
       const { hasError, list, error, recoveryNumber } = await this.$store.dispatch('GetRecoveryData', {userId});
-      if (!hasError) {
-        this.friendsList = this.generateFriendsList(list)
-        this.friendsInputValsMap = this.generateFriendsInputValsMap(list)
+      if (!hasError && backupId) {
+        const targetBackup = _.find(list, {id: ~~backupId})
+        const guradianFriends = targetBackup && targetBackup['friends'] && window.JSON.parse(targetBackup.friends) || []
+
+        this.friendsList = this.generateFriendsList(guradianFriends)
+        this.friendsInputValsMap = this.generateFriendsInputValsMap(guradianFriends)
         this.recoveryNumber = recoveryNumber
         console.log('this.friendsInputValsMap',this.friendsInputValsMap)
+      } else {
+        Toast('can not detect backupId')
       }
     },
     changeInputVal(val, record) {

@@ -29,7 +29,7 @@
             <v-mnemonicType
               type="create"
               @notLogin="handleNotLogin"
-              :settingData="settingData"
+              :settingData="settingDataForCreate"
               @createComplete="hanldeCreateComplete" />
           </div>
           <!-- create privateKey -->
@@ -37,20 +37,36 @@
             <v-privatekeyType
               type="create"
               @notLogin="handleNotLogin"
-              :settingData="settingData"
+              :settingData="settingDataForCreate"
               @createComplete="hanldeCreateComplete"/>
           </div>
         </van-tab>
         <van-tab name="import" title="Import" class="inner-type-wrapper">
           <span class="tip">You can choose to backup by mnemonic phrase or json key</span>
-          <van-field v-model="importType" label="Type" readonly class="createType-select" :disabled="importTypeDisabled" @click="showSelectType('import')"/>
+          <!-- backup-setting -->
+          <div class="backup-setting-wrapper">
+            <van-cell-group>
+              <van-field v-model="importType" label="Type" readonly class="createType-select" :disabled="importTypeDisabled" @click="showSelectType('import')"/>
+              <van-field v-model="backupNameForImport" label="名称" placeholder="请输入备份名称" :disabled="importTypeDisabled" />
+              <van-field
+                v-model="backupCommentForImport"
+                rows="1"
+                :disabled="importTypeDisabled"
+                autosize
+                label="备注"
+                type="textarea"
+                maxlength="150"
+                show-word-limit
+                placeholder="请输入备注" />
+            </van-cell-group>
+          </div>
           <!-- import mnemonic -->
           <div class="type-create" v-if="importType==='mnemonic'">
-            <v-mnemonicType type="import" @notLogin="handleNotLogin" @createComplete="hanldeCreateComplete" />
+            <v-mnemonicType type="import" @notLogin="handleNotLogin" :settingData="settingDataForImport" @createComplete="hanldeCreateComplete" />
           </div>
           <!-- import privateKey -->
           <div class="type-privatekey" v-if="importType==='privateKey'">
-            <v-privatekeyType type="import" @notLogin="handleNotLogin" @createComplete="hanldeCreateComplete" />
+            <v-privatekeyType type="import" @notLogin="handleNotLogin" :settingData="settingDataForImport" @createComplete="hanldeCreateComplete" />
           </div>
         </van-tab>
       </van-tabs>
@@ -104,13 +120,21 @@ export default {
 
       backupName: '',
       backupComment: '',
+      backupNameForImport: '',
+      backupCommentForImport: '',
     }
   },
   computed: {
-    settingData() {
+    settingDataForCreate() {
       return {
         name: this.backupName,
         desc: this.backupComment
+      };
+    },
+    settingDataForImport() {
+      return {
+        name: this.backupNameForImport,
+        desc: this.backupCommentForImport
       };
     },
   },

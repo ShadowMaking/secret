@@ -133,8 +133,7 @@ export default {
         this.$emit('notLogin');
         return
       }
-      const notSettingData = !this.settingData || this.settingData && !this.settingData.name
-      if (notSettingData) {
+      if (!this.hasBackupSettingData()) {
         Toast('请设置备份名称')
         return
       }
@@ -168,10 +167,17 @@ export default {
         this.$emit('notLogin');
         return
       }
+      if (!this.hasBackupSettingData()) {
+        Toast('请设置备份名称')
+        return
+      }
       this.$emit('createComplete', {});
       const mnStr = this.importMnemonic
       this.mnemonic = mnStr.split(' ').filter(i=>!!i).join(' ')
       this.showImport = false
+    },
+    hasBackupSettingData() {
+      return !(!this.settingData || this.settingData && !this.settingData.name)
     },
   },
   mounted() {

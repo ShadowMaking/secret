@@ -2,6 +2,7 @@
   <div class="social-recovery-page">
     <van-steps :active="activeStepForSrecovery">
       <!-- <van-step>Type</van-step> -->
+      <van-step>选择备份</van-step>
       <van-step>2FA</van-step>
       <van-step>SecretKey</van-step>
       <van-step>Compelte</van-step>
@@ -14,22 +15,27 @@
         @childEvent="typefirmCallback" /> -->
       <!-- 2FA -->
       <!-- backup name list -->
+      <v-backupList
+        v-show="activeStepForSrecovery===0"
+        key="backup-list"
+        @childEvent="handleBackupItemConfirm"
+      />
       <v-2FA
         key="srecovery-2FAconfirm"
-        v-show="activeStepForSrecovery===0"
+        v-show="activeStepForSrecovery===1"
         :showQRCode="false"
         :showSeetingTip="false"
         @childEvent="menonic2FAConfirmCallback" />
       <!-- enter SecretKey -->
       <v-secretkey
         key="srecovery-secretkey"
-        v-show="activeStepForSrecovery===1"
+        v-show="activeStepForSrecovery===2"
         @childEvent="secretKeyConfirmCallback" />
       <!-- resultview -->
       <v-resultview
         key="srecovery--complete"
         :str="recoveryStr"
-        v-show="activeStepForSrecovery===2"
+        v-show="activeStepForSrecovery===3"
         @childEvent="completeCallback" />
     </div>
   </div>
@@ -41,6 +47,7 @@ import Menonic2FAConfirm from '@/components/SocialRecovery/Menonic2FAConfirm'
 import ResultView from './components/RecoveryView'
 import SecretKey from './components/SecretKey'
 import RecoveryType from './components/RecoveryType'
+import BackupList from './components/BackupList'
 import _ from 'lodash'
 import { SecLevelEnum, generate_mnemonic, generate_key, split } from '@/utils/secretshare'
 
@@ -50,6 +57,7 @@ Vue.use(Steps);
 export default {
   name: "SocialRecovery",
   components: {
+    'v-backupList': BackupList,
     'v-2FA': Menonic2FAConfirm,
     'v-resultview': ResultView,
     'v-secretkey': SecretKey,
@@ -70,12 +78,15 @@ export default {
     },
   },
   methods: {
-    menonic2FAConfirmCallback() {
+    handleBackupItemConfirm(info) {
       this.activeStepForSrecovery = 1
+    },
+    menonic2FAConfirmCallback() {
+      this.activeStepForSrecovery = 2
     },
     secretKeyConfirmCallback(recoveryStr) {
       this.recoveryStr = recoveryStr
-      this.activeStepForSrecovery = 2
+      this.activeStepForSrecovery = 3
     },
     completeCallback() {
       this.$router.push({name:'home'})
