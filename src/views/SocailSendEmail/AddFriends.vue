@@ -249,8 +249,8 @@ export default {
       })
       .then(async () => {
         const cdata = {
-          fromUserID: record.id,
-          toUserID: userId,
+          fromUserID: userId,
+          toUserID: record.id,
         }
         const { hasError, list, error } = await this.$store.dispatch('ConfirmForAddFrined', cdata);
         if (!hasError) {
@@ -262,8 +262,8 @@ export default {
       })
       .catch(async () => {
         const rdata = {
-          fromUserID: record.id,
-          toUserID: userId,
+          fromUserID: userId,
+          toUserID: record.id,
         }
         const { hasError, list, error } = await this.$store.dispatch('RejectForAddFrined', rdata);
         if (!hasError) {
