@@ -16,6 +16,8 @@
       <v-2FA
         key="srecovery-2FAconfirm"
         v-show="activeStepForSrecovery===0"
+        :showQRCode="false"
+        :showSeetingTip="false"
         @childEvent="menonic2FAConfirmCallback" />
       <!-- enter SecretKey -->
       <v-secretkey

@@ -132,6 +132,16 @@
     padding: 10px;
     h4{ margin-bottom: 20px; text-align: center;}
   }
+  .generate-button-wrapper {
+    font-size: .8rem;
+    margin-top: 15px;
+    padding-left: 20px;
+    display: flex;
+    justify-content: flex-end;
+    .forget-tip { color: rgb(247, 156, 19); }
+    a { color: #495ABE; margin-left: 10px; }
+    
+  }
   .QR-confirm {
     display: flex;
     justify-content: center;
@@ -153,6 +163,13 @@
       font-size: 14px;
       color: #9e9e9e;
     }
+  }
+}
+.generate-QRCode-popover {
+  font-size: 0.8rem;
+  padding: 30px;
+  .create-button {
+    margin-top: 10px;
   }
 }
 

@@ -9,11 +9,11 @@
           <span class="tip">If you change browsers or move computers, you will need this mnemonic phrase and you will be able to access your account through it.Keep the mnemonic phrase in a safe place.</span>
           <van-field v-model="createType" label="Type" readonly class="createType-select" :disabled="createTypeDisabled" @click="showSelectType('create')"/>
           <!-- create mnemonic -->
-          <div class="type-create" v-show="createType==='mnemonic'">
+          <div class="type-create" v-if="createType==='mnemonic'">
             <v-mnemonicType type="create" @notLogin="handleNotLogin" @createComplete="hanldeCreateComplete" />
           </div>
           <!-- create privateKey -->
-          <div class="type-privatekey" v-show="createType==='privateKey'">
+          <div class="type-privatekey" v-if="createType==='privateKey'">
             <v-privatekeyType type="create" @notLogin="handleNotLogin" @createComplete="hanldeCreateComplete"/>
           </div>
         </van-tab>
@@ -21,11 +21,11 @@
           <span class="tip">You can choose to backup by mnemonic phrase or json key</span>
           <van-field v-model="importType" label="Type" readonly class="createType-select" :disabled="importTypeDisabled" @click="showSelectType('import')"/>
           <!-- import mnemonic -->
-          <div class="type-create" v-show="importType==='mnemonic'">
+          <div class="type-create" v-if="importType==='mnemonic'">
             <v-mnemonicType type="import" @notLogin="handleNotLogin" @createComplete="hanldeCreateComplete" />
           </div>
           <!-- import privateKey -->
-          <div class="type-privatekey" v-show="importType==='privateKey'">
+          <div class="type-privatekey" v-if="importType==='privateKey'">
             <v-privatekeyType type="import" @notLogin="handleNotLogin" @createComplete="hanldeCreateComplete" />
           </div>
         </van-tab>

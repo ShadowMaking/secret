@@ -101,13 +101,38 @@ export const getOTPAuthUrl = (data) => {
   })
 }
 
-export const verifyCode = (data) => {
+/* export const verifyCode = (data) => {
   const _data = {
     user_id: ~~data.userId,
     code: data.code,
   }
   return request({
     url: `/api/otpauth`,
+    method: 'post',
+    data: _data,
+  })
+} */
+
+export const verifyCode = (data) => {
+  const _data = {
+    // user_id: ~~data.userId,
+    code: data.code,
+  }
+  const userId = ~~data.userId
+  return request({
+    url: `/api/user/${userId}/otpauth`,
+    method: 'post',
+    data: _data,
+  })
+}
+
+export const saveOTPSecret = (data) => {
+  const userId = ~~data.userId
+  const _data = {
+    secret: data.secret
+  }
+  return request({
+    url: `/api/user/${userId}/otpauth`,
     method: 'post',
     data: _data,
   })

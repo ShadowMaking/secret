@@ -51,6 +51,8 @@
     <div v-show="activeStepForPrivateKey===1">
       <v-2FA
         key="privatekey-2FAconfirm"
+        :showQRCode="true"
+        :showSeetingTip="false"
         @childEvent="privateKey2FAConfirmCallback" />
     </div>
     <!-- Complete -->

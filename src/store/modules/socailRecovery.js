@@ -13,7 +13,10 @@ import {
   getRecoveryData,
   saveRecoveryData,
   getOTPAuthUrl,
-  verifyCode } from '@/api/socailRecovery';
+  verifyCode,
+  saveOTPSecret, } from '@/api/socailRecovery';
+
+import TOTP from 'totp.js'
 
 const socailRecovery = {
   state: {
@@ -27,6 +30,11 @@ const socailRecovery = {
     },
     SET_PRIVATEKEY_INFO: (state, privateKey) => {
       state.privateKey = privateKey;
+    },
+    SET_OTP_SECRET: (state, info) => {
+      state.OTPSecretMap = {
+        [info.userId]: info.secret
+      }
     },
   },
   actions: {
@@ -188,6 +196,55 @@ const socailRecovery = {
           resolve({ hasError: true, error: 'Error Code' });
         }).catch(error => {
           resolve({ hasError: true, error: 'Error Code' });
+        })
+      })
+    },
+    // https://github.com/wuyanxin/totp.js
+    GenerateOTPAuthUrl({ commit, rootState }, params) {
+      return new Promise(resolve => {
+        const needDestroy = params.needDestroy
+        const userId = params.userId
+        const key = rootState['socailRecovery']['OTPSecretMap'] && rootState['socailRecovery']['OTPSecretMap'][userId]
+        const keyInStorage = getFromStorage('usmap') && window.JSON.parse(getFromStorage('usmap'))[userId]
+        let secret;
+        if (needDestroy) {
+          secret = TOTP.randomKey(); // generate a base32 secret key('GAXGGYT2OU2DEOJR')
+        } else {
+          secret = key || keyInStorage || TOTP.randomKey();
+        }
+        const totp = new TOTP(secret);
+        // generate Google Authenticator supported URL
+        // const url = totp.gaURL('handsome@totp.js', 'Totp.js') // 'otpauth://totp/handsome@totp.js?issuer=Totp.js&secret=GAXGGYT2OU2DEOJR'
+        const url = `otpauth://totp/${userId}?issuer=EigenNetwork&secret=${secret}`
+        commit('SET_OTP_SECRET', {userId, secret })
+        saveToStorage({ usmap: {[userId]: secret}})
+        resolve({ secret, url })
+      })
+    },
+    VerifyOTPCode({ commit, rootState }, params) {
+      return new Promise(resolve => {
+        const userId = params.userId
+        const secret = rootState['socailRecovery']['OTPSecretMap'][userId]
+        const inputCode = params.code
+        const totp = new TOTP(secret);
+        const code = totp.genOTP();
+        if (inputCode === code) {
+          resolve({ hasError: false })
+        } else {
+          resolve({ hasError: true, error: 'Error Code' })
+        }
+      })
+    },
+    SaveOTPSecret({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        saveOTPSecret(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0 && data) {
+            resolve({ hasError: false  })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
         })
       })
     },

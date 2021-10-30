@@ -43,6 +43,8 @@
       <!-- 2FA -->
       <v-2FA
         key="menonic-2FAconfirm"
+        :showQRCode="true"
+        :showSeetingTip="false"
         v-show="activeStepForMnemonic===2"
         @childEvent="menonic2FAConfirmCallback" />
       <!-- complete -->
