@@ -12,7 +12,7 @@
       <div class="menonic-messy">
         <ul>
           <li
-            v-for="(item,index) in menonicList2"
+            v-for="(item,index) in menonicListForOutOfOrder"
             :key="index"
             @click="handleCheckMnemonicItem(item)"
             :class="[{'disabled': isSelected(item)}]">
@@ -40,12 +40,12 @@ export default {
   data() {
     return{
       menonicList: [],
-      // menonicList2: _.cloneDeep(this.sourceData).reverse(),
     }
   },
   computed: {
-    menonicList2() {
-      return _.cloneDeep(this.sourceData).reverse()
+    menonicListForOutOfOrder() {
+      // random for array
+      return _.shuffle(_.cloneDeep(this.sourceData).reverse())
     },
   
   },
