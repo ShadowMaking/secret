@@ -110,7 +110,8 @@ export default {
         this.recoveryNumber = recoveryNumber
         console.log('this.friendsInputValsMap',this.friendsInputValsMap)
       } else {
-        Toast('can not detect backupId')
+        // Toast('can not detect backupId')
+        console.log('can not detect backupId')
       }
     },
     changeInputVal(val, record) {
