@@ -21,50 +21,50 @@
       </div>
     </div>
     <div v-else>
-    <van-steps :active="activeStepForPrivateKey">
-      <van-step>Generate</van-step>
-      <van-step>2FA</van-step>
-      <van-step>Complete</van-step>
-    </van-steps>
-    <!-- Generate -->
-    <div v-show="activeStepForPrivateKey===0">
-      <div class="flex flex-content-between">
-        <span></span>
-        <van-button color="#495ABE" plain @click="update" size="small" class="update-privatekey">update</van-button>
+      <van-steps :active="activeStepForPrivateKey">
+        <van-step>Generate</van-step>
+        <van-step>2FA</van-step>
+        <van-step>Complete</van-step>
+      </van-steps>
+      <!-- Generate -->
+      <div v-show="activeStepForPrivateKey===0">
+        <div class="flex flex-content-between">
+          <span></span>
+          <van-button color="#495ABE" plain @click="update" size="small" class="update-privatekey">update</van-button>
+        </div>
+        <div class="privatekey-input">
+          <van-field
+            v-model="privateKey"
+            rows="2"
+            autosize
+            label=""
+            :readonly="true"
+            type="textarea"
+          />
+        </div>
+        <div class="opt-wrapper">
+          <van-button
+            type="info"
+            block
+            color="#495ABE"
+            :disabled="!privateKey"
+            @click="privateKeyCreateNext">Next</van-button>
+        </div>
       </div>
-      <div class="privatekey-input">
-        <van-field
-          v-model="privateKey"
-          rows="2"
-          autosize
-          label=""
-          :readonly="true"
-          type="textarea"
-        />
+      <!-- 2FA -->
+      <div v-show="activeStepForPrivateKey===1">
+        <v-2FA
+          key="privatekey-2FAconfirm"
+          :showQRCode="true"
+          :showSeetingTip="false"
+          @childEvent="privateKey2FAConfirmCallback" />
       </div>
-      <div class="opt-wrapper">
-        <van-button
-          type="info"
-          block
-          color="#495ABE"
-          :disabled="!privateKey"
-          @click="privateKeyCreateNext">Next</van-button>
+      <!-- Complete -->
+      <div v-show="activeStepForPrivateKey===2">
+        <v-complete
+          key="privatekey-confirm-complete"
+          @childEvent="completeCallback" />
       </div>
-    </div>
-    <!-- 2FA -->
-    <div v-show="activeStepForPrivateKey===1">
-      <v-2FA
-        key="privatekey-2FAconfirm"
-        :showQRCode="true"
-        :showSeetingTip="false"
-        @childEvent="privateKey2FAConfirmCallback" />
-    </div>
-    <!-- Complete -->
-    <div v-show="activeStepForPrivateKey===2">
-      <v-complete
-        key="privatekey-confirm-complete"
-        @childEvent="completeCallback" />
-    </div>
     </div>
   </div>
 </template>
@@ -148,7 +148,8 @@ export default {
       return generate_key()
     },
     privateKey2FAConfirmCallback() {
-      this.activeStepForPrivateKey= 2;
+      this.completeCallback()
+      // this.activeStepForPrivateKey= 2;
     },
     async completeCallback() {
       await this.$store.dispatch('UpdatePrivateKeyForStorage', {

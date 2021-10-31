@@ -25,7 +25,7 @@
       <van-step>Generate</van-step>
       <!-- <van-step>Confirm</van-step> -->
       <van-step>2FA</van-step>
-      <van-step>Complete</van-step>
+      <van-step>SendEmail</van-step>
     </van-steps>
     <div>
       <!-- generate mnemonic -->
@@ -146,7 +146,8 @@ export default {
       this.activeStepForMnemonic = 2;
     },
     menonic2FAConfirmCallback() {
-      this.activeStepForMnemonic = 2;
+      this.completeCallback()
+      // this.activeStepForMnemonic = 2;
     },
     async completeCallback() {
       await this.$store.dispatch('UpdateMnemonicForStorage', {

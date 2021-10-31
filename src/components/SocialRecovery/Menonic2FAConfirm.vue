@@ -64,9 +64,15 @@
         <van-button
           block color="#495ABE"
           class="mb10"
-          @click="confirmBackUp"
+          @click="verifyQRCode"
           :disabled="!codeFor2FA||codeFor2FA.length!==6||verifyIsLoading">{{ verifyIsLoading?"waiting...":"Confirm" }}</van-button>
       </div>
+    </div>
+    <!-- 2FA验证 Complete -->
+    <div v-show="verifySuccess">
+      <v-complete
+        key="privatekey-confirm-complete"
+        @childEvent="completeCallback" />
     </div>
     <v-thirdlogintip
       key="thirdlogintip"
@@ -81,6 +87,7 @@ import { saveToStorage, getFromStorage } from '@/utils/storage';
 import QRCode from 'qrcodejs2'
 import _ from 'lodash'
 import ThirdLoginTip from '@/components/ThirdLoginTip';
+import MenonicConfirmComplete from '@/components/SocialRecovery/MenonicConfirmComplete'
 
 Vue.use(Button);
 Vue.use(Field);
@@ -97,10 +104,13 @@ export default {
       verifyIsLoading: false,
       showThirdLoginTip: false,
       showPopover: false,
+      verifySuccess: false,
+      showMenonic: true
     }
   },
   components: {
     'v-thirdlogintip': ThirdLoginTip,
+    'v-complete': MenonicConfirmComplete,
   },
   computed: {
     walletIsLock() {
@@ -112,9 +122,9 @@ export default {
     showMenonicTip() {
       return this.showSeetingTip
     },
-    showMenonic() {
+    /* showMenonic() {
       return !this.showSeetingTip
-    },
+    }, */
   },
   methods: {
     creatQrCode() {
@@ -143,25 +153,32 @@ export default {
       this.showMenonic = true;
       this.creatQrCode();
     },
-    async confirmBackUp() {
+    async verifyQRCode() {
       this.verifyIsLoading = true;
       const verifyRes = await this.$store.dispatch('VerifyCode', { userId: this.thirdUserId, code: this.codeFor2FA})
       this.verifyIsLoading = false
       if (!verifyRes.hasError) {
         this.showMenonicTip = false;
         this.showMenonic = false;
-        this.$emit('childEvent', this.codeFor2FA);
+        this.verifySuccess = true
+        // this.$emit('childEvent', this.codeFor2FA);
       } else {
         Toast(verifyRes.error)
       }
+      
       /* const verifyRes = await this.$store.dispatch('VerifyOTPCode', { userId: this.thirdUserId, code: this.codeFor2FA})
+      this.verifyIsLoading = false
       if (!verifyRes.hasError) {
         this.showMenonicTip = false;
         this.showMenonic = false;
-        this.$emit('childEvent', this.codeFor2FA);
+        this.verifySuccess = true
+        // this.$emit('childEvent', this.codeFor2FA);
       } else {
         Toast(verifyRes.error)
       } */
+    },
+    completeCallback() {
+      this.$emit('childEvent', this.codeFor2FA);
     },
     async getOTPAuthUrl(needDestroy) {
       if (!this.thirdUserId) { return }
