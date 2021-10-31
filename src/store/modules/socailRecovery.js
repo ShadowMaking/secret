@@ -220,7 +220,7 @@ const socailRecovery = {
         // generate Google Authenticator supported URL
         // const url = totp.gaURL('handsome@totp.js', 'Totp.js') // 'otpauth://totp/handsome@totp.js?issuer=Totp.js&secret=GAXGGYT2OU2DEOJR'
         const userEmail = params['userInfo'] && params['userInfo']['email']
-        const url = `otpauth://totp/${userEmail}?issuer=EigenNetwork&secret=${secret}`
+        const url = `otpauth://totp/${userEmail||userId}?issuer=EigenNetwork&secret=${secret}`
         commit('SET_OTP_SECRET', {userId, secret })
         saveToStorage({ usmap: {[userId]: secret}})
         resolve({ secret, url })

@@ -285,6 +285,9 @@ export default {
       this.showThirdLoginTip = info.show
     }
   },
+  destroyed() {
+    this.signOutForGoogle()
+  },
   mounted() {
     if (this.$route.query && this.$route.query.type) {
       this.recoveryTypeDisabled = true
