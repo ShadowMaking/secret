@@ -14,7 +14,8 @@ import {
   saveRecoveryData,
   getOTPAuthUrl,
   verifyCode,
-  saveOTPSecret, } from '@/api/socailRecovery';
+  saveOTPSecret,
+  getUserInfoById, } from '@/api/socailRecovery';
 import _ from 'lodash'
 
 import TOTP from 'totp.js'
@@ -218,7 +219,8 @@ const socailRecovery = {
         const totp = new TOTP(secret);
         // generate Google Authenticator supported URL
         // const url = totp.gaURL('handsome@totp.js', 'Totp.js') // 'otpauth://totp/handsome@totp.js?issuer=Totp.js&secret=GAXGGYT2OU2DEOJR'
-        const url = `otpauth://totp/${userId}?issuer=EigenNetwork&secret=${secret}`
+        const userEmail = params['userInfo'] && params['userInfo']['email']
+        const url = `otpauth://totp/${userEmail}?issuer=EigenNetwork&secret=${secret}`
         commit('SET_OTP_SECRET', {userId, secret })
         saveToStorage({ usmap: {[userId]: secret}})
         resolve({ secret, url })
@@ -283,7 +285,19 @@ const socailRecovery = {
         resolve()
       })
     },
-    
+    GetUserInfoById({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        getUserInfoById(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0 && data) {
+            resolve({ hasError: false, data  })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
   }
 }
 

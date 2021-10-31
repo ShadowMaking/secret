@@ -28,6 +28,10 @@
     </van-steps>
     <!-- Generate -->
     <div v-show="activeStepForPrivateKey===0">
+      <div class="flex flex-content-between">
+        <span></span>
+        <van-button color="#495ABE" plain @click="update" size="small" class="update-privatekey">update</van-button>
+      </div>
       <div class="privatekey-input">
         <van-field
           v-model="privateKey"
@@ -177,6 +181,10 @@ export default {
     },
     hasBackupSettingData() {
       return !(!this.settingData || this.settingData && !this.settingData.name)
+    },
+    update() {
+      const privateKey = this.generatePrivatekey()
+      this.privateKey = privateKey
     },
   },
   mounted() {

@@ -170,8 +170,8 @@ export default {
       if (!hasError) {
         this.qrCodeUrl = data
       } */
-
-      const { secret, url } = await this.$store.dispatch('GenerateOTPAuthUrl', { userId: this.thirdUserId, needDestroy})
+      const { hasError, data: userInfo } = await this.$store.dispatch('GetUserInfoById', { userId: this.thirdUserId })
+      const { secret, url } = await this.$store.dispatch('GenerateOTPAuthUrl', { userId: this.thirdUserId, needDestroy, userInfo})
       const saveSecretRes = await this.$store.dispatch('SaveOTPSecret', { userId: this.thirdUserId, secret })
       this.qrCodeUrl = url
       return url

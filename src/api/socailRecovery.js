@@ -156,3 +156,11 @@ export const saveOTPSecret = (data) => {
     data: _data,
   })
 }
+
+export const getUserInfoById = (data) => {
+  const userId = ~~data.userId
+  return request({
+    url: `/api/user/${userId}`,
+    method: 'get',
+  })
+}

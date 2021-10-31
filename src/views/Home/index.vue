@@ -241,8 +241,6 @@ export default {
     },
   },
   async mounted() {
-    // const search = window.location.search.split('=')
-    // const googleUserId = search.length && search[1]
     const googleUserId = getLocationParam('id')
     const googleAuthToken = getLocationParam('auth_token')
     if (googleUserId) {

@@ -32,6 +32,7 @@
       <v-menonicGenerate
         key="menonic-create"
         :sourceData="mnemonicList"
+        @updateMnemonic="updateMnemonic"
         @childEventConfirm="menonicbackupConfirmCallback"
         v-show="activeStepForMnemonic===0" />
       <!-- confirm mnemonic -->

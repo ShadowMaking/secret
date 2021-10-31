@@ -34,18 +34,18 @@
             <div class="account-setting-wrapper van-hairline--top">
               <div class="opt-item van-hairline--bottom" @click="toPage('backup', 'create')">
                <!--  <van-icon name="plus" class="opt-icon" />
-                <span>Create Secret</span> -->
+                <span>Create Account</span> -->
                 <router-link to="/backup?type=create">
                   <van-icon name="plus" class="opt-icon" />
-                  <span>Create Secret</span>
+                  <span>Create Account</span>
                 </router-link>
               </div>
-              <div class="opt-item van-hairline--bottom" @click="toPage('backup', 'import')">
+              <div class="opt-item van-hairline--bottom" @click="toPage('backup', 'import')" style="display: none">
                 <!-- <van-icon name="down" class="opt-icon" />
-                <span>Import Secret</span> -->
+                <span>Import Account</span> -->
                 <router-link to="/backup?type=import">
                   <van-icon name="down" class="opt-icon" />
-                  <span>Import Secret</span>
+                  <span>Import Account</span>
                 </router-link>
               </div>
               <div class="opt-item van-hairline--bottom" @click="toPage('srecovery')">

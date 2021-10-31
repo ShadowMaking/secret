@@ -34,7 +34,7 @@ export const setCustom = (range) => {
 
 // returns hex string
 export const generate_key = (options) => {
-  let entropy = ethers.utils.randomBytes(16);
+  let entropy = ethers.utils.randomBytes(32);
   if (!options) { options = { }; }
   if (options.extraEntropy) {
     entropy = arrayify(hexDataSlice(keccak256(concat([ entropy, options.extraEntropy ])), 0, 16));

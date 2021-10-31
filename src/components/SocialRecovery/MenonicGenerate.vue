@@ -37,7 +37,9 @@ export default {
     return{}
   },
   methods: {
-    update() {},
+    update() {
+      this.$emit('updateMnemonic');
+    },
     // 进行备份
     confirmBackUp() {
       this.$emit('childEventConfirm');

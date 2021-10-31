@@ -2,8 +2,6 @@
 .first-wallet-page {
   font-size: .9375rem;
   padding: 20px 0 0;
-  // height: 100vh;
-  // background-color: #ededed;
   .page-top {
     display: flex;
     color: #333;
@@ -12,7 +10,8 @@
     text-align: center;
     span{
       display: block;
-      width: 88%;
+      text-align: center;
+      margin: 0 auto;
       i{
         font-weight: bolder;
         font-style: normal;

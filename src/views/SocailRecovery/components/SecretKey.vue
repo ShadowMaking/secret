@@ -29,14 +29,15 @@
             color="#495ABE"
             size="small"
             class="add-button"
+            style="display:none"
             @click="toPage('backup')">创建secret</van-button>
           <van-button
-            icon="comment-o"
+            icon=""
             plain
             color="#495ABE"
             size="small"
             class="add-button"
-            @click="toPage('ssendemail')">备份secret</van-button>
+            @click="toPage('ssendemail')"><van-icon name="comment-o" ></van-icon>备份secret</van-button>
         </div>
       </div>
     </div>

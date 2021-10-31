@@ -253,6 +253,8 @@ export default {
         this.confirmChooseFriend = false
         this.showGoogleAuthDialog = false
         this.showStatus = true
+
+        this.signOutForGoogle() // destroy authorization
       })
       .catch(err=>{
         console.log(err)
