@@ -24,7 +24,7 @@
       <van-steps :active="activeStepForPrivateKey">
         <van-step>Generate</van-step>
         <van-step>2FA</van-step>
-        <van-step>Complete</van-step>
+        <van-step>Send Email</van-step>
       </van-steps>
       <!-- Generate -->
       <div v-show="activeStepForPrivateKey===0">

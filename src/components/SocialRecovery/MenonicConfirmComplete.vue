@@ -8,7 +8,7 @@
       <span>Click Confirm Button for Social Backup!</span>
     </div>
     <div class="opt-wrapper">
-      <van-button block color="#495ABE" @click="confirm">Confirm</van-button>
+      <van-button block color="#495ABE" @click="confirm">Send Email</van-button>
     </div>
   </div>
 </template>

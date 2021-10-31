@@ -25,7 +25,7 @@
       <van-step>Generate</van-step>
       <!-- <van-step>Confirm</van-step> -->
       <van-step>2FA</van-step>
-      <van-step>SendEmail</van-step>
+      <van-step>Send Email</van-step>
     </van-steps>
     <div>
       <!-- generate mnemonic -->
