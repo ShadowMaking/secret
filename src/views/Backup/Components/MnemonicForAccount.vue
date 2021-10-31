@@ -23,7 +23,7 @@
     <div v-else>
     <van-steps :active="activeStepForMnemonic">
       <van-step>Generate</van-step>
-      <van-step>Confirm</van-step>
+      <!-- <van-step>Confirm</van-step> -->
       <van-step>2FA</van-step>
       <van-step>Complete</van-step>
     </van-steps>
@@ -36,22 +36,22 @@
         @childEventConfirm="menonicbackupConfirmCallback"
         v-show="activeStepForMnemonic===0" />
       <!-- confirm mnemonic -->
-      <v-menonicConfirm
+      <!-- <v-menonicConfirm
         key="menonic-confirm"
         v-show="activeStepForMnemonic===1"
         :sourceData="conformList"
-        @childEvent="menonicConfirmCallback" />
+        @childEvent="menonicConfirmCallback" /> -->
       <!-- 2FA -->
       <v-2FA
         key="menonic-2FAconfirm"
         :showQRCode="true"
         :showSeetingTip="false"
-        v-show="activeStepForMnemonic===2"
+        v-show="activeStepForMnemonic===1"
         @childEvent="menonic2FAConfirmCallback" />
       <!-- complete -->
       <v-complete
         key="menonic-confirm-complete"
-        v-show="activeStepForMnemonic===3"
+        v-show="activeStepForMnemonic===2"
         @childEvent="completeCallback" />
     </div>
     </div>
@@ -63,7 +63,7 @@ import _ from 'lodash'
 import { Tab, Tabs, Field, Toast } from 'vant';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
 import MenonicGenerate from '@/components/SocialRecovery/MenonicGenerate'
-import MenonicBackup from '@/components/SocialRecovery/MenonicBackup'
+// import MenonicBackup from '@/components/SocialRecovery/MenonicBackup'
 import Menonic2FAConfirm from '@/components/SocialRecovery/Menonic2FAConfirm'
 import MenonicConfirmComplete from '@/components/SocialRecovery/MenonicConfirmComplete'
 import { SecLevelEnum, generate_mnemonic, generate_key, split } from '@/utils/secretshare'
@@ -86,7 +86,7 @@ export default {
   },
   components: {
     'v-menonicGenerate': MenonicGenerate,
-    'v-menonicConfirm': MenonicBackup,
+    // 'v-menonicConfirm': MenonicBackup,
     'v-2FA': Menonic2FAConfirm,
     'v-complete': MenonicConfirmComplete,
   },
@@ -146,7 +146,7 @@ export default {
       this.activeStepForMnemonic = 2;
     },
     menonic2FAConfirmCallback() {
-      this.activeStepForMnemonic = 3;
+      this.activeStepForMnemonic = 2;
     },
     async completeCallback() {
       await this.$store.dispatch('UpdateMnemonicForStorage', {
