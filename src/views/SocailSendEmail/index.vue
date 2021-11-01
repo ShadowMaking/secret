@@ -175,8 +175,10 @@ export default {
       gapi.load('client:auth2', this.initAPIClient);
     },
     initAPIClient() {
-      const CLIENT_ID = '1012137303359-sr6326jclcoqula7jsgm0mdnqtchler6.apps.googleusercontent.com'
-      const API_KEY = 'AIzaSyDWkzw9skjMLPeChqJ39G9uuBKQflBQgDY'
+      // const CLIENT_ID = '1012137303359-sr6326jclcoqula7jsgm0mdnqtchler6.apps.googleusercontent.com'
+      // const API_KEY = 'AIzaSyDWkzw9skjMLPeChqJ39G9uuBKQflBQgDY'
+      const CLIENT_ID = '413535929013-jeeg5o86nj3ev06r0bf6uadg6bupqvrd.apps.googleusercontent.com'
+      const API_KEY = 'AIzaSyDAYetFv4tYpCFfL704j0ocaNaK_w69drY'
       // Array of API discovery doc URLs for APIs used by the quickstart
       const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest"]
       // Authorization scopes required by the API; multiple scopes can be
