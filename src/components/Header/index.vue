@@ -37,7 +37,7 @@
                 <span>Create Account</span> -->
                 <router-link to="/backup?type=create">
                   <van-icon name="plus" class="opt-icon" />
-                  <span>Create Account</span>
+                  <span>Create Secret</span>
                 </router-link>
               </div>
               <div class="opt-item van-hairline--bottom" @click="toPage('backup', 'import')" style="display: none">
@@ -50,7 +50,7 @@
               </div>
               <div class="opt-item van-hairline--bottom" @click="toPage('srecovery')">
                 <van-icon name="cluster-o" class="opt-icon" />
-                <span>Social Recovery</span>
+                <span>Recover Secret</span>
               </div>
               <div class="opt-item van-hairline--bottom" @click="toPage('addfriends')">
                 <van-icon name="friends-o" class="opt-icon" />

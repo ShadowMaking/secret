@@ -15,7 +15,7 @@
         <li>Don’t share or save your secret recovery phase in the public network, including e-mail, album, social applications.</li>
       </ul>
       <div class="opt-wrapper">
-        <van-button block color="#495ABE" class="mb10" @click="confirmBackUp">进行备份</van-button>
+        <van-button block color="#495ABE" class="mb10" @click="confirmBackUp">Create</van-button>
       </div>
     </div>
   </div>
