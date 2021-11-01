@@ -10,7 +10,7 @@
             label=""
             type="textarea"
             :disabled="false"
-            placeholder="输入私钥"
+            placeholder="enter the privatekey"
             @input="handleInputChange"
             @focus="handlesnputFocus"
           />
@@ -139,7 +139,7 @@ export default {
         return
       }
       if (!this.hasBackupSettingData()) {
-        Toast('请设置备份名称')
+        Toast('Name is Required!')
         return
       }
       this.$emit('createComplete', {});
@@ -174,7 +174,7 @@ export default {
         return
       }
       if (!this.hasBackupSettingData()) {
-        Toast('请设置备份名称')
+        Toast('Name is Required!')
         return
       }
       this.$emit('createComplete', {});

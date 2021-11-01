@@ -1,9 +1,8 @@
 <template>
   <div class="social-recovery-page">
     <div class="recovery-setting-tip" v-show="showTip">
-      <h4>Social Recovery Settings</h4>
-      <span class="tip">Social recovery refers to a method to ensure the security of your account through the key stored in the social relationship of your friends</span>
-      <span class="tip">Through the friends you added, send your key fragments to your friend's mailbox for backup, so as to restore the key of your personal account</span>
+      <h4>Social Recovery</h4>
+      <span class="tip">Social Recovery is a secret recovery mechanism,  in which you can ask your friends to save and recover your secret or private data with the cryptography of Threshold Secret Share.</span>
       <van-field name="recoveryType" label="recoveryType" class="recovery-type">
         <template #input>
           <van-radio-group v-model="recoveryType" direction="horizontal" :disabled="recoveryTypeDisabled">
@@ -34,10 +33,10 @@
     <van-dialog v-model="showGoogleAuthDialog" title="Authorization" :showConfirmButton="false">
       <div class="google-auth-dialog">
         <van-icon name="cross" class="closeDialog" @click="showGoogleAuthDialog=false"  size="20" />
-        <span v-show="sendEmailUserIsSign" class="tip">已授权，点击下方按钮，发送邮件</span>
+        <span v-show="sendEmailUserIsSign" class="tip">Authorized，click button to send Emial</span>
         <div class="btn-wrapper">
           <van-button @click="signInForGoogle" v-show="!sendEmailUserIsSign" class="btn">Authorize</van-button>
-          <van-button @click="signOutForGoogle" v-show="sendEmailUserIsSign" class="btn">撤销授权</van-button>
+          <van-button @click="signOutForGoogle" v-show="sendEmailUserIsSign" class="btn">Destoty Authorize</van-button>
           <van-button @click="sendEmail" v-show="sendEmailUserIsSign" class="btn">Send Email</van-button>
         </div>
       </div>
@@ -224,6 +223,7 @@ export default {
       console.log('splis', splis)
 
       const userName = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getName()
+      const userEmail = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail()
       const backupSeetingData = await this.$store.dispatch('UpdateBackupSettingDataForStorage', { updateType:'get' })
       const backupName = backupSeetingData && backupSeetingData.name
       const mesList = []
@@ -237,8 +237,17 @@ export default {
         for(var header in headers_obj){
           email += header += ": "+headers_obj[header]+"\r\n";
         }
-        email += "\r\n" + message;
+        // email += "\r\n" + message;
         // email += "\r\nHello,\r\n"+`这是一封来自您的好友${userName}发送重要邮件.内容为：${message}.\r\n请您务必妥善保管好该内容.`;
+        const formatStr = `
+          Dear EigenSecret user:\r\n
+          We received a request to back up your friend${userEmail}secret share through your email address. 
+          Please keep the following secret share in a safe place so that your friend can recover the secret:\r\n
+          ${message}\r\n
+          Please do not forward or provide this secret share to anyone, and please do not delete this email, 
+          in case of causing trouble for your friend to recover the secret.
+        `
+        email += "\r\n" + formatStr;
         mesList.push(email)
         console.log('email', email)
       })

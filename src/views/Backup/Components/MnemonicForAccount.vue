@@ -10,7 +10,7 @@
             label=""
             type="textarea"
             :disabled="false"
-            placeholder="输入助记词，空格间隔"
+            placeholder="enter the mnemonic，leave a blank space"
             @input="handleInputChange"
             @focus="handlesnputFocus"
           />
@@ -137,7 +137,7 @@ export default {
         return
       }
       if (!this.hasBackupSettingData()) {
-        Toast('请设置备份名称')
+        Toast('Name is Required!')
         return
       }
       this.$emit('createComplete', {});
@@ -172,7 +172,7 @@ export default {
         return
       }
       if (!this.hasBackupSettingData()) {
-        Toast('请设置备份名称')
+        Toast('Name is Required!')
         return
       }
       this.$emit('createComplete', {});

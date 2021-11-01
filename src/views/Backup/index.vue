@@ -1,27 +1,28 @@
 <template>
   <div class="first-wallet-page">
     <div class="page-top">
-      <span><i>Choose Backup Method</i></span>
+      <span><i>Create Recovery</i></span>
     </div>
     <div class="create-wallet-type">
       <van-tabs @click="oncheckCreateType" v-model="activeCreateWalletType" animated>
         <van-tab name="create" title="Create" class="inner-type-wrapper">
-          <span class="tip">If you change browsers or move computers, you will need this mnemonic phrase and you will be able to access your account through it.Keep the mnemonic phrase in a safe place.</span>
+          <h4>For your eyes only</h4>
+          <span class="tip">Your secret recovery phrase or private key can help you backup and recover the secret. Don’t expose your private key or secret recovery phase in the public network.</span>
           <!-- backup-setting -->
           <div class="backup-setting-wrapper">
             <van-cell-group>
               <van-field v-model="createType" label="Type" readonly class="createType-select" :disabled="createTypeDisabled" @click="showSelectType('create')"/>
-              <van-field v-model="backupName" label="名称" placeholder="请输入备份名称" :disabled="createTypeDisabled" />
+              <van-field v-model="backupName" label="Name" placeholder="enter recovery name" :disabled="createTypeDisabled" />
               <van-field
                 v-model="backupComment"
                 rows="1"
                 :disabled="createTypeDisabled"
                 autosize
-                label="备注"
+                label="Description"
                 type="textarea"
                 maxlength="150"
                 show-word-limit
-                placeholder="请输入备注" />
+                placeholder="enter description" />
             </van-cell-group>
           </div>
           <!-- create mnemonic -->
@@ -42,22 +43,22 @@
           </div>
         </van-tab>
         <van-tab name="import" title="Import" class="inner-type-wrapper">
-          <span class="tip">You can choose to backup by mnemonic phrase or json key</span>
+          <span class="tip">Add an existing account by secret recovery phrase or private key.</span>
           <!-- backup-setting -->
           <div class="backup-setting-wrapper">
             <van-cell-group>
               <van-field v-model="importType" label="Type" readonly class="createType-select" :disabled="importTypeDisabled" @click="showSelectType('import')"/>
-              <van-field v-model="backupNameForImport" label="名称" placeholder="请输入备份名称" :disabled="importTypeDisabled" />
+              <van-field v-model="backupNameForImport" label="Name" placeholder="enter recovery name" :disabled="importTypeDisabled" />
               <van-field
                 v-model="backupCommentForImport"
                 rows="1"
                 :disabled="importTypeDisabled"
                 autosize
-                label="备注"
+                label="Description"
                 type="textarea"
                 maxlength="150"
                 show-word-limit
-                placeholder="请输入备注" />
+                placeholder="enter description" />
             </van-cell-group>
           </div>
           <!-- import mnemonic -->

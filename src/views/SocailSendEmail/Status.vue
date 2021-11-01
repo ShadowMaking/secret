@@ -1,11 +1,14 @@
 <template>
   <div class="recovery-result-status">
-    <h4>Create Recovery</h4>
+    <h4>Social Recovery</h4>
     <div class="icon-success">
       <van-icon name="success" size="80" color="#07c160"/>
     </div>
     <div class="success-tip">
-      <span>Congratulations！Send Googl Email Success!</span>
+      <span>Congratulations! Social Recovery Completed!</span>
+    </div>
+    <div class="success-tip">
+      <span>The secret share has been sent to the friend's email!</span>
     </div>
     <div class="opt-wrapper">
       <van-button block color="#495ABE" @click="confirm">Confirm</van-button>

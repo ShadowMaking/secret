@@ -21,10 +21,11 @@
     <div class="backup-menonic" v-show="showMenonic">
       <div v-if="showQRCode">
         <div class="tip-info">
-          <h4>Set up two-factor authentication (2FA)</h4>
+          <h4>Set up Authenticator</h4>
           <ul class="tip-info-ul tip">
-            <li>Scan the QR code or enter your secret key by Google Authenticator.<li>
-            <li>Use Google Authenticator Authenticator to further secure your assets.You can download the Google Authenticator in app store.</li>
+            <li>Get the Authenticator from the App Store.</li>
+            <li>In the App select Set up account.</li>
+            <li>Choose Scan barcode.</li>
           </ul>
         </div>
         <div class="QR-confirm">
@@ -35,28 +36,27 @@
       </div>
       <div v-else>
         <div class="tip-info">
-          <h4>Set up two-factor authentication (2FA)</h4>
+          <h4>Set up Authenticator</h4>
           <ul class="tip-info-ul tip">
-            <li>请在您的设置上查看authentication code.<li>
-            <li>如果您丢失了您的authentication设备，您可以选择创建一个authentication账户</li>
-            <li>新创建账户出现的二维码很重要，扫描时请注意保护好</li>
+            <li>Please enter the Google Authenticator 6-digit code.</li>
+            <li>If you lose your Authenticator device, you can recreate an Authenticator password.</li>
           </ul>
         </div>
       </div>
       <van-field
         v-model="codeFor2FA"
         type="digit"
-        placeholder="please enter 6-digit"
+        placeholder="Enter the 6-digit code that you see in the app"
         :minlength="6"
         :maxlength="6" />
       <div class="generate-button-wrapper" v-if="!showQRCode">
         <van-popover v-model="showPopover" trigger="click" placement="top-end">
           <div class="generate-QRCode-popover">
-            点击下方按钮重新创建账户
+            Click Button to Create
             <van-button block color="#495ABE" @click="generateQRSecret" class="create-button" size="small">Create</van-button>
           </div>
           <template #reference>
-            <span class="forget-tip">忘记Authentication账户?</span>
+            <span class="forget-tip">Forget Authentication ?</span>
           </template>
         </van-popover>
       </div>

@@ -1,7 +1,7 @@
 <template>
   <div class="create-wallet-step2">
     <div class="conform-menonic">
-      <span class="tip">请按顺序点击助记词，以确认您正确备份</span>
+      <span class="tip" style="display:none">请按顺序点击助记词，以确认您正确备份</span>
       <div class="menonic-selected">
         <ul>
           <li v-for="(item,index) in menonicList" :key="index">

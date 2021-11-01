@@ -39,13 +39,13 @@
     <v-exchangeList key="comon-exchangeList" type="all" v-show="!walletIsLock" />
     <v-netTipPopup :show="showNetTip" key="netTipModal" :showType="expectNetType" @childEvent="closeNetTip" />
     <v-walletstatus :show="installWalletModal" key="installWalletModal" @childEvent="closeWalletstatusPop" :installOtherWallet="installOtherWallet" />
-    <van-notify v-model="showNotify" type="warning">
-      <div >
-        <van-icon name="close" @click="closeNotify"/>
+    <van-notify v-model="showNotify" type="warning" class="back-up-home-tip">
+      <div class="home-top-tip">
         <span>
           <van-icon name="bell" style="margin-right: 4px;" />
-        You don't have a key backup yet. Please <a @click="backUp">implement  it now</a>
+        Create recovery now <a @click="backUp">Back up</a>
         </span>
+        <van-icon name="close" @click="closeNotify" class="close-icon"/>
       </div>
     </van-notify>
     <v-backupModal :show="showBackupMethod" @childEvent="showBackupMethod=false" />

@@ -1,7 +1,7 @@
 <template>
   <div class="third-login-page">
     <img :src="DEFAULTIMG.LOGO" class="logo" />
-    <p>Please choose login method</p>
+    <p>Continue with Google</p>
     <ul class="third-type-ul">
       <li><a class="button-google" @click="loginForGoogleOAuth"><i></i></a></li>
     </ul>

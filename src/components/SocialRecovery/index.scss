@@ -29,13 +29,20 @@
     }
   }
   .backup-menonic {
-    .update-mnemonic {
-      padding: 0 10px;
+    .update-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      .tip { width: 80%;}
+      .update-mnemonic {
+        padding: 0 10px;
+      }
     }
     .tip {
       font-size: 14px;
       color: #9e9e9e;
       padding: 10px;
+      word-break: break-word;
     }
     .mnemonic-wrapper {
       border: 1px solid #ccc;
@@ -56,6 +63,10 @@
       color: #9e9e9e;
       list-style: disc;
       padding: 0 20px;
+      li {
+        word-break: break-word;
+        margin-bottom: 10px;
+      }
     }
   }
 }
@@ -109,6 +120,7 @@
   ul {
     list-style: disc;
     padding: 0 20px;
+    li{ word-break: break-word; margin-bottom: 10px;}
   }
   .backup-tip{
     .tip-icon{
@@ -163,6 +175,10 @@
     .tip-info-ul {
       font-size: 14px;
       color: #9e9e9e;
+      li {
+        word-break: break-word;
+        margin-bottom: 10px;
+      }
     }
   }
 }

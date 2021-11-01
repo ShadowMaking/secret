@@ -2,9 +2,9 @@
   <div class="social-recovery-page">
     <van-steps :active="activeStepForSrecovery">
       <!-- <van-step>Type</van-step> -->
-      <van-step>选择备份</van-step>
+      <van-step>Choose</van-step>
       <van-step>2FA</van-step>
-      <van-step>SecretKey</van-step>
+      <van-step>SecretShare</van-step>
       <van-step>Compelte</van-step>
     </van-steps>
     <div>
@@ -27,7 +27,7 @@
         :showSeetingTip="false"
         :showComplete="false"
         @childEvent="menonic2FAConfirmCallback" />
-      <!-- enter SecretKey -->
+      <!-- enter Secret Share -->
       <v-secretkey
         key="srecovery-secretkey"
         v-show="activeStepForSrecovery===2"

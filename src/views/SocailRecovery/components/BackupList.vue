@@ -1,7 +1,7 @@
 <template>
   <div class="recovery-backup-list">
-    <h4>已备份的secret</h4>
-    <span class="tip">点击选择以下之前备份过的secret进行恢复.</span>
+    <h4>Secret Backed Up</h4>
+    <span class="tip">Click the secret that has been backed up to recover</span>
     <div class="backup-list-wrapper">
       <!-- table-header -->
       <div class="header">
@@ -20,7 +20,7 @@
           <div class="ID">{{ item.id }}</div>
           <div class="name">{{ item.name }}</div>
           <div class="desc">{{ item.desc }}</div>
-          <div class="opt"><a @click="confirmRecoveryData(item)">恢复</a></div>
+          <div class="opt"><a @click="confirmRecoveryData(item)">recovery</a></div>
         </div>
       </div>
     </div>
@@ -47,9 +47,9 @@ export default {
       tableHeader: [
         // {id: 0, lable: '', className: 'radio',},
         {id: 1, lable: 'ID', className: 'ID',},
-        {d: 2, lable: '备份名称', className: 'name',},
-        {id: 3, lable: '备份描述', className: 'desc',},
-        {id: 4, lable: '操作', className: 'opt',},
+        {d: 2, lable: 'Name', className: 'name',},
+        {id: 3, lable: 'Description', className: 'desc',},
+        {id: 4, lable: 'Operate', className: 'opt',},
         ],
       backupList: []
     }

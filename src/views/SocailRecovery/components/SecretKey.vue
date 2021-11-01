@@ -15,7 +15,7 @@
             type="textarea"
             class="split-input"
             :value="friendsInputValsMap[`${[item.id]}-inputVal`]"
-            placeholder="enter split"
+            placeholder="Please enter the secret share"
             @input="(val)=>{changeInputVal(val, item)}" />
         </div>
       </div>

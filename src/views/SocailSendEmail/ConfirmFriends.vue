@@ -1,7 +1,7 @@
 <template>
   <div class="confirm-friends-component">
-    <h4>Create Recovery</h4>
-    <span class="tip">We will split the secret key and send it through your Google Friends' Email</span>
+    <h4>Choose Friends</h4>
+    <span class="tip">We will send the secret share to your friend's email. Please choose your trusted friends.</span>
     <div class="friend-list-wrapper">
       <div v-if="selectedFriendsList.length" class="friend-list" >
         <div v-for="(item, index) in selectedFriendsList" :key="index" class="friend-item van-hairline--bottom">
@@ -22,12 +22,12 @@
     </div>
     <div class="reviewer-nmmbers">
       <van-field name="stepper" class="flex flex-center">
-        <template slot="label">Reviewer Numbers</template>
+        <template slot="label">Threshold</template>
         <template #input>
           <van-stepper v-model="number" :min="minNum" :max="maxNum" />
         </template>
       </van-field>
-      <span class="tip">tip: 数字代表恢复secret需要提供的发送给好友的分片数量</span>
+      <span class="tip">Tips: Reviewer number indicates the amount of secret shares sent to your friends to recover secret.</span>
     </div>
     <div class="opt-wrapper">
       <van-button block color="#495ABE" @click="confirm">Confirm</van-button>
