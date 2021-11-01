@@ -25,6 +25,7 @@
         v-show="activeStepForSrecovery===1"
         :showQRCode="false"
         :showSeetingTip="false"
+        :showComplete="false"
         @childEvent="menonic2FAConfirmCallback" />
       <!-- enter SecretKey -->
       <v-secretkey

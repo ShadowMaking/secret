@@ -96,7 +96,7 @@ Vue.use(Popover);
 
 export default {
   name: 'memonicBackup',
-  props: ['showSeetingTip', 'showQRCode'],
+  props: ['showSeetingTip', 'showQRCode', 'showComplete'],
   data() {
     return{
       codeFor2FA: '',
@@ -160,12 +160,16 @@ export default {
       if (!verifyRes.hasError) {
         this.showMenonicTip = false;
         this.showMenonic = false;
-        this.verifySuccess = true
+        if (this.showComplete) {
+          this.verifySuccess = true
+        } else {
+          this.$emit('childEvent', this.codeFor2FA);
+        }
         // this.$emit('childEvent', this.codeFor2FA);
       } else {
         Toast(verifyRes.error)
       }
-      
+
       /* const verifyRes = await this.$store.dispatch('VerifyOTPCode', { userId: this.thirdUserId, code: this.codeFor2FA})
       this.verifyIsLoading = false
       if (!verifyRes.hasError) {

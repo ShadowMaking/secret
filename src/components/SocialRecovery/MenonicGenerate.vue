@@ -5,7 +5,7 @@
         <span class="tip">请按顺序抄写助记词，确保备份正确</span>
         <van-button color="#495ABE" plain @click="update" size="small" class="update-mnemonic">update</van-button>
       </div>
-      <div class="mnemonic-wrapper">
+      <div class="mnemonic-wrapper" @click="copyMnemonic">
         <van-grid :column-num="3" v-if="sourceData.length">
           <van-grid-item v-for="(item,index) in sourceData" :key="index" :text="item" />
         </van-grid>
@@ -22,13 +22,15 @@
 </template>
 <script>
 import Vue from 'vue';
-import { Icon, Button, Tag, Grid, GridItem  } from 'vant';
+import { Icon, Button, Tag, Grid, GridItem, Toast  } from 'vant';
+import { copyTxt } from '@/utils/index';
 
 Vue.use(Icon);
 Vue.use(Button);
 Vue.use(Tag);
 Vue.use(Grid);
 Vue.use(GridItem);
+Vue.use(Toast);
 
 export default {
   name: 'MenonicGenerate',
@@ -39,6 +41,13 @@ export default {
   methods: {
     update() {
       this.$emit('updateMnemonic');
+    },
+    copyMnemonic() {
+      if (this.sourceData.length > 0) {
+        const mnemonicStr = this.sourceData.join(' ')
+        copyTxt(mnemonicStr)
+        Toast('Copied')
+      }
     },
     // 进行备份
     confirmBackUp() {

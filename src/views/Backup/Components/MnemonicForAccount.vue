@@ -2,7 +2,7 @@
   <div class="type-mnemonic-compo">
     <div v-if="type==='import' && showImport" class="import-opt-area">
       <div class="flex flex-center import-mnemonic-wrapper">
-        <div class="import-wrapper-inner">
+        <div class="import-wrapper-inner" @click="copyMnemonic">
           <van-field
             v-model="importMnemonic"
             rows="2"
@@ -46,6 +46,7 @@
         key="menonic-2FAconfirm"
         :showQRCode="true"
         :showSeetingTip="false"
+        :showComplete="true"
         v-show="activeStepForMnemonic===1"
         @childEvent="menonic2FAConfirmCallback" />
       <!-- complete -->
@@ -67,6 +68,7 @@ import MenonicGenerate from '@/components/SocialRecovery/MenonicGenerate'
 import Menonic2FAConfirm from '@/components/SocialRecovery/Menonic2FAConfirm'
 import MenonicConfirmComplete from '@/components/SocialRecovery/MenonicConfirmComplete'
 import { SecLevelEnum, generate_mnemonic, generate_key, split } from '@/utils/secretshare'
+import { copyTxt } from '@/utils/index';
 
 Vue.use(Tab);
 Vue.use(Tabs);
@@ -180,6 +182,13 @@ export default {
     },
     hasBackupSettingData() {
       return !(!this.settingData || this.settingData && !this.settingData.name)
+    },
+    copyMnemonic() {
+      const mnemonicStr = this.importMnemonic
+      if (mnemonicStr) {
+        copyTxt(mnemonicStr)
+        Toast('Copied')
+      }
     },
   },
   mounted() {

@@ -2,7 +2,7 @@
   <div class="type-privatekey-compo">
     <div v-if="type==='import' && showImport" class="import-opt-area">
       <div class="flex flex-center import-mnemonic-wrapper">
-        <div class="import-wrapper-inner">
+        <div class="import-wrapper-inner" @click="copyPrivateKey('import')">
           <van-field
             v-model="importPrivatekey"
             rows="2"
@@ -32,7 +32,7 @@
           <span></span>
           <van-button color="#495ABE" plain @click="update" size="small" class="update-privatekey">update</van-button>
         </div>
-        <div class="privatekey-input">
+        <div class="privatekey-input" @click="copyPrivateKey('create')">
           <van-field
             v-model="privateKey"
             rows="2"
@@ -57,6 +57,7 @@
           key="privatekey-2FAconfirm"
           :showQRCode="true"
           :showSeetingTip="false"
+          :showComplete="true"
           @childEvent="privateKey2FAConfirmCallback" />
       </div>
       <!-- Complete -->
@@ -76,6 +77,7 @@ import Menonic2FAConfirm from '@/components/SocialRecovery/Menonic2FAConfirm'
 import MenonicConfirmComplete from '@/components/SocialRecovery/MenonicConfirmComplete'
 import _ from 'lodash'
 import { SecLevelEnum, generate_mnemonic, generate_key, split } from '@/utils/secretshare'
+import { copyTxt } from '@/utils/index';
 
 Vue.use(Icon);
 Vue.use(Tab);
@@ -186,6 +188,15 @@ export default {
     update() {
       const privateKey = this.generatePrivatekey()
       this.privateKey = privateKey
+    },
+    copyPrivateKey(type) {
+      let copyStr;
+      type === 'import' && this.importPrivatekey && (copyStr = this.importPrivatekey)
+      type === 'create' && this.privateKey && (copyStr = this.privateKey)
+      if (copyStr) {
+        copyTxt(this.privateKey)
+        Toast('Copied')
+      }
     },
   },
   mounted() {
