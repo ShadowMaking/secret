@@ -240,12 +240,12 @@ export default {
         // email += "\r\n" + message;
         // email += "\r\nHello,\r\n"+`这是一封来自您的好友${userName}发送重要邮件.内容为：${message}.\r\n请您务必妥善保管好该内容.`;
         const formatStr = `
-          Dear EigenSecret user:\r\n
-          We received a request to back up your friend${userEmail}secret share through your email address. 
-          Please keep the following secret share in a safe place so that your friend can recover the secret:\r\n
-          ${message}\r\n
-          Please do not forward or provide this secret share to anyone, and please do not delete this email, 
-          in case of causing trouble for your friend to recover the secret.
+        Dear EigenSecret user:\r\n
+        We received a request to back up your friend ${userEmail} secret share through your email address. 
+        Please keep the following secret share in a safe place so that your friend can recover the secret:\r\n
+        ${message}\r\n
+        Please do not forward or provide this secret share to anyone, and please do not delete this email, 
+        in case of causing trouble for your friend to recover the secret.
         `
         email += "\r\n" + formatStr;
         mesList.push(email)
