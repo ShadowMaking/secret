@@ -282,23 +282,10 @@ export default {
       this.showAccountSetPopover = false
     },
     handleThirdLoginCallback(info) {
-      console.log('third login info', info)
-      if (info.success) {
-        this.gUName = info.name
-      }
+      info.success && (this.gUName = info['userInfo'].name)
     },
   },
   async mounted() {
-    /* const googleUserId = getLocationParam('id')
-    const googleAuthToken = getLocationParam('auth_token')
-    if (googleUserId) {
-      await this.$store.dispatch('StoreGoogleUserId', {userId: googleUserId })
-      await this.$store.dispatch('StoreGoogleAuthToken', {authToken: googleAuthToken })
-      const { hasError, data: userInfo } = await this.$store.dispatch('GetUserInfoById', { userId: googleUserId })
-      if (!hasError) {
-        this.gUName = userInfo.name
-      }
-    } */
     this.$eventBus.$on('thirdLogin', this.handleThirdLoginCallback);
     this.$eventBus.$on('updateAddress', this.updateAddress);
     this.$eventBus.$on('chainChanged', this.handleChainChanged);
