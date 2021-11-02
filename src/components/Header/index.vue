@@ -1,6 +1,6 @@
 <template>
   <div style="width:100%">
-    <mt-header title="" class="common-header">
+    <mt-header title="" class="common-header" v-show="!$route.meta.hideHeader">
       <div slot="left" class="header-left">
         <div v-show="$route.name!=='home'" class="flex flex-center" @click="back">
           <van-icon name="arrow-left" class="back-icon" size="18"/>
@@ -8,11 +8,19 @@
         </div>
         <img :src="DEFAULTIMG.LOGO" class="logo" @click="toPage('home')" v-show="$route.name==='home'"/>
       </div>
-      <div slot="right" v-if="address!==''" class="header-right">
-        <span @click="showAccoutAddress" class="header-address">
+      <div slot="right" class="header-right">
+        <span @click="showAccoutAddress" class="header-address" v-if="address!==''" >
           {{ `${address.slice(0,6)}...${address.slice(-4)}` }}
           <i class="link-icon"></i>
         </span>
+        <div slot="right" v-else >
+          <a @click="chooseWallet" class="linkWallet">
+            <span>Connect Wallet</span>
+            <i class="link-icon"></i>
+          </a>
+          <i class="icon night" style="display:none"></i>
+          <i class="icon language" style="display:none"></i>
+        </div>
         <van-popover
           key="accountSetpopover"
           v-model="showAccountSetPopover"
@@ -21,13 +29,13 @@
           <div class="account-popover">
             <div class="van-hairline--bottom account-header">
               <span>My Account</span>
-              <van-button plain type="info" class="lockbutton" size="small" @click="disconnect">Disconnect</van-button>
+              <van-button plain type="info" class="lockbutton" size="small" @click="disconnect" v-show="address">Disconnect</van-button>
             </div>
             <ul class="accountlist">
               <li class="active">
                 <van-icon name="success" class="active-status-icon"/>
                 <div class="account-text">
-                  <span>{{ address }}</span>
+                  <span>{{ address||gUName }}</span>
                 </div>
               </li>
             </ul>
@@ -61,18 +69,7 @@
           <template #reference><div class="account"></div></template>
         </van-popover>
       </div>
-      <!-- <span slot="right" v-if="address!==''"  class="header-address"  @click="showAccoutAddress">
-        {{ `${address.slice(0,6)}...${address.slice(-4)}` }}
-        <i class="link-icon"></i>
-      </span> -->
-      <div slot="right" v-else >
-        <a @click="chooseWallet" class="linkWallet">
-          <span>Connect Wallet</span>
-          <i class="link-icon"></i>
-        </a>
-        <i class="icon night" style="display:none"></i>
-        <i class="icon language" style="display:none"></i>
-      </div>
+      
     </mt-header>
     <van-popup v-model="popupVisible" round :position="checkBrower()" :style="{ minHeight: '30%' }" class="common-bottom-popup">
       <div class="common-exchange-detail-wrap choose-wallet-popup">
@@ -113,6 +110,7 @@ import NetTipModal from '@/components/NetTipModal';
 import { getSelectedChainID, getNetMode, getExpectNetTypeByRouteName, metamaskIsConnect, installWeb3Wallet, installWeb3WalletMetamask } from '@/utils/web3'
 import { copyTxt, isPc } from '@/utils/index';
 import { initTokenTime, updateLoginTime, removeTokens, tokenIsExpires } from '@/utils/auth'
+import { getLocationParam } from '@/utils/index'
 
 Vue.use(Popup);
 Vue.use(VanButton);
@@ -134,7 +132,7 @@ export default {
       showNetTip: false,
       showAccountPopup: false,
       installOtherWallet: false,
-
+      gUName: '',
       showAccountSetPopover: false,
     }
   },
@@ -283,8 +281,25 @@ export default {
       this.walletIsLock = true;
       this.showAccountSetPopover = false
     },
+    handleThirdLoginCallback(info) {
+      console.log('third login info', info)
+      if (info.success) {
+        this.gUName = info.name
+      }
+    },
   },
   async mounted() {
+    /* const googleUserId = getLocationParam('id')
+    const googleAuthToken = getLocationParam('auth_token')
+    if (googleUserId) {
+      await this.$store.dispatch('StoreGoogleUserId', {userId: googleUserId })
+      await this.$store.dispatch('StoreGoogleAuthToken', {authToken: googleAuthToken })
+      const { hasError, data: userInfo } = await this.$store.dispatch('GetUserInfoById', { userId: googleUserId })
+      if (!hasError) {
+        this.gUName = userInfo.name
+      }
+    } */
+    this.$eventBus.$on('thirdLogin', this.handleThirdLoginCallback);
     this.$eventBus.$on('updateAddress', this.updateAddress);
     this.$eventBus.$on('chainChanged', this.handleChainChanged);
     this.$eventBus.$on('accountsChanged', this.handleAccountsChanged);

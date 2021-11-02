@@ -246,6 +246,8 @@ export default {
     if (googleUserId) {
       await this.$store.dispatch('StoreGoogleUserId', {userId: googleUserId })
       await this.$store.dispatch('StoreGoogleAuthToken', {authToken: googleAuthToken })
+      const { hasError, data: userInfo } = await this.$store.dispatch('GetUserInfoById', { userId: googleUserId })
+      this.$eventBus.$emit('thirdLogin', { success: hasError, userInfo });
     }
     this.$eventBus.$on('chainChanged', this.handleChainChanged);
 
