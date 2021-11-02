@@ -105,7 +105,8 @@ export default {
       showThirdLoginTip: false,
       showPopover: false,
       verifySuccess: false,
-      showMenonic: true
+      showMenonic: true,
+      saveSecretDisabled: false,
     }
   },
   components: {
@@ -154,6 +155,10 @@ export default {
       this.creatQrCode();
     },
     async verifyQRCode() {
+      if (this.saveSecretDisabled) { // TODO
+        Toast('save OTP failed, can not verify OTP code')
+        return 
+      }
       this.verifyIsLoading = true;
       const verifyRes = await this.$store.dispatch('VerifyCode', { userId: this.thirdUserId, code: this.codeFor2FA})
       this.verifyIsLoading = false
@@ -186,6 +191,7 @@ export default {
     },
     async getOTPAuthUrl(needDestroy) {
       if (!this.thirdUserId) { return }
+      this.saveSecretDisabled = false
       /* const res = await this.$store.dispatch('GetOTPAuthUrl', { userId: this.thirdUserId})
       const { hasError, data } = res;
       if (!hasError) {
@@ -194,6 +200,10 @@ export default {
       const { hasError, data: userInfo } = await this.$store.dispatch('GetUserInfoById', { userId: this.thirdUserId })
       const { secret, url } = await this.$store.dispatch('GenerateOTPAuthUrl', { userId: this.thirdUserId, needDestroy, userInfo})
       const saveSecretRes = await this.$store.dispatch('SaveOTPSecret', { userId: this.thirdUserId, secret })
+      if (saveSecretRes.hasError) {
+        this.saveSecretDisabled = true
+        console.log('can not save OTP secret')
+      }
       this.qrCodeUrl = url
       return url
     },
