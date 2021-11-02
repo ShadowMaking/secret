@@ -3,18 +3,18 @@
 
 
 ## Register
-1.Click “Connect Wallet” after connecting the Internet
+1.Open [https://secret.ieigen.com/](https://secret.ieigen.com/), Click “Connect Wallet” after connecting the Internet
 
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Connet%20Wallet.png" width="270px"></div>
 
-2.Connect MetaMask and sign
-<div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Connect%20MetaMask.png" width="270px"></div>
-
-3.Use Gmail to log in
+2.Use Gmail to log in
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Use%20Gmail%20to%20log%20in.png" width="270px"></div>
 
-4.Select login mailbox
+3.Select login mailbox
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Use%20Gmail%20to%20log%20in%20choose%20account.png" width="270px"></div>
+
+4.Connect MetaMask and sign
+<div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Connect%20MetaMask.png" width="270px"></div>
 
 5.Click “Unlock Wallet”, and sign
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Unlock%20Wallet.png" width="270px"></div>
@@ -42,7 +42,7 @@
 
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Add%20friends.png" width="270px"></div>
 
-12.PS:After sending the secret share to a friend by email, the friend logs in to https://secret.ieigen.com/ and clicks on the avatar icon in the upper right corner-Friends.
+12. After sending the secret share to a friend by email, the friend logs in to https://secret.ieigen.com/ and clicks on the avatar icon in the upper right corner-Friends.
 
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Friend's%20consent%20operation.png" width="270px"></div>
 
@@ -73,7 +73,7 @@
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/The%20secret%20share%20is%20sent%20successfully.png" width="270px"></div>
 
 
-## Recovery Key
+## Recovery secrets
 
 1.Click Social Recovery
 
@@ -87,12 +87,13 @@
 
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Enter%206-digit%20code%20as%20Google%20Authenticator%20code.png" width="270px"></div>
 
-4.Click the restore key, and enter the corresponding secret share that has beensent to the friend's mailbox previously. Then click confirm to recover the secret recovery phrase or private key
+4.Click the restore key, and input the corresponding secret share that has beensent to the friend's mailbox previously. Then click confirm to recover the secret recovery phrase or private key
 
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Input%20the%20restore%20key.png" width="270px"></div>
 
+5. Double click the key to clip it and paste it into your wallets
 
-## Private Key Import
+## Import existing secrets
 
 
 1.Click Create Secret in the upper-right corner. 
