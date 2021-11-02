@@ -1,8 +1,9 @@
-
-
 # EigenSecret Product Manual v1.0
 
+
+
 ## Register
+
 Click “Connect Wallet” after connecting the Internet
 
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Connet%20Wallet.png" width="270px"></div>
@@ -75,6 +76,7 @@ The secret share is sent successfully. The selected friends will receive secret 
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/The%20secret%20share%20is%20sent%20successfully.png" width="270px"></div>
 
 
+
 ## Recovery Key
 
 Click Social Recovery
@@ -94,8 +96,8 @@ Click the restore key, and enter the corresponding secret share that has beensen
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Input%20the%20restore%20key.png" width="270px"></div>
 
 
-## Private Key Import
 
+## Private Key Import
 
 Click Create Secret in the upper-right corner. 
 
