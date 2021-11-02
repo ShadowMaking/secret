@@ -155,9 +155,8 @@ export default {
       this.creatQrCode();
     },
     async verifyQRCode() {
-      if (this.saveSecretDisabled) { // TODO
-        Toast('save OTP failed, can not verify OTP code')
-        return 
+      if (this.saveSecretDisabled) {
+        console('save OTP failed, can not verify OTP code')
       }
       this.verifyIsLoading = true;
       const verifyRes = await this.$store.dispatch('VerifyCode', { userId: this.thirdUserId, code: this.codeFor2FA})
