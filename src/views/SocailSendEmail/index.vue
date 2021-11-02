@@ -177,7 +177,7 @@ export default {
     initAPIClient() {
       // const CLIENT_ID = '1012137303359-sr6326jclcoqula7jsgm0mdnqtchler6.apps.googleusercontent.com'
       // const API_KEY = 'AIzaSyDWkzw9skjMLPeChqJ39G9uuBKQflBQgDY'
-      const CLIENT_ID = '1057982242505-d3i7c1vf2p92uue02df3dg3pfme5cutu.apps.googleusercontent.com'
+      const CLIENT_ID = '413535929013-jeeg5o86nj3ev06r0bf6uadg6bupqvrd.apps.googleusercontent.com'
       const API_KEY = 'AIzaSyCnBtPAHR72R4hgkXqxIU77anOAOrMXJxU'
       // Array of API discovery doc URLs for APIs used by the quickstart
       const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest"]
