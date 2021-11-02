@@ -3,18 +3,19 @@
 
 
 ## Register
-1.Open [https://secret.ieigen.com/](https://secret.ieigen.com/), Click “Connect Wallet” after connecting the Internet
 
-<div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Connet%20Wallet.png" width="270px"></div>
-
-2.Use Gmail to log in
+1.Use Gmail to log in
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Use%20Gmail%20to%20log%20in.png" width="270px"></div>
 
-3.Select login mailbox
+2.Select login mailbox
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Use%20Gmail%20to%20log%20in%20choose%20account.png" width="270px"></div>
 
-4.Connect MetaMask and sign
+3.Connect MetaMask and sign
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Connect%20MetaMask.png" width="270px"></div>
+
+4.Open [https://secret.ieigen.com/](https://secret.ieigen.com/), Click “Connect Wallet” after connecting the Internet
+
+<div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Connet%20Wallet.png" width="270px"></div>
 
 5.Click “Unlock Wallet”, and sign
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Unlock%20Wallet.png" width="270px"></div>
