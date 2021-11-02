@@ -36,7 +36,7 @@
         <span v-show="sendEmailUserIsSign" class="tip">Authorized，click button to send Emial</span>
         <div class="btn-wrapper">
           <van-button @click="signInForGoogle" v-show="!sendEmailUserIsSign" class="btn">Authorize</van-button>
-          <van-button @click="signOutForGoogle" v-show="sendEmailUserIsSign" class="btn">Revoke Authorize</van-button>
+          <van-button @click="signOutForGoogle" v-show="sendEmailUserIsSign" class="btn">Revoke authorization</van-button>
           <van-button @click="sendEmail" v-show="sendEmailUserIsSign" class="btn">Send Email</van-button>
         </div>
       </div>

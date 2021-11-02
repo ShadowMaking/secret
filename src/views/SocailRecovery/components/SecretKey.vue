@@ -21,7 +21,7 @@
       </div>
       <div class="no-friends" v-else>
         <van-icon name="closed-eye" color="#eee" size="40"/>
-        <span>您之前没有向好友发过邮件进行备份</span>
+        <span>You haven’t emailed for backup before</span>
         <div>
           <van-button
             icon="plus"
@@ -30,14 +30,14 @@
             size="small"
             class="add-button"
             style="display:none"
-            @click="toPage('backup')">创建secret</van-button>
+            @click="toPage('backup')">Create Secret</van-button>
           <van-button
             icon=""
             plain
             color="#495ABE"
             size="small"
             class="add-button"
-            @click="toPage('ssendemail')"><van-icon name="comment-o" ></van-icon>备份secret</van-button>
+            @click="toPage('ssendemail')"><van-icon name="comment-o" ></van-icon>Backup Secret</van-button>
         </div>
       </div>
     </div>

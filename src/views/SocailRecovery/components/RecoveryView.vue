@@ -14,7 +14,13 @@
       </div>
     </div>
     <div class="opt-wrapper">
-      <van-button block color="#495ABE" class="mb10" @click="confirmView" :disabled="!str">Confirm</van-button>
+      <van-button block color="#495ABE" class="mb10" @click="confirmView" :disabled="!str">{{ buttonTxt }}</van-button>
+    </div>
+    <div class="support-wallet-tip">
+      <span>Your recovered data can be used in the following wallets</span>
+      <ul class="list">
+        <li><a href="https://metamask.io/" target="_blank" ><i class="icon icon-metamask"></i></a></li>
+      </ul>
     </div>
   </div>
 </template>
@@ -35,7 +41,8 @@ export default {
   },
   data() {
     return {
-      resultStr: ''
+      resultStr: '',
+      buttonTxt: 'Copy'
     }
   },
   computed: {
@@ -48,12 +55,17 @@ export default {
   },
   methods: {
     copyViewTxt() {
-      if (copyTxt(this.str)) {
-        Toast.success('Copied');
+      if (this.str && copyTxt(this.str)) {
+        // Toast.success('Copied');
+        this.buttonTxt = 'Copied'
+        setTimeout(()=>{
+          this.buttonTxt = 'Copy'
+        }, 800)
       }
     },
     confirmView() {
-      this.$emit('childEvent', {});
+      // this.$emit('childEvent', {});
+      this.copyViewTxt()
     },
   },
   mounted() {
