@@ -218,7 +218,7 @@ export default {
       }
       const data = {
         fromUserID: userId,
-        toUserEmail: `${this.prefixGmail}@gmail.com`
+        toUserEmail: `${this.prefixGmail.trim()}@gmail.com`
       }
       const { hasError, list, error } = await this.$store.dispatch('AddFrined', data);
       this.addIsLoading = false;
@@ -241,7 +241,7 @@ export default {
       }
       Dialog.confirm({
         title: 'Tip',
-        message: '请处理好友请求',
+        message: 'friend’s information',
         showCancelButton: true,
         confirmButtonText: 'Confirm',
         cancelButtonText: 'Reject',
