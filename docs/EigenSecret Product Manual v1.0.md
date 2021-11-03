@@ -8,7 +8,7 @@
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Use%20Gmail%20to%20log%20in.png" width="270px"></div>
 
 2.Select login mailbox
-<div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Use%20Gmail%20to%20log%20in%20choose%20account.png" width="270px"></div>
+<div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Choose%20Google%20Account.png" width="270px"></div>
 
 3.Perform key backup according to the message at the top
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/backup%20according%20to%20the%20message%20at%20the%20top.png" width="270px"></div>
@@ -43,15 +43,15 @@
 
 10.Google Authorization
 
-<div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Google%20Authorization.png" width="270px"></div>
+<div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Authorization.png" width="270px"></div>
 
 11.Complete authorization on Google Page
 
-<div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Complete%20authorization%20on%20Google%20Page.png" width="270px"></div>
+<div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Google%20hasn%E2%80%99t%20verified%20this%20app.png" width="270px"></div>
 
 12.Tick authorized access content. Just select all by default.
 
-<div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Tick%20authorized%20access%20content.png" width="270px"></div>
+<div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Select%20what%20ieigen%20can%20access.png" width="270px"></div>
 
 13.Click send email
 
