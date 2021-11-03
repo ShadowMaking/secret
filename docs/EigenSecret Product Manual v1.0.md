@@ -55,7 +55,7 @@
 
 13.Click send email
 
-<div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Click%20send%20email.png" width="270px"></div>
+<div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Authorization.png" width="270px"></div>
 
 14.The secret share is sent successfully. The selected friends will receive secret share. You can recover the key through the social recovery.
 
