@@ -64,7 +64,7 @@
             <!-- 1:mutual  2:waiting 3:confirming -->
             <van-icon name="exchange" size="25" color="#61D375" v-if="item.status===1" />
             <van-icon name="clock-o" size="25" color="#61D375" v-else-if="item.status===2" />
-            <van-icon name="question-o" size="25" color="#61D375" v-else-if="item.status===3" @click="dealRequet(item)"/>
+            <van-icon name="question-o" size="25" color="#61D375" v-else-if="item.status===3" @click="OpenConfirmDialog(item)"/>
             <!-- <van-button
               v-else
               icon="plus"
@@ -86,6 +86,17 @@
       key="thirdlogintip"
       :show="showThirdLoginTip"
       @childEvent="closeThirdLoginTip" />
+    <van-dialog
+      v-model="showConfirmDialog"
+      title="Tip"
+      show-cancel-button
+      confirm-button-text="Confirm"
+      cancel-button-text="Reject"
+      close-on-click-overlay
+      @confirm="dealRequet('confirm')"
+      @cancel="dealRequet('reject')" >
+      <div class="flex flex-center" style="margin: 10px 0 20px">Friend’s Information</div>
+    </van-dialog>
   </div>
 </template>
 <script>
@@ -117,6 +128,8 @@ export default {
       prefixGmail: '',
       addIsLoading: false,
       showThirdLoginTip: false,
+      showConfirmDialog: false,
+      currentFriendData: null,
     }
   },
   components: {
@@ -230,49 +243,35 @@ export default {
         Toast(error)
       }
     },
-    async dealRequet(record) {
-      // <van-icon name="close" />
-      // <van-icon name="passed" />
+    OpenConfirmDialog(record) {
       const userId = getFromStorage('gUID')
       if (!userId) {
         console.log('can detect userID after third login') 
         Toast('error')
         return
       }
-      Dialog.confirm({
-        title: 'Tip',
-        message: 'friend’s information',
-        showCancelButton: true,
-        confirmButtonText: 'Confirm',
-        cancelButtonText: 'Reject',
-        closeOnClickOverlay: true
-      })
-      .then(async () => {
-        const cdata = {
-          fromUserID: userId,
-          toUserID: record.id,
-        }
-        const { hasError, list, error } = await this.$store.dispatch('ConfirmForAddFrined', cdata);
-        if (!hasError) {
-          this.friendsList = [];
-          this.getAllMyFriendsList()
-        } else {
-          Toast(error)
-        }
-      })
-      .catch(async () => {
-        const rdata = {
-          fromUserID: userId,
-          toUserID: record.id,
-        }
-        const { hasError, list, error } = await this.$store.dispatch('RejectForAddFrined', rdata);
-        if (!hasError) {
-          this.friendsList = [];
-          this.getAllMyFriendsList()
-        } else {
-          Toast(error)
-        }
-      });
+      this.currentFriendData = _.cloneDeep(record)
+      this.showConfirmDialog = true
+    },
+    async dealRequet(type) {
+      // <van-icon name="close" />
+      // <van-icon name="passed" />
+      this.showConfirmDialog = false
+      const data = {
+        fromUserID: getFromStorage('gUID'),
+        toUserID: this.currentFriendData.id,
+      }
+      let requestName
+      type === 'confirm' && ( requestName = 'ConfirmForAddFrined')
+      type === 'reject' && ( requestName = 'RejectForAddFrined')
+
+      const { hasError, list, error } = await this.$store.dispatch(`${requestName}`, data);
+      if (!hasError) {
+        this.friendsList = [];
+        this.getAllMyFriendsList()
+      } else {
+        Toast(error)
+      }
     },
     closeThirdLoginTip(info) {
       this.showThirdLoginTip = info.show
