@@ -4,7 +4,7 @@
 
 ## Register
 
-1.Use Gmail to log in
+1.Use Gmail to log in [https://secret.ieigen.com/](https://secret.ieigen.com/)
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Use%20Gmail%20to%20log%20in.png" width="270px"></div>
 
 2.Select login mailbox
