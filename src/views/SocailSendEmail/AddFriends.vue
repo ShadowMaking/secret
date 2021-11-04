@@ -8,9 +8,11 @@
       </a>
     </h4>
     <span class="tip">We will split the secret key and send it through your Google Friends' Email</span>
+    <span class="tip">Attention: The email of your friend must logined in Secret. You can click<i @click="copyUrl">https://secret.ieigen.com</i>to copy this link address for your friend</span>
     <div class="friend-list-wrapper">
       <!-- search -->
       <van-search
+        style="display:none"
         v-model="searchKey"
         placeholder="search friend"
         class="serach-friend-input"
@@ -104,6 +106,7 @@ import Vue from 'vue';
 import { Toast, Popup, Button, List, Cell, Icon, Search, Field, Dialog } from 'vant';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import ThirdLoginTip from '@/components/ThirdLoginTip';
+import { copyTxt } from '@/utils/index';
 
 Vue.use(Toast)
 Vue.use(Popup)
@@ -147,6 +150,10 @@ export default {
     }
   },
   methods: {
+    copyUrl() {
+      copyTxt('https://secret.ieigen.com');
+      Toast('Copied')
+    },
     async refresh() {
       if (!this.thirdUserId) { return }
       this.refreshLoading = true;

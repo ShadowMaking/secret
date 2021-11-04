@@ -26,6 +26,8 @@
 .choose-friends-component {
   padding: 20px;
   h4 { margin: 0 0 50px; }
+  .tip { word-break: break-word; }
+  .tip.color { color: rgb(247, 156, 19); font-style: normal; word-break: break-word; }
   .no-friends {
     color: #eee;
     border: 1px solid #eee;
@@ -100,6 +102,7 @@
     line-height: 23px;
     margin-bottom: 20px;
     word-break: break-word;
+    i { font-style: normal; color: #495ABE; margin: 0 5px; text-decoration: underline;}
   }
   .add-friend-by-email-wrap{
     display: flex;
@@ -110,13 +113,13 @@
       justify-content: center;
       align-items: center;
       .van-cell {
-        padding: 10px 10px 10px 0;
+        padding: 10px 0px 10px 0;
       }
     }
     .add-button { padding: 0 5px;}
     .van-cell { width: auto;}
     ::v-deep input{
-      width: 90%;
+      margin-right: 5px;
       border: 1px solid #ebedf0;
       border-radius: 5px;
       padding: 5px;
