@@ -37,6 +37,7 @@
         await this.$store.dispatch('WalletLockStatus', {isLock: true});
       },
       checkNet(nID) {
+        if (this.$route.name === 'tlogin') { return }
         if (!NETWORKS[nID]) {
           this.showNetTip = true
         } else {
