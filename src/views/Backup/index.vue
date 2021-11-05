@@ -12,7 +12,7 @@
           <div class="backup-setting-wrapper">
             <van-cell-group>
               <van-field v-model="createType" label="Type" readonly class="createType-select" :disabled="createTypeDisabled" @click="showSelectType('create')"/>
-              <van-field v-model="backupName" label="Name" placeholder="enter recovery name" :disabled="createTypeDisabled" />
+              <van-field v-model="backupName" label="Name" :formatter="formatterBackupName" placeholder="name(not Chinese characters)" :disabled="createTypeDisabled" />
               <van-field
                 v-model="backupComment"
                 rows="1"
@@ -48,7 +48,7 @@
           <div class="backup-setting-wrapper">
             <van-cell-group>
               <van-field v-model="importType" label="Type" readonly class="createType-select" :disabled="importTypeDisabled" @click="showSelectType('import')"/>
-              <van-field v-model="backupNameForImport" label="Name" placeholder="enter recovery name" :disabled="importTypeDisabled" />
+              <van-field v-model="backupNameForImport" :formatter="formatterBackupName" label="Name" placeholder="name(not Chinese characters)" :disabled="importTypeDisabled" />
               <van-field
                 v-model="backupCommentForImport"
                 rows="1"
@@ -194,6 +194,9 @@ export default {
       this.activeCreateWalletType==='create'&&(this.createTypeDisabled = true)
       this.activeCreateWalletType==='import'&&(this.importTypeDisabled = true)
     },
+    formatterBackupName(value) {
+      return value.replace(/[^\w\/]/ig,'')
+    }
   },
   created() {
   },
