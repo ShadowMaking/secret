@@ -156,7 +156,7 @@ const socailRecovery = {
         saveRecoveryData(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0) {
-            resolve({ hasError: false  })
+            resolve({ hasError: false, data })
           }
           resolve({ hasError: true, error: message });
         }).catch(error => {

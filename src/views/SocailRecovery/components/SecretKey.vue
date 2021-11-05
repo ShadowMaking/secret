@@ -66,7 +66,7 @@ export default {
     return {
       friendsList: [],
       friendsInputValsMap: null, // { '1-inputVal': '' '2-inputVal': '', ...}
-      recoveryNumber: 1,
+      recoveryNumber: 2,
     }
   },
   computed: {
@@ -105,10 +105,9 @@ export default {
       if (!hasError && backupId) {
         const targetBackup = _.find(list, {id: ~~backupId})
         const guradianFriends = targetBackup && targetBackup['friends'] && window.JSON.parse(targetBackup.friends) || []
-
         this.friendsList = this.generateFriendsList(guradianFriends)
         this.friendsInputValsMap = this.generateFriendsInputValsMap(guradianFriends)
-        this.recoveryNumber = recoveryNumber
+        this.recoveryNumber = targetBackup && targetBackup.threshold===1?2:targetBackup.threshold || 2
         console.log('this.friendsInputValsMap',this.friendsInputValsMap)
       } else {
         // Toast('can not detect backupId')

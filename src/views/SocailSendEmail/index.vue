@@ -50,9 +50,8 @@
 <script>
 import Vue from 'vue';
 import { Toast, Dialog, Popup, Button, Field, RadioGroup, Radio } from 'vant';
-import { DEFAULTIMG } from '@/utils/global';
 import { installWeb3WalletMetamask } from '@/utils/web3'
-import { getFromStorage } from '@/utils/storage'
+import { getFromStorage, removeFromStorage } from '@/utils/storage'
 import ChooseFriends from './ChooseFriends'
 import ConfirmFriends from './ConfirmFriends'
 import StatusView from './Status'
@@ -157,16 +156,31 @@ export default {
         this.secretWords = secretWords;
         // this.confirmChooseFriend = false
         // this.showStatus = true
+        const curretSettingData = await this.$store.dispatch('UpdateBackupSettingDataForStorage', { updateType: 'get' });
+        if (curretSettingData && curretSettingData.id) {
+          console.log('already saved')
+          return
+        }
+
         const backUpSeetingData = getFromStorage('settingdata') && window.JSON.parse(getFromStorage('settingdata'))
         const recoverData = {
           fromUserID: userId,
-          recoveryNum: this.recoveryNumber,
+          // recoveryNum: this.recoveryNumber,
+          totalSharedNum: this.selectedFriendsList.length,
+          threshold: this.recoveryNumber,
           selectedFriendsList: this.selectedFriendsList.map(i=>({ user_id:i.id, email:i.email, name:i.name })),
         }
         backUpSeetingData && (recoverData['name'] = backUpSeetingData.name)
         backUpSeetingData && (recoverData['desc'] = backUpSeetingData.desc)
+
         const storeRes = await this.$store.dispatch('SaveRecoveryData', {...recoverData});
-        const { hasError } = storeRes // TODO
+        const { hasError, data, error } = storeRes // TODO
+        if (!hasError && data) {
+          const backupId = data.id
+          if (curretSettingData) {
+            await this.$store.dispatch('UpdateBackupSettingDataForStorage', { updateType: 'store', settingData: {id: backupId, ...curretSettingData} });
+          }
+        }
         return
       }
       Toast('No Data For Recovery')
@@ -268,6 +282,7 @@ export default {
         this.showStatus = true
 
         this.signOutForGoogle() // destroy authorization
+        removeFromStorage(['mnemonic', 'privateKey', 'settingdata'])
       })
       .catch(err=>{
         console.log(err)

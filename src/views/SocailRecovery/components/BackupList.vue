@@ -21,7 +21,10 @@
           <div class="ID">{{ item.id }}</div>
           <div class="name">{{ item.name }}</div>
           <div class="desc">{{ item.desc }}</div>
-          <div class="opt"><a @click="confirmRecoveryData(item)">recovery</a></div>
+          <div class="opt">
+            <a @click="confirmRecoveryData(item)" v-if="item.sended">recovery</a>
+            <a @click="sendEmail(item)" v-else style="color: #f44336">backup</a>
+          </div>
         </div>
       </div>
     </div>
@@ -72,7 +75,19 @@ export default {
       }
       const { hasError, list, error } = await this.$store.dispatch('GetRecoveryData', {userId});
       if (!hasError) {
-        this.backupList = (_.cloneDeep(list)||[]).filter(i=>i.name)
+        const datalist = (_.cloneDeep(list)||[]).filter(i=>i.name)
+        const curretSeetingData = await this.$store.dispatch('UpdateBackupSettingDataForStorage', { updateType: 'get' });
+        let backupIDForNotSendEmail
+        curretSeetingData && (backupIDForNotSendEmail = curretSeetingData.id)
+        if (backupIDForNotSendEmail) {
+          datalist.forEach((item, index, arr) => {
+            item['sended'] = true
+            if (item.id === backupIDForNotSendEmail) {
+              item['sended'] = false
+            }
+          })
+        }
+        this.backupList = datalist
       }
     },
     async confirmRecoveryData(record) {
@@ -80,6 +95,18 @@ export default {
       await this.$store.dispatch('UpdateSelectedBackupForStorage', {backupId, type: 'store'});
       this.$emit('childEvent', {backupId});
     },
+    sendEmail(record) {
+      const mnemonic = getFromStorage('mnemonic')
+      const privateKey = getFromStorage('privateKey')
+      let type
+      mnemonic && !privateKey && (type = 'mn')
+      privateKey && !mnemonic && (type = 'pk')
+      if (type) {
+        this.$router.push({ name: 'ssendemail', query: {type} })
+      } else {
+        this.$router.push({ name: 'ssendemail'})
+      }
+    }
   },
   mounted() {
     this.getBackupList()

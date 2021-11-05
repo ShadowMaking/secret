@@ -99,8 +99,8 @@ export const saveRecoveryData = (data) => {
   const _data = {
     // action: 'friend_reject',
     user_id: ~~data.fromUserID,
-    total_shared_num: ~~data.recoveryNum,
-    threshold: 1,
+    total_shared_num: ~~data.totalSharedNum,
+    threshold: ~~data.threshold,
     friends: data.selectedFriendsList,
     name: data.name,
     desc: data.desc,
