@@ -79,14 +79,12 @@ export default {
         const curretSeetingData = await this.$store.dispatch('UpdateBackupSettingDataForStorage', { updateType: 'get' });
         let backupIDForNotSendEmail
         curretSeetingData && (backupIDForNotSendEmail = curretSeetingData.id)
-        if (backupIDForNotSendEmail) {
-          datalist.forEach((item, index, arr) => {
-            item['sended'] = true
-            if (item.id === backupIDForNotSendEmail) {
-              item['sended'] = false
-            }
-          })
-        }
+        datalist.forEach((item, index, arr) => {
+          item['sended'] = true
+          if (item.id === backupIDForNotSendEmail) {
+            item['sended'] = false
+          }
+        })
         this.backupList = datalist
       }
     },
