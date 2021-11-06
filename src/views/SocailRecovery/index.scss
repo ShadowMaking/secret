@@ -1,0 +1,25 @@
+.social-recovery-page{
+  padding: 0 20px;
+  font-size: .9375rem;
+  .opt-wrapper {
+    margin: 60px 0 30px;
+  }
+  .recovery-setting-tip {
+    h4{
+      font-size: 1.2rem;
+      font-weight: bolder;
+      color: #333;
+      text-align: center;
+      margin: 50px;
+    }
+    span.tip{
+      font-size: 1rem;
+      color: #9E9E9E;
+      display: block;
+      line-height: 23px;
+      margin-bottom: 20px;
+      word-break: break-word;
+    }
+    .recovery-type{ padding: 10px 0; }
+  }
+}

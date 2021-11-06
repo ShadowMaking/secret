@@ -2,7 +2,6 @@
   <div class="common-exchange-list-wrapper">
     <div class="common-exchange-list" id="common-exchange-list">
       <h3 class="exchange-list-title">Transactions</h3>
-      <!-- TODO need Pagination -->
       <div class="exchange-list" v-if="historyList.length>0 && !walletIsLock">
         <mt-cell is-link class="exchange-list-item"  v-for="(item,index) in historyList" :key="`history-${index}`" @click.native="getExchangeDetail(item)">
           <div slot="title" class="flex flex-column transaction-type-info">

@@ -28,3 +28,17 @@ export const  isPc = () => {
   })
   return flag
 }
+
+export const getQueryString = (name, str) => {
+  if (!str) { return null }
+	var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+	var r = str.match(reg);
+	if (r != null) return unescape(r[2]); return null;
+}
+
+export const getLocationParam = (key) => {
+  var locationHref = window.location.href,
+      rexp = new RegExp("[&?]{1}" + key + "=([^&?|^#?]*)", "ig");
+  // return locationHref.match(rexp) ? decodeURI(locationHref.match(rexp)[0].substr(key.length + 2)) : (locationHref = document.referrer, locationHref.match(rexp) ? decodeURI(locationHref.match(rexp)[0].substr(key.length + 2)) : "");
+  return locationHref.match(rexp) ? decodeURI(locationHref.match(rexp)[locationHref.match(rexp).length-1].substr(key.length + 2)) : (locationHref = document.referrer, locationHref.match(rexp) ? decodeURI(locationHref.match(rexp)[locationHref.match(rexp).length-1].substr(key.length + 2)) : "");
+}

@@ -1,0 +1,29 @@
+.google-auth-dialog-wrapper {
+  .google-auth-dialog{
+    padding: 30px 0;
+    position: relative;
+    .closeDialog{
+      position: absolute;
+      top: -30px;
+      right: 30px;
+      color: #9E9E9E;
+    }
+    .tip{
+      display: block;
+      font-size: 1rem;
+      color: #9E9E9E;
+      display: block;
+      line-height: 23px;
+      margin-bottom: 20px;
+      word-break: break-word;
+      text-align: center;
+    }
+    .btn-wrapper{
+      text-align: center;
+    }
+    .btn{
+      margin: 0 auto;
+      width: 50%;
+    }
+  }
+}
