@@ -65,7 +65,7 @@
           block color="#495ABE"
           class="mb10"
           @click="verifyQRCode"
-          :disabled="!codeFor2FA||codeFor2FA.length!==6||verifyIsLoading">{{ verifyIsLoading?"waiting...":"Confirm" }}</van-button>
+          :disabled="!codeFor2FA||codeFor2FA.length!==6||verifyIsLoading">{{ verifyIsLoading?"waiting...":"Next" }}</van-button>
       </div>
     </div>
     <!-- 2FA验证 Complete -->

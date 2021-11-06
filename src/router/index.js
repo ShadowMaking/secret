@@ -10,6 +10,7 @@ const Backup = () => import('../views/Backup/index')
 const SocailSendEmail = () => import('../views/SocailSendEmail/index')
 const AddFriends = () => import('../views/SocailSendEmail/AddFriends')
 const SocailRecovery = () => import('../views/SocailRecovery/index')
+const Introduction = () => import('../views/Introduction/index')
 
 // cache origin push method
 const originalPush = VueRouter.prototype.push
@@ -55,6 +56,15 @@ const routes = [
   },
   {
     path: '/home',
+    /* name: 'home',
+    component: Home, */
+    name: 'introduction',
+    component: Introduction,
+  },
+  {
+    path: '/introduction',
+    /* name: 'introduction',
+    component: Introduction, */
     name: 'home',
     component: Home,
   },
