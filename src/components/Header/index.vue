@@ -66,8 +66,8 @@
                 <van-icon name="friends-o" class="opt-icon" />
                 <span>Friends</span>
               </div>
-              <div class="opt-item van-hairline--bottom" @click="toPage('addfriends')">
-                <router-link to="/home">
+              <div class="opt-item van-hairline--bottom">
+                <router-link to="/introduction">
                   <i class="opt-icon icon-bridge"></i>
                   <span>Bridge</span>
                 </router-link>
