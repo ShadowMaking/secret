@@ -162,7 +162,23 @@ export default {
         settingData: this.settingData,
         updateType: 'store'
       })
-      this.$router.push({ name: 'ssendemail', query: {type: 'mn'} })
+      // this.$router.push({ name: 'ssendemail', query: {type: 'mn'} })
+      this.getAllMyFriendsList();
+    },
+    async getAllMyFriendsList() {
+      const userId = this.thirdUserId;
+      if (!userId) {
+        console.log('can detect userID after third login') 
+        return
+      }
+      const { hasError, list, error } = await this.$store.dispatch('GetMyFriendsList', {userId});
+      if (!hasError) {
+        if (list.length < 2) {
+          this.$router.push({ name: 'addfriends', query: {type: 'mn'} })
+        } else {
+          this.$router.push({ name: 'ssendemail', query: {type: 'mn'} })
+        }
+      }
     },
     handleInputChange(value) {
       console.log(value)

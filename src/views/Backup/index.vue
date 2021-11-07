@@ -12,7 +12,8 @@
           <div class="backup-setting-wrapper">
             <van-cell-group>
               <van-field v-model="createType" label="Type" readonly class="createType-select" :disabled="createTypeDisabled" @click="showSelectType('create')"/>
-              <van-field v-model="backupName" label="Name" :formatter="formatterTrim" placeholder="name(not Chinese characters)" :disabled="createTypeDisabled" />
+              <van-field v-model="backupName" label="Name" :formatter="formatterTrim" placeholder="name(not Chinese characters)" :disabled="createTypeDisabled"
+              @focus="handlesInputFocus" />
               <van-field
                 v-model="backupComment"
                 :formatter="formatterTrim"
@@ -49,7 +50,7 @@
           <div class="backup-setting-wrapper">
             <van-cell-group>
               <van-field v-model="importType" label="Type" readonly class="createType-select" :disabled="importTypeDisabled" @click="showSelectType('import')"/>
-              <van-field v-model="backupNameForImport" :formatter="formatterTrim" label="Name" placeholder="name(not Chinese characters)" :disabled="importTypeDisabled" />
+              <van-field v-model="backupNameForImport" :formatter="formatterTrim" label="Name" placeholder="name(not Chinese characters)" :disabled="importTypeDisabled" @focus="handlesInputFocus"/>
               <van-field
                 v-model="backupCommentForImport"
                 :formatter="formatterTrim"
@@ -91,7 +92,7 @@
 <script>
 import Vue from 'vue';
 import _ from 'lodash'
-import { Field, Popup, Tab, Tabs, } from 'vant';
+import { Field, Popup, Tab, Tabs, Toast} from 'vant';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
 import MnemonicForAccount from './Components/MnemonicForAccount'
 import PrivatekeyForAccount from './Components/PrivatekeyForAccount'
@@ -102,6 +103,7 @@ Vue.use(Field)
 Vue.use(Popup)
 Vue.use(Tab)
 Vue.use(Tabs)
+Vue.use(Toast)
 
 export default {
   name: 'Backup',
@@ -199,6 +201,12 @@ export default {
     },
     formatterTrim(value) {
       return formatTrim(value)
+    },
+    handlesInputFocus() {
+      var settingdata = JSON.parse(getFromStorage('settingdata'));
+      if (settingdata && Object.prototype.hasOwnProperty.call(settingdata, 'name')) {
+        Toast('continuing will overwrite the existing backup');
+      }
     }
   },
   created() {

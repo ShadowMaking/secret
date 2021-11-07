@@ -133,6 +133,7 @@ export default {
       showThirdLoginTip: false,
       showConfirmDialog: false,
       currentFriendData: null,
+      pageOrigin: this.$route.query.type,//mn-sendemail
     }
   },
   components: {
@@ -221,6 +222,9 @@ export default {
       if (!hasError) {
         this.friendsList = this.generateFriendsList(list)
         this.total = list.length // TODO
+        if (this.pageOrigin == 'mn' && this.total >= 2) {
+          this.$router.push({ name: 'ssendemail', query: {type: this.pageOrigin} })
+        }
       }
     },
     async addFriend() {
