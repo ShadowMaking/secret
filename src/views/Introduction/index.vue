@@ -13,7 +13,7 @@
     <div class="tip-wrapper bridge">
       <div class="top">
         <h4>Bridge</h4>
-        <a><router-link to="/home">GO</router-link></a>
+        <a><router-link to="/introduction">GO</router-link></a>
       </div>
       <span class="tip">Bridge realizes the function of asset transfer between L1 and L2，</span>
       <span class="tip">You can ：</span>
