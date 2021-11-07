@@ -18,6 +18,7 @@
   .header-right {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     .account{
       display: block;
       width: 25px;
@@ -77,6 +78,12 @@
   .language {
     background: url("~@/assets/icon_language.png") center center no-repeat;
     background-size: 100% 100%;
+  }
+}
+
+#header{
+  ::v-deep.van-overlay{
+    background-color: transparent;
   }
 }
 
@@ -213,6 +220,13 @@
     .opt-item {
       padding: 13px 0;
       .opt-icon {margin-right: 5px; vertical-align: middle; font-size: 16px;}
+      .icon-bridge {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        background: url('~@/assets/icon_bridge.png') center center;
+        background-size: contain;
+      }
       span, i { color: #333; }
     }
   }

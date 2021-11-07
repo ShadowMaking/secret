@@ -1,0 +1,25 @@
+.social-recovery-introduction-page {
+  .tip-wrapper {
+    padding: 20px;
+    border: 1px solid #ccc;
+    background: #fff;
+    box-shadow: 10px 10px 10px #ccc;
+    margin: 20px 20px 30px;
+    line-height: 25px;
+    .tip {word-break: break-word; display: block;}
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      h4 { font-size: 1rem; }
+      a { text-decoration: underline; color: #495ABE; cursor: pointer; width: 30px; text-align: right;}
+    }
+    ul {
+      display: flex;
+      flex-direction: column;
+      list-style: disc;
+      padding-left: 15px;
+    }
+  }
+}

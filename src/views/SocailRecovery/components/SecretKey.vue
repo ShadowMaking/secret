@@ -117,7 +117,7 @@ export default {
     changeInputVal(val, record) {
       const inputVals = _.cloneDeep(this.friendsInputValsMap)
       if (val) {
-        inputVals[`${record.id}-inputVal`] = val
+        inputVals[`${record.id}-inputVal`] = val.trim()
       }
       this.friendsInputValsMap = inputVals;
     },
@@ -132,7 +132,7 @@ export default {
 
       const splits = Object.values(this.friendsInputValsMap).filter(i=>!!i)
       if (splits.length < this.recoveryNumber) {
-        Toast(`至少提供${this.recoveryNumber}个分片`)
+        Toast(`At least${this.recoveryNumber}secret share`)
         return
       }
       const combineStr = combine(splits)
