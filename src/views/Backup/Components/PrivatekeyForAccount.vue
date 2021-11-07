@@ -5,6 +5,7 @@
         <div class="import-wrapper-inner" @click="copyPrivateKey('import')">
           <van-field
             v-model="importPrivatekey"
+            :formatter="formatterTrim"
             rows="2"
             autosize
             label=""
@@ -78,6 +79,7 @@ import MenonicConfirmComplete from '@/components/SocialRecovery/MenonicConfirmCo
 import _ from 'lodash'
 import { SecLevelEnum, generate_mnemonic, generate_key, split } from '@/utils/secretshare'
 import { copyTxt } from '@/utils/index';
+import { formatTrim } from '@/utils/str';
 
 Vue.use(Icon);
 Vue.use(Tab);
@@ -198,6 +200,9 @@ export default {
         Toast('Copied')
       }
     },
+    formatterTrim(value) {
+      return formatTrim(value)
+    }
   },
   mounted() {
     if (this.type === 'create') {

@@ -5,6 +5,7 @@
         <div class="import-wrapper-inner" @click="copyMnemonic">
           <van-field
             v-model="importMnemonic"
+            :formatter="formatterTrim"
             rows="2"
             autosize
             label=""
@@ -69,6 +70,7 @@ import Menonic2FAConfirm from '@/components/SocialRecovery/Menonic2FAConfirm'
 import MenonicConfirmComplete from '@/components/SocialRecovery/MenonicConfirmComplete'
 import { SecLevelEnum, generate_mnemonic, generate_key, split } from '@/utils/secretshare'
 import { copyTxt } from '@/utils/index';
+import { formatTrim } from '@/utils/str';
 
 Vue.use(Tab);
 Vue.use(Tabs);
@@ -190,6 +192,9 @@ export default {
         Toast('Copied')
       }
     },
+    formatterTrim(value) {
+      return formatTrim(value)
+    }
   },
   mounted() {
     if (this.type === 'create') {

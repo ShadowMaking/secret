@@ -12,9 +12,10 @@
           <div class="backup-setting-wrapper">
             <van-cell-group>
               <van-field v-model="createType" label="Type" readonly class="createType-select" :disabled="createTypeDisabled" @click="showSelectType('create')"/>
-              <van-field v-model="backupName" label="Name" :formatter="formatterBackupName" placeholder="name(not Chinese characters)" :disabled="createTypeDisabled" />
+              <van-field v-model="backupName" label="Name" :formatter="formatterTrim" placeholder="name(not Chinese characters)" :disabled="createTypeDisabled" />
               <van-field
                 v-model="backupComment"
+                :formatter="formatterTrim"
                 rows="1"
                 :disabled="createTypeDisabled"
                 autosize
@@ -48,9 +49,10 @@
           <div class="backup-setting-wrapper">
             <van-cell-group>
               <van-field v-model="importType" label="Type" readonly class="createType-select" :disabled="importTypeDisabled" @click="showSelectType('import')"/>
-              <van-field v-model="backupNameForImport" :formatter="formatterBackupName" label="Name" placeholder="name(not Chinese characters)" :disabled="importTypeDisabled" />
+              <van-field v-model="backupNameForImport" :formatter="formatterTrim" label="Name" placeholder="name(not Chinese characters)" :disabled="importTypeDisabled" />
               <van-field
                 v-model="backupCommentForImport"
+                :formatter="formatterTrim"
                 rows="1"
                 :disabled="importTypeDisabled"
                 autosize
@@ -94,6 +96,7 @@ import { saveToStorage, getFromStorage } from '@/utils/storage';
 import MnemonicForAccount from './Components/MnemonicForAccount'
 import PrivatekeyForAccount from './Components/PrivatekeyForAccount'
 import ThirdLoginTip from '@/components/ThirdLoginTip';
+import { formatTrim } from '@/utils/str';
 
 Vue.use(Field)
 Vue.use(Popup)
@@ -194,8 +197,8 @@ export default {
       this.activeCreateWalletType==='create'&&(this.createTypeDisabled = true)
       this.activeCreateWalletType==='import'&&(this.importTypeDisabled = true)
     },
-    formatterBackupName(value) {
-      return value.replace(/[^\w\/]/ig,'')
+    formatterTrim(value) {
+      return formatTrim(value)
     }
   },
   created() {

@@ -13,6 +13,7 @@
           <van-field
             rows="2"
             type="textarea"
+            :formatter="formatterTrim"
             class="split-input"
             :value="friendsInputValsMap[`${[item.id]}-inputVal`]"
             placeholder="Please enter the secret share"
@@ -53,6 +54,7 @@ import { saveToStorage, getFromStorage } from '@/utils/storage';
 import Menonic2FAConfirm from '@/components/SocialRecovery/Menonic2FAConfirm'
 import _ from 'lodash'
 import { SecLevelEnum, generate_mnemonic, generate_key, split, combine } from '@/utils/secretshare'
+import { formatTrim } from '@/utils/str';
 
 Vue.use(Icon);
 Vue.use(Field);
@@ -116,9 +118,7 @@ export default {
     },
     changeInputVal(val, record) {
       const inputVals = _.cloneDeep(this.friendsInputValsMap)
-      if (val) {
-        inputVals[`${record.id}-inputVal`] = val
-      }
+      inputVals[`${record.id}-inputVal`] = val
       this.friendsInputValsMap = inputVals;
     },
     confirmSecretKey() {
@@ -146,6 +146,9 @@ export default {
     toPage(pathName) {
       this.$router.push({ name: pathName })
     },
+    formatterTrim(value) {
+      return formatTrim(value)
+    }
   },
   mounted() {
     this.friendsList = [];

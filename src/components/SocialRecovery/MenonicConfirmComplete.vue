@@ -14,9 +14,11 @@
 </template>
 <script>
 import Vue from 'vue';
-import { Button } from 'vant';
+import { Button, Toast } from 'vant';
+import { getFromStorage } from '@/utils/storage';
 
 Vue.use(Button);
+Vue.use(Toast);
 
 export default {
   name: 'memonicConfirmComplete',
@@ -25,6 +27,12 @@ export default {
   },
   methods: {
     async confirm() {
+      // var settingdata = getFromStorage('settingdata');
+      // if (settingdata && settingdata.hasOwnProperty('id')) {
+      //   Toast('');
+      // } else {
+      //   this.$emit('childEvent');
+      // }
       this.$emit('childEvent');
     },
   },
