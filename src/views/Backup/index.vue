@@ -204,7 +204,7 @@ export default {
     },
     handlesInputFocus() {
       var settingdata = JSON.parse(getFromStorage('settingdata'));
-      if (settingdata && Object.prototype.hasOwnProperty.call(settingdata, 'name')) {
+      if (settingdata && Object.prototype.hasOwnProperty.call(settingdata, 'id')) {
         Toast('continuing will overwrite the existing backup');
       }
     }
