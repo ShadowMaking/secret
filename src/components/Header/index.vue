@@ -81,7 +81,7 @@
         </van-popover>
       </div>
     </mt-header>
-    <van-popup v-model="popupVisible" round :position="checkBrower()" :style="{ minHeight: '30%' }" class="common-bottom-popup">
+    <van-popup v-model="popupVisible" round :position="checkBrower()" :style="{ minHeight: '30%' }" class="common-bottom-popup" get-container="body">
       <div class="common-exchange-detail-wrap choose-wallet-popup">
         <div class="header"><h3>Choose Wallet</h3></div>
         <div class="choose-wallet" @click="connectWallet">
