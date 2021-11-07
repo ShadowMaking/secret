@@ -1,5 +1,5 @@
 <template>
-  <div style="width:100%">
+  <div style="width:100%" id="header">
     <mt-header title="" class="common-header" v-show="!$route.meta.hideHeader">
       <div slot="left" class="header-left">
         <div v-show="showBackIcon" class="flex flex-center" @click="back">
@@ -25,6 +25,9 @@
         </div>
         <van-popover
           key="accountSetpopover"
+          close-on-click-outside
+          :overlay="true"
+          :get-container="getContainer"
           v-model="showAccountSetPopover"
           trigger="click"
           placement="bottom-end">
@@ -66,7 +69,7 @@
                 <van-icon name="friends-o" class="opt-icon" />
                 <span>Friends</span>
               </div>
-              <div class="opt-item van-hairline--bottom">
+              <div class="opt-item van-hairline--bottom" @click="toPage('home')">
                 <router-link to="/introduction">
                   <i class="opt-icon icon-bridge"></i>
                   <span>Bridge</span>
@@ -296,6 +299,9 @@ export default {
     },
     handleThirdLoginCallback(info) {
       info.success && (this.gUName = info['userInfo'].name)
+    },
+    getContainer() {
+      return document.getElementById('header');
     },
   },
   async mounted() {
