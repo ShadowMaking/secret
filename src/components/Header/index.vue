@@ -1,28 +1,33 @@
 <template>
-  <div style="width:100%">
+  <div style="width:100%" id="header">
     <mt-header title="" class="common-header" v-show="!$route.meta.hideHeader">
       <div slot="left" class="header-left">
-        <div v-show="$route.name!=='home'" class="flex flex-center" @click="back">
+        <div v-show="showBackIcon" class="flex flex-center" @click="back">
           <van-icon name="arrow-left" class="back-icon" size="18"/>
           <span>{{ navTxt() }}</span>
         </div>
         <img :src="DEFAULTIMG.LOGO" class="logo" @click="toPage('home')" v-show="$route.name==='home'"/>
       </div>
       <div slot="right" class="header-right">
-        <span @click="showAccoutAddress" class="header-address" v-if="address!==''" >
-          {{ `${address.slice(0,6)}...${address.slice(-4)}` }}
-          <i class="link-icon"></i>
-        </span>
-        <div slot="right" v-else >
-          <a @click="chooseWallet" class="linkWallet">
-            <span>Connect Wallet</span>
+        <div v-show="showConnectWallet">
+          <span @click="showAccoutAddress" class="header-address" v-if="address!==''" >
+            {{ `${address.slice(0,6)}...${address.slice(-4)}` }}
             <i class="link-icon"></i>
-          </a>
-          <i class="icon night" style="display:none"></i>
-          <i class="icon language" style="display:none"></i>
+          </span>
+          <div slot="right" v-else >
+            <a @click="chooseWallet" class="linkWallet">
+              <span>Connect Wallet</span>
+              <i class="link-icon"></i>
+            </a>
+            <i class="icon night" style="display:none"></i>
+            <i class="icon language" style="display:none"></i>
+          </div>
         </div>
         <van-popover
           key="accountSetpopover"
+          close-on-click-outside
+          :overlay="true"
+          :get-container="getContainer"
           v-model="showAccountSetPopover"
           trigger="click"
           placement="bottom-end">
@@ -31,7 +36,7 @@
               <span>My Account</span>
               <van-button plain type="info" class="lockbutton" size="small" @click="disconnect" v-show="address">Disconnect</van-button>
             </div>
-            <ul class="accountlist">
+            <ul class="accountlist" v-if="address||gUName">
               <li class="active">
                 <van-icon name="success" class="active-status-icon"/>
                 <div class="account-text">
@@ -64,12 +69,17 @@
                 <van-icon name="friends-o" class="opt-icon" />
                 <span>Friends</span>
               </div>
+              <div class="opt-item van-hairline--bottom" @click="toPage('home')">
+                <router-link to="/introduction">
+                  <i class="opt-icon icon-bridge"></i>
+                  <span>Bridge</span>
+                </router-link>
+              </div>
             </div>
           </div>
           <template #reference><div class="account"></div></template>
         </van-popover>
       </div>
-      
     </mt-header>
     <van-popup v-model="popupVisible" round :position="checkBrower()" :style="{ minHeight: '30%' }" class="common-bottom-popup">
       <div class="common-exchange-detail-wrap choose-wallet-popup">
@@ -146,6 +156,12 @@ export default {
     },
     expectNetType() {
       return getExpectNetTypeByRouteName(this.$route.name)
+    },
+    showBackIcon() {
+      return this.$route.name!=='home' && this.$route.name!=='introduction'
+    },
+    showConnectWallet() {
+      return this.$route.name!=='introduction'
     },
   },
   watch: {
@@ -283,6 +299,9 @@ export default {
     },
     handleThirdLoginCallback(info) {
       info.success && (this.gUName = info['userInfo'].name)
+    },
+    getContainer() {
+      return document.getElementById('header');
     },
   },
   async mounted() {

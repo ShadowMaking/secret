@@ -18,7 +18,7 @@
         </div>
       </div>
       <div class="opt-wrapper">
-        <van-button block color="#495ABE" @click="confirmImportMnemonic" :disabled="!importMnemonic">Confirm</van-button>
+        <van-button block color="#495ABE" @click="confirmImportMnemonic" :disabled="!importMnemonic">Next</van-button>
       </div>
     </div>
     <div v-else>
