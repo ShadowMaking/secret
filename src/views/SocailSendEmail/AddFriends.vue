@@ -223,7 +223,17 @@ export default {
         this.friendsList = this.generateFriendsList(list)
         this.total = list.length // TODO
         if (this.pageOrigin == 'mn' && this.total >= 2) {
-          this.$router.push({ name: 'ssendemail', query: {type: this.pageOrigin} })
+          Dialog.confirm({
+            title: 'return to continue create secret?',
+            confirmButtonText: 'confirm',
+            cancelButtonText: 'cancel',
+          })
+            .then(() => {
+              this.$router.push({ name: 'ssendemail', query: {type: this.pageOrigin} })
+            })
+            .catch(() => {
+              // on cancel
+            });
         }
       }
     },
