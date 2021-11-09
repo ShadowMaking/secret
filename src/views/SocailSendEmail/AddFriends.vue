@@ -45,7 +45,6 @@
           :disabled="!prefixGmail||addIsLoading"
           @click="addFriend">Add</van-button>
         <div @click="refresh" class="refresh">
-          <!-- <van-loading color="#495ABE" size="20px" v-show="!refreshLoading" class="loading-refresh"/> -->
           <a class="button-update" @click="refresh">
             <i :class="['icon','ico-ipdate', {'spin': refreshLoading}]"></i>
             Refresh
@@ -111,7 +110,7 @@
 </template>
 <script>
 import Vue from 'vue';
-import { Toast, Popup, Button, List, Cell, Icon, Search, Field, Dialog, Loading } from 'vant';
+import { Toast, Popup, Button, List, Cell, Icon, Search, Field, Dialog} from 'vant';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import ThirdLoginTip from '@/components/ThirdLoginTip';
 import { copyTxt } from '@/utils/index';
@@ -125,7 +124,6 @@ Vue.use(Cell)
 Vue.use(Search)
 Vue.use(Field)
 Vue.use(Dialog)
-Vue.use(Loading)
 
 export default {
   name: "AddFriends",
@@ -231,7 +229,21 @@ export default {
       if (!hasError) {
         this.friendsList = this.generateFriendsList(list)
         this.total = list.length // TODO
-        if (this.pageOrigin == 'mn' && this.total >= 2) {
+        if (this.pageOrigin == 'mn' && list.length >= 2) {
+          this.getHasFriendsList();
+        }
+      }
+    },
+    async getHasFriendsList() {
+      const userId = getFromStorage('gUID')
+      if (!userId) {
+        console.log('can detect userID after third login') 
+        return
+      }
+      const { hasError, list, error } = await this.$store.dispatch('GetMyFriendsList', {userId,status: 1});
+      if (!hasError) {
+        this.total = list.length
+        if (list.length >= 2) {
           Dialog.confirm({
             title: 'return to continue create secret?',
             confirmButtonText: 'confirm',
