@@ -125,7 +125,42 @@
       padding: 5px;
       line-height: 30px;
     }
-    .refresh {
+    .refesh-icon {
+      width: 34px;
+      height: 34px;
+      margin-top: -2px;
+    }
+    .ad-icon {
+      margin-left: 15px;
+      width: 36px;
+      height: 36px;
+    }
+    .spin{
+      animation: spin 1s infinite linear;
+      -moz-animation: spin 1s infinite linear;
+      -webkit-animation: spin 1s infinite linear;
+      -o-animation: refreshing 1s infinite linear;
+    }
+    @-moz-keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @-webkit-keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @-o-keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    /* .refresh {
       border: 1px solid #495ABE;
       font-size: 12px;
       width: 76px;
@@ -146,33 +181,9 @@
         margin: -4px 4px 0 0;
         background-size: contain;
       }
-      .ico-ipdate.spin{
-        animation: spin 1s infinite linear;
-        -moz-animation: spin 1s infinite linear;
-        -webkit-animation: spin 1s infinite linear;
-        -o-animation: refreshing 1s infinite linear;
-      }
-      @-moz-keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
       
-      @-webkit-keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
       }
-      
-      @-o-keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    }
-    }
+    } */
   }
   .no-friends {
     color: #eee;

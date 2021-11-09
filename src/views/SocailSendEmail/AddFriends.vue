@@ -35,22 +35,23 @@
             placeholder="enter friend's email"
           />
           <span>@gmail.com</span>
+          <van-button 
+            style="border:0px"
+            :disabled="!prefixGmail||addIsLoading"
+            @click="addFriend">
+            <img src="~@/assets/add.png" class="ad-icon">
+          </van-button>
         </div>
-        <van-button
+        <!-- <van-button
           icon="plus"
           plain
           color="#495ABE"
           size="small"
           class="add-button"
           :disabled="!prefixGmail||addIsLoading"
-          @click="addFriend">Add</van-button>
-        <div @click="refresh" class="refresh">
-          <a class="button-update" @click="refresh">
-            <i :class="['icon','ico-ipdate', {'spin': refreshLoading}]"></i>
-            Refresh
-          </a>
-        </div>
-          
+          @click="addFriend"></van-button> -->
+        
+        <img src="~@/assets/refresh.png" :class="['refesh-icon', {'spin': refreshLoading}]"  @click="refresh">
       </div>
       <!-- friends list -->
       <van-list
