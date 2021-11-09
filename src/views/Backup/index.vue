@@ -12,8 +12,7 @@
           <div class="backup-setting-wrapper">
             <van-cell-group>
               <van-field v-model="createType" label="Type" readonly class="createType-select" :disabled="createTypeDisabled" @click="showSelectType('create')"/>
-              <van-field v-model="backupName" label="Name" :formatter="formatterTrim" placeholder="name(not Chinese characters)" :disabled="createTypeDisabled"
-              @focus="handlesInputFocus" />
+              <van-field v-model="backupName" label="Name" :formatter="formatterTrim"  placeholder="name(Only alphanumeric)" :disabled="createTypeDisabled" :error-message="nameErrorMsg"/>
               <van-field
                 v-model="backupComment"
                 :formatter="formatterTrim"
@@ -50,14 +49,14 @@
           <div class="backup-setting-wrapper">
             <van-cell-group>
               <van-field v-model="importType" label="Type" readonly class="createType-select" :disabled="importTypeDisabled" @click="showSelectType('import')"/>
-              <van-field v-model="backupNameForImport" :formatter="formatterTrim" label="Name" placeholder="name(not Chinese characters)" :disabled="importTypeDisabled" @focus="handlesInputFocus"/>
+              <van-field v-model="backupNameForImport" :formatter="formatterTrim" label="Name" placeholder="name(not Chinese characters)" :disabled="importTypeDisabled" :error-message="nameErrorMsg" />
               <van-field
                 v-model="backupCommentForImport"
                 :formatter="formatterTrim"
                 rows="1"
                 :disabled="importTypeDisabled"
                 autosize
-                label="Description"
+                label="Descridption"
                 type="textarea"
                 maxlength="150"
                 show-word-limit
@@ -92,7 +91,7 @@
 <script>
 import Vue from 'vue';
 import _ from 'lodash'
-import { Field, Popup, Tab, Tabs, Toast} from 'vant';
+import { Field, Popup, Tab, Tabs, Toast, CellGroup } from 'vant';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
 import MnemonicForAccount from './Components/MnemonicForAccount'
 import PrivatekeyForAccount from './Components/PrivatekeyForAccount'
@@ -104,6 +103,7 @@ Vue.use(Popup)
 Vue.use(Tab)
 Vue.use(Tabs)
 Vue.use(Toast)
+Vue.use(CellGroup)
 
 export default {
   name: 'Backup',
@@ -123,6 +123,7 @@ export default {
       showThirdLoginTip: false,
       createTypeDisabled: false,
       importTypeDisabled: false,
+      nameErrorMsg: '',
 
       backupName: '',
       backupComment: '',
@@ -131,6 +132,7 @@ export default {
     }
   },
   computed: {
+
     settingDataForCreate() {
       return {
         name: this.backupName,
@@ -205,7 +207,9 @@ export default {
     handlesInputFocus() {
       var settingdata = JSON.parse(getFromStorage('settingdata'));
       if (settingdata && Object.prototype.hasOwnProperty.call(settingdata, 'id')) {
-        Toast('continuing will overwrite the existing backup');
+        this.createTypeDisabled = true
+        this.importTypeDisabled = true
+        this.nameErrorMsg = 'Click `Recover Secret` and continue the previous backup'
       }
     }
   },
@@ -216,6 +220,7 @@ export default {
     if (query) {
       this.activeCreateWalletType = query.type
     }
+    this.handlesInputFocus()
   },
 }
 </script>

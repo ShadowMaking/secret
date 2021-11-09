@@ -2,10 +2,10 @@
   <div class="add-friends-page">
     <h4>
       <span>Friends</span>
-      <a class="button button-with-radius button-update" @click="refresh">
+      <!-- <a class="button button-with-radius button-update" @click="refresh">
         <i :class="['icon','ico-ipdate', {'spin': refreshLoading}]"></i>
         Refresh
-      </a>
+      </a> -->
     </h4>
     <span class="tip">We will split the secret key and send it through your Google Friends' Email</span>
     <span class="tip">Attention: The email of your friend must logined in Secret. You can click<i @click="copyUrl">https://secret.ieigen.com</i>to copy this link address for your friend</span>
@@ -44,6 +44,14 @@
           class="add-button"
           :disabled="!prefixGmail||addIsLoading"
           @click="addFriend">Add</van-button>
+        <div @click="refresh" class="refresh">
+          <!-- <van-loading color="#495ABE" size="20px" v-show="!refreshLoading" class="loading-refresh"/> -->
+          <a class="button-update" @click="refresh">
+            <i :class="['icon','ico-ipdate', {'spin': refreshLoading}]"></i>
+            Refresh
+          </a>
+        </div>
+          
       </div>
       <!-- friends list -->
       <van-list
@@ -103,7 +111,7 @@
 </template>
 <script>
 import Vue from 'vue';
-import { Toast, Popup, Button, List, Cell, Icon, Search, Field, Dialog } from 'vant';
+import { Toast, Popup, Button, List, Cell, Icon, Search, Field, Dialog, Loading } from 'vant';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import ThirdLoginTip from '@/components/ThirdLoginTip';
 import { copyTxt } from '@/utils/index';
@@ -117,6 +125,7 @@ Vue.use(Cell)
 Vue.use(Search)
 Vue.use(Field)
 Vue.use(Dialog)
+Vue.use(Loading)
 
 export default {
   name: "AddFriends",
