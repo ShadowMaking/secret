@@ -40,7 +40,7 @@
             :disabled="!prefixGmail||addIsLoading"
             class="add-friend-box"
             @click="addFriend">
-            <img src="~@/assets/addfriendIcon.png" class="ad-icon">
+            <img src="~@/assets/friendIcon.png" class="ad-icon">
           </van-button>
         </div>
         <!-- <van-button
