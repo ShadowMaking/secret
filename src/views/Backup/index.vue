@@ -96,7 +96,7 @@ import { saveToStorage, getFromStorage } from '@/utils/storage';
 import MnemonicForAccount from './Components/MnemonicForAccount'
 import PrivatekeyForAccount from './Components/PrivatekeyForAccount'
 import ThirdLoginTip from '@/components/ThirdLoginTip';
-import { formatTrim } from '@/utils/str';
+import { formatTrim, objHasOwnProperty } from '@/utils/str';
 
 Vue.use(Field)
 Vue.use(Popup)
@@ -206,12 +206,26 @@ export default {
     },
     handlesInputFocus() {
       var settingdata = JSON.parse(getFromStorage('settingdata'));
-      if (settingdata && Object.prototype.hasOwnProperty.call(settingdata, 'id')) {
-        this.createTypeDisabled = true
-        this.importTypeDisabled = true
-        this.nameErrorMsg = 'Click `Recover Secret` and continue the previous backup'
+      if (settingdata) {
+        if (objHasOwnProperty(settingdata, 'id')) {
+          this.createTypeDisabled = true
+          this.importTypeDisabled = true
+          this.nameErrorMsg = 'Click `Recover Secret` and continue the previous backup'
+        } else {
+          if (getFromStorage('mnemonic')) {
+            this.backView(settingdata, 'name', 'backupName')
+            this.backView(settingdata, 'desc', 'backupComment')
+          }
+          if (getFromStorage('privateKey')) {
+            this.backView(settingdata, 'name', 'backupNameForImport')
+            this.backView(settingdata, 'desc', 'backupCommentForImport')
+          }
+        }
       }
-    }
+    },
+    backView(storageObj, storageName, viewName) {
+      objHasOwnProperty(storageObj, storageName)&&(this[viewName] = storageObj[storageName])
+    },
   },
   created() {
   },

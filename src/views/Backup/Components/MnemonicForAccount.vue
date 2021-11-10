@@ -171,7 +171,7 @@ export default {
         console.log('can detect userID after third login') 
         return
       }
-      const { hasError, list, error } = await this.$store.dispatch('GetMyFriendsList', {userId});
+      const { hasError, list, error } = await this.$store.dispatch('GetMyFriendsList', {userId,status: 1});
       if (!hasError) {
         if (list.length < 2) {
           this.$router.push({ name: 'addfriends', query: {type: 'mn'} })
