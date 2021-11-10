@@ -38,6 +38,7 @@
           <van-button 
             style="border:0px"
             :disabled="!prefixGmail||addIsLoading"
+            class="add-friend-box"
             @click="addFriend">
             <img src="~@/assets/add.png" class="ad-icon">
           </van-button>
