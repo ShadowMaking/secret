@@ -131,7 +131,6 @@ export default {
       // 8018c90b292645f6b229b3177da9ecd64962d8358cba862c8674bb308cd6beed0e63677af5f10c08e2c13793b5ed4acc22f89320de06edbbabedfa5641d9ef80e9b480c0cccca16e07523b09967de1ec129c06febf64471d1b2cfe82690c0807f44
       // 802053d7939c8bed6442b62eeaa21ccc89d5a42b0474d9e8d62962b1022d691bd1e6cb743eb205e010e26ae76e5b51399fb0f381a8edcf2693ea301c87221471ced90b218498970ddbc46242f94a1ff9ffd9d8ecb3d8828bf2683074c619d95fed8
       // 80389adcbabace1bd66b0539971bf38ac6f77f6e8c8e5ca4561dda8188cbd4f6dbd5af7ec8730df8f1035e34d8c618d5bb7863e175fb21ed3b57c96ac57bfd91234d8d814c143523dfb65a3b6c57fa05eb15dd1208fcc1f6ea14ca96ac55d6d81ac
-
       const splits = Object.values(this.friendsInputValsMap).filter(i=>!!i)
       if (splits.length < this.recoveryNumber) {
         Toast(`At least${this.recoveryNumber}secret share`)
