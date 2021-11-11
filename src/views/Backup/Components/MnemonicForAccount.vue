@@ -5,7 +5,6 @@
         <div class="import-wrapper-inner" @click="copyMnemonic">
           <van-field
             v-model="importMnemonic"
-            :formatter="formatterTrim"
             rows="2"
             autosize
             label=""
@@ -70,7 +69,6 @@ import Menonic2FAConfirm from '@/components/SocialRecovery/Menonic2FAConfirm'
 import MenonicConfirmComplete from '@/components/SocialRecovery/MenonicConfirmComplete'
 import { SecLevelEnum, generate_mnemonic, generate_key, split } from '@/utils/secretshare'
 import { copyTxt } from '@/utils/index';
-import { formatTrim } from '@/utils/str';
 
 Vue.use(Tab);
 Vue.use(Tabs);
@@ -162,7 +160,8 @@ export default {
         settingData: this.settingData,
         updateType: 'store'
       })
-      // this.$router.push({ name: 'ssendemail', query: {type: 'mn'} })
+      //backview use
+      saveToStorage({ 'viewSecretType': ('mnemonic-'+ this.type) })
       this.getAllMyFriendsList();
     },
     async getAllMyFriendsList() {
@@ -208,14 +207,22 @@ export default {
         Toast('Copied')
       }
     },
-    formatterTrim(value) {
-      return formatTrim(value)
-    }
   },
   mounted() {
     if (this.type === 'create') {
-      const mnemonic = this.generateMnemonic();
+      let mnemonic = this.generateMnemonic()
       this.mnemonic = mnemonic
+    }
+    if (getFromStorage('settingdata') && getFromStorage('viewSecretType')) {
+      let viewSecretType = getFromStorage('viewSecretType').split('-');
+      let viewSecretValue = viewSecretType[0];
+      let viewSecretTab = viewSecretType[1];
+      if (viewSecretValue == 'mnemonic' && viewSecretTab == 'create') {
+        this.mnemonic = getFromStorage('mnemonic')
+      }
+      if (viewSecretValue == 'mnemonic' && viewSecretTab == 'import') {
+        this.importMnemonic = getFromStorage('mnemonic')
+      }
     }
   },
 }

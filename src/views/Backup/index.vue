@@ -15,7 +15,6 @@
               <van-field v-model="backupName" label="Name" :formatter="formatterTrim"  placeholder="name(Only alphanumeric)" :disabled="createTypeDisabled" :error-message="nameErrorMsg"/>
               <van-field
                 v-model="backupComment"
-                :formatter="formatterTrim"
                 rows="1"
                 :disabled="createTypeDisabled"
                 autosize
@@ -52,7 +51,6 @@
               <van-field v-model="backupNameForImport" :formatter="formatterTrim" label="Name" placeholder="name(not Chinese characters)" :disabled="importTypeDisabled" :error-message="nameErrorMsg" />
               <van-field
                 v-model="backupCommentForImport"
-                :formatter="formatterTrim"
                 rows="1"
                 :disabled="importTypeDisabled"
                 autosize

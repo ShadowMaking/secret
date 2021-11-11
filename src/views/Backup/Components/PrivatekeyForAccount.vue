@@ -5,7 +5,6 @@
         <div class="import-wrapper-inner" @click="copyPrivateKey('import')">
           <van-field
             v-model="importPrivatekey"
-            :formatter="formatterTrim"
             rows="2"
             autosize
             label=""
@@ -79,7 +78,6 @@ import MenonicConfirmComplete from '@/components/SocialRecovery/MenonicConfirmCo
 import _ from 'lodash'
 import { SecLevelEnum, generate_mnemonic, generate_key, split } from '@/utils/secretshare'
 import { copyTxt } from '@/utils/index';
-import { formatTrim } from '@/utils/str';
 
 Vue.use(Icon);
 Vue.use(Tab);
@@ -164,8 +162,10 @@ export default {
         settingData: this.settingData,
         updateType: 'store'
       })
+      //backview use
+      saveToStorage({ 'viewSecretType': ('privateKey-'+ this.type) })
+      // this.type == 'import' ? (saveToStorage({ 'importPrivateKey': this.privateKey })) : (saveToStorage({ 'createPrivateKey': this.privateKey }))
       this.getAllMyFriendsList();
-      // this.$router.push({ name: 'ssendemail', query: {type: 'pk'} })
     },
     async getAllMyFriendsList() {
       const userId = this.thirdUserId;
@@ -216,14 +216,22 @@ export default {
         Toast('Copied')
       }
     },
-    formatterTrim(value) {
-      return formatTrim(value)
-    }
-  },
+   },
   mounted() {
     if (this.type === 'create') {
-      const privateKey = this.generatePrivatekey()
+      let privateKey = this.generatePrivatekey()
       this.privateKey = privateKey
+    }
+    if (getFromStorage('settingdata') && getFromStorage('viewSecretType')) {
+      let viewSecretType = getFromStorage('viewSecretType').split('-');
+      let viewSecretValue = viewSecretType[0];
+      let viewSecretTab = viewSecretType[1];
+      if (viewSecretValue == 'privateKey' && viewSecretTab == 'create') {
+        this.privateKey = getFromStorage('privateKey')
+      }
+      if (viewSecretValue == 'privateKey' && viewSecretTab == 'import') {
+        this.importPrivatekey = getFromStorage('privateKey')
+      }
     }
   },
 }
