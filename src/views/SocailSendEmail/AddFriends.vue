@@ -73,9 +73,9 @@
           </div>
           <div class="status">
             <!-- 1:mutual  2:waiting 3:confirming -->
-            <van-icon name="exchange" size="25" color="#61D375" v-if="item.status===1" />
-            <van-icon name="clock-o" size="25" color="#61D375" v-else-if="item.status===2" />
-            <van-icon name="question-o" size="25" color="#61D375" v-else-if="item.status===3" @click="OpenConfirmDialog(item)"/>
+            <van-icon name="checked" size="25" color="#61D375" v-if="item.status===1" />
+            <van-icon name="clear" size="25" color="#61D375" v-else-if="item.status===2" />
+            <van-icon name="clock" size="25" color="#61D375" v-else-if="item.status===3" @click="OpenConfirmDialog(item)"/>
             <!-- <van-button
               v-else
               icon="plus"
