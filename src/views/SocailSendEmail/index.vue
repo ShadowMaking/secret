@@ -293,7 +293,7 @@ export default {
     },
     async addViewNum() {
       await this.$store.dispatch('addViewNum', { 
-        userId: this.sendEmailUserID, 
+        userId: getFromStorage('gUID'), 
         kind: 'secretShare' 
       })
     },
