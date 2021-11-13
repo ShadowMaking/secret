@@ -15,7 +15,8 @@ import {
   getOTPAuthUrl,
   verifyCode,
   saveOTPSecret,
-  getUserInfoById, } from '@/api/socailRecovery';
+  getUserInfoById,
+  addViewNum } from '@/api/socailRecovery';
 import _ from 'lodash'
 
 import TOTP from 'totp.js'
@@ -288,6 +289,19 @@ const socailRecovery = {
     GetUserInfoById({ commit }, params) {
       return new Promise((resolve, reject) => {
         getUserInfoById(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0 && data) {
+            resolve({ hasError: false, data  })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
+    addViewNum({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        addViewNum(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0 && data) {
             resolve({ hasError: false, data  })

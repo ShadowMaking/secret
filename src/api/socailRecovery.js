@@ -164,3 +164,16 @@ export const getUserInfoById = (data) => {
     method: 'get',
   })
 }
+
+// Increase number of views
+export const addViewNum = (data) => {
+  const userId = data['userId'];
+  const _data = {
+    kind: data['kind']
+  }
+  return request({
+    url: `/api/user/${userId}/statistics`,
+    method: 'get',
+    params: _data
+  })
+}

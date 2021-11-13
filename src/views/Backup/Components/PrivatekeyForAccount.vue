@@ -154,6 +154,10 @@ export default {
       // this.activeStepForPrivateKey= 2;
     },
     async completeCallback() {
+      if (!this.thirdUserId) {
+        console.log('can detect userID after third login') 
+        return
+      }
       await this.$store.dispatch('UpdatePrivateKeyForStorage', {
         privateKey: this.privateKey,
         updateType: 'store'
@@ -161,6 +165,10 @@ export default {
       await this.$store.dispatch('UpdateBackupSettingDataForStorage', {
         settingData: this.settingData,
         updateType: 'store'
+      })
+      await this.$store.dispatch('addViewNum', { 
+        userId: this.thirdUserId, 
+        kind: 'sendemail' 
       })
       //backview use
       saveToStorage({ 'viewSecretType': ('privateKey-'+ this.type) })

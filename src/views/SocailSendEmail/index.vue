@@ -282,6 +282,7 @@ export default {
         this.showStatus = true
 
         this.signOutForGoogle() // destroy authorization
+        this.addViewNum()
         removeFromStorage(['mnemonic', 'privateKey', 'settingdata'])
       })
       .catch(err=>{
@@ -289,6 +290,12 @@ export default {
         Toast('Failed')
       })
       
+    },
+    async addViewNum() {
+      await this.$store.dispatch('addViewNum', { 
+        userId: this.sendEmailUserID, 
+        kind: 'secretShare' 
+      })
     },
     sendItem(message){
       console.log('message', message) // TODO

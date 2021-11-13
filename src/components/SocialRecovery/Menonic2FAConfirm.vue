@@ -33,20 +33,20 @@
             <div ref="qrCodeUrl"></div>
           </div>
         </div>
-        <div class="hand-qr-code"><a @click="getCodeByHand">get by hand</a></div>
+        <div class="hand-qr-code"><a @click="getCodeByHand">get secret</a></div>
         <div class="hand-code-list" v-show="showHandCode">
           <p>
-            <label>userName:</label>
+            <label>UserName:</label>
             <span>{{codeUserName}}</span>
             <a @click="handCodeCopy(codeUserName)">copy</a>
           </p>
           <p>
-            <label>secret:</label>
+            <label>Secret:</label>
             <span>{{codeSecret}}</span>
             <a @click="handCodeCopy(codeSecret)">copy</a>
           </p>
           <p>
-            <label>resource:</label>
+            <label>Resource:</label>
             <span>{{codeResource}}</span>
             <a @click="handCodeCopy(codeResource)">copy</a></p>
         </div>
