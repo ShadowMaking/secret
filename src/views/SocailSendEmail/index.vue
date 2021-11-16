@@ -248,7 +248,8 @@ export default {
       list.forEach((i,index)=>{
         const headers_obj = {
           'To': i.email,
-          'Subject': `EigenSecretSplit For ${backupName}`
+          'Subject': `EigenSecretSplit For ${backupName}`,
+          'bodyText': 'text/html'
         };
         const message = splis[index];
         let email = '';
