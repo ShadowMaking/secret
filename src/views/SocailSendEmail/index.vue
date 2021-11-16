@@ -267,15 +267,13 @@ export default {
         in case of causing trouble for your friend to recover the secret.
         `
         const formatStr1 = `
-        <div style="border: 1px solid #dfdfdf">
-        <div style="width: 80%;height: 100px;background-color:blue;color: #fff;line-height: 100px;text-align:center">welcome!</div>
+        <div style="color: blue;>welcome!</div>
         Dear EigenSecret user:\r\n
         We received a request to back up your friend ${userEmail} secret share through your email address. 
         Please keep the following secret share in a safe place so that your friend can recover the secret:\r\n
         ${message}\r\n
         Please do not forward or provide this secret share to anyone, and please do not delete this email, 
         in case of causing trouble for your friend to recover the secret.
-        </div>
         `
         if (this.$route.query.email = 'test') {
           email += "\r\n" + formatStr1;
@@ -322,7 +320,16 @@ export default {
           'userId': userID,
           'resource': {
             'raw': window.btoa(message).replace(/\+/g, '-').replace(/\//g, '_'),
-            'payload': {'mimeType': 'text/html'}
+            'payload': {
+              "mimeType": "text/html",
+              "filename": "",
+              "headers": [
+               {
+                "name": "Content-Type",
+                "value": "text/html; charset=UTF-8"
+               }
+              ],
+            }
           }
         });
         sendRequest.execute((a,b,c)=>{
