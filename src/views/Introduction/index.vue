@@ -20,7 +20,7 @@
         <h4>Bridge</h4>
         <a><router-link to="/introduction">GO</router-link></a>
       </div>
-      <span class="tip">Bridge realizes the function of asset transfer between L1 and L2</span>
+      <span class="tip">Bridge realizes the function of asset transfer between L1 and L2.</span>
       <span class="tip">Now You can ：</span>
       <ul>
         <li>Deposit to L2：Transfer assets from the Layer1 wallet to the EigenSecret l2 wallet, or directly deposit through the Layer2 wallet.</li>
