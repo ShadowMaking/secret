@@ -249,7 +249,7 @@ export default {
         const headers_obj = {
           'To': i.email,
           'Subject': `EigenSecretSplit For ${backupName}`,
-          // 'bodyText': 'text/html'
+          'bodyText': 'text/html'
         };
         const message = splis[index];
         let email = '';
@@ -321,9 +321,9 @@ export default {
         const sendRequest = gapi.client.gmail.users.messages.send({
           'userId': userID,
           'resource': {
-            'raw': window.btoa(message).replace(/\+/g, '-').replace(/\//g, '_')
-          },
-          'payload': {'mimeType': 'text/html'}
+            'raw': window.btoa(message).replace(/\+/g, '-').replace(/\//g, '_'),
+            'payload': {'mimeType': 'text/html'}
+          }
         });
         sendRequest.execute((a,b,c)=>{
           if (a.code) {
