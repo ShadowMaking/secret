@@ -10,7 +10,7 @@
       </div>
       <div slot="right" class="header-right">
         <div v-show="showConnectWallet">
-          <span @click="showAccoutAddress" class="header-address" v-if="address!==''" >
+          <span @click="showAccoutAddress" class="header-address" id="header-address-popup" v-if="address!==''" >
             {{ `${address.slice(0,6)}...${address.slice(-4)}` }}
             <i class="link-icon"></i>
           </span>
@@ -89,7 +89,7 @@
         </div>
       </div>
     </van-popup>
-    <van-popup v-model="showAccountPopup" round key="showAccount">
+    <van-popup v-model="showAccountPopup" round key="showAccount" get-container="#header-address-popup" :style="{ top: '134px' }">
       <div class="show-accrout-address-popup">
         <div class="header"><h3>Account</h3></div>
         <div class="inner-wraper">
