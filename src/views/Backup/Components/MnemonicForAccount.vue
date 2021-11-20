@@ -152,6 +152,10 @@ export default {
       // this.activeStepForMnemonic = 2;
     },
     async completeCallback() {
+      if (!this.thirdUserId) {
+        console.log('can detect userID after third login') 
+        return
+      }
       await this.$store.dispatch('UpdateMnemonicForStorage', {
         mnemonic: this.mnemonic,
         updateType: 'store'
@@ -160,7 +164,28 @@ export default {
         settingData: this.settingData,
         updateType: 'store'
       })
-      this.$router.push({ name: 'ssendemail', query: {type: 'mn'} })
+      await this.$store.dispatch('addViewNum', { 
+        userId: this.thirdUserId, 
+        kind: 'sendemail' 
+      })
+      //backview use
+      saveToStorage({ 'viewSecretType': ('mnemonic-'+ this.type) })
+      this.getAllMyFriendsList();
+    },
+    async getAllMyFriendsList() {
+      const userId = this.thirdUserId;
+      if (!userId) {
+        console.log('can detect userID after third login') 
+        return
+      }
+      const { hasError, list, error } = await this.$store.dispatch('GetMyFriendsList', {userId,status: 1});
+      if (!hasError) {
+        if (list.length < 2) {
+          this.$router.push({ name: 'addfriends', query: {type: 'mn'} })
+        } else {
+          this.$router.push({ name: 'ssendemail', query: {type: 'mn'} })
+        }
+      }
     },
     handleInputChange(value) {
       console.log(value)
@@ -193,8 +218,19 @@ export default {
   },
   mounted() {
     if (this.type === 'create') {
-      const mnemonic = this.generateMnemonic();
+      let mnemonic = this.generateMnemonic()
       this.mnemonic = mnemonic
+    }
+    if (getFromStorage('settingdata') && getFromStorage('viewSecretType')) {
+      let viewSecretType = getFromStorage('viewSecretType').split('-');
+      let viewSecretValue = viewSecretType[0];
+      let viewSecretTab = viewSecretType[1];
+      if (viewSecretValue == 'mnemonic' && viewSecretTab == 'create') {
+        this.mnemonic = getFromStorage('mnemonic')
+      }
+      if (viewSecretValue == 'mnemonic' && viewSecretTab == 'import') {
+        this.importMnemonic = getFromStorage('mnemonic')
+      }
     }
   },
 }

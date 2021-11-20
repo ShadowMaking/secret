@@ -248,7 +248,7 @@ export default {
       list.forEach((i,index)=>{
         const headers_obj = {
           'To': i.email,
-          'Subject': `EigenSecretSplit For ${backupName}`
+          'Subject': `EigenSecretSplit For ${backupName}`,
         };
         const message = splis[index];
         let email = '';
@@ -265,6 +265,7 @@ export default {
         Please do not forward or provide this secret share to anyone, and please do not delete this email, 
         in case of causing trouble for your friend to recover the secret.
         `
+        
         email += "\r\n" + formatStr;
         mesList.push(email)
         console.log('email', email)
@@ -282,6 +283,7 @@ export default {
         this.showStatus = true
 
         this.signOutForGoogle() // destroy authorization
+        this.addViewNum()
         removeFromStorage(['mnemonic', 'privateKey', 'settingdata'])
       })
       .catch(err=>{
@@ -290,6 +292,12 @@ export default {
       })
       
     },
+    async addViewNum() {
+      await this.$store.dispatch('addViewNum', { 
+        userId: getFromStorage('gUID'), 
+        kind: 'secretShare' 
+      })
+    },
     sendItem(message){
       console.log('message', message) // TODO
       const userID = this.sendEmailUserID
@@ -297,7 +305,16 @@ export default {
         const sendRequest = gapi.client.gmail.users.messages.send({
           'userId': userID,
           'resource': {
-            'raw': window.btoa(message).replace(/\+/g, '-').replace(/\//g, '_')
+            'raw': window.btoa(message).replace(/\+/g, '-').replace(/\//g, '_'),
+            // 'payload': {
+            //   "mimeType": "text/html",
+            //   "headers": [
+            //    {
+            //     "name": "Content-Type",
+            //     "value": "text/html; charset=UTF-8"
+            //    }
+            //   ],
+            // }
           }
         });
         sendRequest.execute((a,b,c)=>{

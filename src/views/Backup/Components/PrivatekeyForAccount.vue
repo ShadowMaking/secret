@@ -154,6 +154,10 @@ export default {
       // this.activeStepForPrivateKey= 2;
     },
     async completeCallback() {
+      if (!this.thirdUserId) {
+        console.log('can detect userID after third login') 
+        return
+      }
       await this.$store.dispatch('UpdatePrivateKeyForStorage', {
         privateKey: this.privateKey,
         updateType: 'store'
@@ -162,7 +166,29 @@ export default {
         settingData: this.settingData,
         updateType: 'store'
       })
-      this.$router.push({ name: 'ssendemail', query: {type: 'pk'} })
+      await this.$store.dispatch('addViewNum', { 
+        userId: this.thirdUserId, 
+        kind: 'sendemail' 
+      })
+      //backview use
+      saveToStorage({ 'viewSecretType': ('privateKey-'+ this.type) })
+      // this.type == 'import' ? (saveToStorage({ 'importPrivateKey': this.privateKey })) : (saveToStorage({ 'createPrivateKey': this.privateKey }))
+      this.getAllMyFriendsList();
+    },
+    async getAllMyFriendsList() {
+      const userId = this.thirdUserId;
+      if (!userId) {
+        console.log('can detect userID after third login') 
+        return
+      }
+      const { hasError, list, error } = await this.$store.dispatch('GetMyFriendsList', {userId,status: 1});
+      if (!hasError) {
+        if (list.length < 2) {
+          this.$router.push({ name: 'addfriends', query: {type: 'pk'} })
+        } else {
+          this.$router.push({ name: 'ssendemail', query: {type: 'pk'} })
+        }
+      }
     },
     handleInputChange(value) {
       console.log(value)
@@ -198,11 +224,22 @@ export default {
         Toast('Copied')
       }
     },
-  },
+   },
   mounted() {
     if (this.type === 'create') {
-      const privateKey = this.generatePrivatekey()
+      let privateKey = this.generatePrivatekey()
       this.privateKey = privateKey
+    }
+    if (getFromStorage('settingdata') && getFromStorage('viewSecretType')) {
+      let viewSecretType = getFromStorage('viewSecretType').split('-');
+      let viewSecretValue = viewSecretType[0];
+      let viewSecretTab = viewSecretType[1];
+      if (viewSecretValue == 'privateKey' && viewSecretTab == 'create') {
+        this.privateKey = getFromStorage('privateKey')
+      }
+      if (viewSecretValue == 'privateKey' && viewSecretTab == 'import') {
+        this.importPrivatekey = getFromStorage('privateKey')
+      }
     }
   },
 }

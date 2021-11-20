@@ -33,6 +33,23 @@
             <div ref="qrCodeUrl"></div>
           </div>
         </div>
+        <div class="hand-qr-code"><a @click="getCodeByHand">get secret</a></div>
+        <div class="hand-code-list" v-show="showHandCode">
+          <p>
+            <label>UserName:</label>
+            <span>{{codeUserName}}</span>
+            <a @click="handCodeCopy(codeUserName)">copy</a>
+          </p>
+          <p>
+            <label>Secret:</label>
+            <span>{{codeSecret}}</span>
+            <a @click="handCodeCopy(codeSecret)">copy</a>
+          </p>
+          <p>
+            <label>Resource:</label>
+            <span>{{codeResource}}</span>
+            <a @click="handCodeCopy(codeResource)">copy</a></p>
+        </div>
       </div>
       <div v-else>
         <div class="tip-info">
@@ -82,12 +99,13 @@
 </template>
 <script>
 import Vue from 'vue';
-import { Button, Field, Toast, Popover } from 'vant';
+import { Button, Field, Toast, Popover} from 'vant';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
 import QRCode from 'qrcodejs2'
 import _ from 'lodash'
 import ThirdLoginTip from '@/components/ThirdLoginTip';
 import MenonicConfirmComplete from '@/components/SocialRecovery/MenonicConfirmComplete'
+import { copyTxt } from '@/utils/index';
 
 Vue.use(Button);
 Vue.use(Field);
@@ -107,6 +125,11 @@ export default {
       verifySuccess: false,
       showMenonic: true,
       saveSecretDisabled: false,
+      showHandCode: false,
+
+      codeUserName: '',
+      codeSecret: '',
+      codeResource: 'EigenNetwork',
     }
   },
   components: {
@@ -203,6 +226,8 @@ export default {
         this.saveSecretDisabled = true
         console.log('can not save OTP secret')
       }
+      this.codeSecret = secret
+      this.codeUserName = userInfo.email
       this.qrCodeUrl = url
       return url
     },
@@ -219,8 +244,15 @@ export default {
           this.creatQrCode();
         },0)
       } else {
-        Toast('创建失败，稍后重试')
+        Toast('error')
       }
+    },
+    getCodeByHand() {
+      this.showHandCode = !(this.showHandCode)
+    },
+    handCodeCopy(value) {
+      copyTxt(value)
+      Toast('Copied')
     },
   },
   created() {

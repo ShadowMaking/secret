@@ -181,6 +181,26 @@
       }
     }
   }
+  .hand-qr-code {
+    text-align: center;
+    a {
+      color: #495ABE;
+      font-size: 1rem;
+    }
+    
+  }
+  .hand-code-list {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    line-height: 1.5rem;
+    label {
+      margin-right: 0.5rem;
+    }
+    a {
+      color: #495ABE;
+      margin-left: 20px;
+    }
+  }
 }
 .generate-QRCode-popover {
   font-size: 0.8rem;

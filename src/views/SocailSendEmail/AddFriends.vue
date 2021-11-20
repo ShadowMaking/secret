@@ -2,10 +2,10 @@
   <div class="add-friends-page">
     <h4>
       <span>Friends</span>
-      <a class="button button-with-radius button-update" @click="refresh">
+      <!-- <a class="button button-with-radius button-update" @click="refresh">
         <i :class="['icon','ico-ipdate', {'spin': refreshLoading}]"></i>
         Refresh
-      </a>
+      </a> -->
     </h4>
     <span class="tip">We will split the secret key and send it through your Google Friends' Email</span>
     <span class="tip">Attention: The email of your friend must logined in Secret. You can click<i @click="copyUrl">https://secret.ieigen.com</i>to copy this link address for your friend</span>
@@ -35,15 +35,24 @@
             placeholder="enter friend's email"
           />
           <span>@gmail.com</span>
+          <van-button 
+            style="border:0px"
+            :disabled="!prefixGmail||addIsLoading"
+            class="add-friend-box"
+            @click="addFriend">
+            <img src="~@/assets/friendIcon.png" class="friend-icon">
+          </van-button>
         </div>
-        <van-button
+        <!-- <van-button
           icon="plus"
           plain
           color="#495ABE"
           size="small"
           class="add-button"
           :disabled="!prefixGmail||addIsLoading"
-          @click="addFriend">Add</van-button>
+          @click="addFriend"></van-button> -->
+        
+        <img src="~@/assets/refresh.png" :class="['refesh-icon', {'spin': refreshLoading}]"  @click="refresh">
       </div>
       <!-- friends list -->
       <van-list
@@ -64,9 +73,9 @@
           </div>
           <div class="status">
             <!-- 1:mutual  2:waiting 3:confirming -->
-            <van-icon name="exchange" size="25" color="#61D375" v-if="item.status===1" />
-            <van-icon name="clock-o" size="25" color="#61D375" v-else-if="item.status===2" />
-            <van-icon name="question-o" size="25" color="#61D375" v-else-if="item.status===3" @click="OpenConfirmDialog(item)"/>
+            <van-icon name="checked" size="25" color="#61D375" v-if="item.status===1" />
+            <van-icon name="clear" size="25" color="#61D375" v-else-if="item.status===2" />
+            <van-icon name="clock" size="25" color="#61D375" v-else-if="item.status===3" @click="OpenConfirmDialog(item)"/>
             <!-- <van-button
               v-else
               icon="plus"
@@ -103,7 +112,7 @@
 </template>
 <script>
 import Vue from 'vue';
-import { Toast, Popup, Button, List, Cell, Icon, Search, Field, Dialog } from 'vant';
+import { Toast, Popup, Button, List, Cell, Icon, Search, Field, Dialog} from 'vant';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import ThirdLoginTip from '@/components/ThirdLoginTip';
 import { copyTxt } from '@/utils/index';
@@ -133,6 +142,7 @@ export default {
       showThirdLoginTip: false,
       showConfirmDialog: false,
       currentFriendData: null,
+      pageOrigin: this.$route.query.type,//mn-sendemail
     }
   },
   components: {
@@ -221,6 +231,33 @@ export default {
       if (!hasError) {
         this.friendsList = this.generateFriendsList(list)
         this.total = list.length // TODO
+        if (this.pageOrigin == 'mn' && list.length >= 2) {
+          this.getHasFriendsList();
+        }
+      }
+    },
+    async getHasFriendsList() {
+      const userId = getFromStorage('gUID')
+      if (!userId) {
+        console.log('can detect userID after third login') 
+        return
+      }
+      const { hasError, list, error } = await this.$store.dispatch('GetMyFriendsList', {userId,status: 1});
+      if (!hasError) {
+        this.total = list.length
+        if (list.length >= 2) {
+          Dialog.confirm({
+            title: 'return to continue create secret?',
+            confirmButtonText: 'confirm',
+            cancelButtonText: 'cancel',
+          })
+            .then(() => {
+              this.$router.push({ name: 'ssendemail', query: {type: this.pageOrigin} })
+            })
+            .catch(() => {
+              // on cancel
+            });
+        }
       }
     },
     async addFriend() {

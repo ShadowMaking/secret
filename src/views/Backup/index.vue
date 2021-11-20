@@ -12,7 +12,7 @@
           <div class="backup-setting-wrapper">
             <van-cell-group>
               <van-field v-model="createType" label="Type" readonly class="createType-select" :disabled="createTypeDisabled" @click="showSelectType('create')"/>
-              <van-field v-model="backupName" label="Name" :formatter="formatterBackupName" placeholder="name(not Chinese characters)" :disabled="createTypeDisabled" />
+              <van-field v-model="backupName" label="Name" :formatter="formatterTrim"  placeholder="name(Only alphanumeric)" :disabled="createTypeDisabled" :error-message="nameErrorMsg"/>
               <van-field
                 v-model="backupComment"
                 rows="1"
@@ -48,7 +48,7 @@
           <div class="backup-setting-wrapper">
             <van-cell-group>
               <van-field v-model="importType" label="Type" readonly class="createType-select" :disabled="importTypeDisabled" @click="showSelectType('import')"/>
-              <van-field v-model="backupNameForImport" :formatter="formatterBackupName" label="Name" placeholder="name(not Chinese characters)" :disabled="importTypeDisabled" />
+              <van-field v-model="backupNameForImport" :formatter="formatterTrim" label="Name" placeholder="name(not Chinese characters)" :disabled="importTypeDisabled" :error-message="nameErrorMsg" />
               <van-field
                 v-model="backupCommentForImport"
                 rows="1"
@@ -89,16 +89,19 @@
 <script>
 import Vue from 'vue';
 import _ from 'lodash'
-import { Field, Popup, Tab, Tabs, } from 'vant';
+import { Field, Popup, Tab, Tabs, Toast, CellGroup } from 'vant';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
 import MnemonicForAccount from './Components/MnemonicForAccount'
 import PrivatekeyForAccount from './Components/PrivatekeyForAccount'
 import ThirdLoginTip from '@/components/ThirdLoginTip';
+import { formatTrim, objHasOwnProperty } from '@/utils/str';
 
 Vue.use(Field)
 Vue.use(Popup)
 Vue.use(Tab)
 Vue.use(Tabs)
+Vue.use(Toast)
+Vue.use(CellGroup)
 
 export default {
   name: 'Backup',
@@ -118,6 +121,7 @@ export default {
       showThirdLoginTip: false,
       createTypeDisabled: false,
       importTypeDisabled: false,
+      nameErrorMsg: '',
 
       backupName: '',
       backupComment: '',
@@ -126,6 +130,7 @@ export default {
     }
   },
   computed: {
+
     settingDataForCreate() {
       return {
         name: this.backupName,
@@ -194,9 +199,31 @@ export default {
       this.activeCreateWalletType==='create'&&(this.createTypeDisabled = true)
       this.activeCreateWalletType==='import'&&(this.importTypeDisabled = true)
     },
-    formatterBackupName(value) {
-      return value.replace(/[^\w\/]/ig,'')
-    }
+    formatterTrim(value) {
+      return formatTrim(value)
+    },
+    handlesInputFocus() {
+      var settingdata = JSON.parse(getFromStorage('settingdata'));
+      if (settingdata) {
+        if (objHasOwnProperty(settingdata, 'id')) {
+          this.createTypeDisabled = true
+          this.importTypeDisabled = true
+          this.nameErrorMsg = 'Click `Recover Secret` and continue the previous backup'
+        } else {
+          if (getFromStorage('mnemonic')) {
+            this.backView(settingdata, 'name', 'backupName')
+            this.backView(settingdata, 'desc', 'backupComment')
+          }
+          if (getFromStorage('privateKey')) {
+            this.backView(settingdata, 'name', 'backupNameForImport')
+            this.backView(settingdata, 'desc', 'backupCommentForImport')
+          }
+        }
+      }
+    },
+    backView(storageObj, storageName, viewName) {
+      objHasOwnProperty(storageObj, storageName)&&(this[viewName] = storageObj[storageName])
+    },
   },
   created() {
   },
@@ -205,6 +232,7 @@ export default {
     if (query) {
       this.activeCreateWalletType = query.type
     }
+    this.handlesInputFocus()
   },
 }
 </script>
