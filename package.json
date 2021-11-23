@@ -16,6 +16,7 @@
     "bignumber.js": "^9.0.1",
     "compression-webpack-plugin": "^5.0.0",
     "core-js": "^3.6.5",
+    "echarts": "^5.2.2",
     "ethers": "^5.0.24",
     "js-cookie": "^2.2.0",
     "lodash": "^4.17.21",
