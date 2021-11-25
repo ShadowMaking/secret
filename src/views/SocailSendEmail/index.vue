@@ -232,8 +232,8 @@ export default {
       gapi.auth2.getAuthInstance().signIn();
     },
     signOutForGoogle(event) {
-      gapi.auth2.getAuthInstance().disconnect();
-      // gapi.auth2.getAuthInstance().signOut();
+      // gapi.auth2.getAuthInstance().disconnect();
+      gapi.auth2.getAuthInstance().signOut();
     },
     async sendEmail(){
       const list = this.selectedFriendsList
