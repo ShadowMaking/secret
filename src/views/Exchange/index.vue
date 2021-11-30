@@ -17,14 +17,17 @@
           isMax=true
           type="From"
           :sourceData="assetsTokenList"
-          @exchangeEvent="inputChange('exchangFrom', value)" />
+          @selectChagne="val=>selectChagne('exchangFrom', val)"
+          @inputChange="val=>inputChange('exchangFrom', val)" />
       </div>
       <div class="from-box">
         <v-exchangItem
           key="toToken"
           type="To"
           :sourceData="allTokenList"
-          @exchangeEvent="inputChange('exchangeTo', value)" />
+          :inputDisabled="true"
+          @selectChagne="val=>selectChagne('exchangTo', val)"
+          @inputChange="val=>inputChange('exchangeTo', val)" />
       </div>
       <ul class="setting-box">
         <li>
@@ -68,7 +71,7 @@
 <script>
 import _ from 'lodash'
 import Vue from 'vue';
-import { Icon, Loading } from 'vant';
+import { Icon, Loading, Toast } from 'vant';
 import navTitle from '@/components/NavTitle/index';
 import exchangItem from '@/components/ExchangItem/index';
 import formSelect from '@/components/Select/index';
@@ -77,10 +80,12 @@ import { NETWORKSFORTOKEN } from '@/utils/netWorkForToken';
 import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange } from '@/utils/dashBoardTools';
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
+import { BigNumber } from "bignumber.js";
 import swapJson from './Swap.json'
 
 Vue.use(Icon);
 Vue.use(Loading);
+Vue.use(Toast);
 
 
 export default {
@@ -123,23 +128,44 @@ export default {
     gasPriceConfirmTime(type) {
       return `${this.gasPriceInfo && this.gasPriceInfo[type].confirmationTime}sec`
     },
-    inputChange(type, record) {
+    selectChagne(type, record) {
+      this[`${type}Token`] = record
+    },
+    async inputChange(type, record) {
+      if (type === 'exchangFrom') {
+        const tokenA = this.exchangFromToken
+        const tokenB = this.exchangToToken
+        const tokenASymbol = tokenA && !!tokenA['tokenAddress'] ?  tokenA['symbol'] : 'ETH'
+        const tokenBSymbol = tokenB && tokenB['symbol']
+        const changeType = `${tokenASymbol}/${tokenBSymbol}`
+        const { hasError, forUsdt } = await this.$store.dispatch('GetTokenAxchangeForUS', {changeType});
+        this.exchangTo = record && `${record}*${forUsdt}` || 0.00
+      }
       this[type] = record
     },
     async exchangeSubmit() {
       console.log(this.exchangFrom)
       console.log(this.exchangeTo)
+      const data = {
+        tokenFrom: this.exchangFromToken['tokenAddress'],
+        tokenTo: this.exchangToToken['tokenAddress'],
+        amountin_o: this.exchangFrom, // 100
+        amountmin_o: (BigNumber(this.exchangFrom) * BigNumber(slippageKey).div(100)).toFixed(2,1),
+        amountin: 100,
+        amountmin: 96,
+        fee: 3000,
+        gasInfo: { gasLimit: 1000000, gasPrice: 10 } // const gasInfo = { gasLimit: 100000, gasPrice: 29859858 }
+      }
+      console.log('exchangeData', data)
+      if (!data.tokenFrom) {
+        Toast('暂时不支持该币')
+        return
+      }
 
       const swap = '0x243B775Ec2dbDD7AC8982bDFa56c2d7316dD089d';
       const tokenA = '0x5076d190F242ae67E607CaAa081bF28F93Dc224D'
       const tokenB = '0x8730786a6cd94bE7F3100F4c5C0e67b0517Cda6B'
       const tokenC = '0xb0658e85D97ab457bD981b1233B14B1130A41333'
-
-      const fee = 3000
-      const amountin = 100
-      const amountmin = 96
-      // const gasInfo = { gasLimit: 100000, gasPrice: 29859858 }
-      const gasInfo = { gasLimit: 1000000, gasPrice: 10 }
 
       const abi = swapJson.abi
       const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
@@ -148,11 +174,11 @@ export default {
       console.log('myContract', myContract)
 
       await myContract.attach(swap)
-      myContract.swapExactInputSingle(tokenA,tokenB,fee,amountin,amountmin, gasInfo)
+      myContract.swapExactInputSingle(tokenA, tokenB, data.fee, data.amountin, data.amountmin, data.gasInfo)
       .then(async res => {
         console.log('res1', res)
         await res.wait()
-        myContract.swapExactOutputSingle(tokenA,tokenB,fee,amountin,amountmin, gasInfo)
+        myContract.swapExactOutputSingle(tokenA, tokenB, data.fee, data.amountin, data.amountmin, data.gasInfo)
         .then(async res => {
           console.log('res2', res)
           await res.wait()
@@ -209,10 +235,10 @@ export default {
       if (forAccounts) {
         const ETHAssets = await getDefaultETHAssets(this);
         this.assetsTokenList = [].concat([ETHAssets], tokenList)
-        this.exchangFrom = this.assetsTokenList[0]
+        this.exchangFromToken = this.assetsTokenList[0]
       } else {
         this.allTokenList = _.cloneDeep(tokenList)
-        this.exchangeTo = this.allTokenList[0]
+        this.exchangeToToken = this.allTokenList[0]
       }
     },
   },
