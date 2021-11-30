@@ -1,5 +1,5 @@
 <template>
-  <div class="withdraw-page">
+  <div class="withdraw-page content-box">
     <van-row type="flex" justify="space-between" align="center" class="top-address">
       <van-col span="12" class="textAlignLeft">Withdrawal Address</van-col>
       <van-col span="12" class="textAlignRight">

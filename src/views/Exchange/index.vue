@@ -1,0 +1,232 @@
+<template>
+  <div class="exchange-page content-box">
+    <v-navTitle title="Exchange"></v-navTitle>
+    <div class="exchange-content content-page">
+      <div class="from-box">
+        <v-formSelect 
+          label="NETWORK"
+          :labelShow="false" 
+          :defaultValue="defaultNetWork" 
+          :dataSource="netWorkList"
+          placeholder="chose network"
+          @change="handleNetworkChange" />
+      </div>
+      <div class="from-box">
+        <v-exchangItem
+          key="fromToken"
+          isMax=true
+          type="From"
+          :sourceData="assetsTokenList"
+          @exchangeEvent="inputChange('exchangFrom', value)" />
+      </div>
+      <div class="from-box">
+        <v-exchangItem
+          key="toToken"
+          type="To"
+          :sourceData="allTokenList"
+          @exchangeEvent="inputChange('exchangeTo', value)" />
+      </div>
+      <ul class="setting-box">
+        <li>
+          <h3 class="setting-title">Transaction Settings</h3>
+          <van-icon name="setting" @click="settingBtn" class="setting-icon"/>
+        </li>
+        <li><h3>Slippage Tolerance</h3><h3>{{slippageVal}}%</h3></li>
+        <!-- <li><h3>Allowance</h3><h3>limited</h3></li> -->
+        <li><h3>Estimated Gas Fee</h3><h3>${{gasVal}}</h3></li>
+        <li><h3>Network Fee</h3><h3>{{networkFee}}</h3></li>
+        <div v-if="showSettingData">
+          
+        </div>
+      </ul>
+      <div class="exchange-btn-box">
+        <a class="common-form-btn" @click="exchangeSubmit">Exchange</a>
+      </div>
+      <van-popup v-model="settingPopVisibel" round :style="{ maxWidth: '320px', width: '50%' }">
+        <div class="setting-popup-box">
+          <div class="header"><h3>Slippage Tolerance</h3></div>
+          <div class="slippage-list">
+            <a :class="{active: slippageKey == 2}" @click="slippageBtn(2, false)">2%</a>
+            <a :class="{active: slippageKey == 3}" @click="slippageBtn(3, false)">3%</a>
+            <span class="slippage-input" :class="{active: slippageKey == 4}" @input="slippageBtn('4', true)"><input type="number" name="slippage" v-model="slippageInput" placeholder="3">%</span>
+          </div>
+          <div class="header"><h3>Gas Price</h3></div>
+          <div>
+            <div v-if="loadingGas" :style="{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }"><van-loading type="spinner" /></div>
+            <ul class="gas-price-list" v-else>
+              <v-selectItem :class="{gasActive: gasKey == 'Fast'}" :rightVal="gasPriceValue('Fast')" labelShow=true leftTitle="Fast" :leftDes="gasPriceConfirmTime('Fast')" :icon="require('@/assets/form/gasFast.png')" @childevent="gasChagne('Fast')"></v-selectItem>
+              <v-selectItem :class="{gasActive: gasKey == 'Average'}" :rightVal="gasPriceValue('Average')" labelShow=true leftTitle="Average" :leftDes="gasPriceConfirmTime('Average')" :icon="require('@/assets/form/gasAverag.png')" @childevent="gasChagne('Average')"></v-selectItem>
+              <v-selectItem :class="{gasActive: gasKey == 'Custom'}" :rightVal="gasPriceValue('Average')" labelShow=true leftTitle="Custom" :icon="require('@/assets/form/gasCustom.png')" @childevent="gasChagne('Custom')"></v-selectItem>
+            </ul>
+          </div>
+        </div>
+      </van-popup>
+    </div>
+  </div>
+</template>
+
+<script>
+import _ from 'lodash'
+import Vue from 'vue';
+import { Icon, Loading } from 'vant';
+import navTitle from '@/components/NavTitle/index';
+import exchangItem from '@/components/ExchangItem/index';
+import formSelect from '@/components/Select/index';
+import selectItem from '@/components/SelectItem/index';
+import { NETWORKSFORTOKEN } from '@/utils/netWorkForToken';
+import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange } from '@/utils/dashBoardTools';
+import { ethers, utils } from 'ethers'
+import web3 from 'web3'
+import swapJson from './Swap.json'
+
+Vue.use(Icon);
+Vue.use(Loading);
+
+
+export default {
+  name: 'Exchange',
+  data() {
+    return {
+      currentChainInfo: null,
+      defaultNetWork: 1,
+      netWorkList: _.cloneDeep(NETWORKSFORTOKEN),
+      assetsTokenList: [],
+      allTokenList: [],
+      loadingGas: false,
+      gasPriceInfo: null,
+
+      exchangFrom: '',
+      exchangeTo: '',
+      settingPopVisibel: false,
+      showSettingData: false,
+      slippageKey: 2,
+      gasKey: 'Fast',
+      slippageVal: 2,
+      gasVal: 1,
+      networkFee: '~~',
+      slippageInput: 3,
+    }
+  },
+  components: {
+    "v-navTitle": navTitle,
+    "v-exchangItem": exchangItem,
+    "v-selectItem": selectItem,
+    "v-formSelect": formSelect,
+  },
+  computed: {
+    
+  },
+  methods: {
+    gasPriceValue(type) {
+      return this.gasPriceInfo && this.gasPriceInfo[type].gasPrice;
+    },
+    gasPriceConfirmTime(type) {
+      return `${this.gasPriceInfo && this.gasPriceInfo[type].confirmationTime}sec`
+    },
+    inputChange(type, record) {
+      this[type] = record
+    },
+    async exchangeSubmit() {
+      console.log(this.exchangFrom)
+      console.log(this.exchangeTo)
+
+      const swap = '0x243B775Ec2dbDD7AC8982bDFa56c2d7316dD089d';
+      const tokenA = '0x5076d190F242ae67E607CaAa081bF28F93Dc224D'
+      const tokenB = '0x8730786a6cd94bE7F3100F4c5C0e67b0517Cda6B'
+      const tokenC = '0xb0658e85D97ab457bD981b1233B14B1130A41333'
+
+      const fee = 3000
+      const amountin = 100
+      const amountmin = 96
+      // const gasInfo = { gasLimit: 100000, gasPrice: 29859858 }
+      const gasInfo = { gasLimit: 1000000, gasPrice: 10 }
+
+      const abi = swapJson.abi
+      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = metamaskProvider.getSigner(0);
+      const myContract = new ethers.Contract(swap, abi, signer)
+      console.log('myContract', myContract)
+
+      await myContract.attach(swap)
+      myContract.swapExactInputSingle(tokenA,tokenB,fee,amountin,amountmin, gasInfo)
+      .then(async res => {
+        console.log('res1', res)
+        await res.wait()
+        myContract.swapExactOutputSingle(tokenA,tokenB,fee,amountin,amountmin, gasInfo)
+        .then(async res => {
+          console.log('res2', res)
+          await res.wait()
+        })
+        .catch(error=>{
+          console.log(error)
+        })
+      })
+      .catch(error=>{
+        console.log(error)
+      })
+    },
+    async getGasPrice() {
+      const { hasError, data } = await this.$store.dispatch('GetGasPriceByEtherscan');
+      if (data) { this.gasPriceInfo = data }
+    },
+    async settingBtn() {
+      this.loadingGas = true;
+      this.settingPopVisibel = true
+      await this.getGasPrice()
+      this.loadingGas = false;
+
+      this.showSettingData = true
+      this.slippageVal = 2
+      this.gasVal = this.gasPriceInfo['Fast']['gasPrice']
+      this.networkFee = 'Fast'
+    },
+    gasChagne(type) {
+      this.gasKey = this.networkFee = type
+      this.gasVal = this.gasPriceInfo[type === 'Custom'?'Average': type]['gasPrice']
+    },
+    slippageBtn(val,isInput) {
+      this.slippageKey = val
+      isInput ? (this.slippageVal = this.slippageInput) : (this.slippageVal = val)
+    },
+    handleNetworkChange(data) {
+      this.currentChainInfo = data.value;
+      metamaskNetworkChange(data, async (res)=>{
+        if (!res) {
+          await this.getTokenList(true)
+        }
+      })
+    },
+    async getTokenList(forAccounts) {
+      const selectedConnectAddress = window.ethereum.selectedAddress;
+      if (!selectedConnectAddress) {
+        this.allTokenList = []
+        this.assetsTokenList = []
+        return
+      }
+      const methodName = forAccounts ? 'GetAvailableTokenAssets' : 'GetAllTokenList'
+      const { hasError, list } = await this.$store.dispatch(methodName, { selectedConnectAddress, chainInfo: this.currentChainInfo });
+      const tokenList = await generateTokenList(_.cloneDeep(list), this)
+      if (forAccounts) {
+        const ETHAssets = await getDefaultETHAssets();
+        this.assetsTokenList = [].concat([ETHAssets], tokenList)
+        this.exchangFrom = this.assetsTokenList[0]
+      } else {
+        this.allTokenList = _.cloneDeep(tokenList)
+        this.exchangeTo = this.allTokenList[0]
+      }
+    },
+  },
+  created() {
+    this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
+    window.ethereum && (this.defaultNetWork = web3.utils.hexToNumber(window.ethereum.chainId))
+  },
+  async mounted() {
+    await this.getTokenList(true)
+    await this.getTokenList()
+  },
+  
+};
+</script>
+<style lang="scss" scoped>
+  @import "index";
+</style>

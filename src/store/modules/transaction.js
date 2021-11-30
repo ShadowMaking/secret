@@ -2,6 +2,7 @@ import {
   addTransactionHistory,
   updateTransactionHistory,
   searchAllTransactionHistory,
+  searchAllTransactionHistory_forHistory,
   queryTransactionHistory,
 } from '@/api/transaction'
 
@@ -51,6 +52,19 @@ const transaction = {
         })
       })
     },
+    SearchAllTransactionHistory_forHistory({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        searchAllTransactionHistory_forHistory(params).then(response => {
+          const { transactions:list, total_page=1} = response.data.data
+          // commit('SET_HISTORY_LIST', data)
+          resolve({ hasError: false, list, totalPage: total_page  })
+        }).catch(error => {
+          // reject(error)
+          resolve({ hasError: true, list: [] });
+        })
+      })
+    },
+
     QueryTransactionHistory({ commit }, params) {
       return new Promise((resolve, reject) => {
         queryTransactionHistory(params).then(response => {

@@ -1,0 +1,41 @@
+@import '@/app.scss';
+.overview-page {
+  width: 90%;
+  margin: 0 auto;
+  .home-page {
+    margin-top: 20px;
+    .home-assets {
+      border: 1px solid #e6e7e9; 
+	  border-radius: 10px;
+	  padding: 20px;
+	  margin-top: 20px;
+	  .select-item {
+		    height: 48px;
+		    display: flex;
+		    justify-content: space-between;
+		    margin-top: 8px;
+		    .select-left {
+		      display: flex;
+		      align-items: center;
+		      .select-left-icon {
+		        width: 1.2rem;
+		        height: 1.2rem;
+		        margin-right: 10px;
+		      }
+		      .select-left-value {
+		        margin-top: 2px;
+		        color: #999;
+		      }
+		    }
+		    .select-price-right {
+		      align-items: center;
+		      text-align: right;
+		      .select-right-des {
+		        color: red;
+		        margin-top: 5px;
+		      }
+		    }
+		} 
+    }
+  }
+}

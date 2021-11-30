@@ -1,0 +1,123 @@
+.transactions-container-outer{
+    
+}
+.transactions-container {
+  .list-header {
+    background: #EFF1F8;
+    padding: 20px 0;
+    color: #5D5F65;
+    // font-size: 1rem;
+    .list-header-item { padding-left: 15px;}
+  }
+  .transaction-list{
+    background: #fff;
+    padding: 20px 0;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #EAEAF4;
+    position: relative;
+    .transaction-list-item {
+      padding: 0 15px;
+      display: flex;
+      align-items: center;
+      i{
+        width: 23px;
+        height: 23px;
+        display: block;
+        margin-right: 10px;
+      }
+    }
+    .address {
+      color: #333399;
+      a{
+        display: flex;
+        align-items: center;
+      }
+      span{
+        width: 10px;
+        height: 10px;
+        display: block;
+        border-radius: 50%;
+        margin-right: 5px;
+      }
+      .from{ background: #80BCFF; }
+      .to{ background: #0279FF; }
+    }
+  }
+}
+.transactions-container-mobile {
+  display: none;
+  .transaction-list-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    .grid {
+      width: 100%;
+      font-size: 0.875rem;
+      .header {
+        padding: 10px;
+        background: #EFF1F8;
+        color: #5D5F65;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        span.address{
+          width: 10px;
+          height: 10px;
+          display: block;
+          border-radius: 50%;
+          margin-right: 5px;
+        }
+        .from{ background: #80BCFF; }
+        .to{ background: #0279FF; }
+      }
+      .value {
+        padding: 10px;
+        // @include text-ellipsis;
+        line-height: 24px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-wrap:break-word;
+        word-break:break-all;
+        .status { display: flex; align-items: center; }
+        i{
+          width: 23px;
+          height: 23px;
+          display: block;
+          margin-right: 10px;
+        }
+      }
+    }
+    .grid-2 {
+      .header,
+      .value {
+        display: flex;
+        justify-content: space-between;
+      }
+    }
+  }
+}
+
+.common-transaction-table,
+.transactions-container-mobile{
+  .status-success{
+    color: #1EA262;
+    i{
+      background: url('~@/assets/icon_success2.png') center center;
+      background-size: 100% 100%;
+    }
+  }
+  .status-fail{
+    color: #DE4F42;
+    i{
+      background: url('~@/assets/icon_fail.png') center center;
+      background-size: 100% 100%;
+    }
+  }
+  .status-pending{
+    color: #F8B824;
+    i{
+      background: url('~@/assets/icon_submitted.png') center center;
+      background-size: 100% 100%;
+    }
+  }
+}

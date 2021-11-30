@@ -1,0 +1,65 @@
+@import '@/app.scss';
+.exchange-page {
+  .setting-box {
+    border: 1px solid #e6e7e9;
+    border-radius: 8px;
+    padding: 10px;
+    li {
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+      line-height: 30px;
+      .setting-title {
+        color: #999;
+      }
+      .setting-icon:hover {
+        cursor: pointer
+      }
+    }
+  }
+  .exchange-btn-box {
+    margin-top: 20px;
+  }
+  .setting-popup-box {
+    padding: 10px;
+    .slippage-list {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      font-size: 0.84rem;
+      font-weight: bold;
+      a {
+        width: 30%;
+        height: 2.6rem;
+        text-align: center;
+        line-height: 2.6rem;
+        border: 1px solid #e6e7e9;
+        border-radius: 5px;
+      }
+      a:hover,a.active,.slippage-input:hover,.slippage-input.active {
+        border: 1px solid #4375f1;
+      }
+      .slippage-input {
+        background-color: #e6e7e9;
+        border-radius: 5px;
+        width: 30%;
+        input {
+          width: 70%;
+          height: 2.6rem;
+          background-color: #e6e7e9;
+          border: 0px;
+          border-radius: 5px;
+          padding-left: 10px;
+
+        }
+      }
+    }
+    .setting-btn-box {
+      margin-top: 15px;
+    }
+    .gas-price-list .gasActive {
+      background-color: #f0f0f2;
+    }
+  }
+}

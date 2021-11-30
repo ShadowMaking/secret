@@ -199,8 +199,7 @@ export default {
       const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest"]
       // Authorization scopes required by the API; multiple scopes can be
       // included, separated by spaces.
-      // const SCOPES = 'https://www.googleapis.com/auth/gmail.readonly ' + 'https://www.googleapis.com/auth/gmail.send'
-      const SCOPES = 'https://www.googleapis.com/auth/gmail.send'
+      const SCOPES = 'https://www.googleapis.com/auth/gmail.readonly ' + 'https://www.googleapis.com/auth/gmail.send'
       gapi.client.init({
         apiKey: API_KEY,
         clientId: CLIENT_ID,
@@ -232,7 +231,6 @@ export default {
       gapi.auth2.getAuthInstance().signIn();
     },
     signOutForGoogle(event) {
-      // gapi.auth2.getAuthInstance().disconnect();
       gapi.auth2.getAuthInstance().signOut();
     },
     async sendEmail(){

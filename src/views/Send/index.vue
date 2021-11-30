@@ -1,5 +1,5 @@
 <template>
-  <div class="send-page">
+  <div class="send-page content-box">
     <div class="send-toL2-tip flex">
       <div><i class="info_icon"></i></div>
       <div class="flex flex-column">

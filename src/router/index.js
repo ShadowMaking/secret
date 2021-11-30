@@ -11,6 +11,12 @@ const SocailSendEmail = () => import('../views/SocailSendEmail/index')
 const AddFriends = () => import('../views/SocailSendEmail/AddFriends')
 const SocailRecovery = () => import('../views/SocailRecovery/index')
 const Introduction = () => import('../views/Introduction/index')
+const OverView = () => import('../views/OverView/index')
+const Exchange = () => import('../views/Exchange/index')
+const SendMenu = () => import('../views/SendMenu/index')
+const Bridge = () => import('../views/Bridge/index')
+const History = () => import('../views/History/index')
+const Test = () => import('../views/Test')
 
 // cache origin push method
 const originalPush = VueRouter.prototype.push
@@ -130,6 +136,54 @@ const routes = [
     },
     component: AddFriends,
   },
+  {
+    path: '/overView',
+    name: 'overView',
+    meta: {
+      title: "overView",
+    },
+    component: OverView,
+  },
+  {
+    path: '/exchange',
+    name: 'exchange',
+    meta: {
+      title: "exchange",
+    },
+    component: Exchange,
+  },
+  {
+    path: '/sendMenu',
+    name: 'sendMenu',
+    meta: {
+      title: "sendMenu",
+    },
+    component: SendMenu,
+  },
+  {
+    path: '/bridge',
+    name: 'bridge',
+    meta: {
+      title: "bridge",
+    },
+    component: Bridge,
+  },
+  {
+    path: '/history',
+    name: 'history',
+    meta: {
+      title: "history",
+    },
+    component: History,
+  },
+  {
+    path: '/test',
+    name: 'test',
+    meta: {
+      title: "test",
+    },
+    component: Test,
+  }
 ];
 
 const router = new VueRouter({

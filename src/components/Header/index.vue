@@ -2,11 +2,11 @@
   <div style="width:100%" id="header">
     <mt-header title="" class="common-header" v-show="!$route.meta.hideHeader">
       <div slot="left" class="header-left">
-        <div v-show="showBackIcon" class="flex flex-center" @click="back">
+        <!-- <div v-show="showBackIcon" class="flex flex-center" @click="back">
           <van-icon name="arrow-left" class="back-icon" size="18"/>
           <span>{{ navTxt() }}</span>
         </div>
-        <img :src="DEFAULTIMG.LOGO" class="logo" @click="toPage('home')" v-show="$route.name==='home'"/>
+        <img :src="DEFAULTIMG.LOGO" class="logo" @click="toPage('home')" v-show="$route.name==='home'"/> -->
       </div>
       <div slot="right" class="header-right">
         <div v-show="showConnectWallet">
@@ -231,7 +231,11 @@ export default {
         const networkId = getSelectedChainID();
         const netMode = getNetMode(networkId);
         const disabled = this.expectNetType === 'l1' && netMode !== "l1" || this.expectNetType === 'l2' && netMode !== "l2"
-        if (netMode !== "l1" && netMode !== "l2" || disabled) {
+
+        // dashBoard don not need L1 or L2 netWork
+        const dashBoardRouteName = ['overView', 'sendMenu', 'exchange']
+        const isDashBoardFun = dashBoardRouteName.includes(this.$route.name)
+        if (!isDashBoardFun && (netMode !== "l1" && netMode !== "l2" || disabled)) {
           this.showNetTip = true;
           return
         }

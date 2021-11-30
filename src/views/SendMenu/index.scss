@@ -1,0 +1,60 @@
+@import '@/app.scss';
+.send-menu-page {
+  .input-page {
+    margin-bottom: 15px;
+  }
+  .send-value-box {
+    display: flex;
+    justify-content: space-between;
+    .send-value-item {
+      width: 49%;
+      label {
+        font-size:12px;
+        color: #71727d;
+      }
+    }
+  }
+  .gas-price-box {
+    border-top: 1px solid #e6e7e9;
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 20px;
+    .gas-price-setting {display: flex;justify-content: center; align-items: center;}
+    .gasPriceSetting {
+      display: block;
+      width: 25px;
+      height: 25px;
+      background: url('~@/assets/icon_setting.png') center center;
+      background-size: contain;
+    }
+  }
+  .send-btn-box {
+    margin-top: 50px;
+    text-align: center;
+  }
+  .gas-popup-box {
+    width: 100%;
+    padding: 15px;
+    .gas-price-list {
+      width: 100%;
+    }
+  }
+  .form-select-item {
+    margin-bottom: 15px;
+    position: relative;
+    .select-option-list {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid #e6e7e9;
+      padding: 8px;
+      overflow-y: auto;
+      background-color: #fff;
+      box-shadow: 0px 0px 0px 1px rgba(21, 21, 31, 0.06),
+      0px 8px 28px rgba(22, 22, 26, 0.08);
+      position: absolute;
+      z-index: 999;
+      top: 64px;
+    }
+  }
+}

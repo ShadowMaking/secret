@@ -1,0 +1,62 @@
+<template>
+    <div class="select-box select-compent-page">
+      <p class="select-compent-title">{{label}}</p>
+      <el-select v-model="thislabel" filterable :popper-append-to-body="false" :placeholder="placeholder">
+        <el-option
+          v-for="(item,index) in dataSource"
+          :key="index"
+          :label="item.leftTitle"
+          :value="item.id">
+          <v-selectItem
+            v-bind:rightVal="item.rightVal"
+            :labelShow="labelShow"
+            v-bind:leftTitle="item.leftTitle"
+            v-bind:leftDes="item.leftDes"
+            v-bind:icon="item.icon"
+            @childevent="selectChagne(item)"></v-selectItem>
+        </el-option>
+      </el-select>
+      <img :src="thisleftIcon" class="select-input-icon">
+    </div>
+</template>
+
+<script>
+import Vue from 'vue';
+import selectItem from '@/components/SelectItem/index';
+
+export default {
+  name: 'form-select-item',
+  props: ['label', "leftIcon", "rightIcon", "dataSource", "labelShow", "placeholder", 'defaultValue'],
+  data() {
+    return {
+      thislabel: this.defaultValue,
+      thisleftIcon: this.leftIcon, 
+    }
+  },
+  components: {
+    "v-selectItem": selectItem,
+  },
+  mounted() {
+    var that = this;
+    // document.addEventListener('click',e => {
+    //   var sp = document.getElementById("selectList");
+    //   if(sp){
+    //     if(!sp.contains(event.target)){
+    //      this.optionVisible = false
+    //     }
+    //   }
+    // })
+  },
+  methods: {
+    selectChagne(value) {
+      console.log(value)
+      this.thislabel = value.id
+      this.thisleftIcon = value.icon
+      this.$emit('change', {value});
+    },
+  },
+};
+</script>
+<style lang="scss">
+  @import "index";
+</style>

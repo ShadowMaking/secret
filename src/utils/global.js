@@ -13,6 +13,13 @@ const dev_host = "http://dev-deliver-secret.eigen.com:8090"
 const hostName = window.location.hostname;
 const DOMAIN = hostName;
 
+
+const etherscanAPIKeyToken = 'JKUUBYKV6BFS2J4BIV41IKF1QFZRN758TK';
+const etherscanAPIBaseUrl = `https://api.etherscan.io`
+
+// TODO 1ETH ≈ 0.121314 US 
+const ETHFORUS = 0.121314
+
 export {
   DEFAULTIMG,
   RECHAERGE_TIP,
@@ -21,4 +28,7 @@ export {
   DOMAIN,
   TOKEN_NAME,
   TOKEN_NAME_LOCK,
+  ETHFORUS,
+  etherscanAPIKeyToken,
+  etherscanAPIBaseUrl,
 }

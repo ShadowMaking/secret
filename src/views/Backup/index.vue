@@ -54,7 +54,7 @@
                 rows="1"
                 :disabled="importTypeDisabled"
                 autosize
-                label="Description"
+                label="Descridption"
                 type="textarea"
                 maxlength="150"
                 show-word-limit

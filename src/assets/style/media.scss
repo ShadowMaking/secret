@@ -1,0 +1,204 @@
+/*大型屏幕pc 超大屏*/
+@media screen and (min-width:1200px){
+  
+}
+/*1200>=pc>=992 大屏*/
+@media screen and (min-width:992px) and (max-width: 1199px){
+  
+}
+/*768<=pad<992 中屏*/
+@media screen and (min-width: 768px) and (max-width: 991px) {
+  
+}
+/*phone<768  小屏*/
+@media screen and (max-width: 767px) and (min-width: 480px){
+  .component-header {
+    .header-inner {
+      .search-input-container { width: 90%;}
+    }
+    .header-for-address-page {
+      .page-wrapper { padding: 0 20px;}
+      .top img.img-for-large { display: none;}
+      .top img.img-for-small { width: 40px; height: 100%; display: block;}
+      .address-info{
+        margin-top: 35px;
+        .address {
+          font-size: 1rem;
+          i{
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+          }
+        } 
+      }
+    }
+    .search-input-container { width: 80%; }
+  }
+  .component-footer {
+    height: auto;
+    .footer-page-wrapper{ display: none;}
+    .component-footer-mobile{ display: flex;}
+  }
+  .common-transaction-table{
+    h4 { font-size: 1.125rem; }
+    .transactions-container { display: none;}
+    .transactions-container-mobile { display: block;}
+  }
+  .home-page {
+    .chain-info {
+      h4 { font-size: 1.125rem;}
+      .info-list {
+        flex-wrap: wrap;
+        .info-list-item{
+          width: 50%;
+          flex-direction: column;
+          border-bottom: 1px solid #e5e7eb;
+          padding: 10px;
+          .num {font-size: 1.5rem;}
+          .name {font-size: 1rem;}
+        }
+      }
+    }
+  }
+  .transaction-detail-page {
+    .page-wrapper{
+      padding: 10px;
+      .tab-button { width: 50%;}
+      .overview-contant {
+        .overview-contant-item {
+          justify-content: space-between;
+          border-bottom: 1px solid #e5e7eb;
+          padding-bottom: 10px;
+          .key { width: auto;}
+          .value { width: auto; }
+        }
+      }
+    }
+  }
+  .address-info-page {
+    .top-info{
+      display: flex;
+      flex-wrap: wrap;
+      .top-info-item {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+    }
+    .tab-button { width: 100%; font-size: 1rem;}
+  }
+  .block-info-page {
+    .block-info{
+      h4{
+        font-size: 1.125rem;
+      }
+    }
+    .block-info-contant {
+      padding: 20px 10px;
+      .block-info-item {
+        font-size: 1rem;
+        display: flex;
+        justify-content: space-between;
+        .key{ width: auto; min-width: 110px;}
+        .value{
+          width: auto;
+        }
+      }
+    }
+  }
+}
+/* 超小屏*/
+@media screen and (max-width: 480px){
+  .component-header {
+    .header-inner {
+      .search-input-container { width: 90%;}
+    }
+    .header-for-address-page {
+      .page-wrapper { padding: 0 20px;}
+      .top img.img-for-large { display: none;}
+      .top img.img-for-small { width: 40px; height: 100%; display: block;}
+      .address-info{
+        margin-top: 35px;
+        .address {
+          font-size: 1rem;
+          i{
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+          }
+        } 
+      }
+    }
+    .search-input-container { width: 80%; }
+  }
+  .component-footer {
+    height: auto;
+    .footer-page-wrapper{ display: none;}
+    .component-footer-mobile{ display: flex;}
+  }
+  .common-transaction-table{
+    h4 { font-size: 1.125rem; }
+    .transactions-container { display: none;}
+    .transactions-container-mobile { display: block;}
+  }
+  .home-page {
+    .chain-info {
+      h4 { font-size: 1.125rem;}
+      .info-list {
+        flex-direction: column;
+        .info-list-item{
+          width: 100%;
+          flex-direction: column;
+          border-bottom: 1px solid #e5e7eb;
+          padding: 10px;
+          .num {font-size: 1.5rem;}
+          .name {font-size: 1rem;}
+        }
+      }
+    }
+  }
+  .transaction-detail-page {
+    .page-wrapper{
+      padding: 10px;
+      .tab-button { width: 100%;}
+      .overview-contant {
+        .overview-contant-item {
+          justify-content: space-between;
+          border-bottom: 1px solid #e5e7eb;
+          padding-bottom: 10px;
+          .key { width: auto;}
+          .value { width: auto; }
+        }
+      }
+    }
+  }
+  .address-info-page {
+    .top-info{
+      display: flex;
+      flex-wrap: wrap;
+      .top-info-item {
+        width: 100%;
+        margin-bottom: 10px;
+      }
+    }
+    .tab-button { width: 100%; font-size: 1rem;}
+  }
+  .block-info-page {
+    .block-info{
+      h4{
+        font-size: 1.125rem;
+      }
+    }
+    .block-info-contant {
+      padding: 20px 10px;
+      .block-info-item {
+        font-size: 1rem;
+        display: flex;
+        justify-content: space-between;
+        .key{ width: auto; min-width: 110px;}
+        .value{
+          width: auto;
+        }
+      }
+    }
+  }
+}

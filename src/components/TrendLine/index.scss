@@ -1,0 +1,51 @@
+.trend-line-container {
+  border: 1px solid #ebedf0;
+  box-shadow: 10px 10px 10px #ebedf0;
+  border-radius: 5px;
+  padding: 0 0 20px;
+  #chartContent {
+    width: 100%;
+    height: 250px;
+    padding: 0 20px;
+  }
+  .dimension {
+    ul {
+      display: flex;
+      .button{
+        font-family: Avenir Next,Arial,sans-serif;
+        font-size: 16px;
+        font-weight: 500;
+        border: none;
+        border-radius: 8px;
+        outline: none;
+        height: auto;
+        line-height: normal;
+        padding: 9px 12px;
+        -webkit-transition: .3s;
+        -moz-transition: .3s;
+        transition: .3s;
+        cursor: pointer;
+        white-space: nowrap;
+        position: relative;
+        display: -moz-box;
+        display: flex;
+        -moz-box-align: center;
+        align-items: center;
+        -moz-box-pack: center;
+        justify-content: center;
+      }
+      .button.small {
+        font-size: 14px;
+        height: auto;
+        line-height: normal;
+        padding: 4px 12px;
+        color: #657795;
+        background: #f0f5f9;
+      }
+      li{ margin: 5px;}
+      li.button.small.active{ background: #784ffe; color: #fff; }
+      li.button.small.active:hover{ box-shadow: 0 0 0 4px rgb(120 79 254 / 50%); }
+      li:hover{ box-shadow: 0 0 0 2px #dfe8f9; }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+.common-transaction-table {
+  margin-top: 30px;
+  h4{
+    margin: 20px 0;
+    // @include h4title;
+    color: #202C37;
+    font-size: 1.6rem;
+  }
+}
+.table-item-tip-tooltip {
+  font-size: 1rem;
+  color: #fff;
+}
+::v-deep .van-search__content {
+	background-color: #e6e7e9;
+	border-radius: 5px;
+	font-size: #000;
+	::-webkit-input-placeholder { color:#999; }
+    :-moz-placeholder { color: #999; }
+    ::-moz-placeholder { color: #999; }
+    :-ms-input-placeholder {color: #999; }
+}

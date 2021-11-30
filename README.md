@@ -1,4 +1,4 @@
-# Eigen Secret
+# Eigen Dashboard
 
 ## host
 127.0.0.1  dev-deliver-secret.eigen.com

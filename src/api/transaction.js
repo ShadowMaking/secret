@@ -71,3 +71,24 @@ export const updateTransactionHistory = (data) => {
     method: 'get',
   })
 }
+
+// TODO
+/**
+ * @description: search all transaction history
+ * @param from
+ * @return {*}
+ */
+ export const searchAllTransactionHistory_forHistory = (data={}) => {
+  let action = data['action'] || 'search';
+  data['order'] = 1;
+  data['action'] && (delete data['action'])
+  let queryStr = "";
+  Object.keys(data).forEach(key => {
+    data[key] && (queryStr += `&${key}=${(data[key]+'').toLocaleLowerCase()}`)
+  })
+  const apiUrl = `/api/txhs?action=${action}${queryStr}`;
+  return request({
+    url: apiUrl,
+    method: 'get',
+  })
+}

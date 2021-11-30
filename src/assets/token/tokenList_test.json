@@ -1,0 +1,37 @@
+{
+  "0x32E6C34Cd57087aBBD59B5A4AECC4cB495924356": {
+    "name": "BitBase",
+    "logo": "BTBS.svg",
+    "erc20": true,
+    "symbol": "BTBS",
+    "decimals": 18
+  },
+  "0x3fa400483487A489EC9b1dB29C4129063EEC4654": {
+    "name": "Cryptokek.com",
+    "logo": "cryptokek.svg",
+    "erc20": true,
+    "symbol": "KEK",
+    "decimals": 18
+  },
+  "0xb753428af26E81097e7fD17f40c88aaA3E04902c": {
+    "name": "Spice",
+    "logo": "sfi.svg",
+    "erc20": true,
+    "symbol": "SFI",
+    "decimals": 18
+  },
+  "0xd084944d3c05CD115C09d072B9F44bA3E0E45921": {
+    "name": "Manifold Finance",
+    "logo": "Manifold.svg",
+    "erc20": true,
+    "symbol": "FOLD",
+    "decimals": 18
+  },
+  "0x9a0242b7a33DAcbe40eDb927834F96eB39f8fBCB": {
+    "name": "BABB",
+    "logo": "bax.svg",
+    "erc20": true,
+    "symbol": "BAX",
+    "decimals": 18
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "0x5076d190F242ae67E607CaAa081bF28F93Dc224D": {
+    "name": "ETKA",
+    "logo": "Eigen_ETKA.svg",
+    "erc20": true,
+    "symbol": "ETKA",
+    "decimals": 18
+  },
+  "0x8730786a6cd94bE7F3100F4c5C0e67b0517Cda6B": {
+    "name": "ETKB",
+    "logo": "Eigen_ETKB.svg",
+    "erc20": true,
+    "symbol": "ETKB",
+    "decimals": 18
+  },
+  "0xb0658e85D97ab457bD981b1233B14B1130A41333": {
+    "name": "ETKC",
+    "logo": "Eigen_ETKC.svg",
+    "erc20": true,
+    "symbol": "ETKC",
+    "decimals": 18
+  }
+}

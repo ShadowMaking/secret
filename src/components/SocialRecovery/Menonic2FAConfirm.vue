@@ -244,7 +244,7 @@ export default {
           this.creatQrCode();
         },0)
       } else {
-        Toast('error')
+        Toast('创建失败，稍后重试')
       }
     },
     getCodeByHand() {

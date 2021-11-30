@@ -1,5 +1,5 @@
 <template>
-  <div class="deposit-page">
+  <div class="deposit-page content-box">
     <div class="deposit-toL2-tip flex">
       <div><i class="info_icon"></i></div>
       <div class="flex flex-column">
