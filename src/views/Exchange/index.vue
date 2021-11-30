@@ -231,7 +231,7 @@ export default {
       }
       const methodName = forAccounts ? 'GetAvailableTokenAssets' : 'GetAllTokenList'
       const { hasError, list } = await this.$store.dispatch(methodName, { selectedConnectAddress, chainInfo: this.currentChainInfo });
-      const tokenList = await generateTokenList(_.cloneDeep(list), this)
+      const tokenList = await generateTokenList(_.cloneDeep(list), this, forAccounts)
       if (forAccounts) {
         const ETHAssets = await getDefaultETHAssets(this);
         this.assetsTokenList = [].concat([ETHAssets], tokenList)

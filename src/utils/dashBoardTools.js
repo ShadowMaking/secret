@@ -12,10 +12,10 @@ import { defaultNetWorkForMetamask } from '@/utils/netWorkForToken';
  */
 export const generateTokenList = async (list, self, isDefault) => {
   const selectedConnectAddress = window.ethereum.selectedAddress;
+  const GetTokenBalanceMthodName = isDefault ? 'GetTokenBalanceByContract' : 'GetTokenBalanceByEtherscan'
   for(let i=0; i<list.length;i+=1) {
     const tokenAddress = list[i].tokenAddress
     let abi = list[i].abiJson || []
-    const GetTokenBalanceMthodName = isDefault ? 'GetTokenBalanceByContract' : 'GetTokenBalanceByEtherscan'
     if (!isDefault) {
       const { hasError: abiResError, data } = await self.$store.dispatch('GetTokenABIByTokenAddress', {tokenAddress});
       abi = [].concat(data)
