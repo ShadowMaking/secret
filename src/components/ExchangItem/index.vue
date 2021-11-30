@@ -2,11 +2,13 @@
   <div class="from-box exchange-item">
     <div class="exchange-item-left">
       <p class="exchange-des">{{ type }}</p>
-      <div class="exchange-select-list" @click="showOptionList">
-        <img src="https://s3.amazonaws.com/token-icons/0x6b175474e89094c44da98b954eedeac495271d0f.png" class="select-img">
-        <span class="select-txt">{{ selectedTokenInfo && selectedTokenInfo['tokenName'] }}</span>
-        <img src="@/assets/form/solidDown.png" class="select-down-img">
-        <span class="max" v-if="isMax">MAX</span>
+      <div class="exchange-select-list">
+        <div class="exchange-select" @click="showOptionList">
+          <img src="https://s3.amazonaws.com/token-icons/0x6b175474e89094c44da98b954eedeac495271d0f.png" class="select-img">
+          <span class="select-txt">{{ selectedTokenInfo && selectedTokenInfo['tokenName'] }}</span>
+          <img src="@/assets/form/solidDown.png" class="select-down-img">
+        </div>
+        <span class="max" v-if="isMax" @click="setMax">MAX</span>
       </div>
       <van-popup v-model="OptionListVisile" round :style="{ maxWidth: '400px', width: '90%' }" closeable>
         <div class="exchange-popup-box">
@@ -103,6 +105,10 @@ export default {
     	this.OptionListVisile = false
       this.selectedTokenInfo = _.cloneDeep(item)
       this.$emit('selectChagne', item);
+    },
+    setMax() {
+      if (!this.selectedTokenInfo) { return }
+      this.exchangVal = this.selectedTokenInfo.balanceNumberString
     },
   },
   async mounted() {

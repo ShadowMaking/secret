@@ -147,6 +147,7 @@ export default {
     },
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
+      this.$router.push({ name: 'overView' })
     },
     async gasBtn() {
       this.loadingGas = true;
@@ -195,26 +196,73 @@ export default {
         Toast.fail(`input amount`);
         return false;
       }
-      if (~~data.type1Value > ~~data.selectedToken.balanceNumberString || ~~data.selectedToken.balanceNumberString ==0 ) {
+      if (new BigNumber(data.selectedToken.balanceNumberString).lt(new BigNumber(data.type1Value)) ||
+      new BigNumber(data.selectedToken.balanceNumberString).eq(new BigNumber(0))) {
+      // if (~~data.type1Value > ~~data.selectedToken.balanceNumberString || ~~data.selectedToken.balanceNumberString ==0 ) {
         Toast.fail(`Insufficient Balance`);
         return false;
       }
       return true
     },
     async sendSubmit() {
+      if (!window.ethereum) {
+        Toast('need install metamask')
+        return
+      }
+      if (!window.ethereum.selectedAddress) {
+        Toast('need connect metamask')
+        return
+      }
       const sendData = {
         toAddress: this.addressForRecipient,
         selectedToken: this.selectedToken,
         type1Value: this.type1Value,
         type2Value: this.type2Value,
       }
+      
+      if (!this.checkData(sendData)) { return }
+
+      const gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.selectedGasType].gasPrice || '1'
+      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+      
+      if (this.selectedToken.tokenName === 'ETH') { // send ETH
+        this.sendETH(gasPrice, sendData)
+      } else { // send token
+        this.sendToken(metamaskProvider, gasPrice, sendData)
+      }
+    },
+    sendETH(gasPrice, sendData) {
       const address = {
         selectedConnectAddress: window.ethereum.selectedAddress,
         toAddress: sendData.toAddress
       }
-      if (!this.checkData(sendData)) { return }
-      const gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.selectedGasType].gasPrice || 1
-      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+      const transferAmount = utils.parseEther(sendData.type1Value);
+      const transferParams = [{
+        from: address.selectedConnectAddress,
+        to: address.toAddress,
+        gas: web3.utils.toHex('21000'), // 21000的16进制 '0x5208
+        gasPrice,
+        value: transferAmount.toHexString()
+      }];
+      console.log('submitData', transferParams)
+      ethereum.request({
+        jsonrpc: "2.0",
+        method: "eth_sendTransaction",
+        params: transferParams,
+        id: 0
+      })
+      .then(async res=>{
+        await this.sendSuccess(res, {...this.selectedToken, amount: sendData.type1Value}, address)
+      })
+      .catch(error=>{
+        this.sendFailed(error)
+      })
+    },
+    sendToken(metamaskProvider, gasPrice, sendData) {
+      const address = {
+        selectedConnectAddress: window.ethereum.selectedAddress,
+        toAddress: sendData.toAddress
+      }
       const l1Signer = metamaskProvider.getSigner(0);
       const myContract = new ethers.Contract(this.selectedToken.tokenAddress, this.selectedToken.abiJson, l1Signer)
       const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(sendData.type1Value*1000000000000000000)).toFixed())
