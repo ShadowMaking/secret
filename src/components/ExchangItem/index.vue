@@ -41,7 +41,6 @@ import _ from 'lodash';
 import Vue from 'vue';
 import { Popup, Search } from 'vant';
 import selectItem from '@/components/SelectItem/index';
-import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange } from '@/utils/dashBoardTools';
 
 Vue.use(Popup);
 Vue.use(Search);

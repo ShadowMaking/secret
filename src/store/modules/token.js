@@ -10,6 +10,7 @@ import DEFAULTTOKENABIJSON from '@/assets/token/defaultToken.json'
 import DEFAULTTOKENLISTJSON from '@/assets/token/tokenListDefault.json'
 import TOKENLISTJSONTest from '@/assets/token/tokenList_test.json'
 import { L1ChainID } from '@/utils/netWork'
+import { transTickerObject } from '@/utils/ccxt';
 
 
 const token = {
@@ -186,11 +187,17 @@ const token = {
         })
       })
     },
-    // TODO
     GetTokenAxchangeForUS({ commit }, params) {
-      return new Promise((resolve, reject) => {
-        const { tokenAddress } = params
-        resolve({ hasError: false, data: Math.random()})
+      return new Promise(async (resolve, reject) => {
+        const { tokenAddress, changeType } = params
+        const fetchTicker = await transTickerObject(changeType)
+        if (fetchTicker) {
+          const forUsdt = fetchTicker.close;
+          const percentage = fetchTicker.percentage;
+          const change = fetchTicker.change;
+          resolve({ hasError: false, forUsdt, percentage, change })
+        }
+        resolve({ hasError: true, forUsdt: 0 })
       })
     },
     GetGasPriceConfirmationTimeByEtherscan({ commit }, params) {

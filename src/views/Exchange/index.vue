@@ -207,7 +207,7 @@ export default {
       const { hasError, list } = await this.$store.dispatch(methodName, { selectedConnectAddress, chainInfo: this.currentChainInfo });
       const tokenList = await generateTokenList(_.cloneDeep(list), this)
       if (forAccounts) {
-        const ETHAssets = await getDefaultETHAssets();
+        const ETHAssets = await getDefaultETHAssets(this);
         this.assetsTokenList = [].concat([ETHAssets], tokenList)
         this.exchangFrom = this.assetsTokenList[0]
       } else {
