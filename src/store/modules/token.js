@@ -234,13 +234,17 @@ const token = {
         })
       })
     },
-    GetBlockTimestampByEtherscan({ commit }, params) {
-      const { timestamp } = params
+    GetNormalTransByEtherscan({ commit }, params) {
+      const { address } = params
       const data = {
-        module: 'block',
-        action: 'getblocknobytime',
-        closest: 'before',
-        timestamp,
+        module: 'account',
+        action: 'txlist',
+        startblock: '0',
+        endblock: '99999999',
+        page: '1',
+        offset: '100',
+        sort: 'asc',
+        address,
       }
       return new Promise((resolve, reject) => {
         ajaxGetRequestByEtherscan({ method: 'get', data })

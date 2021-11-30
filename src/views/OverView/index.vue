@@ -19,10 +19,12 @@
               </div>
               <div class="select-price-right">
                 <h3>${{ item.amount|showAvailableBalance }}</h3>
-                <p class="select-right-des" v-if="percentage > 0" style="color: #00965e">+{{percentage|showAvailableBalance}}%(${{item.label|showAvailableBalance}})</p>
-                <p class="select-right-des" v-else>{{percentage|showAvailableBalance}}%{{item.label|showAvailableBalance}}</p>
+                <p class="select-right-des" v-if="ethPercentage > 0" style="color: #00965e">+{{ethPercentage|showAvailableBalance}}%(${{item.label|showAvailableBalance}})</p>
+                <p class="select-right-des" v-else>{{ethPercentage|showAvailableBalance}}%{{item.label|showAvailableBalance}}</p>
               </div>
             </div>
+            <v-loading v-show="showLoading"/>
+            <v-none v-if="!showLoading && assetsData.length==0"/>
           </div>
         </div>
       </van-tab>
@@ -46,6 +48,8 @@ import { ethRPC } from '@/utils/netWork'
 import { getDefaultAddress } from '@/utils/auth'
 import { generateTokenList, getDefaultETHAssets } from '@/utils/dashBoardTools';
 import web3 from 'web3'
+import None from '@/components/None/index';
+import Loading from '@/components/Loading';
 
 Vue.use(Icon);
 Vue.use(Popup);
@@ -66,16 +70,19 @@ export default {
       }],
       assetsData: [],
       ethUsdt: '',
-      percentage: '',
-      change: '',
+      ethPercentage: '',
+      ethChange: '',
       address: getDefaultAddress(this.$store),
       fetchTicker: '',
+      showLoading: true,
     }
   },
   components: {
     "v-navTitle": navTitle,
     "v-history": history,
     "v-trendLine": TrendLine,
+    'v-none': None,
+    'v-loading': Loading,
   },
   filters: {
     showAvailableBalance(amount) {
@@ -91,7 +98,7 @@ export default {
       this.initGthers()
     },
     'fetchTicker': function(res) {
-      this.timer()
+      // this.timer()
     },
   },
   methods: {
@@ -103,8 +110,8 @@ export default {
     async getExchange() {
       this.fetchTicker = await transTickerObject()
       this.ethUsdt = this.fetchTicker.close;
-      this.percentage = this.fetchTicker.percentage;
-      this.change = this.fetchTicker.change;
+      this.ethPercentage = this.fetchTicker.percentage;
+      this.ethChange = this.fetchTicker.change;
       this.initGthers();
     },
     
@@ -116,10 +123,11 @@ export default {
         icon: ETHAssets.icon,
         balance: balanceString,
         amount: (this.ethUsdt * balanceString),
-        label: (this.change * balanceString),
+        label: (this.ethChange * balanceString),
       }
       this.assetsData = []
       this.assetsData.push(ethData)
+      this.showLoading = false
     },
   },
   created() {

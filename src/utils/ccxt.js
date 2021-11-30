@@ -13,16 +13,26 @@ let exchange = new ccxt.huobi({
 export async function transTickerClose(changeType) { //. ETH/USDT
   changeType ? changeType = changeType : changeType = 'ETH/USDT' //default
   if (exchange.has['fetchTicker']) {
-    let fetchTicker = await exchange.fetchTicker(changeType);
-    return fetchTicker.close;
+    try {
+      let fetchTicker = await exchange.fetchTicker(changeType);
+      return fetchTicker.close
+    }
+    catch {
+      return null
+    }
   }
 }
 
 export async function transTickerObject(changeType) {
   changeType ? changeType = changeType : changeType = 'ETH/USDT' //default
   if (exchange.has['fetchTicker']) {
-    let fetchTicker = await exchange.fetchTicker(changeType);
-    return fetchTicker
+    try {
+      let fetchTicker = await exchange.fetchTicker(changeType);
+      return fetchTicker
+    }
+    catch {
+      return null
+    }
 
     // this.ethUsdt = await (exchange.fetchTicker('ETH/USDT'))
     // let symbols = Object.keys (exchange.markets)

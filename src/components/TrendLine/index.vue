@@ -17,7 +17,8 @@
 </template>
 <script>
 import _ from 'lodash';
-import { getDefaultAddress } from '@/utils/auth'
+import * as ethers from 'ethers';
+import { getDefaultETHAssets } from '@/utils/dashBoardTools';
 //DCCX2QFIHVFTGZKZXRN1X2ZZJWQ49P1QNX
 export default {
   name: 'TrendLine',
@@ -73,48 +74,51 @@ export default {
           }
         ]
       },
-      address: getDefaultAddress(this.$store),
+      address: window.ethereum.selectedAddress,//window.ethereum.selectedAddress,0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a
+      balanceNowString: 0,
     }
   },
   watch: {
     '$store.state.metamask.accountsArr': function (res) {
       this.address = res.length&&res[0] || ''
+      this.drawChart()
     },
   },
   methods: {
     changeDimension(record) {
       this.dimension = record;
-      this.drawChart(record)
+      this.drawChart()
+    },
+    async getNowBalance() {
+      const ETHAssets = await getDefaultETHAssets();
+      this.balanceNowString = ETHAssets.balanceNumberString;
     },
     generateOption() {
-      const sourceData = this.chartSourceData
       const chartOption = _.cloneDeep(this.chartOption)
       const xAxisData = []
       const seriesData = this.chartSourceData
-      sourceData.forEach(item => {
+      seriesData.forEach(item => {
         xAxisData.push(item[0])
       })
       chartOption['xAxis'][0]['data'] = xAxisData
       chartOption['series'][0]['data'] = seriesData
+      console.log(xAxisData)
+      console.log(seriesData)
       return chartOption
     },
     drawChart() {
+      this.getNowBalance()
       this.getDataSource()
-      // this.getBlockList()
-      this.chartOption = this.generateOption()
-      this.myChart.setOption(this.chartOption);
     },
     getXday(type) {
       switch(type) {
         case '1H':
           this.datesource = [
-          {time: '2021-11-28 00:00:00'},
-          {time: '2021-11-28 04:00:00'},
+          {time: '2019-03-28 00:00:00'},
+          {time: '2020-11-28 04:00:00'},
           {time: '2021-11-28 08:00:00'},
           {time: '2021-11-28 12:00:00'},
           {time: '2021-11-28 16:00:00'},
-          {time: '2021-11-28 20:00:00'},
-          {time: '2021-11-28 24:00:00'},
           ]
           break;
         case '1D':
@@ -124,8 +128,6 @@ export default {
           {time: '2021-11-28 08:00:00'},
           {time: '2021-11-28 12:00:00'},
           {time: '2021-11-28 16:00:00'},
-          {time: '2021-11-28 20:00:00'},
-          {time: '2021-11-28 24:00:00'},
           ]
           break;
         case '1W':
@@ -135,8 +137,6 @@ export default {
           {time: '2021-11-26 00:00:00'},
           {time: '2021-11-25 00:00:00'},
           {time: '2021-11-24 00:00:00'},
-          {time: '2021-11-23 00:00:00'},
-          {time: '2021-11-22 00:00:00'},
           ]
           break;
         case '1M':
@@ -146,8 +146,6 @@ export default {
           {time: '2021-11-10 00:00:00'},
           {time: '2021-11-15 00:00:00'},
           {time: '2021-11-20 00:00:00'},
-          {time: '2021-11-25 00:00:00'},
-          {time: '2021-11-30 00:00:00'},
           ]
           break;
         case '1Y':
@@ -157,41 +155,64 @@ export default {
           {time: '2021-04-01 00:00:00'},
           {time: '2021-06-01 00:00:00'},
           {time: '2021-08-01 00:00:00'},
-          {time: '2021-10-01 00:00:00'},
-          {time: '2021-12-01 00:00:00'},
           ]
           break;
         default:
           break;
       }
     },
-    async getBlockList() {
-      const { hasError, data } = await this.$store.dispatch('GetBlocksByEtherscan',{address: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266'});
-      if (data) { this.blockList = data; console.log(data)}
-    },
     async getDataSource() {
       this.getXday(this.dimension)
-      this.chartSourceData = []
+      this.getYValue()
+      // this.chartSourceData = []
 
-      this.datesource.map(async item => {
-        let xtime = item.time
-        let xtimestamp = new Date().getTime()/1000
-        let res = await this.$store.dispatch('GetBlockTimestampByEtherscan', {timestamp: parseInt(xtimestamp)});
-        if (!res.hasError) {
-          let blockNum = res.data
-          let yvalue = this.getBalance(blockNum)
-        }
-        let yvalue = Math.random()
-        let itemArr = [xtime, yvalue]
-        this.chartSourceData.push(itemArr)
-      })
+      // this.datesource.map(async item => {
+      //   let xtime = item.time
+      //   let xtimestamp = new Date().getTime()/1000
+      //   let yvalue = Math.random()
+      //   // let yvalue = Math.random()
+      //   let itemArr = [xtime, yvalue]
+      //   this.chartSourceData.push(itemArr)
+      // })
     },
-    async getBalance(blockNum) {
-      console.log(blockNum)
-      const { hasError, data } = await this.$store.dispatch('GetBalanceBytagByEtherscan',{address: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266', tag: blockNum});
-      console.log(data)
-      console.log(hasError)
-      if (data) { console.log(data)}
+    async getYValue() {
+      let _this = this
+      let lastDate = new Date(this.datesource[0].time).getTime()/1000
+      const { hasError, data } = await this.$store.dispatch('GetNormalTransByEtherscan',{address: this.address});
+      this.chartSourceData = []
+      this.datesource.map(item => {
+         let xtime = item.time
+         let itemArr = [xtime, this.balanceNowString]
+         this.chartSourceData.push(itemArr)
+      })
+      if (data && data.length > 0) { 
+        data.reverse().map(item => {
+          let timsd = new Date(item.timeStamp*1000)
+          if (item.timeStamp >= lastDate) {
+            this.dealNewData(item)
+          }
+        })
+      }
+      this.chartOption = this.generateOption()
+      this.myChart.setOption(this.chartOption);
+    },
+    async dealNewData(trasItem) {
+      
+      
+      for (var i=0; i< this.chartSourceData.length; i++) {
+        let xtimestamp = new Date(this.chartSourceData[i][0]).getTime()
+        if (trasItem.timeStamp <= xtimestamp) {
+          let balanceString = this.chartSourceData[i][1]
+          let changeValue = ethers.utils.formatEther(trasItem.value)
+          if (trasItem.from == this.address) {//out
+            balanceString = Number(balanceString) + Number(changeValue)
+          } else {
+            balanceString = Number(balanceString) - Number(changeValue)
+          }
+          this.chartSourceData[i][1] = balanceString
+          return
+        }
+      }
     },
   },
   mounted() {
