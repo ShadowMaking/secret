@@ -90,8 +90,10 @@ export default {
       this.drawChart()
     },
     async getNowBalance() {
-      const ETHAssets = await getDefaultETHAssets();
-      this.balanceNowString = ETHAssets.balanceNumberString;
+      const selectedConnectAddress = window.ethereum.selectedAddress;
+      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+      const balance = await metamaskProvider.getBalance(selectedConnectAddress);
+      this.balanceNowString = ethers.utils.formatEther(balance);
     },
     generateOption() {
       const chartOption = _.cloneDeep(this.chartOption)
@@ -102,8 +104,6 @@ export default {
       })
       chartOption['xAxis'][0]['data'] = xAxisData
       chartOption['series'][0]['data'] = seriesData
-      console.log(xAxisData)
-      console.log(seriesData)
       return chartOption
     },
     drawChart() {
@@ -114,24 +114,30 @@ export default {
       switch(type) {
         case '1H':
           this.datesource = [
-          {time: '2019-03-28 00:00:00'},
-          {time: '2020-11-28 04:00:00'},
-          {time: '2021-11-28 08:00:00'},
-          {time: '2021-11-28 12:00:00'},
-          {time: '2021-11-28 16:00:00'},
+          {time: '2021-11-30 12:00:00'},
+          {time: '2020-11-30 12:10:00'},
+          {time: '2021-11-30 12:20:00'},
+          {time: '2021-11-30 12:30:00'},
+          {time: '2021-11-30 12:40:00'},
+          {time: '2021-11-30 12:50:00'},
+          {time: '2021-11-30 13:00:00'},
           ]
           break;
         case '1D':
           this.datesource = [
-          {time: '2021-11-28 00:00:00'},
-          {time: '2021-11-28 04:00:00'},
-          {time: '2021-11-28 08:00:00'},
-          {time: '2021-11-28 12:00:00'},
-          {time: '2021-11-28 16:00:00'},
+          {time: '2021-11-30 00:00:00'},
+          {time: '2021-11-30 04:00:00'},
+          {time: '2021-11-30 08:00:00'},
+          {time: '2021-11-30 12:00:00'},
+          {time: '2021-11-30 16:00:00'},
+          {time: '2021-11-30 20:00:00'},
+          {time: '2021-11-30 24:00:00'},
           ]
           break;
         case '1W':
           this.datesource = [
+          {time: '2021-11-30 00:00:00'},
+          {time: '2021-11-29 00:00:00'},
           {time: '2021-11-28 00:00:00'},
           {time: '2021-11-27 00:00:00'},
           {time: '2021-11-26 00:00:00'},
@@ -146,6 +152,8 @@ export default {
           {time: '2021-11-10 00:00:00'},
           {time: '2021-11-15 00:00:00'},
           {time: '2021-11-20 00:00:00'},
+          {time: '2021-11-25 00:00:00'},
+          {time: '2021-11-30 00:00:00'},
           ]
           break;
         case '1Y':
@@ -155,6 +163,8 @@ export default {
           {time: '2021-04-01 00:00:00'},
           {time: '2021-06-01 00:00:00'},
           {time: '2021-08-01 00:00:00'},
+          {time: '2021-10-01 00:00:00'},
+          {time: '2021-12-01 00:00:00'},
           ]
           break;
         default:
