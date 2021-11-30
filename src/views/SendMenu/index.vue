@@ -168,7 +168,7 @@ export default {
         this.assetsTokenList = []
         return
       }
-      const ETHAssets = await getDefaultETHAssets();
+      const ETHAssets = await getDefaultETHAssets(this);
       const tokenListRes = await this.$store.dispatch('GetAvailableTokenAssets', { selectedConnectAddress, chainInfo: this.currentChainInfo });
       const { hasError, list } = tokenListRes
       const tokenList = await generateTokenList(_.cloneDeep(list), this, true)

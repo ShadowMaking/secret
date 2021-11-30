@@ -12,31 +12,38 @@ let exchange = new ccxt.huobi({
 
 export async function transTickerClose(changeType) { //. ETH/USDT
   changeType ? changeType = changeType : changeType = 'ETH/USDT' //default
-  if (exchange.has['fetchTicker']) {
-    try {
-      let fetchTicker = await exchange.fetchTicker(changeType);
-      return fetchTicker.close
+  return new Promise((resolve, reject) => {
+    if (exchange.has['fetchTicker']) {
+      exchange.fetchTicker(changeType)
+      .then(res=>{
+        resolve(res.close)
+      })
+      .catch(error => {
+        resolve(null)
+      })
+    } else {
+      resolve(null)
     }
-    catch {
-      return null
-    }
-  }
+  })
 }
 
 export async function transTickerObject(changeType) {
   changeType ? changeType = changeType : changeType = 'ETH/USDT' //default
-  if (exchange.has['fetchTicker']) {
-    try {
-      let fetchTicker = await exchange.fetchTicker(changeType);
-      return fetchTicker
+  return new Promise((resolve, reject) => {
+    if (exchange.has['fetchTicker']) {
+      exchange.fetchTicker(changeType)
+      .then(res => {
+        resolve(res)
+      })
+      .catch(errpr => {
+        resolve(null)
+      })
+      // this.ethUsdt = await (exchange.fetchTicker('ETH/USDT'))
+      // let symbols = Object.keys (exchange.markets)
+      // let random = Math.floor (Math.random () * (symbols.length - 1))
+      // console.log (exchange.fetchTicker(symbols[random]))
+    } else {
+      resolve(null)
     }
-    catch {
-      return null
-    }
-
-    // this.ethUsdt = await (exchange.fetchTicker('ETH/USDT'))
-    // let symbols = Object.keys (exchange.markets)
-    // let random = Math.floor (Math.random () * (symbols.length - 1))
-    // console.log (exchange.fetchTicker(symbols[random]))
-  }
+  })
 }

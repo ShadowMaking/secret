@@ -25,7 +25,8 @@ export const generateTokenList = async (list, self, isDefault) => {
       abi,
       accountAddress: selectedConnectAddress
     });
-    const {hasError: USResError, data: exchangeForUS} = await self.$store.dispatch('GetTokenAxchangeForUS', {tokenAddress});
+    const changeType = `${list[i]['symbol']}/USDT`
+    const {hasError: USResError, forUsdt: exchangeForUS} = await self.$store.dispatch('GetTokenAxchangeForUS', {tokenAddress, changeType});
     list[i]['abiJson'] = _.cloneDeep(abi)
     list[i]['balance'] = balance
     list[i]['balanceNumberString'] = balanceFormatString
@@ -41,7 +42,7 @@ export const generateTokenList = async (list, self, isDefault) => {
   return list
 }
 
-export const getDefaultETHAssets = async () => {
+export const getDefaultETHAssets = async (self) => {
   const selectedConnectAddress = window.ethereum.selectedAddress;
   const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = metamaskProvider.getSigner(0);
@@ -49,7 +50,8 @@ export const getDefaultETHAssets = async () => {
   const decimalsNumber = BigNumber(10).pow(18) // .toNumber() 1000000000000000000
   const balanceNumber = BigNumber(Number(web3.utils.hexToNumberString(balance)))
   const balanceFormatString = balanceNumber.div(decimalsNumber).toFixed(4,1)
-  const exchangeForUS = '0'; // TODO
+  const { forUsdt } = await self.$store.dispatch('GetTokenAxchangeForUS', {changeType: 'ETH/USDT'});
+  const exchangeForUS = forUsdt;
   const ethInfo = {
     id: 'ETH',
     tokenName: 'ETH',

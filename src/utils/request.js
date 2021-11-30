@@ -8,7 +8,7 @@ import {
   getInfoFromStorageByKey } from '@/utils/storage';
 
 const protocol = location.protocol;
-export const WEBSITE_BASEURL = protocol + '//43.128.80.242:8443';
+export const WEBSITE_BASEURL = protocol + '//rpc.ieigen.com'
 
 axios.defaults.withCredentials = true;
 

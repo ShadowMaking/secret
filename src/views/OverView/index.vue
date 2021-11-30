@@ -116,7 +116,7 @@ export default {
     },
     
     async initGthers() {
-      const ETHAssets = await getDefaultETHAssets();
+      const ETHAssets = await getDefaultETHAssets(this);
       let balanceString = ethers.utils.formatEther(ETHAssets.balance);
       let ethData = {
         name: ETHAssets.tokenName,

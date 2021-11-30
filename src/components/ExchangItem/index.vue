@@ -4,7 +4,7 @@
       <p class="exchange-des">{{ type }}</p>
       <div class="exchange-select-list" @click="showOptionList">
         <img src="https://s3.amazonaws.com/token-icons/0x6b175474e89094c44da98b954eedeac495271d0f.png" class="select-img">
-        <span class="select-txt">{{ selectLable }}</span>
+        <span class="select-txt">{{ selectedTokenInfo && selectedTokenInfo['tokenName'] }}</span>
         <img src="@/assets/form/solidDown.png" class="select-down-img">
         <span class="max" v-if="isMax">MAX</span>
       </div>
@@ -27,11 +27,11 @@
       </van-popup>
     </div>
     <div class="exchange-item-right">
-      <p class="exchange-des">Balance: 0.015</p>
+      <p class="exchange-des">Balance: {{ selectedTokenInfo && selectedTokenInfo['balanceNumberString']}}</p>
       <h3 class="exchange-value">
-        <input type="text" name="formVal" placeholder="0" v-model.trim="exchangVal" @input="inputChange">
+        <input type="text" name="formVal" placeholder="0" v-model="exchangVal" @input="inputChange" :disabled="inputDisabled">
       </h3>
-      <p class="exchange-des">=<label>$0.0</label></p>
+      <p class="exchange-des">=<label>${{ selectedTokenEchange }}</label></p>
     </div>
   </div>
 </template>
@@ -41,7 +41,6 @@ import _ from 'lodash';
 import Vue from 'vue';
 import { Popup, Search } from 'vant';
 import selectItem from '@/components/SelectItem/index';
-import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange } from '@/utils/dashBoardTools';
 
 Vue.use(Popup);
 Vue.use(Search);
@@ -49,7 +48,7 @@ Vue.use(Search);
 
 export default {
   name: 'ExchangItem',
-  props: ['isMax', 'type', 'sourceData'],
+  props: ['isMax', 'type', 'sourceData', 'inputDisabled'],
   data() {
     return {
       exchangVal: '',
@@ -57,7 +56,7 @@ export default {
       levelIdNew: [],
       levelIds: [],
       searchTxt: '',
-      selectLable: '',
+      selectedTokenInfo: null,
     }
   },
   components: {
@@ -66,14 +65,29 @@ export default {
   watch: {
     sourceData: {
       async handler(newV, oldV) {
-        this.selectLable = newV.length && newV[0].tokenName
+        // this.selectedTokenInfo = newV.length && newV[0]
+        if (newV.length) {
+          this.selectedTokenInfo = newV.length && newV[0]
+          this.selectChagne(newV[0])
+        }
       },
       deep: true,
     },
   },
+  computed: {
+    selectedTokenEchange() {
+      const selectedTokenInfo = this.selectedTokenInfo
+      if (selectedTokenInfo) {
+        return selectedTokenInfo.rightVal;
+      }
+      return 0.0
+    },
+  
+  },
   methods: {
-    inputChange() {
-      this.$emit('exchangeEvent', this.exchangVal);
+    inputChange(e) {
+      const val = e.target.value
+      this.$emit('inputChange', this.exchangVal);
     },
     showOptionList() {
       this.OptionListVisile = true
@@ -87,8 +101,8 @@ export default {
     },
     selectChagne(item) {
     	this.OptionListVisile = false
-    	this.selectLable = item.tokenName
-      this.$emit('exchangeEvent', item);
+      this.selectedTokenInfo = _.cloneDeep(item)
+      this.$emit('selectChagne', item);
     },
   },
   async mounted() {
