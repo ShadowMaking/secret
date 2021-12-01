@@ -283,9 +283,10 @@ export default {
         0,
         // [DAI.address, WETH.address],
         [DAIContract.address, WETH.address],
-        user.address,
+        // user.address,
+        window.ethereum.selectedAddress,
         ethers.constants.MaxUint256,
-        overrides
+        this.overrides
       );
       res = await tx.wait();
       console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", res);
