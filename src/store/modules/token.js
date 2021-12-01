@@ -189,7 +189,7 @@ const token = {
     },
     GetTokenAxchangeForUS({ commit }, params) {
       return new Promise(async (resolve, reject) => {
-        const { tokenAddress, changeType } = params
+        const { changeType } = params
         const fetchTicker = await transTickerObject(changeType)
         if (fetchTicker) {
           const forUsdt = fetchTicker.close;

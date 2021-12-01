@@ -31,7 +31,7 @@
     <div class="exchange-item-right">
       <p class="exchange-des">Balance: {{ selectedTokenInfo && selectedTokenInfo['balanceNumberString']}}</p>
       <h3 class="exchange-value">
-        <input type="text" name="formVal" placeholder="0" v-model="exchangVal" @input="inputChange" :disabled="inputDisabled">
+        <input type="text" name="formVal" placeholder="0" v-model="exchangVal" @input="inputChange" :disabled="inputDisabled" onkeyup="value=value.replace(/^(0+)|[^\d]+/g,'')">
       </h3>
       <p class="exchange-des">=<label>${{ selectedTokenEchange }}</label></p>
     </div>

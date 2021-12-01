@@ -81,6 +81,7 @@ import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange } from '@
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
+import { SWAPADDRESS } from '@/utils/global'
 import swapJson from './Swap.json'
 
 Vue.use(Icon);
@@ -143,37 +144,56 @@ export default {
       }
       this[type] = record
     },
+    checkData(data) {
+      if (!data.tokenFrom && this.exchangFromToken) {
+        Toast.fail('Nonsupport ETH')
+        return false
+      }
+
+      if (!this.exchangFromToken || !this.exchangToToken) {
+        Toast.fail('Choose Token')
+        return false
+      }
+
+      if (!data.amountin) {
+        Toast.fail('Need Input Amountin')
+        return false
+      }
+
+      if (new BigNumber(this.exchangFromToken.balanceNumberString).lt(new BigNumber(data.amountin)) ||
+      new BigNumber(this.exchangFromToken.balanceNumberString).eq(new BigNumber(0))) {
+        Toast.fail(`Insufficient Balance`);
+        return false;
+      }
+
+      return true
+    },
     async exchangeSubmit() {
       console.log(this.exchangFrom)
       console.log(this.exchangeTo)
       const data = {
-        tokenFrom: this.exchangFromToken['tokenAddress'],
-        tokenTo: this.exchangToToken['tokenAddress'],
-        amountin_o: this.exchangFrom, // 100
-        amountmin_o: (BigNumber(this.exchangFrom) * BigNumber(slippageKey).div(100)).toFixed(2,1),
-        amountin: 100,
-        amountmin: 96,
+        tokenFrom: this.exchangFromToken && this.exchangFromToken['tokenAddress'],
+        tokenTo: this.exchangToToken && this.exchangToToken['tokenAddress'],
+        amountin: this.exchangFrom, // 100
+        amountmin: BigNumber(this.exchangFrom||0).minus((BigNumber(this.exchangFrom||0) * BigNumber(this.slippageKey).div(100))),
         fee: 3000,
         gasInfo: { gasLimit: 1000000, gasPrice: 10 } // const gasInfo = { gasLimit: 100000, gasPrice: 29859858 }
       }
       console.log('exchangeData', data)
-      if (!data.tokenFrom) {
-        Toast('暂时不支持该币')
+      if (!this.checkData(data)) {
         return
       }
 
-      const swap = '0x243B775Ec2dbDD7AC8982bDFa56c2d7316dD089d';
-      const tokenA = '0x5076d190F242ae67E607CaAa081bF28F93Dc224D'
-      const tokenB = '0x8730786a6cd94bE7F3100F4c5C0e67b0517Cda6B'
-      const tokenC = '0xb0658e85D97ab457bD981b1233B14B1130A41333'
+      const tokenA = data.tokenFrom; // '0x5076d190F242ae67E607CaAa081bF28F93Dc224D'
+      const tokenB = data.tokenTo; // '0x8730786a6cd94bE7F3100F4c5C0e67b0517Cda6B'
 
       const abi = swapJson.abi
       const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = metamaskProvider.getSigner(0);
-      const myContract = new ethers.Contract(swap, abi, signer)
+      const myContract = new ethers.Contract(SWAPADDRESS, abi, signer)
       console.log('myContract', myContract)
 
-      await myContract.attach(swap)
+      await myContract.attach(SWAPADDRESS)
       myContract.swapExactInputSingle(tokenA, tokenB, data.fee, data.amountin, data.amountmin, data.gasInfo)
       .then(async res => {
         console.log('res1', res)

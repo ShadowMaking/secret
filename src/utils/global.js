@@ -17,8 +17,7 @@ const DOMAIN = hostName;
 const etherscanAPIKeyToken = 'JKUUBYKV6BFS2J4BIV41IKF1QFZRN758TK';
 const etherscanAPIBaseUrl = `https://api.etherscan.io`
 
-// TODO 1ETH ≈ 0.121314 US 
-const ETHFORUS = 0.121314
+const SWAPADDRESS = '0x243B775Ec2dbDD7AC8982bDFa56c2d7316dD089d'
 
 export {
   DEFAULTIMG,
@@ -28,7 +27,7 @@ export {
   DOMAIN,
   TOKEN_NAME,
   TOKEN_NAME_LOCK,
-  ETHFORUS,
   etherscanAPIKeyToken,
   etherscanAPIBaseUrl,
+  SWAPADDRESS,
 }

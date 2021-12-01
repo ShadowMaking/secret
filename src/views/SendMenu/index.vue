@@ -25,11 +25,11 @@
       </v-formSelect>
       <div class="send-value-box">
         <div class="send-value-item">
-          <v-formInput :label="selectedToken && `${selectedToken.tokenName}`||'ETH'" placeholder="0" :value="type1Value" @inputChange="e=>handleExchangeInputChange(e,'type1')" />
+          <v-formInput :label="selectedToken && `${selectedToken.tokenName}`||'ETH'" placeholder="0" :value="type1Value" @inputChange="e=>handleExchangeInputChange(e,'type1')" :limitInput="true"/>
           <label class="blueColor">{{ selectedToken && `${selectedToken.balanceNumberString} ${selectedToken.tokenName}` || "0 ETH"}}</label>
         </div>
         <div class="send-value-item">
-          <v-formInput label="USD" placeholder="0" :value="type2Value" @inputChange="e=>handleExchangeInputChange(e,'type2')" />
+          <v-formInput label="USD" placeholder="0" :value="type2Value" @inputChange="e=>handleExchangeInputChange(e,'type2')" :limitInput="true" />
           <label>Max US${{ exchangeUSForSelectedToken }}</label>
         </div>
       </div>
@@ -198,7 +198,6 @@ export default {
       }
       if (new BigNumber(data.selectedToken.balanceNumberString).lt(new BigNumber(data.type1Value)) ||
       new BigNumber(data.selectedToken.balanceNumberString).eq(new BigNumber(0))) {
-      // if (~~data.type1Value > ~~data.selectedToken.balanceNumberString || ~~data.selectedToken.balanceNumberString ==0 ) {
         Toast.fail(`Insufficient Balance`);
         return false;
       }
@@ -321,15 +320,15 @@ export default {
       }
       return { hasError: res.hasError };
     },
-    handleExchangeInputChange(data, type) {
+    async handleExchangeInputChange(data, type) {
       console.log(type, data)
       const value = data.value
       this[`${type}Value`] = value
       if (type === 'type1') {
-        this.type2Value = !this.selectedToken ? value * ETHFORUS : value * this.selectedToken.exchangeForUS
+        this.type2Value = !this.selectedToken ? value * this.ETHFORUS : value * this.selectedToken.exchangeForUS
       }
       if (type === 'type2') {
-        this.type1Value = !this.selectedToken ? value * ETHFORUS : value * this.selectedToken.exchangeForUS
+        this.type1Value = !this.selectedToken ? value * this.ETHFORUS : value * this.selectedToken.exchangeForUS
       }
     },
     async getGasPrice() {
@@ -350,6 +349,8 @@ export default {
     window.ethereum && (this.defaultNetWork = web3.utils.hexToNumber(window.ethereum.chainId))
   },
   async mounted() {
+    const { hasError, forUsdt } = await this.$store.dispatch('GetTokenAxchangeForUS', { changeType: 'ETH/USDT' });
+    this.ETHFORUS = forUsdt
     await this.getTokenAssetsForAccount()
   }
 };
