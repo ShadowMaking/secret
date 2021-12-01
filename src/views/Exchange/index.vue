@@ -282,7 +282,7 @@ export default {
         amountIn,
         0,
         // [DAI.address, WETH.address],
-        [DAIContract.address, WETH.address],
+        [DAIContract.address, WETHContract.address],
         // user.address,
         window.ethereum.selectedAddress,
         ethers.constants.MaxUint256,
