@@ -84,6 +84,10 @@ import { BigNumber } from "bignumber.js";
 import { SWAPADDRESS } from '@/utils/global'
 import swapJson from './Swap.json'
 
+import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
+import IERC20 from "./JSON/IERC20.json";
+import IWETH from "./JSON/IWETH.json";
+
 Vue.use(Icon);
 Vue.use(Loading);
 Vue.use(Toast);
@@ -111,6 +115,17 @@ export default {
       gasVal: 1,
       networkFee: '~~',
       slippageInput: 3,
+
+      // *********************** uniswap2 test ************************************/
+      user: null,
+      DAI: null,
+      WETH: null,
+      ROUTER: null,
+      routerAddress: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", // Uniswap v2 Router02
+      fromToken: `0xad6d458402f60fd3bd25163575031acdce07538d`, // Ropsten DAI
+      toToken: `0xc778417e063141139fce010982780140aa0cd5ab`, // Ropsten WETH
+      overrides: { gasLimit: 1000000, gasPrice: 20000 }
+      // *********************** uniswap2 test ************************************/
     }
   },
   components: {
@@ -168,7 +183,141 @@ export default {
 
       return true
     },
+    // *********************************************************** uniswap2 test ropsten *********************************************************** /
+    // DAIAmount: BigNumber, ETHAmount: BigNumber
+    async addLiquidity(DAIAmount, ETHAmount) {
+      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = metamaskProvider.getSigner(0);
+      // const myContract = new ethers.Contract(SWAPADDRESS, abi, signer)
+      // console.log('myContract', myContract)
+      // await myContract.attach(SWAPADDRESS)
+
+      // let DAI = await ethers.getContractAt(IERC20.abi, fromToken);
+      // console.log("DAI: ", DAI.address);
+      const DAIContract = new ethers.Contract(this.fromToken, IERC20.abi, signer)
+      await DAIContract.attach(this.fromToken)
+      console.log("DAI: ", DAIContract.address);
+      
+      // let WETH = await ethers.getContractAt(IWETH.abi, toToken);
+      // console.log("WETH: ", WETH.address);
+      const WETHContract = new ethers.Contract(this.toToken, IWETH.abi, signer)
+      await WETHContract.attach(this.toToken)
+      console.log("WETH: ", WETHContract.address);
+      
+
+      // let ROUTER = await ethers.getContractAt(IUniswapV2Router02.abi, routerAddress);
+      // console.log(`ROUTER: ${ROUTER.address}`);
+      let ROUTERContract = new ethers.Contract(this.routerAddress, IUniswapV2Router02.abi, signer)
+      await ROUTERContract.attach(this.routerAddress)
+      console.log(`ROUTER: ${ROUTERContract.address}`);
+
+      let tx;
+      let res;
+
+      // tx = await DAI.approve(ROUTER.address, DAIAmount, overrides);
+      tx = await DAIContract.approve(ROUTERContract.address, DAIAmount, this.overrides);
+      res = await tx.wait();
+      console.log("Approve DAI: ", res);
+      /* tx = await ROUTER.addLiquidityETH(
+        DAI.address,
+        DAIAmount,
+        DAIAmount,
+        ETHAmount,
+        user.address,
+        ethers.constants.MaxUint256,
+        {
+          ...overrides,
+          value: ETHAmount,
+        }
+      ); */
+      tx = await ROUTERContract.addLiquidityETH(
+        DAIContract.address,
+        DAIAmount,
+        DAIAmount,
+        ETHAmount,
+        window.ethereum.selectedAddress,
+        ethers.constants.MaxUint256,
+        {
+          ...this.overrides,
+          value: ETHAmount,
+        }
+      );
+      res = await tx.wait();
+      console.log("ROUTER.addLiquidityETH: ", res);
+    },
+    async eth_dai() {
+      // ETH -> DAI
+      let tx;
+      let res;
+      let DAIAmount = ethers.utils.parseUnits("10");
+      let ETHAmount = ethers.utils.parseEther("0.1");
+      let amountIn = ethers.utils.parseUnits("1");
+
+      await this.addLiquidity(DAIAmount, ETHAmount);
+
+      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = metamaskProvider.getSigner(0);
+      
+      const DAIContract = new ethers.Contract(this.fromToken, IERC20.abi, signer)
+      await DAIContract.attach(this.fromToken)
+      console.log("DAI: ", DAIContract.address);
+
+      let ROUTERContract = new ethers.Contract(this.routerAddress, IUniswapV2Router02.abi, signer)
+      await ROUTERContract.attach(this.routerAddress)
+      console.log(`ROUTER: ${ROUTERContract.address}`);
+
+      const WETHContract = new ethers.Contract(this.toToken, IWETH.abi, signer)
+      await WETHContract.attach(this.toToken)
+      console.log("WETH: ", WETHContract.address);
+
+
+
+      // tx = await DAI.approve(ROUTER.address, DAIAmount, overrides);
+      tx = await DAIContract.approve(ROUTERContract.address, DAIAmount, this.overrides);
+      res = await tx.wait();
+      console.log("Approve DAI: ", res);
+
+      // tx = await ROUTER.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+      tx = await ROUTERContract.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+        amountIn,
+        0,
+        // [DAI.address, WETH.address],
+        [DAIContract.address, WETH.address],
+        user.address,
+        ethers.constants.MaxUint256,
+        overrides
+      );
+      res = await tx.wait();
+      console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", res);
+    },
+    async swapInAndOut() {
+      console.log("swap in and out");
+      [user] = await ethers.getSigners();
+      if (user === undefined) {
+        throw new Error("Invalid user");
+      }
+      console.log(`user = ${user.address}`);
+
+      DAI = await ethers.getContractAt(IERC20.abi, fromToken);
+      console.log("DAI: ", DAI.address);
+      WETH = await ethers.getContractAt(IWETH.abi, toToken);
+      console.log("WETH: ", WETH.address);
+
+      ROUTER = await ethers.getContractAt(IUniswapV2Router02.abi, this.routerAddress);
+      console.log(`ROUTER: ${ROUTER.address}`);
+
+      /* const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = metamaskProvider.getSigner(0);
+      const myContract = new ethers.Contract(tokenAddress, abi, signer)
+
+      const selectedConnectAddress = window.ethereum.selectedAddress; */
+      
+    },
+    // *********************************************************** uniswap2 test ropsten *********************************************************** /
     async exchangeSubmit() {
+      // await swapInAndOut();
+      await this.eth_dai()
+      return
       console.log(this.exchangFrom)
       console.log(this.exchangeTo)
       const data = {
