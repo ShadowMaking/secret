@@ -86,7 +86,8 @@ import swapJson from './Swap.json'
 
 import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
 import IERC20 from "./JSON/IERC20.json";
-import IWETH from "./JSON/IWETH.json";
+// import IWETH from "./JSON/IWETH.json";
+import IWETH from "./JSON/WETH9.json";
 
 Vue.use(Icon);
 Vue.use(Loading);

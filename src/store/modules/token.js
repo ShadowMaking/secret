@@ -14,7 +14,8 @@ import DEFAULTTOKENLISTForL1 from '@/assets/token/tokenListDefaultForL1.json'
 // For Ropsten Test
 import DEFAULTTOKENLISTForRopsten from '@/assets/token/Ropsten/tokenList.json'
 import DAIABIJSONFORROPSTEN from '@/assets/token/Ropsten/ABIJSON/IERC20.json'
-import WETHABIJSONFORROPSTEN from '@/assets/token/Ropsten/ABIJSON/IWETH.json'
+// import WETHABIJSONFORROPSTEN from '@/assets/token/Ropsten/ABIJSON/IWETH.json'
+import WETHABIJSONFORROPSTEN from '@/assets/token/Ropsten/ABIJSON/WETH9.json'
 
 import TOKENLISTJSONTest from '@/assets/token/tokenList_test.json'
 import { CHAINIDMAP } from '@/utils/netWorkForToken'
