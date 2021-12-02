@@ -6,11 +6,20 @@ import { TOKEN_L1, TOKEN_L2, getAvailableTokenAssets } from '@/utils/token';
 import { etherscanAPIKeyToken, etherscanAPIBaseUrl } from '@/utils/global';
 import { ajaxGetRequestByEtherscan } from '@/utils/index'
 import TOKENLISTJSON from '@/assets/token/tokenList.json'
-import DEFAULTTOKENABIJSON from '@/assets/token/defaultToken.json'
-import DEFAULTTOKENLISTJSON from '@/assets/token/tokenListDefault.json'
+
+// For SecretL1 Test
+import DEFAULTTOKENABIJSONForL1 from '@/assets/token/defaultTokenForL1.json'
+import DEFAULTTOKENLISTForL1 from '@/assets/token/tokenListDefaultForL1.json'
+
+// For Ropsten Test
+import DEFAULTTOKENLISTForRopsten from '@/assets/token/Ropsten/tokenList.json'
+import DAIABIJSONFORROPSTEN from '@/assets/token/Ropsten/ABIJSON/IERC20.json'
+import WETHABIJSONFORROPSTEN from '@/assets/token/Ropsten/ABIJSON/IWETH.json'
+
 import TOKENLISTJSONTest from '@/assets/token/tokenList_test.json'
-import { L1ChainID } from '@/utils/netWork'
+import { CHAINIDMAP } from '@/utils/netWorkForToken'
 import { transTickerObject } from '@/utils/ccxt';
+
 
 
 const token = {
@@ -77,45 +86,55 @@ const token = {
       return new Promise((resolve, reject) => {
         let chainID = window.ethereum.chainId
         params.chainInfo && (chainID = params.chainInfo.chainId)
-        const isL1NetWork = chainID === L1ChainID
-        if (!isL1NetWork) {resolve({ hasError: false, list: [] }); return }
-        const tokenList = Object.keys(DEFAULTTOKENLISTJSON).map(tokenAddress => {
-          const { name, logo, erc20, symbol, decimals } = DEFAULTTOKENLISTJSON[tokenAddress]
-          return {
-            id: name,
-            tokenName: name,
-            tokenAddress,
-            erc20, symbol, decimals,
-            icon: `@/assets/token/tokenImages/${logo}`, // TODO
-            abiJson: DEFAULTTOKENABIJSON.abi
-          }
-        })
+        // const isL1NetWork = chainID === CHAINIDMAP['SECRETL1']
+        // const isRopsten = chainID === CHAINIDMAP['ROPSTEN']
+        // if (!isL1NetWork) {resolve({ hasError: false, list: [] }); return }
+        
+        let tokenList = []
+        switch(chainID) {
+          case CHAINIDMAP['SECRETL1']:
+            tokenList = Object.keys(DEFAULTTOKENLISTForL1).map(tokenAddress => {
+              const { name, logo, erc20, symbol, decimals } = DEFAULTTOKENLISTForL1[tokenAddress]
+              return {
+                id: name,
+                tokenName: name,
+                tokenAddress,
+                erc20, symbol, decimals,
+                icon: `@/assets/token/tokenImages/${logo}`, // TODO
+                abiJson: DEFAULTTOKENABIJSONForL1.abi
+              }
+            })
+            break;
+          case CHAINIDMAP['ROPSTEN']:
+            tokenList = Object.keys(DEFAULTTOKENLISTForRopsten).map(tokenAddress => {
+              const { name, logo, erc20, symbol, decimals } = DEFAULTTOKENLISTForRopsten[tokenAddress]
+              let abi = []
+              switch(symbol) {
+                case 'DAI':
+                  abi = [].concat(DAIABIJSONFORROPSTEN.abi)
+                  break;
+                case 'WETH':
+                  abi = [].concat(WETHABIJSONFORROPSTEN.abi)
+                  break;
+              }
+              return {
+                id: name,
+                tokenName: name,
+                tokenAddress,
+                erc20, symbol, decimals,
+                icon: `@/assets/token/tokenImages/${logo}`, // TODO
+                abiJson: abi
+              }
+            })
+            break;
+          default:
+            tokenList =  []
+            break
+        }
         // const list = [{id: 'Zks',tokenName: 'Zks',tokenAddress: '0xe4815AE53B124e7263F08dcDBBB757d41Ed658c6'},{id: 'BitBase',tokenName: 'BitBase',tokenAddress: '0x32E6C34Cd57087aBBD59B5A4AECC4cB495924356'}]
         resolve({ hasError: false,  list: tokenList })
       })
     },
-    // GetAvailableTokenAssetsDefault({ commit }, params) {
-    //   return new Promise((resolve, reject) => {
-    //     const list = [
-    //       {
-    //         id: 'ETKA',
-    //         tokenName: 'ETKA',
-    //         tokenAddress: '0xe4815AE53B124e7263F08dcDBBB757d41Ed658c6',
-    //       },
-    //       {
-    //         id: 'ETKB',
-    //         tokenName: 'ETKC',
-    //         tokenAddress: '0xe4815AE53B124e7263F08dcDBBB757d41Ed658c6',
-    //       },
-    //       {
-    //         id: 'ETKA',
-    //         tokenName: 'ETKA',
-    //         tokenAddress: '0xe4815AE53B124e7263F08dcDBBB757d41Ed658c6',
-    //       },
-    //     ]
-    //     resolve({ hasError: false,  list: list })
-    //   })
-    // },
     GetTokenABIByTokenAddress({ commit }, params) {
       const tokenAddress = params.tokenAddress
       const data = {
@@ -138,11 +157,16 @@ const token = {
       return new Promise((resolve, reject) => {
         const { tokenAddress, abi, accountAddress } = params
         if (!abi) {
-          resolve({ hasError: false, data: 0, balanceFormatString: 0 })
+          resolve({ hasError: true, data: 0, balanceFormatString: 0 })
+          return
         }
         const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = metamaskProvider.getSigner(0);
         const myContract = new ethers.Contract(tokenAddress, abi, signer)
+        if(!myContract.balanceOf) {
+          resolve({ hasError: true, data: 0, balanceFormatString: 0 })
+          return
+        }
         myContract.balanceOf(accountAddress)
           .then(async res => {
             const decimals = await myContract.decimals()

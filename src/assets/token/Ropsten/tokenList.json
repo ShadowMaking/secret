@@ -1,0 +1,16 @@
+{
+  "0xad6d458402f60fd3bd25163575031acdce07538d": {
+    "name": "DAI",
+    "logo": "DAI.svg",
+    "erc20": true,
+    "symbol": "DAI",
+    "decimals": 18
+  },
+  "0xc778417e063141139fce010982780140aa0cd5ab": {
+    "name": "WETH",
+    "logo": "WETH.svg",
+    "erc20": true,
+    "symbol": "WETH",
+    "decimals": 18
+  }
+}
