@@ -45,19 +45,15 @@
 
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Authorization.png" width="270px"></div>
 
-11.Complete authorization on Google Page
-
-<div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Google%20hasn%E2%80%99t%20verified%20this%20app.png" width="270px"></div>
-
-12.Tick authorized access content. Just select all by default.
+11.Tick authorized access content. Just select all by default.
 
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Select%20what%20ieigen%20can%20access.png" width="270px"></div>
 
-13.Click send email
+12.Click send email
 
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/Authorization.png" width="270px"></div>
 
-14.The secret share is sent successfully. The selected friends will receive secret share. You can recover the key through the social recovery.
+13.The secret share is sent successfully. The selected friends will receive secret share. You can recover the key through the social recovery.
 
 <div align=left><img src="https://raw.githubusercontent.com/ieigen/secret/master/docs/images/The%20secret%20share%20is%20sent%20successfully.png" width="270px"></div>
 
