@@ -4,7 +4,7 @@
       <div class="common-transaction-table">
         <van-search 
           v-model="searchValue" 
-          placeholder="Filter by Address, Protocol, Asset, Type" 
+          placeholder="Filter by Address" 
           @input="searchChange"
           style="width: 50%;margin-left: -12px;background-color: #e6e7e9"/>
         <v-list
@@ -47,11 +47,13 @@ export default {
   },
   methods: {
     searchAllTrasanctionList() {
+      this.transactionList = []
       this.showLoading = true;
       this.$store.dispatch('SearchAllTransactionHistory_forHistory', {
         action: 'search_l2',
         page: this.currentPage,
-        page_size: this.pageSize
+        page_size: this.pageSize,
+        from: this.searchValue,
       })
       .then(async result => {
         const { hasError, list=[], totalPage=1 } = result;
@@ -78,7 +80,7 @@ export default {
       }
     },
     searchChange() {
-
+      this.searchAllTrasanctionList();
     },
   },
   async mounted() {
