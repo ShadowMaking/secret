@@ -49,7 +49,7 @@
           <div class="header"><h3>Gas Price</h3></div>
           <ul class="gas-price-list">
             <v-selectItem :rightVal="gasPriceValue('Fast')" labelShow=true leftTitle="Fast" :leftDes="gasPriceConfirmTime('Fast')" :icon="require('@/assets/form/gasFast.png')" @childevent="selectChagne('Fast')"></v-selectItem>
-            <v-selectItem :rightVal="gasPriceValue('Average')" labelShow=true leftTitle="Average" :leftDes="gasPriceConfirmTime('Average')" :icon="require('@/assets/form/gasAverag.png')" @childevent="selectChagne('Averag')"></v-selectItem>
+            <v-selectItem :rightVal="gasPriceValue('Average')" labelShow=true leftTitle="Average" :leftDes="gasPriceConfirmTime('Average')" :icon="require('@/assets/form/gasAverag.png')" @childevent="selectChagne('Average')"></v-selectItem>
             <v-selectItem :rightVal="gasPriceValue('Average')" labelShow=true leftTitle="Custom"  :icon="require('@/assets/form/gasCustom.png')" @childevent="selectChagne('Custom')"></v-selectItem>
           </ul>
         </div>
@@ -221,7 +221,7 @@ export default {
       
       if (!this.checkData(sendData)) { return }
 
-      const gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.selectedGasType].gasPrice || '1'
+      const gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.selectedGasType === 'Custom'?"Average":this.selectedGasType].gasPrice || '1'
       const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
       
       if (this.selectedToken.tokenName === 'ETH') { // send ETH
