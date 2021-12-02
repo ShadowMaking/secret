@@ -135,9 +135,6 @@ export default {
     "v-selectItem": selectItem,
     "v-formSelect": formSelect,
   },
-  computed: {
-    
-  },
   methods: {
     gasPriceValue(type) {
       return this.gasPriceInfo && this.gasPriceInfo[type].gasPrice;
@@ -161,10 +158,10 @@ export default {
       this[type] = record
     },
     checkData(data) {
-      if (!data.tokenFrom && this.exchangFromToken) {
+      /* if (!data.tokenFrom && this.exchangFromToken) {
         Toast.fail('Nonsupport ETH')
         return false
-      }
+      } */
 
       if (!this.exchangFromToken || !this.exchangToToken) {
         Toast.fail('Choose Token')
@@ -185,61 +182,39 @@ export default {
       return true
     },
     // *********************************************************** uniswap2 test ropsten *********************************************************** /
-    // DAIAmount: BigNumber, ETHAmount: BigNumber
-    async addLiquidity(DAIAmount, ETHAmount) {
+    async getContractAt({ tokenAddress, abi }) {
       const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = metamaskProvider.getSigner(0);
-      // const myContract = new ethers.Contract(SWAPADDRESS, abi, signer)
-      // console.log('myContract', myContract)
-      // await myContract.attach(SWAPADDRESS)
 
-      // let DAI = await ethers.getContractAt(IERC20.abi, fromToken);
-      // console.log("DAI: ", DAI.address);
-      const DAIContract = new ethers.Contract(this.fromToken, IERC20.abi, signer)
-      await DAIContract.attach(this.fromToken)
-      console.log("DAI: ", DAIContract.address);
-      
-      // let WETH = await ethers.getContractAt(IWETH.abi, toToken);
-      // console.log("WETH: ", WETH.address);
-      const WETHContract = new ethers.Contract(this.toToken, IWETH.abi, signer)
-      await WETHContract.attach(this.toToken)
-      console.log("WETH: ", WETHContract.address);
-      
+      const MyContract = new ethers.Contract(tokenAddress, abi, signer)
+      await MyContract.attach(tokenAddress)
+      console.log("Contract: ", MyContract.address);
 
-      // let ROUTER = await ethers.getContractAt(IUniswapV2Router02.abi, routerAddress);
-      // console.log(`ROUTER: ${ROUTER.address}`);
-      let ROUTERContract = new ethers.Contract(this.routerAddress, IUniswapV2Router02.abi, signer)
-      await ROUTERContract.attach(this.routerAddress)
-      console.log(`ROUTER: ${ROUTERContract.address}`);
+      return MyContract
+    },
+    // DAIAmount: BigNumber, ETHAmount: BigNumber
+    async addLiquidity(DAIAmount, ETHAmount, tokenType, gasInfo) {
+      const tokenInfo = tokenType === 'from' ? this.exchangFromToken : this.exchangToToken
+      const { tokenAddress, abiJson } = tokenInfo
+      const TokenContract = await this.getContractAt({ tokenAddress, abi: abiJson })
+      const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
 
       let tx;
       let res;
-
-      // tx = await DAI.approve(ROUTER.address, DAIAmount, overrides);
-      tx = await DAIContract.approve(ROUTERContract.address, DAIAmount, this.overrides);
+      const overrides = { ...gasInfo }
+      tx = await TokenContract.approve(ROUTERContract.address, DAIAmount, overrides);
       res = await tx.wait();
-      console.log("Approve DAI: ", res);
-      /* tx = await ROUTER.addLiquidityETH(
-        DAI.address,
-        DAIAmount,
-        DAIAmount,
-        ETHAmount,
-        user.address,
-        ethers.constants.MaxUint256,
-        {
-          ...overrides,
-          value: ETHAmount,
-        }
-      ); */
+      console.log("Approve Token: ", res);
+      
       tx = await ROUTERContract.addLiquidityETH(
-        DAIContract.address,
+        TokenContract.address,
         DAIAmount,
         DAIAmount,
         ETHAmount,
         window.ethereum.selectedAddress,
         ethers.constants.MaxUint256,
         {
-          ...this.overrides,
+          ...overrides,
           value: ETHAmount,
         }
       );
@@ -292,48 +267,79 @@ export default {
       res = await tx.wait();
       console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", res);
     },
-    async swapInAndOut() {
-      console.log("swap in and out");
-      [user] = await ethers.getSigners();
-      if (user === undefined) {
-        throw new Error("Invalid user");
+
+
+
+    // ETH exchange for Token
+    async exchangeETH2Token(data) {
+      await this.exchangeToken('to', data)
+    },
+    // Token exchange for Token
+    async exchangeToken2Token(data) {
+      await this.exchangeToken('from', data)
+    },
+
+    // type: to || from
+    async exchangeToken(type, data) {
+      const overrides = { ...data.gasInfo }
+      const DAIAmount = ethers.utils.parseUnits("10");
+      const ETHAmount = ethers.utils.parseEther("0.1");
+      const amountIn = ethers.utils.parseUnits(data.amountin);
+      const approveTokenAmount = ethers.utils.parseUnits(BigNumber(data.amountin).multipliedBy(100).toString())
+
+      await this.addLiquidity(approveTokenAmount, ETHAmount, `${type}`, overrides);
+      const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
+
+      if (type === 'from') {
+        let tx = await ROUTERContract.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+          amountIn,
+          0, // TODO
+          // [DAI.address, WETH.address],
+          [data.tokenFrom, data.tokenTo],
+          // user.address,
+          window.ethereum.selectedAddress,
+          ethers.constants.MaxUint256,
+          overrides
+        );
+        let res = await tx.wait();
+        console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", res);
+      } else {
+        let tx = await ROUTERContract.swapExactETHForTokensSupportingFeeOnTransferTokens(
+          0, // TODO
+          // [DAI.address, WETH.address],
+          [data.tokenFrom, data.tokenTo],
+          // user.address,
+          window.ethereum.selectedAddress,
+          ethers.constants.MaxUint256,
+          overrides
+        );
+        let res = await tx.wait();
+        console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", res);
       }
-      console.log(`user = ${user.address}`);
-
-      DAI = await ethers.getContractAt(IERC20.abi, fromToken);
-      console.log("DAI: ", DAI.address);
-      WETH = await ethers.getContractAt(IWETH.abi, toToken);
-      console.log("WETH: ", WETH.address);
-
-      ROUTER = await ethers.getContractAt(IUniswapV2Router02.abi, this.routerAddress);
-      console.log(`ROUTER: ${ROUTER.address}`);
-
-      /* const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = metamaskProvider.getSigner(0);
-      const myContract = new ethers.Contract(tokenAddress, abi, signer)
-
-      const selectedConnectAddress = window.ethereum.selectedAddress; */
-      
     },
     // *********************************************************** uniswap2 test ropsten *********************************************************** /
     async exchangeSubmit() {
-      // await swapInAndOut();
-      await this.eth_dai()
-      return
-      console.log(this.exchangFrom)
-      console.log(this.exchangeTo)
+      console.log(this)
       const data = {
         tokenFrom: this.exchangFromToken && this.exchangFromToken['tokenAddress'],
         tokenTo: this.exchangToToken && this.exchangToToken['tokenAddress'],
         amountin: this.exchangFrom, // 100
         amountmin: BigNumber(this.exchangFrom||0).minus((BigNumber(this.exchangFrom||0) * BigNumber(this.slippageKey).div(100))),
         fee: 3000,
-        gasInfo: { gasLimit: 1000000, gasPrice: 10 } // const gasInfo = { gasLimit: 100000, gasPrice: 29859858 }
+        gasInfo: { gasLimit: 1000000, gasPrice: 20000 } // const gasInfo = { gasLimit: 100000, gasPrice: 29859858 }
       }
       console.log('exchangeData', data)
       if (!this.checkData(data)) {
         return
       }
+
+      // fromToken is ETH
+      if (!data.tokenFrom && this.exchangFromToken) {
+        await this.exchangeETH2Token(data)
+      } else { // fromToken is token and toToken is token too
+        await this.exchangeToken2Token(data)
+      }
+      return
 
       const tokenA = data.tokenFrom; // '0x5076d190F242ae67E607CaAa081bF28F93Dc224D'
       const tokenB = data.tokenTo; // '0x8730786a6cd94bE7F3100F4c5C0e67b0517Cda6B'
