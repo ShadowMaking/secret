@@ -13,6 +13,7 @@
 		    height: 48px;
 		    display: flex;
 		    justify-content: space-between;
+		    align-items: center;
 		    margin-top: 8px;
 		    .select-left {
 		      display: flex;
@@ -30,7 +31,7 @@
 		    .select-price-right {
 		      align-items: center;
 		      text-align: right;
-		      .select-right-des {
+		     .select-right-des {
 		        color: red;
 		        margin-top: 5px;
 		      }

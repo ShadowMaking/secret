@@ -13,14 +13,14 @@
                   <img :src="item.icon">
                 </div>
                 <div class="select-left-text">
-                  <h3 class="select-left-title">{{item.name}}</h3>
-                  <p class="select-left-value">{{item.balance}}ETH</p>
+                  <h3 class="select-left-title">{{item.tokenName}}</h3>
+                  <!-- <p class="select-left-value">{{item.balance}}ETH</p> -->
                 </div>
               </div>
               <div class="select-price-right">
-                <h3>${{ item.amount|showAvailableBalance }}</h3>
-                <p class="select-right-des" v-if="ethPercentage > 0" style="color: #00965e">+{{ethPercentage|showAvailableBalance}}%(${{item.label|showAvailableBalance}})</p>
-                <p class="select-right-des" v-else>{{ethPercentage|showAvailableBalance}}%{{item.label|showAvailableBalance}}</p>
+                <h3>${{ item.balanceNumberString|showAvailableBalance }}</h3>
+                <!--<p class="select-right-des" v-if="ethPercentage > 0" style="color: #00965e">+{{ethPercentage|showAvailableBalance}}%(${{item.label|showAvailableBalance}})</p>
+                <p class="select-right-des" v-else>{{ethPercentage|showAvailableBalance}}%{{item.label|showAvailableBalance}}</p> -->
               </div>
             </div>
             <v-loading v-show="showLoading"/>
@@ -75,6 +75,7 @@ export default {
       address: getDefaultAddress(this.$store),
       fetchTicker: '',
       showLoading: true,
+      currentChainInfo: null,
     }
   },
   components: {
@@ -116,22 +117,34 @@ export default {
     },
     
     async initGthers() {
-      const ETHAssets = await getDefaultETHAssets(this);
-      let balanceString = ethers.utils.formatEther(ETHAssets.balance);
-      let ethData = {
-        name: ETHAssets.tokenName,
-        icon: ETHAssets.icon,
-        balance: balanceString,
-        amount: (this.ethUsdt * balanceString),
-        label: (this.ethChange * balanceString),
+      const selectedConnectAddress = window.ethereum.selectedAddress;
+      if (!selectedConnectAddress) {
+        this.assetsData = []
+        return
       }
-      this.assetsData = []
-      this.assetsData.push(ethData)
+      const ETHAssets = await getDefaultETHAssets(this);
+      const tokenListRes = await this.$store.dispatch('GetAvailableTokenAssets', { selectedConnectAddress, chainInfo: this.currentChainInfo });
+      const { hasError, list } = tokenListRes
+      const tokenList = await generateTokenList(_.cloneDeep(list), this, true)
+      console.log('tokenList', tokenList)
+      this.assetsData = [].concat([ETHAssets], tokenList)
+      console.log(this.assetsData)
+
+
+      // let ethData = {
+      //   name: ETHAssets.tokenName,
+      //   icon: ETHAssets.icon,
+      //   balance: balanceString,
+      //   amount: (this.ethUsdt * balanceString),
+      //   label: (this.ethChange * balanceString),
+      // }
+      // this.assetsData = []
+      // this.assetsData.push(ethData)
       this.showLoading = false
     },
   },
   created() {
-    this.timer();
+    // this.timer();
     this.getExchange();
   },
   destroyed() {
