@@ -129,7 +129,8 @@ export default {
       routerAddress: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", // Uniswap v2 Router02
       fromToken: `0xad6d458402f60fd3bd25163575031acdce07538d`, // Ropsten DAI
       toToken: `0xc778417e063141139fce010982780140aa0cd5ab`, // Ropsten WETH
-      overrides: { gasLimit: 1000000, gasPrice: 20000 }
+      // overrides: { gasLimit: 1000000, gasPrice: 20000 }
+      overrides: { gasLimit: 1000000, gasPrice: 20000000000 }
       // *********************** uniswap2 test ************************************/
     }
   },
@@ -313,7 +314,7 @@ export default {
         amountin: this.exchangFrom, // 100
         amountmin: BigNumber(this.exchangFrom||0).minus((BigNumber(this.exchangFrom||0) * BigNumber(this.slippageKey).div(100))),
         fee: 3000,
-        gasInfo: { gasLimit: 1000000, gasPrice: 20000 } // const gasInfo = { gasLimit: 100000, gasPrice: 29859858 }
+        gasInfo: { gasLimit: 1000000, gasPrice: 20000000000 } // const gasInfo = { gasLimit: 100000, gasPrice: 29859858 }
       }
       console.log('exchangeData', data)
       return data
