@@ -2,6 +2,7 @@ import _ from 'lodash'
 import { utils, ethers } from 'ethers'
 import web3 from 'web3';
 import { BigNumber } from "bignumber.js";
+import { saveUserAllowanceForToken, getUserAllowanceForToken } from '@/api/token';
 import { TOKEN_L1, TOKEN_L2, getAvailableTokenAssets } from '@/utils/token';
 import { ajaxGetRequestByEtherscan } from '@/utils/index'
 import TOKENLISTJSON from '@/assets/token/tokenList.json'
@@ -19,7 +20,6 @@ import WETHABIJSONFORROPSTEN from '@/assets/token/Ropsten/ABIJSON/WETH9.json'
 import TOKENLISTJSONTest from '@/assets/token/tokenList_test.json'
 import { CHAINIDMAP } from '@/utils/netWorkForToken'
 import { transTickerObject } from '@/utils/ccxt';
-
 
 
 const token = {
@@ -51,6 +51,35 @@ const token = {
           return item['symbol'].toLowerCase().indexOf(params.token.toLowerCase()) > -1
         }) || []
         resolve(list)
+      })
+    },
+    SaveUserAllowanceForToken({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        saveUserAllowanceForToken(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false, message})
+          } else {
+            resolve({ hasError: true, error: message });
+          }
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
+    GetUserAllowanceForToken({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        getUserAllowanceForToken(params).then(response => {
+          const { errno, data, message } = response.data
+          const isApprove = data && data.approve
+          if (errno === 0 && isApprove) {
+            resolve({ hasError: false, isApprove: true })
+          } else {
+            resolve({ hasError: true, isApprove: false, error: message });
+          }
+        }).catch(error => {
+          resolve({ hasError: true, isApprove: false, error });
+        })
       })
     },
     /***************************** send ***************************/
