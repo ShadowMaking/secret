@@ -92,3 +92,17 @@ export const updateTransactionHistory = (data) => {
     method: 'get',
   })
 }
+
+/**
+ * @description: query Approval
+ * @param from
+ * @return {*}
+ */
+ export const queryApprovalList = (data) => {
+  const userId = data['userId'];
+  return request({
+    url: `/api/user/${userId}/allowances`,
+    method: 'get',
+    params: data
+  })
+}

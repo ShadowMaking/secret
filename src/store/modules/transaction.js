@@ -4,6 +4,7 @@ import {
   searchAllTransactionHistory,
   searchAllTransactionHistory_forHistory,
   queryTransactionHistory,
+  queryApprovalList,
 } from '@/api/transaction'
 
 const transaction = {
@@ -68,6 +69,17 @@ const transaction = {
     QueryTransactionHistory({ commit }, params) {
       return new Promise((resolve, reject) => {
         queryTransactionHistory(params).then(response => {
+          const data = response.data.data;
+          resolve(data)
+        }).catch(error => {
+          reject(error)
+        })
+      })
+    },
+
+    QueryApprovalList({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        queryApprovalList(params).then(response => {
           const data = response.data.data;
           resolve(data)
         }).catch(error => {

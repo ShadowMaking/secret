@@ -32,41 +32,7 @@
         <v-history></v-history>
       </van-tab>
       <van-tab title="Approval" title-style="font-weight: bold">
-        <div class="approval-box">
-          <div class="tag-list">
-            <span 
-            v-for="(item, index) in tagList"
-            :key="index"
-            :class="['tag-item', index == activeTagKey ? 'active' : '']"
-            @click="changetTag(index)"
-            >{{item}}</span>
-          </div>
-          <div class="approval-list">
-            <el-row class="list-header">
-              <el-col :span="4" class="list-header-item">Approved Time</el-col>
-              <el-col :span="4" class="list-header-item">Token</el-col>
-              <el-col :span="4" class="list-header-item">Allowance</el-col>
-              <el-col :span="12" class="list-header-item">Contract</el-col>
-            </el-row>
-            <el-row class="list-content">
-              <el-col :span="4" class="list-item">2017-07-08 11:17</el-col>
-              <el-col :span="4" class="list-item">ZKS</el-col>
-              <el-col :span="4" class="list-item">671</el-col>
-              <el-col :span="12" class="list-item item-contract">
-                <div class="item-con-left">
-                  <div class="item-icon"><img src="@/assets/token/tokenImages/defaultToken.png"></div>
-                  <div class="item-left-con">
-                    <h3>ZKSwap</h3>
-                    <p>0xjjkdk0xjjkdkf0xj</p>
-                  </div>
-                </div>
-                <div class="item-con-right"><a @click="DeclineSubmit">Decline</a></div>
-              </el-col>
-            </el-row>
-          </div>
-        </div>
-        
-        
+        <v-approval></v-approval>        
       </van-tab>
     </van-tabs>
   </div>
@@ -86,7 +52,7 @@ import { generateTokenList, getDefaultETHAssets } from '@/utils/dashBoardTools'
 import web3 from 'web3'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
-import { getTokenUs, getTokenAmountByUs } from '@/utils/coinGecko'
+import Approval from './Approval/index'
 
 Vue.use(Icon);
 Vue.use(Popup);
@@ -109,12 +75,9 @@ export default {
       ethUsdt: '',
       ethPercentage: '',
       ethChange: '',
-      address: getDefaultAddress(this.$store),
       fetchTicker: '',
       showLoading: true,
       currentChainInfo: null,
-      activeTagKey: 0,
-      tagList: ['Ethereun', 'BSC']
     }
   },
   components: {
@@ -123,6 +86,7 @@ export default {
     "v-trendLine": TrendLine,
     'v-none': None,
     'v-loading': Loading,
+    'v-approval': Approval,
   },
   filters: {
     showAvailableBalance(amount) {
@@ -133,35 +97,16 @@ export default {
     }
   },
   watch: {
-    '$store.state.metamask.accountsArr': function (res) {
-      this.address = res.length&&res[0] || ''
-      this.initGthers()
-    },
     'fetchTicker': function(res) {
       // this.timer()
     },
   },
   methods: {
-    changetTag(index) {
-      this.activeTagKey = index
-    },
-    DeclineSubmit() {
-      console.log('de')
-    },
-    timer() {
-      return setTimeout(()=>{
-        this.getExchange()
-      },5000)
-    },
-    //0x32E6C34Cd57087aBBD59B5A4AECC4cB495924356 BTBS
-    //0x3fa400483487A489EC9b1dB29C4129063EEC4654 KEK
-    async getExchange() {
-      let fromTokenUs = await getTokenUs('0x32E6C34Cd57087aBBD59B5A4AECC4cB495924356', 2)
-      console.log(fromTokenUs)
-      let toTokenAmount = await getTokenAmountByUs('0x32E6C34Cd57087aBBD59B5A4AECC4cB495924356', 1.2427)
-      console.log(toTokenAmount)
-      // let to = await this.initGthers();
-    },
+    // timer() {
+    //   return setTimeout(()=>{
+    //     this.initGthers()
+    //   },5000)
+    // },
     
     async initGthers() {
       const selectedConnectAddress = window.ethereum.selectedAddress;
@@ -195,11 +140,11 @@ export default {
   },
   created() {
     // this.timer();
-    this.getExchange()
+    this.initGthers()
   },
-  destroyed() {
-    clearTimeout(this.timer)
-  },
+  // destroyed() {
+  //   clearTimeout(this.timer)
+  // },
 };
 </script>
 <style lang="scss" scoped>
