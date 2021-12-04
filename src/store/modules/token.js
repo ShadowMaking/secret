@@ -193,13 +193,14 @@ const token = {
         myContract.balanceOf(accountAddress)
           .then(async res => {
             const decimals = await myContract.decimals()
-            const decimalsNumber = BigNumber(10).pow(web3.utils.isBigNumber(decimals)||web3.utils.isHex(decimals)?decimals.toNumber():decimals) // .toNumber() 1000000000000000000
+            const decimalsIsBigNumber = web3.utils.isBigNumber(decimals)||web3.utils.isHex(decimals)
+            const decimalsNumber = BigNumber(10).pow((decimalsIsBigNumber?decimals.toNumber():decimals)) // .toNumber() 1000000000000000000
             const balanceNumber = BigNumber(Number(web3.utils.hexToNumberString(res)))
             const balanceFormatString = balanceNumber.div(decimalsNumber).toFixed(4,1)
             if (tokenAddress === '0xad6d458402f60fd3bd25163575031acdce07538d') {
               console.log('11111-1',myContract)
               console.log('11111-2',decimals)
-              console.log('11111-3',web3.utils.isBigNumber(decimals)||web3.utils.isHex(decimals)?decimals.toNumber():decimals, decimals.toNumber())
+              console.log('11111-3',decimalsIsBigNumber, decimalsIsBigNumber?decimals.toNumber():decimals, decimals.toNumber())
               console.log('11111-4',decimalsNumber)
               console.log('11111-5',web3.utils.hexToNumberString(res))
               console.log('11111-6',res)
