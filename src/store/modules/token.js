@@ -200,7 +200,7 @@ const token = {
             resolve({
               hasError: false,
               data: res,
-              balanceFormatString
+              balanceFormatString: balanceFormatString||0
             })
           })
           .catch(error => {

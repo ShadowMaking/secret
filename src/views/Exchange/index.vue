@@ -37,7 +37,7 @@
         <li><h3>Slippage Tolerance</h3><h3>{{slippageVal}}%</h3></li>
         <!-- <li><h3>Allowance</h3><h3>limited</h3></li> -->
         <li><h3>Estimated Gas Fee</h3><h3>${{gasVal}}</h3></li>
-        <li><h3>Gas Price</h3><h3>{{networkFee}}</h3></li>
+        <li><h3>Network Fee</h3><h3>{{networkFee}}</h3></li>
         <div v-if="showSettingData">
           
         </div>
@@ -129,7 +129,8 @@ export default {
       routerAddress: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", // Uniswap v2 Router02
       fromToken: `0xad6d458402f60fd3bd25163575031acdce07538d`, // Ropsten DAI
       toToken: `0xc778417e063141139fce010982780140aa0cd5ab`, // Ropsten WETH
-      overrides: { gasLimit: 1000000, gasPrice: 20000 }
+      // overrides: { gasLimit: 1000000, gasPrice: 20000 }
+      overrides: { gasLimit: 1000000, gasPrice: 20000000000 }
       // *********************** uniswap2 test ************************************/
     }
   },
@@ -138,9 +139,6 @@ export default {
     "v-exchangItem": exchangItem,
     "v-selectItem": selectItem,
     "v-formSelect": formSelect,
-  },
-  computed: {
-    
   },
   methods: {
     gasPriceValue(type) {
@@ -165,10 +163,10 @@ export default {
       this[type] = record
     },
     checkData(data) {
-      if (!data.tokenFrom && this.exchangFromToken) {
+      /* if (!data.tokenFrom && this.exchangFromToken) {
         Toast.fail('Nonsupport ETH')
         return false
-      }
+      } */
 
       if (!this.exchangFromToken || !this.exchangToToken) {
         Toast.fail('Choose Token')
@@ -189,57 +187,45 @@ export default {
       return true
     },
     // *********************************************************** uniswap2 test ropsten *********************************************************** /
-    // DAIAmount: BigNumber, ETHAmount: BigNumber
-    async addLiquidity(DAIAmount, ETHAmount) {
+    async getContractAt({ tokenAddress, abi }) {
       const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = metamaskProvider.getSigner(0);
-      // const myContract = new ethers.Contract(SWAPADDRESS, abi, signer)
-      // console.log('myContract', myContract)
-      // await myContract.attach(SWAPADDRESS)
 
-      // let DAI = await ethers.getContractAt(IERC20.abi, fromToken);
-      // console.log("DAI: ", DAI.address);
-      const DAIContract = new ethers.Contract(this.fromToken, IERC20.abi, signer)
-      await DAIContract.attach(this.fromToken)
-      console.log("DAI: ", DAIContract.address);
-      
-      // let WETH = await ethers.getContractAt(IWETH.abi, toToken);
-      // console.log("WETH: ", WETH.address);
-      const WETHContract = new ethers.Contract(this.toToken, IWETH.abi, signer)
-      await WETHContract.attach(this.toToken)
-      console.log("WETH: ", WETHContract.address);
-      
+      const MyContract = new ethers.Contract(tokenAddress, abi, signer)
+      await MyContract.attach(tokenAddress)
+      console.log("Contract: ", MyContract.address);
 
-      // let ROUTER = await ethers.getContractAt(IUniswapV2Router02.abi, routerAddress);
-      // console.log(`ROUTER: ${ROUTER.address}`);
-      let ROUTERContract = new ethers.Contract(this.routerAddress, IUniswapV2Router02.abi, signer)
-      await ROUTERContract.attach(this.routerAddress)
-      console.log(`ROUTER: ${ROUTERContract.address}`);
+      return MyContract
+    },
+    // TokenAmount: BigNumber, ETHAmount: BigNumber
+    async addLiquidity(TokenAmount, ETHAmount, tokenType, gasInfo) {
+      const tokenInfo = tokenType === 'from' ? this.exchangFromToken : this.exchangToToken
+      const { tokenAddress, abiJson } = tokenInfo
+      const TokenContract = await this.getContractAt({ tokenAddress, abi: abiJson })
+      const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
 
       let tx;
       let res;
-
       const overrides = { ...gasInfo }
-      // tx = await TokenContract.approve(ROUTERContract.address, DAIAmount, overrides);
+      // tx = await TokenContract.approve(ROUTERContract.address, TokenAmount, overrides);
       // res = await tx.wait();
       // console.log("Approve Token: ", res);
-      
+      // https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02#addliquidityeth
       tx = await ROUTERContract.addLiquidityETH(
-        DAIContract.address,
-        DAIAmount,
-        DAIAmount,
+        TokenContract.address,
+        TokenAmount,
+        TokenAmount,
         ETHAmount,
         window.ethereum.selectedAddress,
         ethers.constants.MaxUint256,
         {
-          ...this.overrides,
+          ...overrides,
           value: ETHAmount,
         }
       );
       res = await tx.wait();
       console.log("ROUTER.addLiquidityETH: ", res);
     },
-
     // ETH exchange for Token
     async exchangeETH2Token(data) {
       await this.exchangeToken('to', data)
@@ -261,12 +247,14 @@ export default {
       const DAIAmount = ethers.utils.parseUnits("10");
       
       const amountIn = ethers.utils.parseUnits(data.amountin);
-      const approveTokenAmount = ethers.utils.parseUnits(BigNumber(data.amountin).multipliedBy(100).toString())
+      // const approveTokenAmount = ethers.utils.parseUnits(BigNumber(data.amountin).multipliedBy(100).toString())
 
-      /* if (type === 'to') {
+      if (type === 'to') {
+        // const TokenAmount = ethers.utils.parseUnits("10");
+        const TokenAmount = ethers.utils.parseUnits(this.exchangeTo);
         const ETHAmount = ethers.utils.parseEther(data.amountin);
-        await this.addLiquidity(approveTokenAmount, ETHAmount, `${type}`, overrides);
-      } */
+        await this.addLiquidity(TokenAmount, ETHAmount, `${type}`, overrides);
+      }
 
       const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
 
@@ -326,7 +314,7 @@ export default {
         amountin: this.exchangFrom, // 100
         amountmin: BigNumber(this.exchangFrom||0).minus((BigNumber(this.exchangFrom||0) * BigNumber(this.slippageKey).div(100))),
         fee: 3000,
-        gasInfo: { gasLimit: 1000000, gasPrice: 10 } // const gasInfo = { gasLimit: 100000, gasPrice: 29859858 }
+        gasInfo: { gasLimit: 1000000, gasPrice: 20000000000 } // const gasInfo = { gasLimit: 100000, gasPrice: 29859858 }
       }
       console.log('exchangeData', data)
       return data
