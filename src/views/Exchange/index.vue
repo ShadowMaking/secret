@@ -43,7 +43,7 @@
         </div>
       </ul>
       <div class="exchange-btn-box">
-        <a class="common-form-btn" @click="exchangeSubmit">Allow CowSwap to use your JBX</a>
+        <a class="common-form-btn" @click="approveSubmit">Allow CowSwap to use your JBX</a>
       </div>
       <div class="exchange-btn-box">
         <a class="common-form-btn" @click="exchangeSubmit">Exchange</a>
@@ -85,6 +85,7 @@ import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
 import { SWAPADDRESS } from '@/utils/global'
+import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import swapJson from './Swap.json'
 
 import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
@@ -205,9 +206,9 @@ export default {
       let tx;
       let res;
       const overrides = { ...gasInfo }
-      tx = await TokenContract.approve(ROUTERContract.address, DAIAmount, overrides);
-      res = await tx.wait();
-      console.log("Approve Token: ", res);
+      // tx = await TokenContract.approve(ROUTERContract.address, DAIAmount, overrides);
+      // res = await tx.wait();
+      // console.log("Approve Token: ", res);
       
       tx = await ROUTERContract.addLiquidityETH(
         TokenContract.address,
@@ -224,55 +225,6 @@ export default {
       res = await tx.wait();
       console.log("ROUTER.addLiquidityETH: ", res);
     },
-    async eth_dai() {
-      // ETH -> DAI
-      let tx;
-      let res;
-      let DAIAmount = ethers.utils.parseUnits("10");
-      let ETHAmount = ethers.utils.parseEther("0.1");
-      let amountIn = ethers.utils.parseUnits("1");
-
-      await this.addLiquidity(DAIAmount, ETHAmount);
-
-      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = metamaskProvider.getSigner(0);
-      
-      const DAIContract = new ethers.Contract(this.fromToken, IERC20.abi, signer)
-      await DAIContract.attach(this.fromToken)
-      console.log("DAI: ", DAIContract.address);
-
-      let ROUTERContract = new ethers.Contract(this.routerAddress, IUniswapV2Router02.abi, signer)
-      await ROUTERContract.attach(this.routerAddress)
-      console.log(`ROUTER: ${ROUTERContract.address}`);
-
-      const WETHContract = new ethers.Contract(this.toToken, IWETH.abi, signer)
-      await WETHContract.attach(this.toToken)
-      console.log("WETH: ", WETHContract.address);
-
-
-
-      // tx = await DAI.approve(ROUTER.address, DAIAmount, overrides);
-      tx = await DAIContract.approve(ROUTERContract.address, DAIAmount, this.overrides);
-      res = await tx.wait();
-      console.log("Approve DAI: ", res);
-
-      // tx = await ROUTER.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-      tx = await ROUTERContract.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-        amountIn,
-        0,
-        // [DAI.address, WETH.address],
-        [DAIContract.address, WETHContract.address],
-        // user.address,
-        window.ethereum.selectedAddress,
-        ethers.constants.MaxUint256,
-        this.overrides
-      );
-      res = await tx.wait();
-      console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", res);
-    },
-
-
-
     // ETH exchange for Token
     async exchangeETH2Token(data) {
       await this.exchangeToken('to', data)
@@ -282,18 +234,29 @@ export default {
       await this.exchangeToken('from', data)
     },
 
-    // type: to || from
+    // type: to || from (to:ETH2token, from:token2token)
     async exchangeToken(type, data) {
+      const { hasError, isApprove } = await this.getUserAllowanceForToken()
+      if (!isApprove && type === 'from') {
+        Toast('Please Allow CowSwap to use your JBX')
+        return
+      }
+
       const overrides = { ...data.gasInfo }
       const DAIAmount = ethers.utils.parseUnits("10");
-      const ETHAmount = ethers.utils.parseEther("0.1");
+      
       const amountIn = ethers.utils.parseUnits(data.amountin);
       const approveTokenAmount = ethers.utils.parseUnits(BigNumber(data.amountin).multipliedBy(100).toString())
 
-      await this.addLiquidity(approveTokenAmount, ETHAmount, `${type}`, overrides);
+      if (type === 'to') {
+        const ETHAmount = ethers.utils.parseEther(data.amountin);
+        await this.addLiquidity(approveTokenAmount, ETHAmount, `${type}`, overrides);
+      }
+
       const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
 
       if (type === 'from') {
+        // https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02#swapexacttokensfortokenssupportingfeeontransfertokens
         let tx = await ROUTERContract.swapExactTokensForTokensSupportingFeeOnTransferTokens(
           amountIn,
           0, // TODO
@@ -304,10 +267,21 @@ export default {
           ethers.constants.MaxUint256,
           overrides
         );
-        let res = await tx.wait();
-        console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", res);
+        // let res = await tx.wait();
+        // console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", res);
+        tx.wait()
+        .then(res=>{
+          console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", res);
+          console.log('success')
+        })
+        .catch(error => {
+          console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", error);
+          console.log('error')
+        })
       } else {
+        // https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02#swapexactethfortokenssupportingfeeontransfertokens
         let tx = await ROUTERContract.swapExactETHForTokensSupportingFeeOnTransferTokens(
+          // amountIn,
           0, // TODO
           // [DAI.address, WETH.address],
           [data.tokenFrom, data.tokenTo],
@@ -316,13 +290,21 @@ export default {
           ethers.constants.MaxUint256,
           overrides
         );
-        let res = await tx.wait();
-        console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", res);
+        // let res = await tx.wait();
+        // console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", res);
+        tx.wait()
+        .then(res=>{
+          console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", res);
+          console.log('success')
+        })
+        .catch(error => {
+          console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", error);
+          console.log('error')
+        })
       }
     },
     // *********************************************************** uniswap2 test ropsten *********************************************************** /
-    async exchangeSubmit() {
-      console.log(this)
+    getSubmitData() {
       const data = {
         tokenFrom: this.exchangFromToken && this.exchangFromToken['tokenAddress'],
         tokenTo: this.exchangToToken && this.exchangToToken['tokenAddress'],
@@ -332,9 +314,93 @@ export default {
         gasInfo: { gasLimit: 1000000, gasPrice: 20000 } // const gasInfo = { gasLimit: 100000, gasPrice: 29859858 }
       }
       console.log('exchangeData', data)
-      if (!this.checkData(data)) {
+      return data
+    },
+    async getUserAllowanceForToken() {
+      const token = this.exchangFromToken;
+      const chainId = window.ethereum && window.ethereum.chainId;
+      const userAddress = window.ethereum && window.ethereum.selectedAddress;
+      const allowanceTokenData = {
+        userId: getFromStorage('gUID'),
+        network_id: web3.utils.hexToNumberString(chainId),
+        token_address: token['tokenAddress'],
+        user_address: userAddress,
+        swap_address: this.routerAddress,
+      }
+      const { hasError, isApprove } = await this.$store.dispatch('GetUserAllowanceForToken', {...allowanceTokenData})
+      return { hasError, isApprove, allowanceTokenData }
+    },
+    thirdLogin() {
+      const userId = getFromStorage('gUID')
+      if (!userId) {
+        Toast('You need Login')
+        console.log('can detect userID after third login') 
+        return false
+      }
+      return true
+    },
+    connectedWallet() {
+      const chainId = window.ethereum && window.ethereum.chainId;
+      const userAddress = window.ethereum && window.ethereum.selectedAddress;
+      if (!chainId || !userAddress) {
+        Toast('Need Connect Wallet')
+        return false
+      }
+      return true
+    },
+    async approveSubmit() {
+      if(!this.thirdLogin()) { return }
+      if(!this.connectedWallet()) { return }
+
+      const token = this.exchangFromToken
+      if (!token) {
+        Toast('Choose Token')
         return
       }
+
+      // fromToken is ETH
+      if (token && !token['tokenAddress']) {
+        Toast('Do not need approve')
+        return
+      }
+
+      const { hasError, isApprove, allowanceTokenData } = await this.getUserAllowanceForToken()
+      if (isApprove) {
+        Toast('Already Approved')
+        return
+      }
+
+      const submitData = this.getSubmitData()
+      const TokenContract = await this.getContractAt({ tokenAddress: token.tokenAddress, abi: token.abiJson })
+      const approveTokenAmount = ethers.constants.MaxUint256; // max
+      const overrides = submitData.gasInfo
+
+      TokenContract.approve(this.routerAddress, approveTokenAmount, overrides)
+      .then(async res=>{
+        const txRes = await res.wait()
+        console.log(`Approve Token-${token.tokenName} res: `, txRes);
+        return
+
+        const saveTokenData = {
+          ...allowanceTokenData,
+          allowance: approveTokenAmount
+        }
+        const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
+        if (hasError) {
+          console.log('SaveUserAllowanceForToken Error', error)
+        }
+      })
+      .catch(err => {
+        console.log(`Approve Token-${token.tokenName} error: `, err);
+      })
+    },
+    async exchangeSubmit() {
+      if(!this.thirdLogin()) { return }
+      if(!this.connectedWallet()) { return }
+      
+      console.log(this)
+      const data = this.getSubmitData()
+      if (!this.checkData(data)) { return }
 
       // fromToken is ETH
       if (!data.tokenFrom && this.exchangFromToken) {
