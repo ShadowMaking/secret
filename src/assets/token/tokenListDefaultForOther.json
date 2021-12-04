@@ -1,0 +1,9 @@
+{
+  "0xe4815AE53B124e7263F08dcDBBB757d41Ed658c6": {
+    "name": "Zks",
+    "logo": "Zks.png",
+    "erc20": true,
+    "symbol": "Zks",
+    "decimals": 18
+  }
+}

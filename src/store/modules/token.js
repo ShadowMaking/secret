@@ -17,6 +17,9 @@ import DAIABIJSONFORROPSTEN from '@/assets/token/Ropsten/ABIJSON/IERC20.json'
 // import WETHABIJSONFORROPSTEN from '@/assets/token/Ropsten/ABIJSON/IWETH.json'
 import WETHABIJSONFORROPSTEN from '@/assets/token/Ropsten/ABIJSON/WETH9.json'
 
+// Other Default Token
+import DEFAULTTOKENLISTForOther from '@/assets/token/tokenListDefaultForOther.json'
+
 import TOKENLISTJSONTest from '@/assets/token/tokenList_test.json'
 import { CHAINIDMAP } from '@/utils/netWorkForToken'
 import { transTickerObject } from '@/utils/ccxt';
@@ -95,8 +98,10 @@ const token = {
       })
     }, */
     // TODO
-    GetAllTokenList({ commit }, params) {
-      return new Promise((resolve, reject) => {
+    GetAllTokenList({ commit, ...store }, params) {
+      return new Promise(async (resolve, reject) => {
+        const { hasError, list=[] } = await store.dispatch('GetDefaultTokenListForOther')
+        const otherDefaultTokenList = list
         const tokenListJson = _.cloneDeep(TOKENLISTJSONTest)
         const tokenList = Object.keys(tokenListJson).map(tokenAddress => {
           const { name, logo, erc20, symbol, decimals } = tokenListJson[tokenAddress]
@@ -108,7 +113,23 @@ const token = {
             icon: `@/assets/token/tokenImages/${logo}` // TODO
           }
         })
-        resolve({ hasError: false,  list: tokenList })
+        resolve({ hasError: false,  list: tokenList.concat(otherDefaultTokenList) })
+      })
+    },
+    GetDefaultTokenListForOther({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        const otherDefaultTokenList = Object.keys(DEFAULTTOKENLISTForOther).map(tokenAddress => {
+          const { name, logo, erc20, symbol, decimals } = DEFAULTTOKENLISTForOther[tokenAddress]
+          return {
+            id: name,
+            tokenName: name,
+            tokenAddress,
+            erc20, symbol, decimals,
+            icon: `@/assets/token/tokenImages/${logo}`, // TODO
+            abiJson: DEFAULTTOKENABIJSONForL1.abi
+          }
+        })
+        resolve({ hasError: false,  list: otherDefaultTokenList })
       })
     },
     GetAvailableTokenAssets({ commit, ...store }, params) {
@@ -117,9 +138,11 @@ const token = {
         params.chainInfo && (chainID = params.chainInfo.chainId)
         
         let tokenList = []
+        const { hasError, list=[] } = await store.dispatch('GetDefaultTokenListForOther')
+        const otherDefaultTokenList = list
         switch(chainID) {
           case CHAINIDMAP['SECRETL1']:
-            tokenList = Object.keys(DEFAULTTOKENLISTForL1).map(tokenAddress => {
+            tokenList =[].concat(Object.keys(DEFAULTTOKENLISTForL1).map(tokenAddress => {
               const { name, logo, erc20, symbol, decimals } = DEFAULTTOKENLISTForL1[tokenAddress]
               return {
                 id: name,
@@ -129,7 +152,7 @@ const token = {
                 icon: `@/assets/token/tokenImages/${logo}`, // TODO
                 abiJson: DEFAULTTOKENABIJSONForL1.abi
               }
-            })
+            }), otherDefaultTokenList)
             break;
           case CHAINIDMAP['ROPSTEN']:
             const tokenAddressList = Object.keys(DEFAULTTOKENLISTForRopsten)
@@ -147,11 +170,11 @@ const token = {
                 abiJson: data
               })
             }
-            tokenList = [].concat(_tokenList)
+            tokenList = [].concat(_tokenList, otherDefaultTokenList)
             break;
           default:
             const { hasError, list } = await store.dispatch('GetAllTokenList')
-            tokenList =  [].concat(list)
+            tokenList =  [].concat(list, otherDefaultTokenList)
             break
         }
         // const list = [{id: 'Zks',tokenName: 'Zks',tokenAddress: '0xe4815AE53B124e7263F08dcDBBB757d41Ed658c6'},{id: 'BitBase',tokenName: 'BitBase',tokenAddress: '0x32E6C34Cd57087aBBD59B5A4AECC4cB495924356'}]
@@ -180,45 +203,34 @@ const token = {
       return new Promise((resolve, reject) => {
         const { tokenAddress, abi, accountAddress } = params
         if (!abi) {
-          resolve({ hasError: true, data: 0, balanceFormatString: 0 })
+          resolve({ hasError: true, data: 0, balanceFormatString: '0.0000 '})
           return
         }
         const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = metamaskProvider.getSigner(0);
         const myContract = new ethers.Contract(tokenAddress, abi, signer)
         if(!myContract.balanceOf) {
-          resolve({ hasError: true, data: 0, balanceFormatString: 0 })
+          resolve({ hasError: true, data: 0, balanceFormatString: '0.0000' })
           return
         }
         myContract.balanceOf(accountAddress)
           .then(async res => {
-            const decimals = await myContract.decimals()
-            const decimalsIsBigNumber = web3.utils.isBigNumber(decimals)||web3.utils.isHex(decimals)||!_.isFinite(decimals)
+            const decimals = await myContract.decimals() // return type is Number(eg. 18) or BigNumber(eg. {_hex: '0x12', _isBigNumber: true})
+            const decimalsIsBigNumber = web3.utils.isBigNumber(decimals)||web3.utils.isHexStrict(decimals)||!_.isFinite(decimals)
             const decimalsNumber = BigNumber(10).pow((decimalsIsBigNumber?decimals.toNumber():decimals)) // .toNumber() 1000000000000000000
             const balanceNumber = BigNumber(Number(web3.utils.hexToNumberString(res)))
-            const balanceFormatString = balanceNumber.div(decimalsNumber).toFixed(4,1)
-            if (tokenAddress === '0xad6d458402f60fd3bd25163575031acdce07538d') {
-              console.log('11111-1',myContract,!_.isFinite(decimals))
-              console.log('11111-2',decimals)
-              console.log('11111-3',decimalsIsBigNumber, decimalsIsBigNumber?decimals.toNumber():decimals, decimals.toNumber())
-              console.log('11111-4',decimalsNumber)
-              console.log('11111-5',web3.utils.hexToNumberString(res))
-              console.log('11111-6',res)
-              console.log('11111-7',balanceNumber)
-              console.log('11111-77',balanceNumber.div(decimalsNumber))
-              console.log('11111-8',`test console-${tokenAddress}`, balanceFormatString)
-            }
+            const balanceFormatString = balanceNumber.div(decimalsNumber).toFixed(4,1) || 0.0000
             resolve({
               hasError: false,
               data: res,
-              balanceFormatString: balanceFormatString||0
+              balanceFormatString
             })
           })
           .catch(error => {
             resolve({
               hasError: false,
               data: 0,
-              balanceFormatString: 0
+              balanceFormatString: '0.0000'
             })
           })
       })
@@ -238,7 +250,7 @@ const token = {
           const decimals = 18 // The result is returned in the token's smallest decimal representation.
           const decimalsNUmberStr = BigNumber(10).pow(decimals).toString() // .toNumber() 1000000000000000000
           const balanceHex = web3.utils.numberToHex(res.data)
-          const balance = BigNumber(res.data).div(decimalsNUmberStr)
+          const balance = BigNumber(res.data).div(decimalsNUmberStr).toFixed(4,1) || 0.0000
           resolve({ hasError: false, data: balanceHex, balanceFormatString: balance })
         })
         .catch(error=>{
