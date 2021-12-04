@@ -248,10 +248,10 @@ export default {
       const amountIn = ethers.utils.parseUnits(data.amountin);
       const approveTokenAmount = ethers.utils.parseUnits(BigNumber(data.amountin).multipliedBy(100).toString())
 
-      if (type === 'to') {
+      /* if (type === 'to') {
         const ETHAmount = ethers.utils.parseEther(data.amountin);
         await this.addLiquidity(approveTokenAmount, ETHAmount, `${type}`, overrides);
-      }
+      } */
 
       const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
 
