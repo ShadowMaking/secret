@@ -34,7 +34,7 @@
         </div>
       </div>
       <div class="gas-price-box">
-        <div>Network Fee</div>
+        <div>Gas Price</div>
         <div class="gas-price-setting">
           <span class="blueColor">{{ selectedGasType }}</span>
           <a class="blueColor" id="gasSetting" @click="gasBtn"><i class="gasPriceSetting"></i></a>

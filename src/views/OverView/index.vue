@@ -31,25 +31,62 @@
       <van-tab title="History" title-style="font-weight: bold">
         <v-history></v-history>
       </van-tab>
+      <van-tab title="Approval" title-style="font-weight: bold">
+        <div class="approval-box">
+          <div class="tag-list">
+            <span 
+            v-for="(item, index) in tagList"
+            :key="index"
+            :class="['tag-item', index == activeTagKey ? 'active' : '']"
+            @click="changetTag(index)"
+            >{{item}}</span>
+          </div>
+          <div class="approval-list">
+            <el-row class="list-header">
+              <el-col :span="4" class="list-header-item">Approved Time</el-col>
+              <el-col :span="4" class="list-header-item">Token</el-col>
+              <el-col :span="4" class="list-header-item">Allowance</el-col>
+              <el-col :span="12" class="list-header-item">Contract</el-col>
+            </el-row>
+            <el-row class="list-content">
+              <el-col :span="4" class="list-item">2017-07-08 11:17</el-col>
+              <el-col :span="4" class="list-item">ZKS</el-col>
+              <el-col :span="4" class="list-item">671</el-col>
+              <el-col :span="12" class="list-item item-contract">
+                <div class="item-con-left">
+                  <div class="item-icon"><img src="@/assets/token/tokenImages/defaultToken.png"></div>
+                  <div class="item-left-con">
+                    <h3>ZKSwap</h3>
+                    <p>0xjjkdk0xjjkdkf0xj</p>
+                  </div>
+                </div>
+                <div class="item-con-right"><a @click="DeclineSubmit">Decline</a></div>
+              </el-col>
+            </el-row>
+          </div>
+        </div>
+        
+        
+      </van-tab>
     </van-tabs>
   </div>
 </template>
 
 <script>
-import Vue from 'vue';
-import { Icon, Popup, Tab, Tabs } from 'vant';
-import navTitle from '@/components/NavTitle/index';
-import history from '../History/index';
-import TrendLine from '@/components/TrendLine';
-import { transTickerObject } from '@/utils/ccxt';
+import Vue from 'vue'
+import { Icon, Popup, Tab, Tabs } from 'vant'
+import navTitle from '@/components/NavTitle/index'
+import history from '../History/index'
+import TrendLine from '@/components/TrendLine'
 import * as ethers from 'ethers'
 import { retainDecimals } from '@/utils/number'
 import { ethRPC } from '@/utils/netWork'
 import { getDefaultAddress } from '@/utils/auth'
-import { generateTokenList, getDefaultETHAssets } from '@/utils/dashBoardTools';
+import { generateTokenList, getDefaultETHAssets } from '@/utils/dashBoardTools'
 import web3 from 'web3'
-import None from '@/components/None/index';
-import Loading from '@/components/Loading';
+import None from '@/components/None/index'
+import Loading from '@/components/Loading'
+import { getTokenUs, getTokenAmountByUs } from '@/utils/coinGecko'
 
 Vue.use(Icon);
 Vue.use(Popup);
@@ -76,6 +113,8 @@ export default {
       fetchTicker: '',
       showLoading: true,
       currentChainInfo: null,
+      activeTagKey: 0,
+      tagList: ['Ethereun', 'BSC']
     }
   },
   components: {
@@ -103,17 +142,25 @@ export default {
     },
   },
   methods: {
+    changetTag(index) {
+      this.activeTagKey = index
+    },
+    DeclineSubmit() {
+      console.log('de')
+    },
     timer() {
       return setTimeout(()=>{
         this.getExchange()
       },5000)
     },
+    //0x32E6C34Cd57087aBBD59B5A4AECC4cB495924356 BTBS
+    //0x3fa400483487A489EC9b1dB29C4129063EEC4654 KEK
     async getExchange() {
-      this.fetchTicker = await transTickerObject()
-      this.ethUsdt = this.fetchTicker.close;
-      this.ethPercentage = this.fetchTicker.percentage;
-      this.ethChange = this.fetchTicker.change;
-      this.initGthers();
+      let fromTokenUs = await getTokenUs('0x32E6C34Cd57087aBBD59B5A4AECC4cB495924356', 2)
+      console.log(fromTokenUs)
+      let toTokenAmount = await getTokenAmountByUs('0x32E6C34Cd57087aBBD59B5A4AECC4cB495924356', 1.2427)
+      console.log(toTokenAmount)
+      // let to = await this.initGthers();
     },
     
     async initGthers() {
@@ -131,7 +178,7 @@ export default {
       })
       this.assetsData = [].concat([ETHAssets], tokenList)
       console.log(this.assetsData)
-
+      this.showLoading = false
 
 
       // let ethData = {
@@ -143,12 +190,12 @@ export default {
       // }
       // this.assetsData = []
       // this.assetsData.push(ethData)
-      this.showLoading = false
+      
     },
   },
   created() {
     // this.timer();
-    this.getExchange();
+    this.getExchange()
   },
   destroyed() {
     clearTimeout(this.timer)

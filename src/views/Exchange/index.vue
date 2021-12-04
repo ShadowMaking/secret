@@ -202,6 +202,7 @@ export default {
       const { tokenAddress, abiJson } = tokenInfo
       const TokenContract = await this.getContractAt({ tokenAddress, abi: abiJson })
       const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
+
       let tx;
       let res;
       const overrides = { ...gasInfo }
@@ -242,6 +243,7 @@ export default {
       }
 
       const overrides = { ...data.gasInfo }
+      const DAIAmount = ethers.utils.parseUnits("10");
       
       const amountIn = ethers.utils.parseUnits(data.amountin);
       // const approveTokenAmount = ethers.utils.parseUnits(BigNumber(data.amountin).multipliedBy(100).toString())
