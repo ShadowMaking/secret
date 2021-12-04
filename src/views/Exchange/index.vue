@@ -43,6 +43,9 @@
         </div>
       </ul>
       <div class="exchange-btn-box">
+        <a class="common-form-btn" @click="exchangeSubmit">Allow CowSwap to use your JBX</a>
+      </div>
+      <div class="exchange-btn-box">
         <a class="common-form-btn" @click="exchangeSubmit">Exchange</a>
       </div>
       <van-popup v-model="settingPopVisibel" round :style="{ maxWidth: '320px', width: '50%' }">

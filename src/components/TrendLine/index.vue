@@ -110,9 +110,16 @@ export default {
       this.getNowBalance()
       this.getDataSource()
     },
+    getHourTime() {
+      var nowDate = new Date()
+      var y = nowDate.getFullYear()
+      var m = nowDate.getMonth() + 1
+      var d = nowDate.getDate()
+    },
     getXday(type) {
       switch(type) {
         case '1H':
+          // this.getHourTime()
           this.datesource = [
           {time: '2021-11-30 12:00:00'},
           {time: '2020-11-30 12:10:00'},

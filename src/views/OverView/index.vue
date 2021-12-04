@@ -18,7 +18,7 @@
                 </div>
               </div>
               <div class="select-price-right">
-                <h3>${{ item.balanceNumberString|showAvailableBalance }}</h3>
+                <h3>{{ item.balanceNumberString|showAvailableBalance }}</h3>
                 <!--<p class="select-right-des" v-if="ethPercentage > 0" style="color: #00965e">+{{ethPercentage|showAvailableBalance}}%(${{item.label|showAvailableBalance}})</p>
                 <p class="select-right-des" v-else>{{ethPercentage|showAvailableBalance}}%{{item.label|showAvailableBalance}}</p> -->
               </div>
@@ -126,9 +126,12 @@ export default {
       const tokenListRes = await this.$store.dispatch('GetAvailableTokenAssets', { selectedConnectAddress, chainInfo: this.currentChainInfo });
       const { hasError, list } = tokenListRes
       const tokenList = await generateTokenList(_.cloneDeep(list), this, true)
-      console.log('tokenList', tokenList)
+      tokenList.filter(item => {
+         return item.icon = require("@/assets/token/tokenImages/defaultToken.png")
+      })
       this.assetsData = [].concat([ETHAssets], tokenList)
       console.log(this.assetsData)
+
 
 
       // let ethData = {
