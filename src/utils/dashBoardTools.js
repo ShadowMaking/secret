@@ -2,6 +2,7 @@ import { ethers, utilss } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
 import { defaultNetWorkForMetamask } from '@/utils/netWorkForToken';
+import { CHAINIDMAP } from '@/utils/netWorkForToken'
 
 /**
  * @description: 
@@ -16,9 +17,9 @@ export const generateTokenList = async (list, self, isDefault) => {
   for(let i=0; i<list.length;i+=1) {
     const tokenAddress = list[i].tokenAddress
     let abi = list[i].abiJson || []
-    if (!isDefault) {
+    if (!isDefault || abi.length === 0) {
       const { hasError: abiResError, data } = await self.$store.dispatch('GetTokenABIByTokenAddress', {tokenAddress});
-      abi = [].concat(data)
+      abi = [].concat(data||[])
     }
     const { hasError: balanceResError, data: balance, balanceFormatString } = await self.$store.dispatch(GetTokenBalanceMthodName, {
       tokenAddress,
@@ -90,4 +91,30 @@ export const metamaskNetworkChange = (data, callback) => {
   })
   .catch(err=>{callback && callback(err)})
 }
+
+export const getEtherscanAPIBaseUrl = () => {
+  let etherscanAPIBaseUrl = `https://api.etherscan.io`
+  const chainId = window.ethereum && window.ethereum.chainId
+  if (chainId) {
+    switch(chainId) {
+      case CHAINIDMAP['ETHEREUM']:
+        etherscanAPIBaseUrl = `https://api.etherscan.io`
+        break;
+      case CHAINIDMAP['GOERLI']:
+        etherscanAPIBaseUrl = `https://api-goerli.etherscan.io`
+        break
+      case CHAINIDMAP['RINKEBY']:
+        etherscanAPIBaseUrl = `https://api-goerli.etherscan.io`
+        break
+      case CHAINIDMAP['KOVAN']:
+        etherscanAPIBaseUrl = `https://api-kovan.etherscan.io`
+        break
+      case CHAINIDMAP['ROPSTEN']:
+        etherscanAPIBaseUrl = `https://api-ropsten.etherscan.io`
+        break
+    }
+  }
+  return etherscanAPIBaseUrl
+}
+
 

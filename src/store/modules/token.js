@@ -3,7 +3,6 @@ import { utils, ethers } from 'ethers'
 import web3 from 'web3';
 import { BigNumber } from "bignumber.js";
 import { TOKEN_L1, TOKEN_L2, getAvailableTokenAssets } from '@/utils/token';
-import { etherscanAPIKeyToken, etherscanAPIBaseUrl } from '@/utils/global';
 import { ajaxGetRequestByEtherscan } from '@/utils/index'
 import TOKENLISTJSON from '@/assets/token/tokenList.json'
 
@@ -83,13 +82,10 @@ const token = {
         resolve({ hasError: false,  list: tokenList })
       })
     },
-    GetAvailableTokenAssets({ commit }, params) {
-      return new Promise((resolve, reject) => {
+    GetAvailableTokenAssets({ commit, ...store }, params) {
+      return new Promise(async (resolve, reject) => {
         let chainID = window.ethereum.chainId
         params.chainInfo && (chainID = params.chainInfo.chainId)
-        // const isL1NetWork = chainID === CHAINIDMAP['SECRETL1']
-        // const isRopsten = chainID === CHAINIDMAP['ROPSTEN']
-        // if (!isL1NetWork) {resolve({ hasError: false, list: [] }); return }
         
         let tokenList = []
         switch(chainID) {
@@ -107,29 +103,26 @@ const token = {
             })
             break;
           case CHAINIDMAP['ROPSTEN']:
-            tokenList = Object.keys(DEFAULTTOKENLISTForRopsten).map(tokenAddress => {
+            const tokenAddressList = Object.keys(DEFAULTTOKENLISTForRopsten)
+            const _tokenList = []
+            for(let i = 0; i<tokenAddressList.length; i+=1) {
+              const tokenAddress = tokenAddressList[i]
               const { name, logo, erc20, symbol, decimals } = DEFAULTTOKENLISTForRopsten[tokenAddress]
-              let abi = []
-              switch(symbol) {
-                case 'DAI':
-                  abi = [].concat(DAIABIJSONFORROPSTEN.abi)
-                  break;
-                case 'WETH':
-                  abi = [].concat(WETHABIJSONFORROPSTEN.abi)
-                  break;
-              }
-              return {
+              const { hasError, data } = await store.dispatch('GetTokenABIByTokenAddress', { tokenAddress })
+              _tokenList.push({
                 id: name,
                 tokenName: name,
                 tokenAddress,
                 erc20, symbol, decimals,
                 icon: `@/assets/token/tokenImages/${logo}`, // TODO
-                abiJson: abi
-              }
-            })
+                abiJson: data
+              })
+            }
+            tokenList = [].concat(_tokenList)
             break;
           default:
-            tokenList =  []
+            const { hasError, list } = await store.dispatch('GetAllTokenList')
+            tokenList =  [].concat(list)
             break
         }
         // const list = [{id: 'Zks',tokenName: 'Zks',tokenAddress: '0xe4815AE53B124e7263F08dcDBBB757d41Ed658c6'},{id: 'BitBase',tokenName: 'BitBase',tokenAddress: '0x32E6C34Cd57087aBBD59B5A4AECC4cB495924356'}]
@@ -171,8 +164,9 @@ const token = {
         myContract.balanceOf(accountAddress)
           .then(async res => {
             const decimals = await myContract.decimals()
-            const decimalsNumber = BigNumber(10).pow(decimals) // .toNumber() 1000000000000000000
+            const decimalsNumber = BigNumber(10).pow(web3.utils.isBigNumber(decimals)?decimals.toNumber():decimals) // .toNumber() 1000000000000000000
             const balanceNumber = BigNumber(Number(web3.utils.hexToNumberString(res)))
+            
             const balanceFormatString = balanceNumber.div(decimalsNumber).toFixed(4,1)
             resolve({
               hasError: false,

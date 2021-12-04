@@ -31,7 +31,8 @@
     <div class="exchange-item-right">
       <p class="exchange-des">Balance: {{ selectedTokenInfo && selectedTokenInfo['balanceNumberString']}}</p>
       <h3 class="exchange-value">
-        <input type="text" name="formVal" placeholder="0" v-model="exchangVal" @input="inputChange" :disabled="inputDisabled" onkeyup="value=value.replace(/^(0+)|[^\d]+/g,'')">
+        <!-- <input type="text" name="formVal" placeholder="0" v-model="exchangVal" @input="inputChange" :disabled="inputDisabled" onkeyup="value=value.replace(/^(0+)|[^\d]+/g,'')" /> -->
+        <input type="text" name="formVal" placeholder="0" v-model="exchangVal" @input="inputChange" :disabled="inputDisabled" @keyup="hanldeValue" />
       </h3>
       <p class="exchange-des">=<label>${{ selectedTokenEchange }}</label></p>
     </div>
@@ -109,6 +110,14 @@ export default {
     setMax() {
       if (!this.selectedTokenInfo) { return }
       this.exchangVal = this.selectedTokenInfo.balanceNumberString
+    },
+    hanldeValue(e) {
+      let value = e.target.value
+      // if (this.limitInput) {
+        value=value.replace(/^\D*(\d*(?:\.\d{0,4})?).*$/g, '$1')
+        this.exchangVal = value
+        this.$emit('inputChange', value);
+      // }
     },
   },
   async mounted() {

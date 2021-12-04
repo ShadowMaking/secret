@@ -1,4 +1,5 @@
 import { DEFAULTIMG } from '@/utils/defaultImg';
+
 const TOKEN_NAME = 'secret-token'
 const TOKEN_NAME_LOCK = 'lock-token'
 window.TOKEN_NAME = TOKEN_NAME
@@ -15,7 +16,6 @@ const DOMAIN = hostName;
 
 
 const etherscanAPIKeyToken = 'JKUUBYKV6BFS2J4BIV41IKF1QFZRN758TK';
-const etherscanAPIBaseUrl = `https://api.etherscan.io`
 
 const SWAPADDRESS = '0x243B775Ec2dbDD7AC8982bDFa56c2d7316dD089d'
 
@@ -28,6 +28,5 @@ export {
   TOKEN_NAME,
   TOKEN_NAME_LOCK,
   etherscanAPIKeyToken,
-  etherscanAPIBaseUrl,
   SWAPADDRESS,
 }

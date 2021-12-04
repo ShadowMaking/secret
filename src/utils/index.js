@@ -1,6 +1,7 @@
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import moment from 'moment'
-import { etherscanAPIKeyToken, etherscanAPIBaseUrl } from '@/utils/global';
+import { etherscanAPIKeyToken } from '@/utils/global';
+import { getEtherscanAPIBaseUrl } from '@/utils/dashBoardTools';
 
 export const wait = (ms) => {
   return new Promise(res => setTimeout(res, ms || 1000))
@@ -89,6 +90,7 @@ export const ajaxGetRequestByEtherscan = (params) => new Promise((resolve, rejec
   for(let k in params.data) {
     paramStr += `&${k}=${params.data[k]}`
   }
+  const etherscanAPIBaseUrl = getEtherscanAPIBaseUrl()
   const url = `${etherscanAPIBaseUrl}/api?${paramStr}&apikey=${etherscanAPIKeyToken}`
   ajaxObj.open(params.method || 'get', url);
   ajaxObj.send();
