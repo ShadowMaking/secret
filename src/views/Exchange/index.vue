@@ -196,24 +196,23 @@ export default {
 
       return MyContract
     },
-    // DAIAmount: BigNumber, ETHAmount: BigNumber
-    async addLiquidity(DAIAmount, ETHAmount, tokenType, gasInfo) {
+    // TokenAmount: BigNumber, ETHAmount: BigNumber
+    async addLiquidity(TokenAmount, ETHAmount, tokenType, gasInfo) {
       const tokenInfo = tokenType === 'from' ? this.exchangFromToken : this.exchangToToken
       const { tokenAddress, abiJson } = tokenInfo
       const TokenContract = await this.getContractAt({ tokenAddress, abi: abiJson })
       const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
-
       let tx;
       let res;
       const overrides = { ...gasInfo }
-      // tx = await TokenContract.approve(ROUTERContract.address, DAIAmount, overrides);
+      // tx = await TokenContract.approve(ROUTERContract.address, TokenAmount, overrides);
       // res = await tx.wait();
       // console.log("Approve Token: ", res);
-      
+      // https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02#addliquidityeth
       tx = await ROUTERContract.addLiquidityETH(
         TokenContract.address,
-        DAIAmount,
-        DAIAmount,
+        TokenAmount,
+        TokenAmount,
         ETHAmount,
         window.ethereum.selectedAddress,
         ethers.constants.MaxUint256,
@@ -243,15 +242,16 @@ export default {
       }
 
       const overrides = { ...data.gasInfo }
-      const DAIAmount = ethers.utils.parseUnits("10");
       
       const amountIn = ethers.utils.parseUnits(data.amountin);
-      const approveTokenAmount = ethers.utils.parseUnits(BigNumber(data.amountin).multipliedBy(100).toString())
+      // const approveTokenAmount = ethers.utils.parseUnits(BigNumber(data.amountin).multipliedBy(100).toString())
 
-      /* if (type === 'to') {
+      if (type === 'to') {
+        // const TokenAmount = ethers.utils.parseUnits("10");
+        const TokenAmount = ethers.utils.parseUnits(this.exchangeTo);
         const ETHAmount = ethers.utils.parseEther(data.amountin);
-        await this.addLiquidity(approveTokenAmount, ETHAmount, `${type}`, overrides);
-      } */
+        await this.addLiquidity(TokenAmount, ETHAmount, `${type}`, overrides);
+      }
 
       const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
 
