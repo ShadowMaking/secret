@@ -31,6 +31,9 @@
       .list-item {
         border-bottom: 1px solid #dfdfdf;
         line-height: 40px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
         .item-con-right {
           a {
             padding: 8px 10px;

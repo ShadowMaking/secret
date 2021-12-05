@@ -415,6 +415,7 @@ export default {
       if(!this.connectedWallet()) { return }
 
       const token = this.exchangFromToken
+      console.log(token)
       if (!token) {
         Toast('Choose Token')
         return
