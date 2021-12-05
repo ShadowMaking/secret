@@ -371,7 +371,8 @@ export default {
     // type: to || from (to:ETH2token, from:token2token)
     async exchangeToken(type, data) {
       const { hasError, isApprove } = await this.getUserAllowanceForToken()
-      if (!isApprove && type === 'from') {
+      const fromTokenIsWETH = this.exchangeFromToken && this.exchangeFromToken['tokenName'] === 'WETH'
+      if (!isApprove && type === 'from' && !fromTokenIsWETH) {
         Toast(`Please Allow EigenSwap to use your ${this.exchangeFromToken&&this.exchangeFromToken['tokenName']}`)
         return
       }
