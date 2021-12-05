@@ -7,7 +7,7 @@
           label="NETWORK"
           :labelShow="false" 
           :defaultValue="defaultNetWork"
-          :leftIcon="require('@/assets/token/tokenImages/defaultToken.png')"
+          :leftIcon="require('@/assets/network/defaultNetwork.png')"
           :dataSource="netWorkList"
           placeholder="chose network"
           @change="handleNetworkChange" />
