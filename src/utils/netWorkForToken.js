@@ -28,7 +28,7 @@ const NETWORKSFORTOKEN = [
     // rpcUrls: [ 'https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161' ],
     // blockExplorerUrls: ["https://ropsten.etherscan.io"],
     leftTitle: 'Ropsten',
-    icon: '',
+    icon: require('@/assets/network/Ropsten.png'),
   }, {
     id: 4,
     chainId: CHAINIDMAP['RINKEBY'],
@@ -36,7 +36,7 @@ const NETWORKSFORTOKEN = [
     // rpcUrls: [ 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161' ],
     // blockExplorerUrls: ["https://rinkeby.etherscan.io"],
     leftTitle: 'Rinkeby',
-    icon: '',
+    icon: require('@/assets/network/Rinkeby.png'),
   }, {
     id: 5,
     chainId: CHAINIDMAP['GOERLI'],
@@ -44,7 +44,7 @@ const NETWORKSFORTOKEN = [
     // rpcUrls: [ 'https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161' ],
     // blockExplorerUrls: ["https://goerli.etherscan.io"],
     leftTitle: 'Goerli',
-    icon: '',
+    icon: require('@/assets/network/Goerli.png'),
   }, {
     id: 42,
     chainId: CHAINIDMAP['KOVAN'],
@@ -52,7 +52,7 @@ const NETWORKSFORTOKEN = [
     // rpcUrls: [ 'https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161' ],
     // blockExplorerUrls: ["https://kovan.etherscan.io"],
     leftTitle: 'Kovan',
-    icon: '',
+    icon: require('@/assets/network/Kovan.png'),
   }, {
     id: 42161,
     chainId: CHAINIDMAP['ARBITRUM'],
@@ -68,7 +68,7 @@ const NETWORKSFORTOKEN = [
     rpcUrls: [ `https://rpc.ieigen.com/eth/` ],
     // blockExplorerUrls: [],
     leftTitle: 'SecretL1',
-    icon: require('@/assets/token/tokenImages/defaultToken.png'),
+    icon: require('@/assets/network/defaultNetwork.png'),
   }, {
     id: 189250287905350,
     chainId: CHAINIDMAP['SECRETL2'],
@@ -76,7 +76,7 @@ const NETWORKSFORTOKEN = [
     rpcUrls: [ `https://rpc.ieigen.com/eig/` ],
     blockExplorerUrls: ['https://explorer.ieigen.com/'],
     leftTitle: 'SecretL2',
-    icon: require('@/assets/token/tokenImages/defaultToken.png'),
+    icon: require('@/assets/network/defaultNetwork.png'),
   }
 ]
 

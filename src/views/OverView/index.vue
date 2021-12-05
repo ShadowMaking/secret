@@ -1,6 +1,6 @@
 <template>
   <div class="overview-page">
-    <v-navTitle title="OverView"></v-navTitle >
+    <v-navTitle title="Overview"></v-navTitle >
     <van-tabs v-model="tabActive" color="#4375f1" title-active-color="#4375f1">
       <van-tab title="Home" title-style="font-weight: bold">
         <div class="home-page">

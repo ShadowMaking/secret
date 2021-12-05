@@ -10,7 +10,8 @@
       <v-formSelect 
         label="NETWORK"
         :labelShow="false"
-        :defaultValue="defaultNetWork" 
+        :defaultValue="defaultNetWork"
+        :leftIcon="require('@/assets/network/defaultNetwork.png')" 
         :dataSource="netWorkList"
         placeholder="chose network"
         @change="handleNetworkChange" />
