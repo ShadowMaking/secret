@@ -8,7 +8,7 @@
   },
   "0xc778417e063141139fce010982780140aa0cd5ab": {
     "name": "WETH",
-    "logo": "WETH.svg",
+    "logo": "WETH.png",
     "erc20": true,
     "symbol": "WETH",
     "decimals": 18
