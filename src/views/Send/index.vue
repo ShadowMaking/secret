@@ -166,6 +166,8 @@ export default {
         status: 1,
         value: info.amount,
         name: symbolName,
+        operation: 'Send',
+        network_id: window.ethereum.chainId
       }
       this.addHistoryData = _.cloneDeep(submitData);
       await this.addHistory(submitData);

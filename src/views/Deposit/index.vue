@@ -197,6 +197,8 @@ export default {
         value: info.amount,
         block_num: transactionWaitRes.blockNumber,
         name: info.tokenInfo.symbol,
+        operation: 'Deposit',
+        network_id: window.ethereum.chainId
       }
       this.addHistoryData = _.cloneDeep(submitData);
       await this.addHistory(submitData);

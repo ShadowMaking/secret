@@ -1,5 +1,64 @@
 import web3 from 'web3';
 const defaultNetWorkForMetamask = [1, 3, 4, 5, 42]
+const CHAINMAP  = {
+  [web3.utils.numberToHex(1)]: {
+                                id: 1,
+                                name: 'Ethereum',
+                                rpcUrls: ['https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'],
+                                blockExplorerUrls: ["https://etherscan.io"],
+                                icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
+                              },
+  [web3.utils.numberToHex(3)]: {
+                                id: 3,
+                                name: 'Ropsten',
+                                rpcUrls: ['https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'],
+                                blockExplorerUrls: ["https://ropsten.etherscan.io"],
+                                icon: require('@/assets/network/Ropsten.png'),
+                              },
+  [web3.utils.numberToHex(4)]: {
+                                 id: 4,
+                                 name: 'Rinkeby',
+                                rpcUrls: ['https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'],
+                                blockExplorerUrls: ["https://rinkeby.etherscan.io"],
+                                icon: require('@/assets/network/Rinkeby.png'),
+                              },
+  [web3.utils.numberToHex(5)]: {
+                                id: 5,
+                                name: 'Goerli',
+                                rpcUrls: ['https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'],
+                                blockExplorerUrls: ["https://goerli.etherscan.io"],
+                                icon: require('@/assets/network/Goerli.png'),
+                              },
+  [web3.utils.numberToHex(42)]: {
+                                id: 42,
+                                name: 'Kovan',
+                                rpcUrls: ['https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'],
+                                blockExplorerUrls: ["https://kovan.etherscan.io"],
+                                icon: require('@/assets/network/Kovan.png'),
+                              },
+  [web3.utils.numberToHex(42161)]: {
+                                id: 42161,
+                                name: 'Arbitrum',
+                                rpcUrls: ['https://arb1.arbitrum.io/rpc'],
+                                blockExplorerUrls: ["https://arbiscan.io"],
+                                icon: 'https://zapper.fi/images/networks/arbitrum-icon.png',
+                              },
+  [web3.utils.numberToHex(44010)]: {
+                                id: 44010,
+                                name: 'SecretL1',
+                                rpcUrls: ['https://rpc.ieigen.com/eth/'],
+                                blockExplorerUrls: [],
+                                icon: require('@/assets/network/defaultNetwork.png'),
+                              },
+  [web3.utils.numberToHex(189250287905350)]: {
+                                id: 189250287905350,
+                                name: 'SecretL2',
+                                rpcUrls: ['https://rpc.ieigen.com/eig/'],
+                                blockExplorerUrls: ['https://explorer.ieigen.com/'],
+                                icon: require('@/assets/network/defaultNetwork.png'),
+                              },
+  
+}
 const CHAINIDMAP  = {
   ETHEREUM: web3.utils.numberToHex(1),
   ROPSTEN: web3.utils.numberToHex(3),
@@ -12,72 +71,14 @@ const CHAINIDMAP  = {
   SECRETL2: web3.utils.numberToHex(189250287905350),
 }
 
-const NETWORKSFORTOKEN = [
-  {
-    id: 1,
-    chainId: CHAINIDMAP['ETHEREUM'],
-    chainName: "Ethereum",
-    // rpcUrls: [ 'https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161' ],
-    // blockExplorerUrls: ["https://etherscan.io"]
-    leftTitle: 'Ethereum',
-    icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
-  }, {
-    id: 3,
-    chainId: CHAINIDMAP['ROPSTEN'],
-    chainName: "Ropsten",
-    // rpcUrls: [ 'https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161' ],
-    // blockExplorerUrls: ["https://ropsten.etherscan.io"],
-    leftTitle: 'Ropsten',
-    icon: require('@/assets/network/Ropsten.png'),
-  }, {
-    id: 4,
-    chainId: CHAINIDMAP['RINKEBY'],
-    chainName: "Rinkeby",
-    // rpcUrls: [ 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161' ],
-    // blockExplorerUrls: ["https://rinkeby.etherscan.io"],
-    leftTitle: 'Rinkeby',
-    icon: require('@/assets/network/Rinkeby.png'),
-  }, {
-    id: 5,
-    chainId: CHAINIDMAP['GOERLI'],
-    chainName: "Goerli",
-    // rpcUrls: [ 'https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161' ],
-    // blockExplorerUrls: ["https://goerli.etherscan.io"],
-    leftTitle: 'Goerli',
-    icon: require('@/assets/network/Goerli.png'),
-  }, {
-    id: 42,
-    chainId: CHAINIDMAP['KOVAN'],
-    chainName: "Kovan",
-    // rpcUrls: [ 'https://kovan.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161' ],
-    // blockExplorerUrls: ["https://kovan.etherscan.io"],
-    leftTitle: 'Kovan',
-    icon: require('@/assets/network/Kovan.png'),
-  }, {
-    id: 42161,
-    chainId: CHAINIDMAP['ARBITRUM'],
-    chainName: "Arbitrum",
-    rpcUrls: [ 'https://arb1.arbitrum.io/rpc' ],
-    blockExplorerUrls: ["https://arbiscan.io"],
-    leftTitle: 'Arbitrum',
-    icon: 'https://zapper.fi/images/networks/arbitrum-icon.png',
-  }, {
-    id: 44010,
-    chainId: CHAINIDMAP['SECRETL1'],
-    chainName: "SecretL1",
-    rpcUrls: [ `https://rpc.ieigen.com/eth/` ],
-    // blockExplorerUrls: [],
-    leftTitle: 'SecretL1',
-    icon: require('@/assets/network/defaultNetwork.png'),
-  }, {
-    id: 189250287905350,
-    chainId: CHAINIDMAP['SECRETL2'],
-    chainName: "SecretL2",
-    rpcUrls: [ `https://rpc.ieigen.com/eig/` ],
-    blockExplorerUrls: ['https://explorer.ieigen.com/'],
-    leftTitle: 'SecretL2',
-    icon: require('@/assets/network/defaultNetwork.png'),
+const NETWORKSFORTOKEN = Object.keys(CHAINMAP).map(chainId => {
+  const { id, name, rpcUrls, blockExplorerUrls, icon } = CHAINMAP[chainId]
+  const data = { id, chainId, chainName: name, rpcUrls, blockExplorerUrls, leftTitle: name, icon }
+  if (defaultNetWorkForMetamask.includes(web3.utils.hexToNumber(chainId))) {
+    delete data['rpcUrls']
+    delete data['blockExplorerUrls']
   }
-]
+  return data
+})
 
-export { NETWORKSFORTOKEN, defaultNetWorkForMetamask, CHAINIDMAP }
+export { CHAINMAP, NETWORKSFORTOKEN, defaultNetWorkForMetamask, CHAINIDMAP }

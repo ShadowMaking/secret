@@ -347,6 +347,8 @@ export default {
         status: 1,
         value: data.amountin,
         name: this.exchangeFromToken['tokenName'],
+        operation: 'Exchange',
+        network_id: window.ethereum.chainId
       }
       this.addHistoryData = _.cloneDeep(submitData);
       await this.addHistory(submitData);
