@@ -44,7 +44,7 @@
         </div>
       </ul>
       <div class="exchange-btn-box">
-        <a class="common-form-btn" @click="approveSubmit">Allow CowSwap to use your JBX</a>
+        <a class="common-form-btn" @click="approveSubmit" v-show="showApproveButton">Allow EigenSwap to use your {{ exchangFromToken&&exchangFromToken['tokenName']}}</a>
       </div>
       <div class="exchange-btn-box">
         <a class="common-form-btn" @click="exchangeSubmit">Exchange</a>
@@ -122,6 +122,8 @@ export default {
       networkFee: '~~',
       slippageInput: 3,
 
+      showApproveButton: false,
+
       // *********************** uniswap2 test ************************************/
       user: null,
       DAI: null,
@@ -141,6 +143,9 @@ export default {
     "v-selectItem": selectItem,
     "v-formSelect": formSelect,
   },
+  computed: {
+  
+  },
   methods: {
     gasPriceValue(type) {
       return this.gasPriceInfo && this.gasPriceInfo[type].gasPrice;
@@ -150,6 +155,7 @@ export default {
     },
     selectChagne(type, record) {
       this[`${type}Token`] = record
+      this.setShowApproveButton()
     },
     async inputChange(type, record) {
       if (type === 'exchangFrom') {
@@ -240,7 +246,7 @@ export default {
     async exchangeToken(type, data) {
       const { hasError, isApprove } = await this.getUserAllowanceForToken()
       if (!isApprove && type === 'from') {
-        Toast('Please Allow CowSwap to use your JBX')
+        Toast(`Please Allow EigenSwap to use your ${this.exchangFromToken&&this.exchangFromToken['tokenName']}`)
         return
       }
 
@@ -384,15 +390,19 @@ export default {
       .then(async res=>{
         const txRes = await res.wait()
         console.log(`Approve Token-${token.tokenName} res: `, txRes);
-        return
-
-        const saveTokenData = {
-          ...allowanceTokenData,
-          allowance: approveTokenAmount
-        }
-        const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
-        if (hasError) {
-          console.log('SaveUserAllowanceForToken Error', error)
+        if (txRes) { // approve success
+          const saveTokenData = {
+            ...allowanceTokenData,
+            allowance: approveTokenAmount
+          }
+          const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
+          if (!hasError) {
+            const tokenInfo = this.exchangFromToken
+            Toast(`Approve ${tokenInfo.tokenName} Suucess`)
+          } else {
+            Toast(`Approve ${tokenInfo.tokenName} Failed`)
+            console.log('SaveUserAllowanceForToken Error', error)
+          }
         }
       })
       .catch(err => {
@@ -487,11 +497,17 @@ export default {
         const ETHAssets = await getDefaultETHAssets(this);
         this.assetsTokenList = [].concat([ETHAssets], tokenList)
         this.exchangFromToken = this.assetsTokenList[0]
+        this.setShowApproveButton()
       } else {
         this.allTokenList = _.cloneDeep(tokenList)
         this.exchangeToToken = this.allTokenList[0]
       }
     },
+    setShowApproveButton() {
+      const tokenInfo = this.exchangFromToken
+      const isEth = tokenInfo && tokenInfo['tokenName'] === 'ETH'
+      this.showApproveButton = !isEth
+    }
   },
   created() {
     this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
