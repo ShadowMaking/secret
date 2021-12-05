@@ -74,7 +74,7 @@ const token = {
       return new Promise((resolve, reject) => {
         getUserAllowanceForToken(params).then(response => {
           const { errno, data, message } = response.data
-          const isApprove = data && data.approve
+          const isApprove = data && data.allowance
           if (errno === 0 && isApprove) {
             resolve({ hasError: false, isApprove: true })
           } else {
