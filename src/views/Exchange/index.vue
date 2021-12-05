@@ -45,7 +45,7 @@
         </div>
       </ul>
       <div class="exchange-btn-box">
-        <a class="common-form-btn" @click="approveSubmit" v-show="showApproveButton">Allow EigenSwap to use your {{ exchangFromToken&&exchangFromToken['tokenName']}}</a>
+        <a class="common-form-btn" @click="approveSubmit" v-show="showApproveButton">Allow EigenSwap to use your {{ exchangeFromToken&&exchangeFromToken['tokenName']}}</a>
       </div>
       <div class="exchange-btn-box">
         <a class="common-form-btn" @click="exchangeSubmit">Exchange</a>
@@ -167,8 +167,8 @@ export default {
     },
     async inputChange(type, record) {
       if (type === 'exchangeFrom') {
-        const tokenA = this.exchangFromToken
-        const tokenB = this.exchangToToken
+        const tokenA = this.exchangeFromToken
+        const tokenB = this.exchangeToToken
         const tokenASymbol = tokenA && !!tokenA['tokenAddress'] ?  tokenA['symbol'] : 'ETH'
         const tokenBSymbol = tokenB && tokenB['symbol']
         const changeType = `${tokenASymbol}/${tokenBSymbol}`
@@ -179,12 +179,12 @@ export default {
       this[type] = record
     },
     checkData(data) {
-      /* if (!data.tokenFrom && this.exchangFromToken) {
+      /* if (!data.tokenFrom && this.exchangeFromToken) {
         Toast.fail('Nonsupport ETH')
         return false
       } */
 
-      if (!this.exchangFromToken || !this.exchangToToken) {
+      if (!this.exchangeFromToken || !this.exchangeToToken) {
         Toast.fail('Choose Token')
         return false
       }
@@ -194,8 +194,8 @@ export default {
         return false
       }
 
-      if (new BigNumber(this.exchangFromToken.balanceNumberString).lt(new BigNumber(data.amountin)) ||
-      new BigNumber(this.exchangFromToken.balanceNumberString).eq(new BigNumber(0))) {
+      if (new BigNumber(this.exchangeFromToken.balanceNumberString).lt(new BigNumber(data.amountin)) ||
+      new BigNumber(this.exchangeFromToken.balanceNumberString).eq(new BigNumber(0))) {
         Toast.fail(`Insufficient Balance`);
         return false;
       }
@@ -215,7 +215,7 @@ export default {
     },
     // TokenAmount: BigNumber, ETHAmount: BigNumber
     async addLiquidity(TokenAmount, ETHAmount, tokenType, gasInfo) {
-      const tokenInfo = tokenType === 'from' ? this.exchangFromToken : this.exchangToToken
+      const tokenInfo = tokenType === 'from' ? this.exchangeFromToken : this.exchangeToToken
       const { tokenAddress, abiJson } = tokenInfo
       const TokenContract = await this.getContractAt({ tokenAddress, abi: abiJson })
       const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
@@ -293,7 +293,7 @@ export default {
     async exchangeToken(type, data) {
       const { hasError, isApprove } = await this.getUserAllowanceForToken()
       if (!isApprove && type === 'from') {
-        Toast(`Please Allow EigenSwap to use your ${this.exchangFromToken&&this.exchangFromToken['tokenName']}`)
+        Toast(`Please Allow EigenSwap to use your ${this.exchangeFromToken&&this.exchangeFromToken['tokenName']}`)
         return
       }
 
@@ -308,8 +308,8 @@ export default {
         const ETHAmount = ethers.utils.parseEther(data.amountin);
         await this.addLiquidity(TokenAmount, ETHAmount, `${type}`, overrides);
       } else {
-        const tokenA = this.exchangFromToken
-        const tokenB = this.exchangToToken
+        const tokenA = this.exchangeFromToken
+        const tokenB = this.exchangeToToken
         const amountADesired = ethers.utils.parseUnits(this.exchangeFrom);
         const amountBDesired = ethers.utils.parseUnits(this.exchangeTo);
         const amountAMin = 0;
@@ -368,8 +368,8 @@ export default {
     // *********************************************************** uniswap2 test ropsten *********************************************************** /
     getSubmitData() {
       const data = {
-        tokenFrom: this.exchangFromToken && this.exchangFromToken['tokenAddress'],
-        tokenTo: this.exchangToToken && this.exchangToToken['tokenAddress'],
+        tokenFrom: this.exchangeFromToken && this.exchangeFromToken['tokenAddress'],
+        tokenTo: this.exchangeToToken && this.exchangeToToken['tokenAddress'],
         amountin: this.exchangeFrom, // 100
         amountmin: BigNumber(this.exchangeFrom||0).minus((BigNumber(this.exchangeFrom||0) * BigNumber(this.slippageKey).div(100))),
         fee: 3000,
@@ -379,7 +379,7 @@ export default {
       return data
     },
     async getUserAllowanceForToken() {
-      const token = this.exchangFromToken;
+      const token = this.exchangeFromToken;
       const chainId = window.ethereum && window.ethereum.chainId;
       const userAddress = window.ethereum && window.ethereum.selectedAddress;
       const allowanceTokenData = {
@@ -414,7 +414,7 @@ export default {
       if(!this.thirdLogin()) { return }
       if(!this.connectedWallet()) { return }
 
-      const token = this.exchangFromToken
+      const token = this.exchangeFromToken
       console.log(token)
       if (!token) {
         Toast('Choose Token')
@@ -493,9 +493,11 @@ export default {
       if (!this.checkData(data)) { return }
 
       // fromToken is ETH
-      if (!data.tokenFrom && this.exchangFromToken) {
+      if (!data.tokenFrom && this.exchangeFromToken) {
         await this.exchangeETH2Token(data)
       } else { // fromToken is token and toToken is token too
+        const TokenIsWETH = data.tokenFrom && this.exchangeFromToken['tokenName'] === 'WETH'
+        console.log(111111)
         await this.exchangeToken2Token(data)
       }
       return
@@ -571,7 +573,7 @@ export default {
       if (forAccounts) {
         const ETHAssets = await getDefaultETHAssets(this);
         this.assetsTokenList = [].concat([ETHAssets], tokenList)
-        this.exchangFromToken = this.assetsTokenList[0]
+        this.exchangeFromToken = this.assetsTokenList[0]
         this.setShowApproveButton()
       } else {
         this.allTokenList = _.cloneDeep(tokenList)
@@ -579,7 +581,7 @@ export default {
       }
     },
     setShowApproveButton() {
-      const tokenInfo = this.exchangFromToken
+      const tokenInfo = this.exchangeFromToken
       const isEth = tokenInfo && tokenInfo['tokenName'] === 'ETH'
       this.showApproveButton = !isEth
     }
