@@ -46,7 +46,10 @@ import { getFromStorage } from '@/utils/storage'
 import { NETWORKSFORTOKEN } from '@/utils/netWorkForToken'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
-import { generateTokenList } from '@/utils/dashBoardTools';
+import { generateTokenList } from '@/utils/dashBoardTools'
+import { Toast } from 'vant';
+
+Vue.use(Toast)
 
 export default {
   name: 'Home',
@@ -70,7 +73,6 @@ export default {
       this.defaultNetWork = id
     },
     async declineSubmit(item) {
-      console.log(item)
       if(!this.thirdLogin()) { return }
       if(!this.connectedWallet()) { return }
 
@@ -89,7 +91,7 @@ export default {
       TokenContract.approve(swapAddress, approveTokenAmount, gasInfo)
       .then(async res=>{
         const txRes = await res.wait()
-        console.log(`Approve Token-${token.tokenName} res: `, txRes);
+        console.log(`Approve Token-res: `, txRes);
     
 
         const userAddress = window.ethereum && window.ethereum.selectedAddress;
@@ -110,6 +112,9 @@ export default {
         const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
         if (hasError) {
           console.log('SaveUserAllowanceForToken Error', error)
+        } else {
+          Toast('success')
+          this.getApprovalList()
         }
       })
       .catch(err => {

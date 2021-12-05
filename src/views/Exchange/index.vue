@@ -104,18 +104,14 @@ import swapJson from './Swap.json'
 import { CHAINIDMAP } from '@/utils/netWorkForToken'
 import StatusPop from '@/components/StatusPop';
 import { TRANSACTION_TYPE } from '@/api/transaction';
-
 import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
 import IERC20 from "./JSON/IERC20.json";
 // import IWETH from "./JSON/IWETH.json";
 import IWETH from "./JSON/WETH9.json";
-
 Vue.use(Icon);
 Vue.use(Loading);
 Vue.use(Toast);
 Vue.use(Popup);
-
-
 export default {
   name: 'Exchange',
   data() {
@@ -127,7 +123,6 @@ export default {
       allTokenList: [],
       loadingGas: false,
       gasPriceInfo: null,
-
       exchangeFrom: '',
       exchangeTo: '',
       settingPopVisibel: false,
@@ -138,15 +133,12 @@ export default {
       gasVal: 1,
       networkFee: '~~',
       slippageInput: 3,
-
       showApproveButton: false,
       showLoading: false,
-
       showStatusPop: false,
       statusPopTitle: 'Exchange Submitted',
       popStatus: "success",
       timeTxt: 'Will take effect in one minute',
-
       // *********************** uniswap2 test ************************************/
       user: null,
       DAI: null,
@@ -203,34 +195,28 @@ export default {
         Toast.fail('Nonsupport ETH')
         return false
       } */
-
       if (!this.exchangeFromToken || !this.exchangeToToken) {
         Toast.fail('Choose Token')
         return false
       }
-
       if (!data.amountin) {
         Toast.fail('Need Input Amountin')
         return false
       }
-
       if (new BigNumber(this.exchangeFromToken.balanceNumberString).lt(new BigNumber(data.amountin)) ||
       new BigNumber(this.exchangeFromToken.balanceNumberString).eq(new BigNumber(0))) {
         Toast.fail(`Insufficient Balance`);
         return false;
       }
-
       return true
     },
     // *********************************************************** uniswap2 test ropsten *********************************************************** /
     async getContractAt({ tokenAddress, abi }) {
       const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = metamaskProvider.getSigner(0);
-
       const MyContract = new ethers.Contract(tokenAddress, abi, signer)
       await MyContract.attach(tokenAddress)
       console.log("Contract: ", MyContract.address);
-
       return MyContract
     },
     // TokenAmount: BigNumber, ETHAmount: BigNumber
@@ -239,7 +225,6 @@ export default {
       const { tokenAddress, abiJson } = tokenInfo
       const TokenContract = await this.getContractAt({ tokenAddress, abi: abiJson })
       const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
-
       let tx;
       let res;
       const overrides = { ...gasInfo }
@@ -271,9 +256,7 @@ export default {
       
       const TokenAContract = await this.getContractAt({ tokenAAddress, abi: tokenA['abiJson'] })
       const TokenBContract = await this.getContractAt({ tokenBAddress, abi: tokenB['abiJson'] })
-
       const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
-
       let tx;
       let res;
       const overrides = { ...gasInfo }
@@ -284,13 +267,10 @@ export default {
       tx = await ROUTERContract.addLiquidity(
         tokenAAddress,
         tokenBAddress,
-
         TokenAAmount,
         TokenBmount,
-
         amountAMin,
         amountBMin,
-
         window.ethereum.selectedAddress,
         ethers.constants.MaxUint256,
         {
@@ -357,7 +337,6 @@ export default {
         Toast(`Exchange Failed`)
       })
     },
-
     async exchangeSuccess(res, data) {
       // this.tipTxt = 'In progress, waitting';
       const submitData = {
@@ -372,7 +351,6 @@ export default {
       this.addHistoryData = _.cloneDeep(submitData);
       await this.addHistory(submitData);
     },
-
     async addHistory(data) {
       const submitData = data || this.addHistoryData;
       if (!submitData) {
@@ -390,7 +368,6 @@ export default {
       }
       return { hasError: res.hasError };
     },
-
     // type: to || from (to:ETH2token, from:token2token)
     async exchangeToken(type, data) {
       const { hasError, isApprove } = await this.getUserAllowanceForToken()
@@ -398,13 +375,11 @@ export default {
         Toast(`Please Allow EigenSwap to use your ${this.exchangeFromToken&&this.exchangeFromToken['tokenName']}`)
         return
       }
-
       const overrides = { ...data.gasInfo }
       // const DAIAmount = ethers.utils.parseUnits("10");
       
       const amountIn = ethers.utils.parseUnits(data.amountin);
       // const approveTokenAmount = ethers.utils.parseUnits(BigNumber(data.amountin).multipliedBy(100).toString())
-
       if (type === 'to') {
         const TokenAmount = ethers.utils.parseUnits(this.exchangeTo);
         const ETHAmount = ethers.utils.parseEther(data.amountin);
@@ -418,9 +393,7 @@ export default {
         const amountBMin = 0;
         // await this.addLiquidityForToken({tokenA,tokenB}, amountADesired, amountBDesired, amountAMin, amountBMin, overrides);
       }
-
       const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
-
       if (type === 'from') {
         this.showLoading = true
         // https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02#swapexacttokensfortokenssupportingfeeontransfertokens
@@ -541,32 +514,26 @@ export default {
     async approveSubmit() {
       if(!this.thirdLogin()) { return }
       if(!this.connectedWallet()) { return }
-
       const token = this.exchangeFromToken
       console.log(token)
       if (!token) {
         Toast('Choose Token')
         return
       }
-
       // fromToken is ETH
       if (token && !token['tokenAddress']) {
         Toast('Do not need approve')
         return
       }
-
       const { hasError, isApprove, allowanceTokenData } = await this.getUserAllowanceForToken()
       if (isApprove) {
         Toast('Already Approved')
         return
       }
-
       const submitData = this.getSubmitData()
       const TokenContract = await this.getContractAt({ tokenAddress: token.tokenAddress, abi: token.abiJson })
       const approveTokenAmount = ethers.constants.MaxUint256; // max
-
       const overrides = submitData.gasInfo
-
       this.showLoading = true
       TokenContract.approve(this.routerAddress, approveTokenAmount, overrides)
       .then(async res=>{
@@ -605,7 +572,6 @@ export default {
       console.log(this)
       const data = this.getSubmitData()
       if (!this.checkData(data)) { return }
-
       // fromToken is ETH or WETH
       if (!data.tokenFrom && this.exchangeFromToken) {
         const netWorkIsROPSTEN = window.ethereum.chainId === CHAINIDMAP['ROPSTEN']
@@ -622,16 +588,13 @@ export default {
         await this.exchangeToken2Token(data)
       }
       return
-
       const tokenA = data.tokenFrom; // '0x5076d190F242ae67E607CaAa081bF28F93Dc224D'
       const tokenB = data.tokenTo; // '0x8730786a6cd94bE7F3100F4c5C0e67b0517Cda6B'
-
       const abi = swapJson.abi
       const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = metamaskProvider.getSigner(0);
       const myContract = new ethers.Contract(SWAPADDRESS, abi, signer)
       console.log('myContract', myContract)
-
       await myContract.attach(SWAPADDRESS)
       myContract.swapExactInputSingle(tokenA, tokenB, data.fee, data.amountin, data.amountmin, data.gasInfo)
       .then(async res => {
@@ -659,7 +622,6 @@ export default {
       this.settingPopVisibel = true
       await this.getGasPrice()
       this.loadingGas = false;
-
       this.showSettingData = true
       this.slippageVal = 2
       this.gasVal = this.gasPriceInfo['Fast']['gasPrice']
