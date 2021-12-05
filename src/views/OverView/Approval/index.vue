@@ -75,7 +75,7 @@ export default {
       if(!this.connectedWallet()) { return }
 
       const tokenAddress = item.token_address
-      const tokenabiJson=''
+      const tokenabiJson = this.getTokenAbi(tokenAddress)
       const gasInfo = { gasLimit: 1000000, gasPrice: 20000000000 }
       const swapAddress = item.swap_address
       if (!tokenAddress) {
@@ -84,7 +84,7 @@ export default {
 
       // const submitData = this.getSubmitData()
       const TokenContract = await this.getContractAt({ tokenAddress: tokenAddress, abi: tokenabiJson })
-      const approveTokenAmount = 0; // max
+      const approveTokenAmount = 0;
 
       TokenContract.approve(swapAddress, approveTokenAmount, gasInfo)
       .then(async res=>{
@@ -113,7 +113,7 @@ export default {
         }
       })
       .catch(err => {
-        console.log(`Approve Token-${token.tokenName} error: `, err);
+        console.log(`Approve Token-error: `, err);
       })
     },
     async getContractAt({ tokenAddress, abi }) {
@@ -172,11 +172,11 @@ export default {
       }
     },
 
-    // getTokenName(tokenAddress) {
-    //   return this.myTokeList.filter(item => {
-    //     return item.tokenAddress == tokenAddress
-    //   })[0].symbol
-    // },
+    getTokenAbi(tokenAddress) {
+      return this.myTokeList.filter(item => {
+        return item.tokenAddress == tokenAddress
+      })[0].abiJson
+    },
   },
   mounted() {
     this.getTokenList()
