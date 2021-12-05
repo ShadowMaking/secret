@@ -422,8 +422,9 @@ export default {
       const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
 
       if (type === 'from') {
+        this.showLoading = true
         // https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02#swapexacttokensfortokenssupportingfeeontransfertokens
-        let tx = await ROUTERContract.swapExactTokensForTokensSupportingFeeOnTransferTokens(
+        ROUTERContract.swapExactTokensForTokensSupportingFeeOnTransferTokens(
           amountIn,
           0, // TODO
           // [DAI.address, WETH.address],
@@ -432,21 +433,32 @@ export default {
           window.ethereum.selectedAddress,
           ethers.constants.MaxUint256,
           overrides
-        );
-        tx.wait()
-        .then(res=>{
-          console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", res);
-          console.log('success')
+        )
+        .then(async tx=>{
+          tx.wait()
+          .then(async res=>{
+            console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", res);
+            console.log('success')
+            await this.exchangeSuccess(res, data)
+            this.showLoading = false
+            Toast(`Exchange Suucess`)
+          })
+          .catch(error => {
+            this.showLoading = false
+            Toast(`Exchange Failed`)
+            console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", error);
+            console.log('error')
+          })
         })
-        .catch(error => {
-          Toast(`Exchange Failed`)
+        .catch(error=>{
+          this.showLoading = false
           console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", error);
-          console.log('error')
         })
       } else {
+        this.showLoading = true
         // https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02#swapexactethfortokenssupportingfeeontransfertokens
         const ETHAmount = ethers.utils.parseUnits(this.exchangeFrom)
-        let tx = await ROUTERContract.swapExactETHForTokensSupportingFeeOnTransferTokens(
+        ROUTERContract.swapExactETHForTokensSupportingFeeOnTransferTokens(
           0, // TODO
           // [DAI.address, WETH.address],
           [data.tokenFrom, data.tokenTo],
@@ -457,17 +469,28 @@ export default {
             ...overrides,
             value: ETHAmount,
           }
-        );
-        tx.wait()
-        .then(res=>{
-          console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", res);
-          console.log('success')
+        )
+        .then(async tx=>{
+          tx.wait()
+          .then(async res=>{
+            console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", res);
+            console.log('success')
+            await this.exchangeSuccess(res, data)
+            this.showLoading = false
+            Toast(`Exchange Suucess`)
+          })
+          .catch(error => {
+            this.showLoading = false
+            Toast(`Exchange Failed`)
+            console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", error);
+            console.log('error')
+          })
         })
-        .catch(error => {
-          Toast(`Exchange Failed`)
+        .catch(error=>{
+          this.showLoading = false
           console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", error);
-          console.log('error')
         })
+        
       }
     },
     // *********************************************************** uniswap2 test ropsten *********************************************************** /
