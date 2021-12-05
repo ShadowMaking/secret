@@ -6,7 +6,8 @@
         <v-formSelect 
           label="NETWORK"
           :labelShow="false" 
-          :defaultValue="defaultNetWork" 
+          :defaultValue="defaultNetWork"
+          :leftIcon="require('@/assets/token/tokenImages/defaultToken.png')"
           :dataSource="netWorkList"
           placeholder="chose network"
           @change="handleNetworkChange" />
@@ -37,7 +38,7 @@
         <li><h3>Slippage Tolerance</h3><h3>{{slippageVal}}%</h3></li>
         <!-- <li><h3>Allowance</h3><h3>limited</h3></li> -->
         <li><h3>Estimated Gas Fee</h3><h3>${{gasVal}}</h3></li>
-        <li><h3>Network Fee</h3><h3>{{networkFee}}</h3></li>
+        <li><h3>Gas Price</h3><h3>{{networkFee}}</h3></li>
         <div v-if="showSettingData">
           
         </div>

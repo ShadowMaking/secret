@@ -118,9 +118,9 @@ export default {
       const tokenListRes = await this.$store.dispatch('GetAvailableTokenAssets', { selectedConnectAddress, chainInfo: this.currentChainInfo });
       const { hasError, list } = tokenListRes
       const tokenList = await generateTokenList(_.cloneDeep(list), this, true)
-      tokenList.filter(item => {
-         return item.icon = require("@/assets/token/tokenImages/defaultToken.png")
-      })
+      // tokenList.filter(item => {
+      //    return item.icon = require("@/assets/" + item.icon)
+      // })
       this.assetsData = [].concat([ETHAssets], tokenList)
       console.log(this.assetsData)
       this.showLoading = false

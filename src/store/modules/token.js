@@ -110,7 +110,7 @@ const token = {
             tokenName: name,
             tokenAddress,
             erc20, symbol, decimals,
-            icon: `@/assets/token/tokenImages/${logo}` // TODO
+            icon: `token/tokenImages/${logo}` // TODO
           }
         })
         resolve({ hasError: false,  list: tokenList.concat(otherDefaultTokenList) })
@@ -125,7 +125,7 @@ const token = {
             tokenName: name,
             tokenAddress,
             erc20, symbol, decimals,
-            icon: `@/assets/token/tokenImages/${logo}`, // TODO
+            icon: `token/tokenImages/${logo}`, // TODO
             abiJson: DEFAULTTOKENABIJSONForL1.abi
           }
         })
@@ -140,6 +140,7 @@ const token = {
         let tokenList = []
         const { hasError, list=[] } = await store.dispatch('GetDefaultTokenListForOther')
         const otherDefaultTokenList = list
+        console.log(otherDefaultTokenList)
         switch(chainID) {
           case CHAINIDMAP['SECRETL1']:
             tokenList =[].concat(Object.keys(DEFAULTTOKENLISTForL1).map(tokenAddress => {
@@ -149,7 +150,7 @@ const token = {
                 tokenName: name,
                 tokenAddress,
                 erc20, symbol, decimals,
-                icon: `@/assets/token/tokenImages/${logo}`, // TODO
+                icon: `token/tokenImages/${logo}`, // TODO
                 abiJson: DEFAULTTOKENABIJSONForL1.abi
               }
             }), otherDefaultTokenList)
@@ -166,7 +167,7 @@ const token = {
                 tokenName: name,
                 tokenAddress,
                 erc20, symbol, decimals,
-                icon: `@/assets/token/tokenImages/${logo}`, // TODO
+                icon: `token/tokenImages/${logo}`, // TODO
                 abiJson: data
               })
             }

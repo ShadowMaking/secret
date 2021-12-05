@@ -38,7 +38,7 @@ export const generateTokenList = async (list, self, isDefault) => {
     // list[i]['leftDes'] = `${balanceFormatString}${list[i].tokenName} US$${exchangeForUS}`
     list[i]['leftDes'] = `${balanceFormatString} US$${exchangeForUS}`
     // list[i]['icon'] = 'https://s3.amazonaws.com/token-icons/0x6b175474e89094c44da98b954eedeac495271d0f.png'
-    list[i]['icon'] = list[i].icon
+    list[i]['icon'] = require("@/assets/" + list[i].icon)
   }
   return list
 }

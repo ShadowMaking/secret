@@ -68,7 +68,7 @@ const NETWORKSFORTOKEN = [
     rpcUrls: [ `https://rpc.ieigen.com/eth/` ],
     // blockExplorerUrls: [],
     leftTitle: 'SecretL1',
-    icon: '',
+    icon: require('@/assets/token/tokenImages/defaultToken.png'),
   }, {
     id: 189250287905350,
     chainId: CHAINIDMAP['SECRETL2'],
@@ -76,7 +76,7 @@ const NETWORKSFORTOKEN = [
     rpcUrls: [ `https://rpc.ieigen.com/eig/` ],
     blockExplorerUrls: ['https://explorer.ieigen.com/'],
     leftTitle: 'SecretL2',
-    icon: '',
+    icon: require('@/assets/token/tokenImages/defaultToken.png'),
   }
 ]
 
