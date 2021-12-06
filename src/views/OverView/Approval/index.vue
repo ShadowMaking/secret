@@ -47,7 +47,7 @@ import { NETWORKSFORTOKEN } from '@/utils/netWorkForToken'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
 import { generateTokenList } from '@/utils/dashBoardTools'
-import { Toast } from 'vant';
+import { Toast } from 'vant'
 
 Vue.use(Toast)
 

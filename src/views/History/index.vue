@@ -4,7 +4,7 @@
       <div class="common-transaction-table">
         <van-search 
           v-model="searchValue" 
-          placeholder="Filter by Address" 
+          placeholder="Filter by TX HASH" 
           @input="searchChange"
           style="width: 50%;margin-left: -12px;background-color: #e6e7e9"/>
         <v-list
@@ -19,6 +19,7 @@
 </template>
 <script>
 import Vue from 'vue';
+import web3 from 'web3';
 import _ from 'lodash';
 import { Search } from 'vant';
 import { generateTransactionList } from '@/utils/index';
@@ -36,25 +37,34 @@ export default {
       loadingL2Info: true,
       transactionList: [],
       chainInfoData: [],
-      headerList: ['STATUS','TX HASH','FROM','TO','BLOCK NUMBER','TIMESTAMP'],
+      headerList: ['STATUS','TX HASH','FROM','TO','BLOCK NUMBER','TIMESTAMP','OPERATION'],
       showLoading: false,
       totalPage: 1,
       currentPage: 1,
       pageSize: 10,
       showNoMore: false,
       searchValue: '',
+      isSearch: false,
+      defaultNetWork: 1,
     }
   },
   methods: {
     searchAllTrasanctionList() {
-      this.transactionList = []
-      this.showLoading = true;
-      this.$store.dispatch('SearchAllTransactionHistory_forHistory', {
-        action: 'search_l2',
+      if(!this.connectedWallet()) { return }
+      this.showLoading = true
+      const selectedConnectAddress = window.ethereum.selectedAddress
+      let searchParam = {
+        action: 'search_both_sides',//search_l2
         page: this.currentPage,
         page_size: this.pageSize,
-        from: this.searchValue,
-      })
+        address: selectedConnectAddress,
+        txid: this.searchValue,
+        network_id: this.defaultNetWork,
+      }
+      this.getTrasanctionList(searchParam)
+    },
+    getTrasanctionList (searchParam) {
+      this.$store.dispatch('SearchAllTransactionHistory_forHistory', searchParam)
       .then(async result => {
         const { hasError, list=[], totalPage=1 } = result;
         this.showLoading = false;
@@ -67,9 +77,7 @@ export default {
       let windowHeight = document.documentElement.clientHeight || document.body.clientHeight;
       let scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
       if( scrollTop + windowHeight == scrollHeight ){
-        console.log('page bottom');
         if (this.currentPage + 1 > this.totalPage) {
-          console.log('no more')
           this.showNoMore = true;
           return
         }
@@ -80,15 +88,29 @@ export default {
       }
     },
     searchChange() {
-      this.searchAllTrasanctionList();
+      this.isSearch = true
+      this.transactionList = []
+      this.searchAllTrasanctionList()
+    },
+    connectedWallet() {
+      const chainId = window.ethereum && window.ethereum.chainId;
+      const userAddress = window.ethereum && window.ethereum.selectedAddress;
+      if (!chainId || !userAddress) {
+        console.log('Need Connect Wallet')
+        return false
+      }
+      return true
     },
   },
-  async mounted() {
-    await this.searchAllTrasanctionList();
-  },
   created (){
-    window.onscroll = _.throttle(this.onScroll)
-  }
+    // window.onscroll = _.throttle(this.onScroll)
+    window.addEventListener('scroll', this.onScroll, true)
+    window.ethereum && (this.defaultNetWork = web3.utils.hexToNumber(window.ethereum.chainId))
+    this.searchAllTrasanctionList()
+  },
+  beforeDestroy() {
+    window.removeEventListener("scroll", this.onScroll, true);
+  },
 }
 </script>
 <style lang="scss" scoped>

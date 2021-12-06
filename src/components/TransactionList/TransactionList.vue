@@ -3,9 +3,9 @@
     <div class="transactions-container">
       <el-row class="list-header">
         <el-col
-          :span="4"
           class="list-header-item"
-          v-for="(item,index) in headerList" :key="index">
+          v-for="(item,index) in headerList" :key="index"
+          :span="(index==4 || index==6) ? 2 : 4">
           {{ item }}
         </el-col>
       </el-row>
@@ -36,11 +36,14 @@
               </a>
             </el-tooltip>
           </el-col>
-          <el-col :span="4" class="transaction-list-item">
+          <el-col :span="2" class="transaction-list-item">
             <a @click="toPageDetail(item, 'block')">{{ item.blockNumber }}</a>
           </el-col>
           <el-col :span="4" class="transaction-list-item">
             {{ item.time }}
+          </el-col>
+          <el-col :span="2" class="transaction-list-item">
+            <a>{{ item.operation }}</a>
           </el-col>
         </el-row>
       </div>

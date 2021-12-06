@@ -53,7 +53,9 @@ import web3 from 'web3'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
 import Approval from './Approval/index'
+import { Toast } from 'vant'
 
+Vue.use(Toast)
 Vue.use(Icon);
 Vue.use(Popup);
 Vue.use(Tab);
@@ -109,6 +111,7 @@ export default {
     // },
     
     async initGthers() {
+      if(!this.connectedWallet()) { return }
       const selectedConnectAddress = window.ethereum.selectedAddress;
       if (!selectedConnectAddress) {
         this.assetsData = []
@@ -137,6 +140,15 @@ export default {
       // this.assetsData.push(ethData)
       
     },
+    connectedWallet() {
+      const chainId = window.ethereum && window.ethereum.chainId;
+      const userAddress = window.ethereum && window.ethereum.selectedAddress;
+      if (!chainId || !userAddress) {
+        Toast('Need Connect Wallet')
+        return false
+      }
+      return true
+    },
   },
   created() {
     // this.timer();
@@ -150,6 +162,6 @@ export default {
 <style lang="scss" scoped>
   @import "index";
   ::v-deep .van-tabs__nav--line {
-    width: 200px;
+    width: 250px;
   }
 </style>

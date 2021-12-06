@@ -19,6 +19,7 @@
 import _ from 'lodash';
 import * as ethers from 'ethers';
 import { getDefaultETHAssets } from '@/utils/dashBoardTools';
+import { timeFormat } from '@/utils/str';
 //DCCX2QFIHVFTGZKZXRN1X2ZZJWQ49P1QNX
 export default {
   name: 'TrendLine',
@@ -107,60 +108,62 @@ export default {
       return chartOption
     },
     drawChart() {
+      if(!this.connectedWallet()) { return }
       this.getNowBalance()
       this.getDataSource()
     },
     getHourTime() {
       var nowDate = new Date()
-      var y = nowDate.getFullYear()
-      var m = nowDate.getMonth() + 1
-      var d = nowDate.getDate()
+      console.log(timeFormat(nowDate, 'yyyy-MM-dd hh:mm:ss'))
+      var hour1 = nowDate - 10*60*1000
+      var hour2 = new Date(hour1)
+      console.log(hour2)
     },
     getXday(type) {
       switch(type) {
         case '1H':
           // this.getHourTime()
           this.datesource = [
-          {time: '2021-11-30 12:00:00'},
-          {time: '2020-11-30 12:10:00'},
-          {time: '2021-11-30 12:20:00'},
-          {time: '2021-11-30 12:30:00'},
-          {time: '2021-11-30 12:40:00'},
-          {time: '2021-11-30 12:50:00'},
-          {time: '2021-11-30 13:00:00'},
+          {time: '2021-12-06 12:00:00'},
+          {time: '2020-12-06 12:10:00'},
+          {time: '2021-12-06 12:20:00'},
+          {time: '2021-12-06 12:30:00'},
+          {time: '2021-12-06 12:40:00'},
+          {time: '2021-12-06 12:50:00'},
+          {time: '2021-12-06 13:00:00'},
           ]
           break;
         case '1D':
           this.datesource = [
-          {time: '2021-11-30 00:00:00'},
-          {time: '2021-11-30 04:00:00'},
-          {time: '2021-11-30 08:00:00'},
-          {time: '2021-11-30 12:00:00'},
-          {time: '2021-11-30 16:00:00'},
-          {time: '2021-11-30 20:00:00'},
-          {time: '2021-11-30 24:00:00'},
+          {time: '2021-12-06 00:00:00'},
+          {time: '2021-12-06 04:00:00'},
+          {time: '2021-12-06 08:00:00'},
+          {time: '2021-12-06 12:00:00'},
+          {time: '2021-12-06 16:00:00'},
+          {time: '2021-12-06 20:00:00'},
+          {time: '2021-12-06 24:00:00'},
           ]
           break;
         case '1W':
           this.datesource = [
+          {time: '2021-12-06 00:00:00'},
+          {time: '2021-12-05 00:00:00'},
+          {time: '2021-12-04 00:00:00'},
+          {time: '2021-12-03 00:00:00'},
+          {time: '2021-12-02 00:00:00'},
+          {time: '2021-12-01 00:00:00'},
           {time: '2021-11-30 00:00:00'},
-          {time: '2021-11-29 00:00:00'},
-          {time: '2021-11-28 00:00:00'},
-          {time: '2021-11-27 00:00:00'},
-          {time: '2021-11-26 00:00:00'},
-          {time: '2021-11-25 00:00:00'},
-          {time: '2021-11-24 00:00:00'},
           ]
           break;
         case '1M':
           this.datesource = [
-          {time: '2021-11-01 00:00:00'},
           {time: '2021-11-05 00:00:00'},
           {time: '2021-11-10 00:00:00'},
           {time: '2021-11-15 00:00:00'},
           {time: '2021-11-20 00:00:00'},
           {time: '2021-11-25 00:00:00'},
           {time: '2021-11-30 00:00:00'},
+          {time: '2021-12-05 00:00:00'},
           ]
           break;
         case '1Y':
@@ -202,7 +205,9 @@ export default {
          let itemArr = [xtime, this.balanceNowString]
          this.chartSourceData.push(itemArr)
       })
+      console.log(data)
       if (data && data.length > 0) { 
+        console.log(data)
         data.reverse().map(item => {
           let timsd = new Date(item.timeStamp*1000)
           if (item.timeStamp >= lastDate) {
@@ -230,6 +235,14 @@ export default {
           return
         }
       }
+    },
+    connectedWallet() {
+      const chainId = window.ethereum && window.ethereum.chainId;
+      const userAddress = window.ethereum && window.ethereum.selectedAddress;
+      if (!chainId || !userAddress) {
+        return false
+      }
+      return true
     },
   },
   mounted() {
