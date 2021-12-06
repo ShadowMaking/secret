@@ -45,7 +45,7 @@
         </div>
       </ul>
       <div class="exchange-btn-box">
-        <a class="common-form-btn" @click="approveSubmit" v-show="showApproveButton">Allow EigenSwap to use your {{ exchangeFromToken&&exchangeFromToken['tokenName']}}</a>
+        <a class="common-form-btn" @click="approveSubmit" v-show="showApproveButton">Allow Uniswap to use your {{ exchangeFromToken&&exchangeFromToken['tokenName']}}</a>
       </div>
       <div class="exchange-btn-box">
         <a class="common-form-btn" @click="exchangeSubmit">Exchange</a>
@@ -105,13 +105,12 @@ import { CHAINIDMAP } from '@/utils/netWorkForToken'
 import StatusPop from '@/components/StatusPop';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
-import IERC20 from "./JSON/IERC20.json";
-// import IWETH from "./JSON/IWETH.json";
-import IWETH from "./JSON/WETH9.json";
+
 Vue.use(Icon);
 Vue.use(Loading);
 Vue.use(Toast);
 Vue.use(Popup);
+
 export default {
   name: 'Exchange',
   data() {
@@ -125,6 +124,8 @@ export default {
       gasPriceInfo: null,
       exchangeFrom: '',
       exchangeTo: '',
+      exchangeFromToken: null,
+      exchangeToToken: null,
       settingPopVisibel: false,
       showSettingData: false,
       slippageKey: 2,
@@ -140,14 +141,8 @@ export default {
       popStatus: "success",
       timeTxt: 'Will take effect in one minute',
       // *********************** uniswap2 test ************************************/
-      user: null,
-      DAI: null,
-      WETH: null,
-      ROUTER: null,
       routerAddress: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", // Uniswap v2 Router02
-      fromToken: `0xad6d458402f60fd3bd25163575031acdce07538d`, // Ropsten DAI
-      toToken: `0xc778417e063141139fce010982780140aa0cd5ab`, // Ropsten WETH
-      // overrides: { gasLimit: 1000000, gasPrice: 20000 }
+      WETHAddress: "0xc778417e063141139fce010982780140aa0cd5ab", // Ropsten WETH
       overrides: { gasLimit: 1000000, gasPrice: 20000000000 }
       // *********************** uniswap2 test ************************************/
     }
@@ -186,7 +181,6 @@ export default {
         const changeType = `${tokenASymbol}/${tokenBSymbol}`
         const { hasError, forUsdt } = await this.$store.dispatch('GetTokenAxchangeForUS', {changeType});
         this.exchangeTo = record && (BigNumber(record).multipliedBy(BigNumber(forUsdt))).toFixed(4,1)
-        // console.log((BigNumber(record).multipliedBy(BigNumber(forUsdt))).toFixed(4,1))
       }
       this[type] = record
     },
@@ -195,6 +189,10 @@ export default {
         Toast.fail('Nonsupport ETH')
         return false
       } */
+      if (!data.tokenFrom && this.exchangeFromToken && !data.tokenTo && this.exchangeToToken) {
+        Toast.fail('Nonsupport')
+        return false
+      }
       if (!this.exchangeFromToken || !this.exchangeToToken) {
         Toast.fail('Choose Token')
         return false
@@ -329,6 +327,55 @@ export default {
           this.showLoading = false
           Toast(`Exchange Failed`)
           console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", error);
+          console.log('error')
+        })
+      })
+      .catch(error=>{
+        this.showLoading = false
+        Toast(`Exchange Failed`)
+      })
+    },
+    // Token exchange for WETH
+    async exchangeToken2WETH(data) {
+      const overrides = { ...data.gasInfo }
+      const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
+      
+      let amount = ethers.utils.parseUnits(this.exchangeFrom);
+      this.showLoading = true
+      const inputData = {
+        token: [data.tokenFrom, data.tokenTo],
+        userAddress: window.ethereum.selectedAddress,
+        deadline: ethers.constants.MaxUint256,
+        ...overrides,
+        originValue: this.exchangeFrom,
+        value: amount,
+      }
+      console.log('input Data', inputData)
+      ROUTERContract.swapExactTokensForETHSupportingFeeOnTransferTokens(
+        amount,
+        0,
+        // [DAI.address, WETH.address],
+        [data.tokenFrom, data.tokenTo],
+        // user.address,
+        window.ethereum.selectedAddress,
+        ethers.constants.MaxUint256,
+        {
+          ...overrides,
+        }
+      )
+      .then(async tx=>{
+        tx.wait()
+        .then(async res=>{
+          console.log("swapExactTokensForETHSupportingFeeOnTransferTokens: ", res);
+          console.log('success')
+          await this.exchangeSuccess(res, data)
+          this.showLoading = false
+          Toast(`Exchange Suucess`)
+        })
+        .catch(error => {
+          this.showLoading = false
+          Toast(`Exchange Failed`)
+          console.log("swapExactTokensForETHSupportingFeeOnTransferTokens: ", error);
           console.log('error')
         })
       })
@@ -575,20 +622,26 @@ export default {
       console.log(this)
       const data = this.getSubmitData()
       if (!this.checkData(data)) { return }
+
+      const netWorkIsROPSTEN = window.ethereum.chainId === CHAINIDMAP['ROPSTEN']
       // fromToken is ETH or WETH
       if (!data.tokenFrom && this.exchangeFromToken) {
-        const netWorkIsROPSTEN = window.ethereum.chainId === CHAINIDMAP['ROPSTEN']
-        if (netWorkIsROPSTEN) {
+        // fromToken selected is ETH = WETH in Ropsten
+        const WETH_DATA = {
+          ...data,
+          tokenFrom: this.WETHAddress // For WETH tokenAddress
+        }
+        await this.exchangeWETH2Token(WETH_DATA)
+      } else { // fromToken is token and toToken is token too
+        if (!data.tokenTo && this.exchangeToToken) {
           const WETH_DATA = {
             ...data,
-            tokenFrom: '0xc778417e063141139fce010982780140aa0cd5ab' // For WETH tokenAddress
+            tokenTo: this.WETHAddress // For WETH tokenAddress
           }
-          await this.exchangeWETH2Token(WETH_DATA)
+          await this.exchangeToken2WETH(WETH_DATA)
         } else {
-          await this.exchangeETH2Token(data)
+          await this.exchangeToken2Token(data)
         }
-      } else { // fromToken is token and toToken is token too
-        await this.exchangeToken2Token(data)
       }
       return
       const tokenA = data.tokenFrom; // '0x5076d190F242ae67E607CaAa081bF28F93Dc224D'
@@ -656,15 +709,14 @@ export default {
       const methodName = forAccounts ? 'GetAvailableTokenAssets' : 'GetAllTokenList'
       const { hasError, list } = await this.$store.dispatch(methodName, { selectedConnectAddress, chainInfo: this.currentChainInfo });
       const tokenList = await generateTokenList(_.cloneDeep(list), this, forAccounts)
-      if (forAccounts) {
-        const ETHAssets = await getDefaultETHAssets(this);
-        this.assetsTokenList = [].concat([ETHAssets], tokenList)
-        this.exchangeFromToken = this.assetsTokenList[0]
-        this.setShowApproveButton()
-      } else {
-        this.allTokenList = _.cloneDeep(tokenList)
-        this.exchangeToToken = this.allTokenList[0]
-      }
+
+      const ETHAssets = await getDefaultETHAssets(this);
+      this.assetsTokenList = [].concat([ETHAssets], tokenList)
+      this.allTokenList = [].concat([ETHAssets], tokenList)
+      this.exchangeFromToken = this.assetsTokenList[0]
+      this.exchangeToToken = this.allTokenList[0]
+      this.setShowApproveButton()
+
     },
     setShowApproveButton() {
       const tokenInfo = this.exchangeFromToken
@@ -678,7 +730,6 @@ export default {
     window.ethereum && (this.defaultNetWork = web3.utils.hexToNumber(window.ethereum.chainId))
   },
   async mounted() {
-    await this.getTokenList(true)
     await this.getTokenList()
   },
   
