@@ -97,7 +97,12 @@ export const ajaxGetRequestByEtherscan = (params) => new Promise((resolve, rejec
   ajaxObj.onreadystatechange = async () => {
     if (ajaxObj.readyState == 4 && ajaxObj.status == 200) {
       const response = ajaxObj.response && window.JSON.parse(ajaxObj.response)
-      resolve({ hasError: false, data: response['result']||'' })
+      const { status='' } = response
+      if (status === "1") { // success
+        resolve({ hasError: false, data: response['result']||'' })
+      } else {
+        resolve({ hasError: false, data: '' })
+      }
     }
   }
 })
