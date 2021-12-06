@@ -74,7 +74,7 @@ import { getNetMode, initBrideByNetType } from '@/utils/web3';
 import { wait, prettyLog } from '@/utils/index'
 import { getTokenAddress, L2TokenABIJSON } from '@/utils/token';
 import { utils, ethers } from 'ethers'
-import { utils as web3utils } from 'web3';
+import web3, { utils as web3utils } from 'web3';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { BigNumber } from "bignumber.js";
 
@@ -167,7 +167,7 @@ export default {
         value: info.amount,
         name: symbolName,
         operation: 'Send',
-        network_id: window.ethereum.chainId
+        network_id: web3.utils.hexToNumber(window.ethereum.chainId)
       }
       this.addHistoryData = _.cloneDeep(submitData);
       await this.addHistory(submitData);

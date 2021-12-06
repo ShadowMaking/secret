@@ -56,6 +56,11 @@
         </div>
       </van-popup>
     </div>
+    <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+      <div class="inner-wrapper">
+        <van-loading type="spinner" />
+      </div>
+    </van-popup>
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
@@ -98,6 +103,7 @@ export default {
       selectedToken: null,
       type1Value: '',
       type2Value: '',
+      showLoading: false,
       popStatus: "success",
       statusPopTitle: 'Send Submitted',
       timeTxt: 'Will take effect in one minute',
@@ -222,7 +228,11 @@ export default {
       
       if (!this.checkData(sendData)) { return }
 
-      const gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.selectedGasType === 'Custom'?"Average":this.selectedGasType].gasPrice || '1'
+      let gasPrice = '20' // 20 Gwei
+      if (this.selectedGasType) {
+        gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.selectedGasType === 'Custom'?"Average":this.selectedGasType].gasPrice
+      }
+      gasPrice = web3.utils.toWei(gasPrice, 'gwei')
       const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
       
       if (this.selectedToken.tokenName === 'ETH') { // send ETH
@@ -245,6 +255,7 @@ export default {
         value: transferAmount.toHexString()
       }];
       console.log('submitData', transferParams)
+      this.showLoading = true
       ethereum.request({
         jsonrpc: "2.0",
         method: "eth_sendTransaction",
@@ -252,10 +263,13 @@ export default {
         id: 0
       })
       .then(async res=>{
+        console.log('sendETH res:', res)
         await this.sendSuccess(res, {...this.selectedToken, amount: sendData.type1Value}, address)
+        this.showLoading = false
       })
       .catch(error=>{
         this.sendFailed(error)
+        this.showLoading = false
       })
     },
     sendToken(metamaskProvider, gasPrice, sendData) {
@@ -267,13 +281,20 @@ export default {
       const myContract = new ethers.Contract(this.selectedToken.tokenAddress, this.selectedToken.abiJson, l1Signer)
       const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(sendData.type1Value*1000000000000000000)).toFixed())
       // address, uint256
+      this.showLoading = true
       myContract.transfer(sendData.toAddress, tokenWithdrawAmount, { gasLimit: 600000, gasPrice })
-      .then(async res=>{
-        console.log(res)
-        await this.sendSuccess(res, {...this.selectedToken, amount: sendData.type1Value}, address)
+      .then(async tx=>{
+        console.log('sendToken tx:', tx)
+        tx.wait()
+        .then(async res => {
+          console.log('sendToken tx wait res:', res)
+          await this.sendSuccess(res, {...this.selectedToken, amount: sendData.type1Value}, address)
+          this.showLoading = false
+        })
       })
       .catch(error => {
         this.sendFailed(error)
+        this.showLoading = false
       })
     },
     async sendSuccess(res, info, address) {
@@ -281,7 +302,8 @@ export default {
       const symbolName = info.tokenName || 'ETH'
       this.tipTxt = 'In progress, waitting';
       const submitData = {
-        txid: symbolName === 'ETH' ? res : res.hash,
+        txid: symbolName === 'ETH' ? res : res.transactionHash,
+        block_num: res.blockNumber,
         from: selectedConnectAddress,
         to: toAddress,
         type: TRANSACTION_TYPE['L2ToL2'],
@@ -289,7 +311,7 @@ export default {
         value: info.amount,
         name: symbolName,
         operation: 'Send',
-        network_id: window.ethereum.chainId
+        network_id: web3.utils.hexToNumber(window.ethereum.chainId)
       }
       this.addHistoryData = _.cloneDeep(submitData);
       await this.addHistory(submitData);
@@ -300,6 +322,8 @@ export default {
         return
       }
       console.log(error)
+      this.showLoading = false
+
       this.showStatusPop = true;
       this.statusPopTitle = 'Send Failed'
       this.popStatus = 'fail';
@@ -315,11 +339,11 @@ export default {
         this.showStatusPop = false;
         console.log('Transaction success，but error when add history')
       } else  {
+        this.showLoading = false
+
         this.showStatusPop = true;
-        this.statusPopTitle = 'Transfer Submitted'
+        this.statusPopTitle = 'Send Submitted'
         this.popStatus = 'success';
-        await wait();
-        // this.$router.push({ name: 'home' });
       }
       return { hasError: res.hasError };
     },

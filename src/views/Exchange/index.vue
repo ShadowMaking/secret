@@ -387,7 +387,8 @@ export default {
     async exchangeSuccess(res, data) {
       // this.tipTxt = 'In progress, waitting';
       const submitData = {
-        txid: res.hash,
+        txid: res.transactionHash,
+        block_num: res.blockNumber,
         from: window.ethereum.selectedAddress,
         to: window.ethereum.selectedAddress,
         type: TRANSACTION_TYPE['L2ToL2'], // TODO
@@ -395,7 +396,7 @@ export default {
         value: data.amountin,
         name: this.exchangeFromToken['tokenName'],
         operation: 'Exchange',
-        network_id: window.ethereum.chainId
+        network_id: web3.utils.hexToNumber(window.ethereum.chainId)
       }
       this.addHistoryData = _.cloneDeep(submitData);
       await this.addHistory(submitData);
@@ -518,6 +519,8 @@ export default {
     },
     // *********************************************************** uniswap2 test ropsten *********************************************************** /
     getSubmitData() {
+      let gasPrice = '20' // 20 Gwei
+
       const data = {
         tokenFrom: this.exchangeFromToken && this.exchangeFromToken['tokenAddress'],
         tokenTo: this.exchangeToToken && this.exchangeToToken['tokenAddress'],

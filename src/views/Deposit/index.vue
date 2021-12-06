@@ -87,7 +87,7 @@ import { copyTxt } from '@/utils/index';
 import { getTokenAddress } from '@/utils/token';
 import QRCode from 'qrcodejs2'
 import { BigNumber } from "bignumber.js";
-import { utils as web3utils } from 'web3';
+import web3, { utils as web3utils } from 'web3';
 
 const { parseEther } = utils;
 
@@ -198,7 +198,7 @@ export default {
         block_num: transactionWaitRes.blockNumber,
         name: info.tokenInfo.symbol,
         operation: 'Deposit',
-        network_id: window.ethereum.chainId
+        network_id: web3.utils.hexToNumber(window.ethereum.chainId)
       }
       this.addHistoryData = _.cloneDeep(submitData);
       await this.addHistory(submitData);
