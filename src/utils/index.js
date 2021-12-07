@@ -135,5 +135,6 @@ export const getRouteNameAndQuery = (record, type) => {
       routeName = 'home';
       break;
   }
+  query['nid'] = record.network_id
   return { routeName, query }
 }
