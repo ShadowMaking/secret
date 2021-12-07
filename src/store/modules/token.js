@@ -321,7 +321,7 @@ const token = {
         startblock: '0',
         endblock: '99999999',
         page: '1',
-        offset: '100',
+        offset: '1000',
         sort: 'asc',
         address,
       }

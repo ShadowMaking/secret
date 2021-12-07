@@ -18,7 +18,7 @@
 <script>
 import _ from 'lodash';
 import * as ethers from 'ethers';
-import { getDefaultETHAssets } from '@/utils/dashBoardTools';
+import { getDefaultETH } from '@/utils/dashBoardTools';
 import { timeFormat } from '@/utils/str';
 //DCCX2QFIHVFTGZKZXRN1X2ZZJWQ49P1QNX
 export default {
@@ -52,7 +52,7 @@ export default {
           type: 'value'
         },
         xAxis: [{
-          type: 'time',   // x轴为 时间轴
+          // type: 'time',
           splitLine: { show: false },
           axisLine: {
             lineStyle: { width: 0 }
@@ -90,13 +90,8 @@ export default {
       this.dimension = record;
       this.drawChart()
     },
-    async getNowBalance() {
-      const selectedConnectAddress = window.ethereum.selectedAddress;
-      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
-      const balance = await metamaskProvider.getBalance(selectedConnectAddress);
-      this.balanceNowString = ethers.utils.formatEther(balance);
-    },
     generateOption() {
+      console.log(this.chartSourceData)
       const chartOption = _.cloneDeep(this.chartOption)
       const xAxisData = []
       const seriesData = this.chartSourceData
@@ -109,94 +104,53 @@ export default {
     },
     drawChart() {
       if(!this.connectedWallet()) { return }
-      this.getNowBalance()
       this.getDataSource()
     },
-    getHourTime() {
+    getXList(change) {
       var nowDate = new Date()
-      console.log(timeFormat(nowDate, 'yyyy-MM-dd hh:mm:ss'))
-      var hour1 = nowDate - 10*60*1000
-      var hour2 = new Date(hour1)
-      console.log(hour2)
+      var xList = []
+      for (var i=0; i<7 ; i++) {
+        var thatTime = new Date(nowDate - i*change)
+        var thatDate = timeFormat(thatTime, 'yyyy-MM-dd hh:mm:ss')
+        xList.push({time: thatDate})
+      }
+      return xList.reverse()
     },
-    getXday(type) {
-      switch(type) {
+    getXday() {
+      switch(this.dimension) {
         case '1H':
-          // this.getHourTime()
-          this.datesource = [
-          {time: '2021-12-06 12:00:00'},
-          {time: '2020-12-06 12:10:00'},
-          {time: '2021-12-06 12:20:00'},
-          {time: '2021-12-06 12:30:00'},
-          {time: '2021-12-06 12:40:00'},
-          {time: '2021-12-06 12:50:00'},
-          {time: '2021-12-06 13:00:00'},
-          ]
+          let hourChange = 10*60*1000 //10min
+          this.datesource = this.getXList(hourChange)
+          // this.datesource = [
+          // {time: '2021-12-06 12:00:00'},
+          // ]
           break;
         case '1D':
-          this.datesource = [
-          {time: '2021-12-06 00:00:00'},
-          {time: '2021-12-06 04:00:00'},
-          {time: '2021-12-06 08:00:00'},
-          {time: '2021-12-06 12:00:00'},
-          {time: '2021-12-06 16:00:00'},
-          {time: '2021-12-06 20:00:00'},
-          {time: '2021-12-06 24:00:00'},
-          ]
+          let dateChange = 4*60*60*1000 //4hour
+          this.datesource = this.getXList(dateChange)
           break;
         case '1W':
-          this.datesource = [
-          {time: '2021-12-06 00:00:00'},
-          {time: '2021-12-05 00:00:00'},
-          {time: '2021-12-04 00:00:00'},
-          {time: '2021-12-03 00:00:00'},
-          {time: '2021-12-02 00:00:00'},
-          {time: '2021-12-01 00:00:00'},
-          {time: '2021-11-30 00:00:00'},
-          ]
+          let weekChange = 24*60*60*1000 //1day
+          this.datesource = this.getXList(weekChange)
           break;
         case '1M':
-          this.datesource = [
-          {time: '2021-11-05 00:00:00'},
-          {time: '2021-11-10 00:00:00'},
-          {time: '2021-11-15 00:00:00'},
-          {time: '2021-11-20 00:00:00'},
-          {time: '2021-11-25 00:00:00'},
-          {time: '2021-11-30 00:00:00'},
-          {time: '2021-12-05 00:00:00'},
-          ]
+          let mouthChange = 5*24*60*60*1000 //5day
+          this.datesource = this.getXList(mouthChange)
           break;
         case '1Y':
-          this.datesource = [
-          {time: '2021-01-01 00:00:00'},
-          {time: '2021-02-01 00:00:00'},
-          {time: '2021-04-01 00:00:00'},
-          {time: '2021-06-01 00:00:00'},
-          {time: '2021-08-01 00:00:00'},
-          {time: '2021-10-01 00:00:00'},
-          {time: '2021-12-01 00:00:00'},
-          ]
+          let yearChange = 2*30*24*60*60*1000 //2mouth
+          this.datesource = this.getXList(yearChange)
           break;
         default:
           break;
       }
     },
-    async getDataSource() {
-      this.getXday(this.dimension)
+    getDataSource() {
+      this.getXday()
       this.getYValue()
-      // this.chartSourceData = []
-
-      // this.datesource.map(async item => {
-      //   let xtime = item.time
-      //   let xtimestamp = new Date().getTime()/1000
-      //   let yvalue = Math.random()
-      //   // let yvalue = Math.random()
-      //   let itemArr = [xtime, yvalue]
-      //   this.chartSourceData.push(itemArr)
-      // })
     },
     async getYValue() {
-      let _this = this
+      this.balanceNowString = await getDefaultETH(this);
       let lastDate = new Date(this.datesource[0].time).getTime()/1000
       const { hasError, data } = await this.$store.dispatch('GetNormalTransByEtherscan',{address: this.address});
       this.chartSourceData = []
@@ -204,12 +158,11 @@ export default {
          let xtime = item.time
          let itemArr = [xtime, this.balanceNowString]
          this.chartSourceData.push(itemArr)
+         console.log(item.time)
       })
-      console.log(data)
       if (data && data.length > 0) { 
-        console.log(data)
         data.reverse().map(item => {
-          let timsd = new Date(item.timeStamp*1000)
+          // let timsd = new Date(item.timeStamp*1000)
           if (item.timeStamp >= lastDate) {
             this.dealNewData(item)
           }
@@ -219,11 +172,16 @@ export default {
       this.myChart.setOption(this.chartOption);
     },
     async dealNewData(trasItem) {
-      
-      
+      console.log("time" +new Date(trasItem.timeStamp*1000) + '-' + ethers.utils.formatEther(trasItem.value) + '-' + trasItem.from )
       for (var i=0; i< this.chartSourceData.length; i++) {
-        let xtimestamp = new Date(this.chartSourceData[i][0]).getTime()
-        if (trasItem.timeStamp <= xtimestamp) {
+        let xtimestamp1 = new Date(this.chartSourceData[i][0]).getTime()/1000
+        let xtimestamp2
+        if (i !== this.chartSourceData.length-1){
+          xtimestamp2 = new Date(this.chartSourceData[i+1][0]).getTime()/1000
+        } else {
+          xtimestamp2 = new Date(this.chartSourceData[i][0]).getTime()/1000
+        }
+        if (trasItem.timeStamp > xtimestamp1 && trasItem.timeStamp <= xtimestamp2) {
           let balanceString = this.chartSourceData[i][1]
           let changeValue = ethers.utils.formatEther(trasItem.value)
           if (trasItem.from == this.address) {//out

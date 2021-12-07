@@ -117,4 +117,10 @@ export const getEtherscanAPIBaseUrl = () => {
   return etherscanAPIBaseUrl
 }
 
+export const getDefaultETH = async (self) => {
+  const selectedConnectAddress = window.ethereum.selectedAddress;
+  const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+  const balance = await metamaskProvider.getBalance(selectedConnectAddress);
+  return ethers.utils.formatEther(balance)
+}
 
