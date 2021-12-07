@@ -75,6 +75,7 @@ export const subStrAddress = (str) => {
 
 export const generateTransactionList = (list=[]) => {
   return list.map(item => ({
+    ...item,
     status: getStatusTxt(item),
     hash: item['txid'],
     from: item['from'],

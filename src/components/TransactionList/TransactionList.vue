@@ -146,7 +146,7 @@ export default {
       for(let k in routerInfo.query) {
         paramsStr += `&${k}=${routerInfo.query[k]}`
       }
-      const url = `https://explorer.ieigen.com/#/${routerInfo.name}?${paramsStr}`
+      const url = `https://explorer.ieigen.com/#/${routerInfo.name}?${paramsStr}&nid=${record.network_id}`
       window.open(url, '_blank')
     },
   }
