@@ -5,7 +5,7 @@
       <van-step>Choose</van-step>
       <van-step>2FA</van-step>
       <van-step>SecretShare</van-step>
-      <van-step>Compelte</van-step>
+      <van-step>Complete</van-step>
     </van-steps>
     <div>
       <!-- type -->
