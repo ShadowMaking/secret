@@ -71,6 +71,7 @@ export default {
   methods: {
     changetTag(id) {
       this.defaultNetWork = id
+      this.getApprovalList()
     },
     async declineSubmit(item) {
       if(!this.thirdLogin()) { return }
