@@ -13,6 +13,15 @@
           @change="handleNetworkChange" />
       </div>
       <div class="from-box">
+        <v-formSelect 
+          label="PROTOCOL"
+          :labelShow="false" 
+          :defaultValue="protocolList[0]['id']"
+          :dataSource="protocolList"
+          placeholder="chose protocol"
+          @change="handleProtocolChange" />
+      </div>
+      <div class="from-box">
         <v-exchangItem
           key="fromToken"
           isMax=true
@@ -45,7 +54,9 @@
         </div>
       </ul>
       <div class="exchange-btn-box">
-        <a class="common-form-btn" @click="approveSubmit" v-show="showApproveButton">Allow Uniswap to use your {{ exchangeFromToken&&exchangeFromToken['tokenName']}}</a>
+        <a class="common-form-btn" @click="approveSubmit" v-show="showApproveButton">
+          {{ approveBtnTxt }}
+        </a>
       </div>
       <div class="exchange-btn-box">
         <a class="common-form-btn" @click="exchangeSubmit">Exchange</a>
@@ -102,6 +113,7 @@ import { SWAPADDRESS } from '@/utils/global'
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import swapJson from './Swap.json'
 import { CHAINIDMAP } from '@/utils/netWorkForToken'
+import { PROTOCOLList, PROTOCOLMAP } from '@/utils/swap.js'
 import StatusPop from '@/components/StatusPop';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
@@ -143,8 +155,9 @@ export default {
       // *********************** uniswap2 test ************************************/
       routerAddress: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", // Uniswap v2 Router02
       WETHAddress: "0xc778417e063141139fce010982780140aa0cd5ab", // Ropsten WETH
-      overrides: { gasLimit: 1000000, gasPrice: 20000000000 }
       // *********************** uniswap2 test ************************************/
+      currentProtocolType: 'v2',
+      protocolList: _.cloneDeep(PROTOCOLList),
     }
   },
   components: {
@@ -155,7 +168,11 @@ export default {
     'v-statusPop': StatusPop,
   },
   computed: {
-  
+    approveBtnTxt() {
+      const protocolName = PROTOCOLMAP[this.currentProtocolType]['name']
+      const tokenName = this.exchangeFromToken && this.exchangeFromToken['tokenName']
+      return `Allow ${protocolName} to use your ${tokenName}`
+    },
   },
   methods: {
     changeVisible(eventInfo) {
@@ -565,6 +582,10 @@ export default {
       return true
     },
     async approveSubmit() {
+      if (this.currentProtocolType === 'v3') {
+        Toast('Comming Soon')
+        return 
+      }
       if(!this.thirdLogin()) { return }
       if(!this.connectedWallet()) { return }
       const token = this.exchangeFromToken
@@ -619,6 +640,10 @@ export default {
       })
     },
     async exchangeSubmit() {
+      if (this.currentProtocolType === 'v3') {
+        Toast('Comming Soon')
+        return 
+      }
       if(!this.thirdLogin()) { return }
       if(!this.connectedWallet()) { return }
       
@@ -701,6 +726,10 @@ export default {
           await this.getTokenList(true)
         }
       })
+    },
+    handleProtocolChange(data) {
+      this.currentProtocolType = data.value['id']
+      console.log(this.currentProtocolType)
     },
     async getTokenList(forAccounts) {
       const selectedConnectAddress = window.ethereum.selectedAddress;
