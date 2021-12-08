@@ -11,7 +11,7 @@
         label="NETWORK"
         :labelShow="false"
         :defaultValue="defaultNetWork"
-        :leftIcon="require('@/assets/network/defaultNetwork.png')" 
+        :leftIcon="defaultIcon" 
         :dataSource="netWorkList"
         placeholder="chose network"
         @change="handleNetworkChange" />
@@ -113,6 +113,7 @@ export default {
       loadingGas: false,
       currentChainInfo: null,
       defaultNetWork: 1,
+      defaultIcon: null,
       netWorkList: [],
       reciData: [
        {
@@ -374,6 +375,11 @@ export default {
   created() {
     this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
     window.ethereum && (this.defaultNetWork = web3.utils.hexToNumber(window.ethereum.chainId))
+    this.netWorkList.map(item => {
+      if (item.id == this.defaultNetWork) {
+        this.defaultIcon = item.icon
+      }
+    })
   },
   async mounted() {
     const { hasError, forUsdt } = await this.$store.dispatch('GetTokenAxchangeForUS', { changeType: 'ETH/USDT' });
