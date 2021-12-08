@@ -15,7 +15,7 @@
         <li>Recover Secret：Collect the shares from your friends, and recover your original secret.</li>
       </ul>
     </div>
-    <div class="tip-wrapper bridge">
+    <!-- <div class="tip-wrapper bridge">
       <div class="top">
         <h4>Bridge</h4>
         <a><router-link to="/introduction">GO</router-link></a>
@@ -27,7 +27,7 @@
         <li>Send to L2：Used for asset transfer between EigenSectet Layer2 wallets, you will enjoy gas-free and real-time transfer.</li>
         <li>Withdraw to L1：Transfer assets from the EigenSecret l2 wallet to the Layer1 wallet.</li>
       </ul>
-    </div>
+    </div> -->
   </div>
 </template>
 <script>

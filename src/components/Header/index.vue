@@ -69,12 +69,12 @@
                 <van-icon name="friends-o" class="opt-icon" />
                 <span>Friends</span>
               </div>
-              <div class="opt-item van-hairline--bottom" @click="toPage('home')">
+              <!-- <div class="opt-item van-hairline--bottom" @click="toPage('home')">
                 <router-link to="/introduction">
                   <i class="opt-icon icon-bridge"></i>
                   <span>Bridge</span>
                 </router-link>
-              </div>
+              </div> -->
             </div>
           </div>
           <template #reference><div class="account"></div></template>

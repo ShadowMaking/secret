@@ -31,7 +31,7 @@ export default {
         {icon: 'el-icon-view', name: 'Overview', route: '/overView'},
         {icon: 'el-icon-position', name: 'Send', route: '/sendMenu'},
         {icon: 'el-icon-sell', name: 'Exchange', route: '/exchange'},
-        {icon: 'el-icon-guide', name: 'Bridge', route: '/bridge'},
+        // {icon: 'el-icon-guide', name: 'Bridge', route: '/bridge'},
       ],
       screenWidth: null,
     }
