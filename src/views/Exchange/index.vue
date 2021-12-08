@@ -48,7 +48,7 @@
         <li><h3>Slippage Tolerance</h3><h3>{{slippageVal}}%</h3></li>
         <!-- <li><h3>Allowance</h3><h3>limited</h3></li> -->
         <li><h3>Estimated Gas Fee</h3><h3>${{gasVal}}</h3></li>
-        <li><h3>Gas Price</h3><h3>{{networkFee}}</h3></li>
+        <li><h3>Gas Price</h3><h3>{{gasPriceType}}</h3></li>
         <div v-if="showSettingData">
           
         </div>
@@ -145,7 +145,7 @@ export default {
       gasKey: 'Fast',
       slippageVal: 2,
       gasVal: 1,
-      networkFee: '~~',
+      gasPriceType: '~~',
       slippageInput: 3,
       showApproveButton: false,
       showLoading: false,
@@ -538,14 +538,17 @@ export default {
     // *********************************************************** uniswap2 test ropsten *********************************************************** /
     getSubmitData() {
       let gasPrice = '20' // 20 Gwei
-
+      if (this.gasPriceType !== '~~') {
+        gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.gasPriceType === 'Custom'?"Average":this.gasPriceType].gasPrice
+      }
+      gasPrice = web3.utils.toWei(gasPrice, 'gwei')
       const data = {
         tokenFrom: this.exchangeFromToken && this.exchangeFromToken['tokenAddress'],
         tokenTo: this.exchangeToToken && this.exchangeToToken['tokenAddress'],
         amountin: this.exchangeFrom, // 100
         amountmin: BigNumber(this.exchangeFrom||0).minus((BigNumber(this.exchangeFrom||0) * BigNumber(this.slippageKey).div(100))),
         fee: 3000,
-        gasInfo: { gasLimit: 1000000, gasPrice: 20000000000 } // const gasInfo = { gasLimit: 100000, gasPrice: 29859858 }
+        gasInfo: { gasLimit: 1000000, gasPrice } // const gasInfo = { gasLimit: 100000, gasPrice: 20000000000 }
       }
       console.log('exchangeData', data)
       return data
@@ -709,12 +712,12 @@ export default {
       this.loadingGas = false;
       this.showSettingData = true
       this.slippageVal = 2
-      this.gasVal = this.gasPriceInfo['Fast']['gasPrice']
-      this.networkFee = 'Fast'
+      // this.gasVal = this.gasPriceInfo['Fast']['gasPrice']
+      this.gasPriceType = 'Fast'
     },
     gasChagne(type) {
-      this.gasKey = this.networkFee = type
-      this.gasVal = this.gasPriceInfo[type === 'Custom'?'Average': type]['gasPrice']
+      this.gasKey = this.gasPriceType = type
+      // this.gasVal = this.gasPriceInfo[type === 'Custom'?'Average': type]['gasPrice']
     },
     slippageBtn(val,isInput) {
       this.slippageKey = val
