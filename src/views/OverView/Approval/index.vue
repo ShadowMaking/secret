@@ -48,6 +48,7 @@ import None from '@/components/None/index'
 import Loading from '@/components/Loading'
 import { generateTokenList } from '@/utils/dashBoardTools'
 import { Toast } from 'vant'
+import { TRANSACTION_TYPE } from '@/api/transaction'
 
 Vue.use(Toast)
 
@@ -78,12 +79,13 @@ export default {
       if(!this.connectedWallet()) { return }
 
       const tokenAddress = item.token_address
-      const tokenabiJson = this.getTokenAbi(tokenAddress)
-      const gasInfo = { gasLimit: 1000000, gasPrice: 20000000000 }
-      const swapAddress = item.swap_address
       if (!tokenAddress) {
         return
       }
+      const tokenabiJson = this.getTokenAbi(tokenAddress)
+      const gasInfo = { gasLimit: 1000000, gasPrice: 20000000000 }
+      const swapAddress = item.swap_address
+      
 
       // const submitData = this.getSubmitData()
       const TokenContract = await this.getContractAt({ tokenAddress: tokenAddress, abi: tokenabiJson })
@@ -93,7 +95,6 @@ export default {
       .then(async res=>{
         const txRes = await res.wait()
         console.log(`Approve Token-res: `, txRes);
-    
 
         const userAddress = window.ethereum && window.ethereum.selectedAddress;
         const chainId = window.ethereum && window.ethereum.chainId;
@@ -110,17 +111,40 @@ export default {
           ...allowanceTokenData,
           allowance: approveTokenAmount
         }
+        //change approval status
         const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
         if (hasError) {
           console.log('SaveUserAllowanceForToken Error', error)
         } else {
           Toast('success')
+          this.addTransHistory(txRes, item.token_address)
           this.getApprovalList()
         }
       })
       .catch(err => {
         console.log(`Approve Token-error: `, err);
       })
+    },
+    async addTransHistory(data, tokenAddress) {
+      const submitData = {
+        txid: data.transactionHash,
+        block_num: data.blockNumber,
+        from: data.from,
+        to: data.to,
+        type: TRANSACTION_TYPE['L2ToL2'],
+        status: data.status,
+        value: 0,
+        name: this.getTokenName(tokenAddress),
+        operation: 'Decline',
+        network_id: web3.utils.hexToNumber(window.ethereum.chainId)
+      }
+      console.log(submitData)
+      const res = await this.$store.dispatch('AddTransactionHistory', {...submitData});
+      if (res.hasError) {
+        console.log('Transaction success，but error when add history')
+      } else  {
+        console.log('add history success')
+      }
     },
     async getContractAt({ tokenAddress, abi }) {
       const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
