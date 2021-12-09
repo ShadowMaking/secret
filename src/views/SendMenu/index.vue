@@ -51,7 +51,7 @@
           <ul class="gas-price-list">
             <v-selectItem :rightVal="gasPriceValue('Fast')" labelShow=true leftTitle="Fast" :leftDes="gasPriceConfirmTime('Fast')" :icon="require('@/assets/form/gasFast.png')" @childevent="selectChagne('Fast')"></v-selectItem>
             <v-selectItem :rightVal="gasPriceValue('Average')" labelShow=true leftTitle="Average" :leftDes="gasPriceConfirmTime('Average')" :icon="require('@/assets/form/gasAverag.png')" @childevent="selectChagne('Average')"></v-selectItem>
-            <v-selectItem :rightVal="gasPriceValue('Average')" labelShow=true leftTitle="Custom"  :icon="require('@/assets/form/gasCustom.png')" @childevent="selectChagne('Custom')"></v-selectItem>
+            <v-selectItem :rightVal="gasPriceValue('Average')" labelShow=true leftTitle="Custom"  :icon="require('@/assets/form/gasCustom.png')" @inputChange="inputGasChange" :showInput="true"></v-selectItem>
           </ul>
         </div>
       </van-popup>
@@ -168,6 +168,10 @@ export default {
       console.log(type)
       this.selectedGasType = type;
     },
+    inputGasChange(value) {
+      this.selectedGasType = 'Custom';
+      this.gasPriceInfo['Custom'] = { gasPrice: value.value }
+    },
     handleAddressInputChange(data) {
       this.addressForRecipient = data.value
     },
@@ -231,18 +235,20 @@ export default {
 
       let gasPrice = '20' // 20 Gwei
       if (this.selectedGasType) {
-        gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.selectedGasType === 'Custom'?"Average":this.selectedGasType].gasPrice
+        gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.selectedGasType].gasPrice
       }
       gasPrice = web3.utils.toWei(gasPrice, 'gwei')
-      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
       
+      const data = { gasPrice, ...sendData }
+      console.log('Transaction Data', data)
       if (this.selectedToken.tokenName === 'ETH') { // send ETH
-        this.sendETH(gasPrice, sendData)
+        this.sendETH(data)
       } else { // send token
-        this.sendToken(metamaskProvider, gasPrice, sendData)
+        this.sendToken(data)
       }
     },
-    sendETH(gasPrice, sendData) {
+    sendETH(data) {
+      const { gasPrice, ...sendData } = data;
       const address = {
         selectedConnectAddress: window.ethereum.selectedAddress,
         toAddress: sendData.toAddress
@@ -273,13 +279,15 @@ export default {
         this.showLoading = false
       })
     },
-    sendToken(metamaskProvider, gasPrice, sendData) {
+    sendToken(data) {
+      const { gasPrice, ...sendData } = data
+      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
       const address = {
         selectedConnectAddress: window.ethereum.selectedAddress,
         toAddress: sendData.toAddress
       }
-      const l1Signer = metamaskProvider.getSigner(0);
-      const myContract = new ethers.Contract(this.selectedToken.tokenAddress, this.selectedToken.abiJson, l1Signer)
+      const signer = metamaskProvider.getSigner(0);
+      const myContract = new ethers.Contract(this.selectedToken.tokenAddress, this.selectedToken.abiJson, signer)
       const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(sendData.type1Value*1000000000000000000)).toFixed())
       // address, uint256
       this.showLoading = true
@@ -307,11 +315,11 @@ export default {
         block_num: res.blockNumber,
         from: selectedConnectAddress,
         to: toAddress,
-        type: TRANSACTION_TYPE['L2ToL2'],
+        type: TRANSACTION_TYPE['L1ToL1'],
         status: 1,
         value: info.amount,
         name: symbolName,
-        operation: 'Send',
+        operation: symbolName === 'ETH' ? 'Send' : 'transfer', // send、transfer、approve、swap ……
         network_id: web3.utils.hexToNumber(window.ethereum.chainId)
       }
       this.addHistoryData = _.cloneDeep(submitData);

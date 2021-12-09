@@ -309,6 +309,14 @@ export default {
     },
   },
   async mounted() {
+    this.$nextTick(() => { })
+    setTimeout(()=>{
+      console.log(this.walletIsLock)
+      if (this.metamaskInstall && window.ethereum && window.ethereum.selectedAddress && !this.walletIsLock) {
+        this.address = window.ethereum && window.ethereum.selectedAddress
+      }
+    },800)
+   
     this.$eventBus.$on('thirdLogin', this.handleThirdLoginCallback);
     this.$eventBus.$on('updateAddress', this.updateAddress);
     this.$eventBus.$on('chainChanged', this.handleChainChanged);

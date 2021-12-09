@@ -43,7 +43,7 @@
       <ul class="setting-box">
         <li>
           <h3 class="setting-title">Transaction Settings</h3>
-          <van-icon name="setting" @click="settingBtn" class="setting-icon"/>
+          <van-icon name="setting" @click="settingBtnClick" class="setting-icon"/>
         </li>
         <li><h3>Slippage Tolerance</h3><h3>{{slippageVal}}%</h3></li>
         <!-- <li><h3>Allowance</h3><h3>limited</h3></li> -->
@@ -65,9 +65,9 @@
         <div class="setting-popup-box">
           <div class="header"><h3>Slippage Tolerance</h3></div>
           <div class="slippage-list">
-            <a :class="{active: slippageKey == 2}" @click="slippageBtn(2, false)">2%</a>
-            <a :class="{active: slippageKey == 3}" @click="slippageBtn(3, false)">3%</a>
-            <span class="slippage-input" :class="{active: slippageKey == 4}" @input="slippageBtn('4', true)"><input type="number" name="slippage" v-model="slippageInput" placeholder="3">%</span>
+            <a :class="{active: slippageKey == 2}" @click="slippageBtnClick(2, false)">2%</a>
+            <a :class="{active: slippageKey == 3}" @click="slippageBtnClick(3, false)">3%</a>
+            <span class="slippage-input" :class="{active: slippageKey == 4}" @input="slippageBtnClick('4', true)"><input type="number" name="slippage" v-model="slippageInput" placeholder="3">%</span>
           </div>
           <div class="header"><h3>Gas Price</h3></div>
           <div>
@@ -75,7 +75,7 @@
             <ul class="gas-price-list" v-else>
               <v-selectItem :class="{gasActive: gasKey == 'Fast'}" :rightVal="gasPriceValue('Fast')" labelShow=true leftTitle="Fast" :leftDes="gasPriceConfirmTime('Fast')" :icon="require('@/assets/form/gasFast.png')" @childevent="gasChagne('Fast')"></v-selectItem>
               <v-selectItem :class="{gasActive: gasKey == 'Average'}" :rightVal="gasPriceValue('Average')" labelShow=true leftTitle="Average" :leftDes="gasPriceConfirmTime('Average')" :icon="require('@/assets/form/gasAverag.png')" @childevent="gasChagne('Average')"></v-selectItem>
-              <v-selectItem :class="{gasActive: gasKey == 'Custom'}" :rightVal="gasPriceValue('Average')" labelShow=true leftTitle="Custom" :icon="require('@/assets/form/gasCustom.png')" @childevent="gasChagne('Custom')"></v-selectItem>
+              <v-selectItem :class="{gasActive: gasKey == 'Custom'}" :rightVal="gasPriceValue('Average')" labelShow=true leftTitle="Custom" :icon="require('@/assets/form/gasCustom.png')" @inputChange="inputGasChange" :showInput="true"></v-selectItem>
             </ul>
           </div>
         </div>
@@ -105,7 +105,7 @@ import exchangItem from '@/components/ExchangItem/index';
 import formSelect from '@/components/Select/index';
 import selectItem from '@/components/SelectItem/index';
 import { NETWORKSFORTOKEN } from '@/utils/netWorkForToken';
-import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange } from '@/utils/dashBoardTools';
+import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getContractAt } from '@/utils/dashBoardTools';
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
@@ -227,20 +227,12 @@ export default {
       return true
     },
     // *********************************************************** uniswap2 test ropsten *********************************************************** /
-    async getContractAt({ tokenAddress, abi }) {
-      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = metamaskProvider.getSigner(0);
-      const MyContract = new ethers.Contract(tokenAddress, abi, signer)
-      await MyContract.attach(tokenAddress)
-      console.log("Contract: ", MyContract.address);
-      return MyContract
-    },
     // TokenAmount: BigNumber, ETHAmount: BigNumber
     async addLiquidity(TokenAmount, ETHAmount, tokenType, gasInfo) {
       const tokenInfo = tokenType === 'from' ? this.exchangeFromToken : this.exchangeToToken
       const { tokenAddress, abiJson } = tokenInfo
-      const TokenContract = await this.getContractAt({ tokenAddress, abi: abiJson })
-      const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
+      const TokenContract = await getContractAt({ tokenAddress, abi: abiJson })
+      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
       let tx;
       let res;
       const overrides = { ...gasInfo }
@@ -270,9 +262,9 @@ export default {
       const tokenAAddress = tokenA['tokenAddress']
       const tokenBAddress = tokenB['tokenAddress']
       
-      const TokenAContract = await this.getContractAt({ tokenAAddress, abi: tokenA['abiJson'] })
-      const TokenBContract = await this.getContractAt({ tokenBAddress, abi: tokenB['abiJson'] })
-      const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
+      const TokenAContract = await getContractAt({ tokenAAddress, abi: tokenA['abiJson'] })
+      const TokenBContract = await getContractAt({ tokenBAddress, abi: tokenB['abiJson'] })
+      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
       let tx;
       let res;
       const overrides = { ...gasInfo }
@@ -307,7 +299,7 @@ export default {
     // WETH exchange for Token
     async exchangeWETH2Token(data) {
       const overrides = { ...data.gasInfo }
-      const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
+      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
       
       let amount = ethers.utils.parseUnits(this.exchangeFrom);
       this.showLoading = true
@@ -356,7 +348,7 @@ export default {
     // Token exchange for WETH
     async exchangeToken2WETH(data) {
       const overrides = { ...data.gasInfo }
-      const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
+      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
       
       let amount = ethers.utils.parseUnits(this.exchangeFrom);
       this.showLoading = true
@@ -409,11 +401,11 @@ export default {
         block_num: res.blockNumber,
         from: window.ethereum.selectedAddress,
         to: window.ethereum.selectedAddress,
-        type: TRANSACTION_TYPE['L2ToL2'], // TODO
+        type: TRANSACTION_TYPE['L1ToL1'],
         status: 1,
         value: data.amountin,
         name: this.exchangeFromToken['tokenName'],
-        operation: 'Exchange',
+        operation: 'Swap',  // send、transfer、approve、swap ……
         network_id: web3.utils.hexToNumber(window.ethereum.chainId)
       }
       this.addHistoryData = _.cloneDeep(submitData);
@@ -462,7 +454,7 @@ export default {
         const amountBMin = 0;
         // await this.addLiquidityForToken({tokenA,tokenB}, amountADesired, amountBDesired, amountAMin, amountBMin, overrides);
       }
-      const ROUTERContract = await this.getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
+      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
       if (type === 'from') {
         this.showLoading = true
         // https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02#swapexacttokensfortokenssupportingfeeontransfertokens
@@ -539,7 +531,8 @@ export default {
     getSubmitData() {
       let gasPrice = '20' // 20 Gwei
       if (this.gasPriceType !== '~~') {
-        gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.gasPriceType === 'Custom'?"Average":this.gasPriceType].gasPrice
+        // gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.gasPriceType === 'Custom'?"Average":this.gasPriceType].gasPrice
+        gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.gasPriceType].gasPrice
       }
       gasPrice = web3.utils.toWei(gasPrice, 'gwei')
       const data = {
@@ -609,7 +602,7 @@ export default {
         return
       }
       const submitData = this.getSubmitData()
-      const TokenContract = await this.getContractAt({ tokenAddress: token.tokenAddress, abi: token.abiJson })
+      const TokenContract = await getContractAt({ tokenAddress: token.tokenAddress, abi: token.abiJson })
       const approveTokenAmount = ethers.constants.MaxUint256; // max
       const overrides = submitData.gasInfo
       this.showLoading = true
@@ -651,7 +644,6 @@ export default {
       if(!this.thirdLogin()) { return }
       if(!this.connectedWallet()) { return }
       
-      console.log(this)
       const data = this.getSubmitData()
       if (!this.checkData(data)) { return }
 
@@ -705,7 +697,7 @@ export default {
       const { hasError, data } = await this.$store.dispatch('GetGasPriceByEtherscan');
       if (data) { this.gasPriceInfo = data }
     },
-    async settingBtn() {
+    async settingBtnClick() {
       this.loadingGas = true;
       this.settingPopVisibel = true
       await this.getGasPrice()
@@ -719,7 +711,11 @@ export default {
       this.gasKey = this.gasPriceType = type
       // this.gasVal = this.gasPriceInfo[type === 'Custom'?'Average': type]['gasPrice']
     },
-    slippageBtn(val,isInput) {
+    inputGasChange(value) {
+      this.gasKey = this.gasPriceType = 'Custom'
+      this.gasPriceInfo['Custom'] = { gasPrice: value.value }
+    },
+    slippageBtnClick(val,isInput) {
       this.slippageKey = val
       isInput ? (this.slippageVal = this.slippageInput) : (this.slippageVal = val)
     },
@@ -752,7 +748,6 @@ export default {
       this.exchangeFromToken = this.assetsTokenList[0]
       this.exchangeToToken = this.allTokenList[0]
       this.setShowApproveButton()
-
     },
     setShowApproveButton() {
       const tokenInfo = this.exchangeFromToken
@@ -773,7 +768,6 @@ export default {
   async mounted() {
     await this.getTokenList()
   },
-  
 };
 </script>
 <style lang="scss" scoped>

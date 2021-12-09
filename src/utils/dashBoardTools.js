@@ -124,3 +124,12 @@ export const getDefaultETH = async (self) => {
   return ethers.utils.formatEther(balance)
 }
 
+export const getContractAt = async ({ tokenAddress, abi }) => {
+  const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+  const signer = metamaskProvider.getSigner(0);
+  const MyContract = new ethers.Contract(tokenAddress, abi, signer)
+  await MyContract.attach(tokenAddress)
+  console.log("Contract: ", MyContract.address);
+  return MyContract
+}
+
