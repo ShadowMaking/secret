@@ -135,7 +135,7 @@ export default {
         status: data.status,
         value: 0,
         name: this.getTokenName(tokenAddress),
-        operation: 'Decline',
+        operation: 'Approve',
         network_id: web3.utils.hexToNumber(window.ethereum.chainId)
       }
       console.log(submitData)
