@@ -27,7 +27,7 @@
             <el-tooltip effect="dark" placement="top-start">
               <div slot="content" class="table-item-tip-tooltip">{{ item.from }}</div>
               <a @click="toPageDetail(item, 'from')">
-                <span class="from"></span>{{ getEns(item.from) }}
+                <span class="from"></span>{{ showAddress(item.from) }}
               </a>
             </el-tooltip>
           </el-col>
@@ -171,9 +171,6 @@ export default {
       window.open(url, '_blank')
     },
   },
-  created (){
-    // this.getENS()
-  }
 }
 </script>
 <style lang="scss" scoped>
