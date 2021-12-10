@@ -5,14 +5,17 @@
         <el-col
           class="list-header-item"
           v-for="(item,index) in headerList" :key="index"
-          :span="(index==4 || index==6) ? 2 : 4">
+          :span="(index==2 || index==3|| index==4) ? 4 : 3">
           {{ item }}
         </el-col>
       </el-row>
       <div class="transaction-list-wrapper" v-if="transactionList.length">
         <el-row class="transaction-list" v-for="(item,index) in transactionList" :key="index">
-          <el-col :span="4" :class="['transaction-list-item', `status-${item.status}`]">
+          <el-col :span="3" :class="['transaction-list-item', `status-${item.status}`]">
             <i></i>{{ item.status }}
+          </el-col>
+          <el-col :span="3" class="transaction-list-item">
+            <a>{{ item.operation }}</a>
           </el-col>
           <el-col :span="4" :class="['transaction-list-item', `address`]">
             <el-tooltip  effect="dark" placement="top-start">
@@ -24,7 +27,7 @@
             <el-tooltip effect="dark" placement="top-start">
               <div slot="content" class="table-item-tip-tooltip">{{ item.from }}</div>
               <a @click="toPageDetail(item, 'from')">
-                <span class="from"></span>{{ showAddress(item.from) }}
+                <span class="from"></span>{{ getEns(item.from) }}
               </a>
             </el-tooltip>
           </el-col>
@@ -36,14 +39,11 @@
               </a>
             </el-tooltip>
           </el-col>
-          <el-col :span="2" class="transaction-list-item">
+          <el-col :span="3" class="transaction-list-item">
             <a @click="toPageDetail(item, 'block')">{{ item.blockNumber }}</a>
           </el-col>
-          <el-col :span="4" class="transaction-list-item">
+          <el-col :span="3" class="transaction-list-item">
             {{ item.time }}
-          </el-col>
-          <el-col :span="2" class="transaction-list-item">
-            <a>{{ item.operation }}</a>
           </el-col>
         </el-row>
       </div>
@@ -93,10 +93,16 @@
   </div>
 </template>
 <script>
+import Vue from 'vue';
 import { subStrAddress, getRouteNameAndQuery  } from '@/utils/index';
 import None from '@/components/None/index';
 import Loading from '@/components/Loading';
 import Empty from '@/components/Empty/index';
+import { getCurrentProvider } from '@/utils/web3';
+import AsyncComputed from 'vue-async-computed';
+
+Vue.use(AsyncComputed);
+
 export default {
   name: 'TransactionList',
   props: {
@@ -135,6 +141,21 @@ export default {
       return this.showNoMore && this.transactionList.length > 0
     },
   },
+  asyncComputed:{
+    getEns() {
+      // return new Promise((resolve, reject) => {
+      //   const currentProvider = getCurrentProvider()
+      //   currentProvider.lookupAddress('0x6fC21092DA55B392b045eD78F4732bff3C580e2c').then(res => {
+      //     console.log(res)
+      //       let showEns = res ? res : 'address'
+      //       resolve(showEns)
+
+      //   }).catch(error => {
+      //       resolve('address')
+      //   })
+      // })
+    }
+  },
   methods: {
     showAddress(txt) { return subStrAddress(txt)},
     toPageDetail(record, type) {
@@ -149,6 +170,9 @@ export default {
       const url = `https://explorer.ieigen.com/#/${routerInfo.name}?${paramsStr}`
       window.open(url, '_blank')
     },
+  },
+  created (){
+    // this.getENS()
   }
 }
 </script>

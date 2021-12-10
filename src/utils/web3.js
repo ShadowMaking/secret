@@ -199,3 +199,9 @@ export const getExpectNetTypeByRouteName = (routeName) => {
   }
   return type
 }
+
+export const getCurrentProvider = () => {
+  const selectedConnectAddress = window.ethereum.selectedAddress;
+  const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+  return metamaskProvider;
+}

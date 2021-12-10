@@ -37,7 +37,7 @@ export default {
       loadingL2Info: true,
       transactionList: [],
       chainInfoData: [],
-      headerList: ['STATUS','TX HASH','FROM','TO','BLOCK NUMBER','TIMESTAMP','OPERATION'],
+      headerList: ['STATUS','OPERATION','TX HASH','FROM','TO','BLOCK NUMBER','TIMESTAMP'],
       showLoading: false,
       totalPage: 1,
       currentPage: 1,

@@ -131,7 +131,7 @@ export default {
         block_num: data.blockNumber,
         from: data.from,
         to: data.to,
-        type: TRANSACTION_TYPE['L2ToL2'],
+        type: TRANSACTION_TYPE['L1ToL1'],
         status: data.status,
         value: 0,
         name: this.getTokenName(tokenAddress),
