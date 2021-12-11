@@ -52,7 +52,8 @@ export default {
     searchAllTrasanctionList() {
       if(!this.connectedWallet()) { return }
       this.showLoading = true
-      const selectedConnectAddress = window.ethereum.selectedAddress
+      // const selectedConnectAddress = window.ethereum.selectedAddress
+      const selectedConnectAddress = '0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9' 
       let searchParam = {
         action: 'search_both_sides',//search_l2
         page: this.currentPage,

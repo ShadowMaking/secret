@@ -91,7 +91,6 @@ export default {
       this.drawChart()
     },
     generateOption() {
-      console.log(this.chartSourceData)
       const chartOption = _.cloneDeep(this.chartOption)
       const xAxisData = []
       const seriesData = this.chartSourceData
@@ -158,7 +157,6 @@ export default {
          let xtime = item.time
          let itemArr = [xtime, this.balanceNowString]
          this.chartSourceData.push(itemArr)
-         console.log(item.time)
       })
       if (data && data.length > 0) { 
         data.reverse().map(item => {
