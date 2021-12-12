@@ -94,7 +94,11 @@ export default {
       const userId = getLocationParam('id')
       const { data: userInfo } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId  })
       if (!userInfo) {
-        Toast('Get User Encrypt Faild')
+        Toast({
+          message: 'Get User Encrypt Faild',
+          duration: 5000
+        });
+        console.log('Get User Encrypt Faild')
         return
       }
       const { data } = await this.$store.dispatch('DownloadEncrpytKey', { userId, address: userInfo['address'] })
