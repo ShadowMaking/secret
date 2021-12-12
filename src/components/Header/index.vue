@@ -219,6 +219,7 @@ export default {
       this.$router.push({ name: pageName });
     },
     chooseWallet() {
+      return
       this.popupVisible = true;
       this.installWalletModal = false;
     },
