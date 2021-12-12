@@ -185,3 +185,12 @@ export const initWeb3Provider = (rpcUrl) => {
 export const initRPCProvider = (rpcUrl) => {
   return  new ethers.providers.JsonRpcProvider(rpcUrl);
 }
+
+export const isLogin = () => {
+  const userId = getFromStorage('gUID')
+  if (!userId) {
+    // Toast('Need Login')
+    return false
+  }
+  return true
+}

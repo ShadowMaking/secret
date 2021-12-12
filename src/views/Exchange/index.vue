@@ -105,7 +105,7 @@ import exchangItem from '@/components/ExchangItem/index';
 import formSelect from '@/components/Select/index';
 import selectItem from '@/components/SelectItem/index';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
-import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getContractAt, getConnectedAddress, initRPCProvider } from '@/utils/dashBoardTools';
+import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getContractAt, getConnectedAddress, initRPCProvider, isLogin } from '@/utils/dashBoardTools';
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
@@ -575,15 +575,6 @@ export default {
       const { hasError, isApprove } = await this.$store.dispatch('GetUserAllowanceForToken', {...allowanceTokenData})
       return { hasError, isApprove, allowanceTokenData }
     },
-    thirdLogin() {
-      const userId = getFromStorage('gUID')
-      if (!userId) {
-        Toast('You need Login')
-        console.log('can detect userID after third login') 
-        return false
-      }
-      return true
-    },
     connectedWallet() {
       const chainId = this.currentChainInfo && this.currentChainInfo['id']
       const selectedConnectAddress = getConnectedAddress()
@@ -755,6 +746,7 @@ export default {
     } else {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
+    await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
     this.netWorkList.map(item => {
       if (item.id == this.defaultNetWork) {
         this.defaultIcon = item.icon
@@ -762,6 +754,10 @@ export default {
     })
   },
   async mounted() {
+     if (!isLogin()) {
+      Toast('Need Login')
+      return
+    }
     await this.getTokenList()
   },
 };

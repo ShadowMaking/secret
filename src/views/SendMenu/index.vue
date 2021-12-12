@@ -96,7 +96,7 @@ import { wait, prettyLog } from '@/utils/index'
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
-import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getConnectedAddress, initRPCProvider, getContractWallet } from '@/utils/dashBoardTools';
+import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getConnectedAddress, initRPCProvider, getContractWallet, isLogin } from '@/utils/dashBoardTools';
 
 Vue.use(Popup);
 Vue.use(Toast)
@@ -462,6 +462,7 @@ export default {
     } else {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
+    await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
     this.netWorkList.map(item => {
       if (item.id == this.defaultNetWork) {
         this.defaultIcon = item.icon
@@ -469,6 +470,10 @@ export default {
     })
   },
   async mounted() {
+    if (!isLogin()) {
+      Toast('Need Login')
+      return
+    }
     await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
     const { hasError, forUsdt } = await this.$store.dispatch('GetTokenAxchangeForUS', { changeType: 'ETH/USDT' });
     this.ETHFORUS = forUsdt

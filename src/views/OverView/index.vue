@@ -47,8 +47,8 @@ import TrendLine from '@/components/TrendLine'
 import * as ethers from 'ethers'
 import { retainDecimals } from '@/utils/number'
 import { ethRPC } from '@/utils/netWork'
-import { getDefaultAddress } from '@/utils/auth'
-import { generateTokenList, getDefaultETHAssets } from '@/utils/dashBoardTools'
+import { CHAINMAP } from '@/utils/netWorkForToken'
+import { generateTokenList, getDefaultETHAssets, getConnectedNet, getConnectedAddress } from '@/utils/dashBoardTools';
 import web3 from 'web3'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
@@ -112,13 +112,18 @@ export default {
     
     async initGthers() {
       if(!this.connectedWallet()) { return }
-      const selectedConnectAddress = window.ethereum.selectedAddress;
+      const selectedConnectAddress = getConnectedAddress()
       if (!selectedConnectAddress) {
         this.assetsData = []
         return
       }
-      const ETHAssets = await getDefaultETHAssets(this);
-      const tokenListRes = await this.$store.dispatch('GetAvailableTokenAssets', { selectedConnectAddress, chainInfo: this.currentChainInfo });
+      const connectedNetInfo = getConnectedNet()
+
+      const currentChainId = connectedNetInfo && connectedNetInfo['id']
+      const hexChainId = currentChainId && web3.utils.numberToHex(currentChainId)
+      const rpcUrl = hexChainId && CHAINMAP[hexChainId]['rpcUrls'][0]
+      const ETHAssets = await getDefaultETHAssets(this, rpcUrl);
+      const tokenListRes = await this.$store.dispatch('GetAvailableTokenAssets', { selectedConnectAddress, chainInfo: connectedNetInfo });
       const { hasError, list } = tokenListRes
       const tokenList = await generateTokenList(_.cloneDeep(list), this, true)
       // tokenList.filter(item => {
@@ -141,10 +146,11 @@ export default {
       
     },
     connectedWallet() {
-      const chainId = window.ethereum && window.ethereum.chainId;
-      const userAddress = window.ethereum && window.ethereum.selectedAddress;
+      const userAddress = getConnectedAddress()
+      const connectedNetInfo = getConnectedNet()
+      const chainId = connectedNetInfo && web3.utils.numberToHex(connectedNetInfo.id)
       if (!chainId || !userAddress) {
-        Toast('Need Connect Wallet')
+        Toast('Need Login')
         return false
       }
       return true
