@@ -93,6 +93,10 @@ export default {
     async getDecryptPrivateKey(thirdLoginInfo) {
       const userId = getLocationParam('id')
       const { data: userInfo } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId  })
+      if (!userInfo) {
+        Toast('Get User Encrypt Faild')
+        return
+      }
       const { data } = await this.$store.dispatch('DownloadEncrpytKey', { userId, address: userInfo['address'] })
       const { cipher_key: encryptKey, address } = data
       const decryptInfo = await this.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
