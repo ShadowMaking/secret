@@ -1,4 +1,7 @@
-import { googleLogin } from '@/api/thirdLogin'
+import {
+  googleLogin, 
+  getUserBindingInfoForThirdLogin,
+} from '@/api/thirdLogin'
 import {
   saveToStorage,
   getFromStorage,
@@ -28,6 +31,19 @@ const thirdLogin = {
         })
       })
     },
+    // TODO
+    GetUserBindingInfoForThirdLogin({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        getUserBindingInfoForThirdLogin(params).then(response => {
+          const isNewUser = false
+          const encrpyKey = isNewUser ? 'kjkajdjksjdsd' : ''
+          console.log('isNewUser', isNewUser)
+          resolve({ hasError: false, token: '2a5c678111c43b169', publicKey: '58bb94c4a', isNewUser, encrpyKey })
+        }).catch(error => {
+          resolve({ hasError: true,  error });
+        })
+      })
+    },
     StoreGoogleUserId({ commit }, params) {
       return new Promise((resolve, reject) => {
         const userId = params.userId;
@@ -47,6 +63,34 @@ const thirdLogin = {
           resolve({ hasError: false })
         } else {
           resolve({ hasError: true  })
+        }
+      })
+    },
+    StoreBindingGoogleUserInfo({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        const userId = params.userId;
+        const { privateKey, address, encryptPrivateKey } = params
+        if (userId) {
+          const userMap = {}
+          userMap[userId] = {
+            address: address,
+            encryptPrivateKey
+          }
+          saveToStorage({ userMap })
+          resolve({ hasError: false })
+        } else {
+          resolve({ hasError: true  })
+        }
+      })
+    },
+    GetBindingGoogleUserInfo({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        const userId = params.userId;
+        if (userId) {
+          const userData = getInfoFromStorageByKey('userMap');
+          resolve({ hasError: false, data: userData && userData[userId] })
+        } else {
+          resolve({ hasError: true, data: '' })
         }
       })
     },

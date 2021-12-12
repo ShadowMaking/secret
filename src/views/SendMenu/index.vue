@@ -68,6 +68,13 @@
       tip=""
       :show="showStatusPop"
       @childEvent="changeVisible" />
+    <v-confirmModal
+      :show="showTradeConfirm"
+      :type="transactionType"
+      :metadata="sendMetadata"
+      @close="showTradeConfirm=false"
+      @reject="cancelSend"
+      @confirm="confirmSend" />
   </div>
 </template>
 
@@ -80,14 +87,16 @@ import formInput from '@/components/Input/index';
 import selectItem from '@/components/SelectItem/index';
 import formSelect from '@/components/Select/index';
 import StatusPop from '@/components/StatusPop';
+import ConfirmModal from '@/components/ConfirmModal';
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { ETHFORUS } from '@/utils/global';
 import { BigNumber } from "bignumber.js";
 import { wait, prettyLog } from '@/utils/index'
 import { TRANSACTION_TYPE } from '@/api/transaction';
-import { NETWORKSFORTOKEN } from '@/utils/netWorkForToken';
-import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange } from '@/utils/dashBoardTools';
+import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
+import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
+import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getConnectedAddress, initRPCProvider } from '@/utils/dashBoardTools';
 
 Vue.use(Popup);
 Vue.use(Toast)
@@ -112,10 +121,9 @@ export default {
       selectedGasType: '',
       loadingGas: false,
       currentChainInfo: null,
-      defaultNetWork: 1,
       defaultIcon: null,
       netWorkList: [],
-      reciData: [
+      /* reciData: [
        {
         rightVal: 144,
         leftTitle: 'fast',
@@ -128,8 +136,11 @@ export default {
         leftDes: '45sec',
         icon: 'https://token-icons.s3.amazonaws.com/0x0cb8d0b37c7487b11d57f1f33defa2b1d3cfccfe.png'
        }
-      ],
+      ], */
       
+      sendType: '', // eth||token
+      sendMetadata: null,
+      showTradeConfirm: false,
     }
   },
   components: {
@@ -138,12 +149,21 @@ export default {
     "v-selectItem": selectItem,
     "v-formSelect": formSelect,
     'v-statusPop': StatusPop,
+    'v-confirmModal': ConfirmModal,
   },
   computed: {
+    defaultNetWork() {
+      const info = getInfoFromStorageByKey('netInfo')
+      return info && info['id'] || 1
+    },
     exchangeUSForSelectedToken() {
       const selectedToken = this.selectedToken
       if (!selectedToken) { return 0 }
       return selectedToken && (selectedToken.balance * selectedToken.exchangeForUS).toFixed(2)
+    },
+    // Send for ETH ; Transfer for token
+    transactionType() {
+      return this.sendType === 'eth' ? 'Send' : 'Transfer'
     },
   },
   methods: {
@@ -176,12 +196,15 @@ export default {
       this.addressForRecipient = data.value
     },
     async getTokenAssetsForAccount() {
-      const selectedConnectAddress = window.ethereum.selectedAddress;
+      const selectedConnectAddress = getConnectedAddress()
       if (!selectedConnectAddress) {
         this.assetsTokenList = []
         return
       }
-      const ETHAssets = await getDefaultETHAssets(this);
+      const currentChainId = this.currentChainInfo && this.currentChainInfo['id']
+      const hexChainId = currentChainId && web3.utils.numberToHex(currentChainId)
+      const rpcUrl = hexChainId && CHAINMAP[hexChainId]['rpcUrls'][0]
+      const ETHAssets = await getDefaultETHAssets(this, rpcUrl);
       const tokenListRes = await this.$store.dispatch('GetAvailableTokenAssets', { selectedConnectAddress, chainInfo: this.currentChainInfo });
       const { hasError, list } = tokenListRes
       const tokenList = await generateTokenList(_.cloneDeep(list), this, true)
@@ -193,7 +216,26 @@ export default {
       this.type1Value = ''
       this.type2Value = ''
     },
-    // TODO
+    cancelSend() {
+      this.showTradeConfirm = false
+      Toast('Cancel Transaction')
+    },
+    confirmSend() {
+      this.showTradeConfirm = false
+      const sendType = this.sendType
+      const data = {
+        gasPrice: this.sendMetadata.gasPrice,
+        toAddress: this.addressForRecipient,
+        selectedToken: this.selectedToken,
+        type1Value: this.type1Value,
+        type2Value: this.type2Value,
+      }
+      if (sendType === 'eth') {
+        this.sendETH(data)
+      } else {
+        this.sendToken(data)
+      }
+    },
     checkData(data) {
       console.log('checkData')
       if (!utils.isAddress(data.toAddress)) {
@@ -216,14 +258,21 @@ export default {
       return true
     },
     async sendSubmit() {
-      if (!window.ethereum) {
+      /* if (!window.ethereum) {
         Toast('need install metamask')
         return
       }
       if (!window.ethereum.selectedAddress) {
         Toast('need connect metamask')
         return
+      } */
+
+      const selectedConnectAddress = getConnectedAddress()
+      if (!selectedConnectAddress) {
+        Toast('Need Login')
+        return
       }
+
       const sendData = {
         toAddress: this.addressForRecipient,
         selectedToken: this.selectedToken,
@@ -237,61 +286,86 @@ export default {
       if (this.selectedGasType) {
         gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.selectedGasType].gasPrice
       }
-      gasPrice = web3.utils.toWei(gasPrice, 'gwei')
-      
+      // gasPrice = web3.utils.toWei(gasPrice, 'gwei')
+
       const data = { gasPrice, ...sendData }
+      const tokenName = this.selectedToken.tokenName
+      this.sendType = tokenName === 'ETH' ? 'eth':'token'
+      this.sendMetadata = {
+        from: selectedConnectAddress,
+        to: this.addressForRecipient,
+        gas: 21000,
+        gasPrice,
+        value: this.type1Value,
+        symbolName: tokenName
+      }
+      this.showTradeConfirm = true
+      return
+
       console.log('Transaction Data', data)
       if (this.selectedToken.tokenName === 'ETH') { // send ETH
+        this.sendType = 'eth'
         this.sendETH(data)
       } else { // send token
+        this.sendType = 'token'
         this.sendToken(data)
       }
     },
-    sendETH(data) {
-      const { gasPrice, ...sendData } = data;
-      const address = {
-        selectedConnectAddress: window.ethereum.selectedAddress,
-        toAddress: sendData.toAddress
-      }
-      const transferAmount = utils.parseEther(sendData.type1Value);
-      const transferParams = [{
-        from: address.selectedConnectAddress,
-        to: address.toAddress,
-        gas: web3.utils.toHex('21000'), // 21000的16进制 '0x5208
-        gasPrice,
-        value: transferAmount.toHexString()
-      }];
-      console.log('submitData', transferParams)
+    async getContractWallet() {
+      const url = this.currentChainInfo.rpcUrls[0]
+      const provider = initRPCProvider(url)
+      const userId = getInfoFromStorageByKey('gUID')
+      const { data: userInfo } = await this.$store.dispatch('GetBindingGoogleUserInfo', {userId})
+      const encryptKey = userInfo.encryptPrivateKey
+      const decryptInfo = await this.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
+      const { hasError, data: privateKey } = decryptInfo
+
+      const wallet = new ethers.Wallet(privateKey, provider);
+      return wallet
+    },
+    async sendETH(data) {
       this.showLoading = true
-      ethereum.request({
-        jsonrpc: "2.0",
-        method: "eth_sendTransaction",
-        params: transferParams,
-        id: 0
-      })
-      .then(async res=>{
-        console.log('sendETH res:', res)
-        await this.sendSuccess(res, {...this.selectedToken, amount: sendData.type1Value}, address)
-        this.showLoading = false
+      const contractWallet = await this.getContractWallet()
+      const selectedConnectAddress = getConnectedAddress()
+      const transferAmount = utils.parseEther(data.type1Value);
+      const sendData = {
+        from: selectedConnectAddress,
+        to: data.toAddress,
+        gasLimit: web3.utils.toHex('21000'),
+        gasPrice: web3.utils.toHex(web3.utils.toWei(data.gasPrice, 'gwei')),
+        value: transferAmount.toHexString(),
+        chainId: this.currentChainInfo['id']
+      }
+      console.log('sendData', sendData)
+      contractWallet.sendTransaction({...sendData})
+      .then(async tx=>{
+        console.log('sendETH tx:', tx)
+        tx.wait()
+        .then(async res => {
+          console.log('sendETH tx wait res:', res)
+          await this.sendSuccess(res, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress, toAddress: data.toAddress})
+          this.showLoading = false
+        })
       })
       .catch(error=>{
         this.sendFailed(error)
         this.showLoading = false
       })
     },
-    sendToken(data) {
+    async sendToken(data) {
       const { gasPrice, ...sendData } = data
-      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+      const selectedConnectAddress = getConnectedAddress()
       const address = {
-        selectedConnectAddress: window.ethereum.selectedAddress,
+        selectedConnectAddress,
         toAddress: sendData.toAddress
       }
-      const signer = metamaskProvider.getSigner(0);
-      const myContract = new ethers.Contract(this.selectedToken.tokenAddress, this.selectedToken.abiJson, signer)
       const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(sendData.type1Value*1000000000000000000)).toFixed())
-      // address, uint256
+      
       this.showLoading = true
-      myContract.transfer(sendData.toAddress, tokenWithdrawAmount, { gasLimit: 600000, gasPrice })
+      const contractWallet = await this.getContractWallet()
+      let contractWithSigner = new ethers.Contract(this.selectedToken.tokenAddress, this.selectedToken.abiJson, contractWallet)
+      // address, uint256
+      contractWithSigner.transfer(sendData.toAddress, tokenWithdrawAmount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
       .then(async tx=>{
         console.log('sendToken tx:', tx)
         tx.wait()
@@ -311,15 +385,15 @@ export default {
       const symbolName = info.tokenName || 'ETH'
       this.tipTxt = 'In progress, waitting';
       const submitData = {
-        txid: symbolName === 'ETH' ? res : res.transactionHash,
+        txid: res.transactionHash,
         block_num: res.blockNumber,
-        from: selectedConnectAddress,
-        to: toAddress,
+        from: res.from || selectedConnectAddress,
+        to: res.to || toAddress,
         type: TRANSACTION_TYPE['L1ToL1'],
-        status: 1,
+        status: res.status || 1,
         value: info.amount,
         name: symbolName,
-        operation: symbolName === 'ETH' ? 'Send' : 'transfer', // send、transfer、approve、swap ……
+        operation: symbolName === 'ETH' ? 'Send' : 'Transfer', // send、transfer、approve、swap ……
         network_id: web3.utils.hexToNumber(window.ethereum.chainId)
       }
       this.addHistoryData = _.cloneDeep(submitData);
@@ -371,18 +445,21 @@ export default {
       const { hasError, data } = await this.$store.dispatch('GetGasPriceByEtherscan');
       if (data) { this.gasPriceInfo = data }
     },
-    handleNetworkChange(data) {
-      this.currentChainInfo = data.value;
-      metamaskNetworkChange(data, async (res)=>{
-        if (!res) {
-          await this.getTokenAssetsForAccount()
-        }
-      })
+    async handleNetworkChange(data) {
+      const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
+      this.currentChainInfo = chainInfo
+      await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
+      await this.getTokenAssetsForAccount()
     },
   },
-  created() {
+  async created() {
     this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
-    window.ethereum && (this.defaultNetWork = web3.utils.hexToNumber(window.ethereum.chainId))
+    const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
+    if (netInfo) {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
+    } else {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
+    }
     this.netWorkList.map(item => {
       if (item.id == this.defaultNetWork) {
         this.defaultIcon = item.icon
@@ -390,6 +467,7 @@ export default {
     })
   },
   async mounted() {
+    await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
     const { hasError, forUsdt } = await this.$store.dispatch('GetTokenAxchangeForUS', { changeType: 'ETH/USDT' });
     this.ETHFORUS = forUsdt
     await this.getTokenAssetsForAccount()

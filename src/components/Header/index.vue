@@ -121,6 +121,7 @@ import { getSelectedChainID, getNetMode, getExpectNetTypeByRouteName, metamaskIs
 import { copyTxt, isPc } from '@/utils/index';
 import { initTokenTime, updateLoginTime, removeTokens, tokenIsExpires } from '@/utils/auth'
 import { getLocationParam } from '@/utils/index'
+import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 
 Vue.use(Popup);
 Vue.use(VanButton);
@@ -304,24 +305,38 @@ export default {
     handleThirdLoginCallback(info) {
       info.success && (this.gUName = info['userInfo'].name)
     },
+    async handleBindingUserInfoAferThirdLogin(thirdloginInfo) {
+      const userId  = thirdloginInfo.thirdUserId
+      const { data: userInfo } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId })
+      this.address = userInfo.address
+    },
     getContainer() {
       return document.getElementById('header');
     },
+    async setInitData() {
+      const userId = getFromStorage('gUID')
+      if (userId) {
+        const { data: userInfo } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId  })
+        this.address = userInfo && userInfo.address||'';
+      }
+    },
   },
   async mounted() {
-    this.$nextTick(() => { })
+    /* this.$nextTick(() => { })
     setTimeout(()=>{
       console.log(this.walletIsLock)
       if (this.metamaskInstall && window.ethereum && window.ethereum.selectedAddress && !this.walletIsLock) {
         this.address = window.ethereum && window.ethereum.selectedAddress
       }
-    },800)
+    },800) */
+    await this.setInitData();
    
     this.$eventBus.$on('thirdLogin', this.handleThirdLoginCallback);
     this.$eventBus.$on('updateAddress', this.updateAddress);
     this.$eventBus.$on('chainChanged', this.handleChainChanged);
     this.$eventBus.$on('accountsChanged', this.handleAccountsChanged);
     this.$eventBus.$on('disconnect', this.handleDisconnect);
+    this.$eventBus.$on('BindingUserInfoAferThirdLogin', this.handleBindingUserInfoAferThirdLogin);
   },
 };
 </script>

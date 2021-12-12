@@ -1,8 +1,9 @@
 import { ethers, utilss } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
-import { defaultNetWorkForMetamask } from '@/utils/netWorkForToken';
+import { defaultNetWorkForMetamask, CHAINMAP } from '@/utils/netWorkForToken';
 import { CHAINIDMAP } from '@/utils/netWorkForToken'
+import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 
 /**
  * @description: 
@@ -12,7 +13,8 @@ import { CHAINIDMAP } from '@/utils/netWorkForToken'
  * @return {*}
  */
 export const generateTokenList = async (list, self, isDefault) => {
-  const selectedConnectAddress = window.ethereum.selectedAddress;
+  // const selectedConnectAddress = window.ethereum.selectedAddress;
+  const selectedConnectAddress = getConnectedAddress();
   const GetTokenBalanceMthodName = isDefault ? 'GetTokenBalanceByContract' : 'GetTokenBalanceByEtherscan'
   for(let i=0; i<list.length;i+=1) {
     const tokenAddress = list[i].tokenAddress
@@ -43,9 +45,11 @@ export const generateTokenList = async (list, self, isDefault) => {
   return list
 }
 
-export const getDefaultETHAssets = async (self) => {
-  const selectedConnectAddress = window.ethereum.selectedAddress;
-  const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+export const getDefaultETHAssets = async (self, rpcUrl) => {
+  // const selectedConnectAddress = window.ethereum.selectedAddress;
+  const selectedConnectAddress = getConnectedAddress()
+  // const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+  const metamaskProvider = initRPCProvider(rpcUrl);
   const signer = metamaskProvider.getSigner(0);
   const balance = await metamaskProvider.getBalance(selectedConnectAddress);
   const decimalsNumber = BigNumber(10).pow(18) // .toNumber() 1000000000000000000
@@ -94,7 +98,9 @@ export const metamaskNetworkChange = (data, callback) => {
 
 export const getEtherscanAPIBaseUrl = () => {
   let etherscanAPIBaseUrl = `https://api.etherscan.io`
-  const chainId = window.ethereum && window.ethereum.chainId
+  // const chainId = window.ethereum && window.ethereum.chainId
+  const connectedNetInfo = getConnectedNet()
+  const chainId = web3.utils.numberToHex(connectedNetInfo.id)
   if (chainId) {
     switch(chainId) {
       case CHAINIDMAP['ETHEREUM']:
@@ -118,7 +124,8 @@ export const getEtherscanAPIBaseUrl = () => {
 }
 
 export const getDefaultETH = async (self) => {
-  const selectedConnectAddress = window.ethereum.selectedAddress;
+  // const selectedConnectAddress = window.ethereum.selectedAddress;
+  const selectedConnectAddress = getConnectedAddress();
   const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
   const balance = await metamaskProvider.getBalance(selectedConnectAddress);
   return ethers.utils.formatEther(balance)
@@ -133,3 +140,35 @@ export const getContractAt = async ({ tokenAddress, abi }) => {
   return MyContract
 }
 
+export const getConnectedAddress = (byMetamask=false) => {
+  if (byMetamask) {
+    return window.ethereum && window.ethereum.selectedAddress
+  }
+  const userId = getFromStorage('gUID')
+  if (userId) {
+    const userMap = getInfoFromStorageByKey('userMap');
+    const userData = userMap[userId]
+    return userData['address']
+  }
+  return ''
+}
+
+export const getConnectedNet = (byMetamask=false) => {
+  const chainInfo = getInfoFromStorageByKey('netInfo')
+  const numberChainId = chainInfo && chainInfo['id']
+  let chainId = numberChainId && web3.utils.numberToHex(numberChainId)
+  if (byMetamask) {
+    chainId = window.ethereum && window.ethereum.chainId
+  }
+  return CHAINMAP[chainId]
+}
+
+export const initWeb3Provider = (rpcUrl) => {
+  const provider = new web3.providers.HttpProvider(rpcUrl);
+  const web3Provider = new web3(provider);
+  return web3Provider;
+}
+
+export const initRPCProvider = (rpcUrl) => {
+  return  new ethers.providers.JsonRpcProvider(rpcUrl);
+}
