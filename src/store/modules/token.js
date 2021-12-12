@@ -2,9 +2,13 @@ import _ from 'lodash'
 import { utils, ethers } from 'ethers'
 import web3 from 'web3';
 import { BigNumber } from "bignumber.js";
-import { saveUserAllowanceForToken, getUserAllowanceForToken } from '@/api/token';
+import { saveUserAllowanceForToken, getUserAllowanceForToken,
+  encryptPrivateKey, decryptPrivateKey,uploadEncrpytKey,downloadEncrpytKey, } from '@/api/token';
 import { TOKEN_L1, TOKEN_L2, getAvailableTokenAssets } from '@/utils/token';
 import { ajaxGetRequestByEtherscan } from '@/utils/index'
+import { initRPCProvider } from '@/utils/dashBoardTools'
+import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
+
 import TOKENLISTJSON from '@/assets/token/tokenList.json'
 
 // For SecretL1 Test
@@ -134,9 +138,9 @@ const token = {
     },
     GetAvailableTokenAssets({ commit, ...store }, params) {
       return new Promise(async (resolve, reject) => {
-        let chainID = window.ethereum.chainId
-        params.chainInfo && (chainID = params.chainInfo.chainId)
-        
+        // let chainID = window.ethereum.chainId
+        let chainID = web3.utils.numberToHex('1')
+        params.chainInfo && (chainID = web3.utils.numberToHex(params.chainInfo.id))
         let tokenList = []
         const { hasError, list=[] } = await store.dispatch('GetDefaultTokenListForOther')
         const otherDefaultTokenList = list
@@ -200,20 +204,28 @@ const token = {
         })
       })
     },
-    GetTokenBalanceByContract({ commit }, params) {
-      return new Promise((resolve, reject) => {
+    GetTokenBalanceByContract({ commit, ...rootStore }, params) {
+      return new Promise(async (resolve, reject) => {
         const { tokenAddress, abi, accountAddress } = params
         if (!abi) {
           resolve({ hasError: true, data: 0, balanceFormatString: '0.0000 '})
           return
         }
-        const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = metamaskProvider.getSigner(0);
+        /* const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = metamaskProvider.getSigner(0); */
+        const { data: netInfo } = await rootStore.dispatch('GetSelectedNetwork')
+        const url = netInfo['rpcUrls'][0]
+        const metamaskProvider = initRPCProvider(url)
+        // const signer = metamaskProvider.getSigner(0);
+        const signer = metamaskProvider.getSigner(accountAddress);
+        /* if (tokenAddress === '0xad6d458402f60fd3bd25163575031acdce07538d') {
+        } */
         const myContract = new ethers.Contract(tokenAddress, abi, signer)
         if(!myContract.balanceOf) {
           resolve({ hasError: true, data: 0, balanceFormatString: '0.0000' })
           return
         }
+        // accountAddress.toLocaleLowerCase()
         myContract.balanceOf(accountAddress)
           .then(async res => {
             const decimals = await myContract.decimals() // return type is Number(eg. 18) or BigNumber(eg. {_hex: '0x12', _isBigNumber: true})
@@ -350,6 +362,78 @@ const token = {
         })
         .catch(error=>{
           resolve({ hasError: false, data: '~~' })
+        })
+      })
+    },
+    StoreSelectedNetwork({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        const netInfo = params.netInfo;
+        if (netInfo) {
+          saveToStorage({ netInfo })
+          resolve({ hasError: false })
+        } else {
+          resolve({ hasError: true  })
+        }
+      })
+    },
+    GetSelectedNetwork({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        const netInfo = getInfoFromStorageByKey('netInfo');
+        if (netInfo) {
+          resolve({ hasError: false, data: netInfo })
+        }
+        resolve({ hasError: true, data: '' })
+      })
+    },
+    EncryptPrivateKey({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        encryptPrivateKey(params).then(response => {
+          const { data, message, errno } = response.data;
+          if (errno === 0) {
+            resolve({ hasError: false, data })
+          } else {
+            resolve({ hasError: true, data: null });
+          }
+        }).catch(error => {
+          resolve({ hasError: true, data: null });
+        })
+      })
+    },
+    DecryptPrivateKey({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        decryptPrivateKey(params).then(response => {
+          const { data, message, errno } = response.data;
+          if (errno === 0) {
+            resolve({ hasError: false, data })
+          } else {
+            resolve({ hasError: true, data: null });
+          }
+        }).catch(error => {
+          resolve({ hasError: true, data: null });
+        })
+      })
+    },
+    UploadEncrpytKey({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        uploadEncrpytKey(params).then(response => {
+          const data = response.data;
+          resolve({ hasError: false, data })
+        }).catch(error => {
+          resolve({ hasError: true, data: null });
+        })
+      })
+    },
+    DownloadEncrpytKey({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        downloadEncrpytKey(params).then(response => {
+          const { data, message, errno } = response.data;
+          if (errno === 0) {
+            resolve({ hasError: false, data })
+          } else {
+            resolve({ hasError: true, data: null });
+          }
+        }).catch(error => {
+          resolve({ hasError: true, data: null });
         })
       })
     },
