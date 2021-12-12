@@ -2,6 +2,7 @@ import { TRANSACTION_TYPE } from '@/api/transaction';
 import moment from 'moment'
 import { etherscanAPIKeyToken } from '@/utils/global';
 import { getEtherscanAPIBaseUrl } from '@/utils/dashBoardTools';
+import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 
 export const wait = (ms) => {
   return new Promise(res => setTimeout(res, ms || 1000))
@@ -137,4 +138,10 @@ export const getRouteNameAndQuery = (record, type) => {
   }
   query['nid'] = record.network_id
   return { routeName, query }
+}
+
+
+// TODO
+export const encryptKey = (str) => {
+  return `encrypt_${str}`
 }
