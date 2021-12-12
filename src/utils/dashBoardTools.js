@@ -123,7 +123,7 @@ export const getEtherscanAPIBaseUrl = () => {
   return etherscanAPIBaseUrl
 }
 
-export const getDefaultETH = async (self) => {
+export const getDefaultETH = async (self) => { // TODO
   // const selectedConnectAddress = window.ethereum.selectedAddress;
   const selectedConnectAddress = getConnectedAddress();
   const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
@@ -131,13 +131,26 @@ export const getDefaultETH = async (self) => {
   return ethers.utils.formatEther(balance)
 }
 
-export const getContractAt = async ({ tokenAddress, abi }) => {
-  const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
-  const signer = metamaskProvider.getSigner(0);
-  const MyContract = new ethers.Contract(tokenAddress, abi, signer)
-  await MyContract.attach(tokenAddress)
-  console.log("Contract: ", MyContract.address);
-  return MyContract
+export const getContractWallet = async (self) => {
+  const network = getConnectedNet()
+  const rpcUrl = network['rpcUrls'][0]
+  const provider = initRPCProvider(rpcUrl)
+  const userId = getInfoFromStorageByKey('gUID')
+  const { data: userInfo } = await self.$store.dispatch('GetBindingGoogleUserInfo', {userId})
+  const encryptKey = userInfo.encryptPrivateKey
+  const decryptInfo = await self.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
+  const { hasError, data: privateKey } = decryptInfo
+
+  const wallet = new ethers.Wallet(privateKey, provider);
+  return wallet
+}
+
+export const getContractAt = async ({ tokenAddress, abi }, self) => {
+  const contractWallet = await getContractWallet(self)
+  let contractWithSigner = new ethers.Contract(tokenAddress, abi, contractWallet)
+  await contractWithSigner.attach(tokenAddress)
+  console.log("Contract: ", contractWithSigner.address);
+  return contractWithSigner
 }
 
 export const getConnectedAddress = (byMetamask=false) => {

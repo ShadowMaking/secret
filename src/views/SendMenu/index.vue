@@ -96,7 +96,7 @@ import { wait, prettyLog } from '@/utils/index'
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
-import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getConnectedAddress, initRPCProvider } from '@/utils/dashBoardTools';
+import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getConnectedAddress, initRPCProvider, getContractWallet } from '@/utils/dashBoardTools';
 
 Vue.use(Popup);
 Vue.use(Toast)
@@ -311,7 +311,7 @@ export default {
         this.sendToken(data)
       }
     },
-    async getContractWallet() {
+    /* async getContractWallet() {
       const url = this.currentChainInfo.rpcUrls[0]
       const provider = initRPCProvider(url)
       const userId = getInfoFromStorageByKey('gUID')
@@ -322,10 +322,11 @@ export default {
 
       const wallet = new ethers.Wallet(privateKey, provider);
       return wallet
-    },
+    }, */
     async sendETH(data) {
       this.showLoading = true
-      const contractWallet = await this.getContractWallet()
+      // const contractWallet = await this.getContractWallet()
+      const contractWallet = await getContractWallet(this)
       const selectedConnectAddress = getConnectedAddress()
       const transferAmount = utils.parseEther(data.type1Value);
       const sendData = {
@@ -362,7 +363,8 @@ export default {
       const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(sendData.type1Value*1000000000000000000)).toFixed())
       
       this.showLoading = true
-      const contractWallet = await this.getContractWallet()
+      // const contractWallet = await this.getContractWallet()
+      const contractWallet = await getContractWallet(this)
       let contractWithSigner = new ethers.Contract(this.selectedToken.tokenAddress, this.selectedToken.abiJson, contractWallet)
       // address, uint256
       contractWithSigner.transfer(sendData.toAddress, tokenWithdrawAmount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })

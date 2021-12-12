@@ -104,8 +104,8 @@ import navTitle from '@/components/NavTitle/index';
 import exchangItem from '@/components/ExchangItem/index';
 import formSelect from '@/components/Select/index';
 import selectItem from '@/components/SelectItem/index';
-import { NETWORKSFORTOKEN } from '@/utils/netWorkForToken';
-import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getContractAt } from '@/utils/dashBoardTools';
+import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
+import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getContractAt, getConnectedAddress, initRPCProvider } from '@/utils/dashBoardTools';
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
@@ -118,6 +118,7 @@ import StatusPop from '@/components/StatusPop';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
 
+
 Vue.use(Icon);
 Vue.use(Loading);
 Vue.use(Toast);
@@ -128,7 +129,7 @@ export default {
   data() {
     return {
       currentChainInfo: null,
-      defaultNetWork: 1,
+      // defaultNetWork: 1,
       defaultIcon: null,
       netWorkList: _.cloneDeep(NETWORKSFORTOKEN),
       assetsTokenList: [],
@@ -173,6 +174,10 @@ export default {
       const protocolName = PROTOCOLMAP[this.currentProtocolType]['name']
       const tokenName = this.exchangeFromToken && this.exchangeFromToken['tokenName']
       return `Allow ${protocolName} to use your ${tokenName}`
+    },
+    defaultNetWork() {
+      const info = getInfoFromStorageByKey('netInfo')
+      return info && info['id'] || 1
     },
   },
   methods: {
@@ -229,10 +234,11 @@ export default {
     // *********************************************************** uniswap2 test ropsten *********************************************************** /
     // TokenAmount: BigNumber, ETHAmount: BigNumber
     async addLiquidity(TokenAmount, ETHAmount, tokenType, gasInfo) {
+      const selectedConnectAddress = getConnectedAddress()
       const tokenInfo = tokenType === 'from' ? this.exchangeFromToken : this.exchangeToToken
       const { tokenAddress, abiJson } = tokenInfo
-      const TokenContract = await getContractAt({ tokenAddress, abi: abiJson })
-      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
+      const TokenContract = await getContractAt({ tokenAddress, abi: abiJson }, this)
+      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi }, this)
       let tx;
       let res;
       const overrides = { ...gasInfo }
@@ -245,7 +251,7 @@ export default {
         TokenAmount,
         TokenAmount,
         ETHAmount,
-        window.ethereum.selectedAddress,
+        selectedConnectAddress,
         ethers.constants.MaxUint256,
         {
           ...overrides,
@@ -257,14 +263,15 @@ export default {
     },
     // TokenAmount: BigNumber, ETHAmount: BigNumber
     async addLiquidityForToken(tokenInfo, TokenAAmount, TokenBmount, amountAMin, amountBMin, gasInfo) {
+      const selectedConnectAddress = getConnectedAddress()
       const tokenA = tokenInfo.tokenA['tokenAddress']
       const tokenB = tokenInfo.tokenB['tokenAddress'] 
       const tokenAAddress = tokenA['tokenAddress']
       const tokenBAddress = tokenB['tokenAddress']
       
-      const TokenAContract = await getContractAt({ tokenAAddress, abi: tokenA['abiJson'] })
-      const TokenBContract = await getContractAt({ tokenBAddress, abi: tokenB['abiJson'] })
-      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
+      const TokenAContract = await getContractAt({ tokenAAddress, abi: tokenA['abiJson'] }, this)
+      const TokenBContract = await getContractAt({ tokenBAddress, abi: tokenB['abiJson'] }, this)
+      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi }, this)
       let tx;
       let res;
       const overrides = { ...gasInfo }
@@ -279,7 +286,7 @@ export default {
         TokenBmount,
         amountAMin,
         amountBMin,
-        window.ethereum.selectedAddress,
+        selectedConnectAddress,
         ethers.constants.MaxUint256,
         {
           ...overrides,
@@ -298,14 +305,16 @@ export default {
     },
     // WETH exchange for Token
     async exchangeWETH2Token(data) {
+      const selectedConnectAddress = getConnectedAddress()
+
       const overrides = { ...data.gasInfo }
-      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
+      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi }, this)
       
       let amount = ethers.utils.parseUnits(this.exchangeFrom);
       this.showLoading = true
       const inputData = {
         token: [data.tokenFrom, data.tokenTo],
-        userAddress: window.ethereum.selectedAddress,
+        userAddress: selectedConnectAddress,
         deadline: ethers.constants.MaxUint256,
         ...overrides,
         originValue: this.exchangeFrom,
@@ -317,7 +326,7 @@ export default {
         // [WETH.address, DAI.address],
         [data.tokenFrom, data.tokenTo],
         // user.address,
-        window.ethereum.selectedAddress,
+        selectedConnectAddress,
         ethers.constants.MaxUint256,
         {
           ...overrides,
@@ -347,14 +356,16 @@ export default {
     },
     // Token exchange for WETH
     async exchangeToken2WETH(data) {
+      const selectedConnectAddress = getConnectedAddress()
+
       const overrides = { ...data.gasInfo }
-      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
+      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi }, this)
       
       let amount = ethers.utils.parseUnits(this.exchangeFrom);
       this.showLoading = true
       const inputData = {
         token: [data.tokenFrom, data.tokenTo],
-        userAddress: window.ethereum.selectedAddress,
+        userAddress: selectedConnectAddress,
         deadline: ethers.constants.MaxUint256,
         ...overrides,
         originValue: this.exchangeFrom,
@@ -367,7 +378,7 @@ export default {
         // [DAI.address, WETH.address],
         [data.tokenFrom, data.tokenTo],
         // user.address,
-        window.ethereum.selectedAddress,
+        selectedConnectAddress,
         ethers.constants.MaxUint256,
         {
           ...overrides,
@@ -395,18 +406,20 @@ export default {
       })
     },
     async exchangeSuccess(res, data) {
+      const selectedConnectAddress = getConnectedAddress()
+      const currentChainId = this.currentChainInfo && this.currentChainInfo['id']
       // this.tipTxt = 'In progress, waitting';
       const submitData = {
         txid: res.transactionHash,
         block_num: res.blockNumber,
-        from: window.ethereum.selectedAddress,
-        to: window.ethereum.selectedAddress,
+        from: selectedConnectAddress,
+        to: selectedConnectAddress,
         type: TRANSACTION_TYPE['L1ToL1'],
         status: 1,
         value: data.amountin,
         name: this.exchangeFromToken['tokenName'],
         operation: 'Swap',  // send、transfer、approve、swap ……
-        network_id: web3.utils.hexToNumber(window.ethereum.chainId)
+        network_id: currentChainId
       }
       this.addHistoryData = _.cloneDeep(submitData);
       await this.addHistory(submitData);
@@ -430,6 +443,8 @@ export default {
     },
     // type: to || from (to:ETH2token, from:token2token)
     async exchangeToken(type, data) {
+      const selectedConnectAddress = getConnectedAddress()
+
       const { hasError, isApprove } = await this.getUserAllowanceForToken()
       const fromTokenIsWETH = this.exchangeFromToken && this.exchangeFromToken['tokenName'] === 'WETH'
       if (!isApprove && type === 'from' && !fromTokenIsWETH) {
@@ -454,7 +469,7 @@ export default {
         const amountBMin = 0;
         // await this.addLiquidityForToken({tokenA,tokenB}, amountADesired, amountBDesired, amountAMin, amountBMin, overrides);
       }
-      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
+      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi }, this)
       if (type === 'from') {
         this.showLoading = true
         // https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02#swapexacttokensfortokenssupportingfeeontransfertokens
@@ -464,7 +479,7 @@ export default {
           // [DAI.address, WETH.address],
           [data.tokenFrom, data.tokenTo],
           // user.address,
-          window.ethereum.selectedAddress,
+          selectedConnectAddress,
           ethers.constants.MaxUint256,
           overrides
         )
@@ -497,7 +512,7 @@ export default {
           // [DAI.address, WETH.address],
           [data.tokenFrom, data.tokenTo],
           // user.address,
-          window.ethereum.selectedAddress,
+          selectedConnectAddress,
           ethers.constants.MaxUint256,
           {
             ...overrides,
@@ -548,13 +563,13 @@ export default {
     },
     async getUserAllowanceForToken() {
       const token = this.exchangeFromToken;
-      const chainId = window.ethereum && window.ethereum.chainId;
-      const userAddress = window.ethereum && window.ethereum.selectedAddress;
+      const selectedConnectAddress = getConnectedAddress()
+      const chainId = this.currentChainInfo && this.currentChainInfo['id']
       const allowanceTokenData = {
         userId: getFromStorage('gUID'),
-        network_id: web3.utils.hexToNumberString(chainId),
+        network_id: chainId,
         token_address: token['tokenAddress'],
-        user_address: userAddress,
+        user_address: selectedConnectAddress,
         swap_address: this.routerAddress,
       }
       const { hasError, isApprove } = await this.$store.dispatch('GetUserAllowanceForToken', {...allowanceTokenData})
@@ -570,9 +585,9 @@ export default {
       return true
     },
     connectedWallet() {
-      const chainId = window.ethereum && window.ethereum.chainId;
-      const userAddress = window.ethereum && window.ethereum.selectedAddress;
-      if (!chainId || !userAddress) {
+      const chainId = this.currentChainInfo && this.currentChainInfo['id']
+      const selectedConnectAddress = getConnectedAddress()
+      if (!chainId || !selectedConnectAddress) {
         Toast('Need Connect Wallet')
         return false
       }
@@ -602,7 +617,7 @@ export default {
         return
       }
       const submitData = this.getSubmitData()
-      const TokenContract = await getContractAt({ tokenAddress: token.tokenAddress, abi: token.abiJson })
+      const TokenContract = await getContractAt({ tokenAddress: token.tokenAddress, abi: token.abiJson }, this)
       const approveTokenAmount = ethers.constants.MaxUint256; // max
       const overrides = submitData.gasInfo
       this.showLoading = true
@@ -647,7 +662,6 @@ export default {
       const data = this.getSubmitData()
       if (!this.checkData(data)) { return }
 
-      const netWorkIsROPSTEN = window.ethereum.chainId === CHAINIDMAP['ROPSTEN']
       // fromToken is ETH or WETH
       if (!data.tokenFrom && this.exchangeFromToken) {
         // fromToken selected is ETH = WETH in Ropsten
@@ -667,31 +681,6 @@ export default {
           await this.exchangeToken2Token(data)
         }
       }
-      return
-      const tokenA = data.tokenFrom; // '0x5076d190F242ae67E607CaAa081bF28F93Dc224D'
-      const tokenB = data.tokenTo; // '0x8730786a6cd94bE7F3100F4c5C0e67b0517Cda6B'
-      const abi = swapJson.abi
-      const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = metamaskProvider.getSigner(0);
-      const myContract = new ethers.Contract(SWAPADDRESS, abi, signer)
-      console.log('myContract', myContract)
-      await myContract.attach(SWAPADDRESS)
-      myContract.swapExactInputSingle(tokenA, tokenB, data.fee, data.amountin, data.amountmin, data.gasInfo)
-      .then(async res => {
-        console.log('res1', res)
-        await res.wait()
-        myContract.swapExactOutputSingle(tokenA, tokenB, data.fee, data.amountin, data.amountmin, data.gasInfo)
-        .then(async res => {
-          console.log('res2', res)
-          await res.wait()
-        })
-        .catch(error=>{
-          console.log(error)
-        })
-      })
-      .catch(error=>{
-        console.log(error)
-      })
     },
     async getGasPrice() {
       const { hasError, data } = await this.$store.dispatch('GetGasPriceByEtherscan');
@@ -732,7 +721,7 @@ export default {
       console.log(this.currentProtocolType)
     },
     async getTokenList(forAccounts) {
-      const selectedConnectAddress = window.ethereum.selectedAddress;
+      const selectedConnectAddress = getConnectedAddress()
       if (!selectedConnectAddress) {
         this.allTokenList = []
         this.assetsTokenList = []
@@ -742,7 +731,10 @@ export default {
       const { hasError, list } = await this.$store.dispatch(methodName, { selectedConnectAddress, chainInfo: this.currentChainInfo });
       const tokenList = await generateTokenList(_.cloneDeep(list), this, forAccounts)
 
-      const ETHAssets = await getDefaultETHAssets(this);
+      const currentChainId = this.currentChainInfo && this.currentChainInfo['id']
+      const hexChainId = currentChainId && web3.utils.numberToHex(currentChainId)
+      const rpcUrl = hexChainId && CHAINMAP[hexChainId]['rpcUrls'][0]
+      const ETHAssets = await getDefaultETHAssets(this, rpcUrl);
       this.assetsTokenList = [].concat([ETHAssets], tokenList)
       this.allTokenList = [].concat([ETHAssets], tokenList)
       this.exchangeFromToken = this.assetsTokenList[0]
@@ -756,9 +748,13 @@ export default {
       this.showApproveButton = !isEth && !isWETH
     }
   },
-  created() {
-    this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
-    window.ethereum && (this.defaultNetWork = web3.utils.hexToNumber(window.ethereum.chainId))
+  async created() {
+    const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
+    if (netInfo) {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
+    } else {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
+    }
     this.netWorkList.map(item => {
       if (item.id == this.defaultNetWork) {
         this.defaultIcon = item.icon
