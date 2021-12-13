@@ -100,6 +100,12 @@
       @close="showTradeConfirm=false"
       @reject="cancelExchange"
       @confirm="confirmExchange" />
+    <v-approveModal
+      :show="showApproveModal"
+      :metadata="approveMetadata"
+      @close="showApproveModal=false"
+      @reject="cancelApprove"
+      @confirm="confirmApprove" />
   </div>
 </template>
 
@@ -112,8 +118,9 @@ import exchangItem from '@/components/ExchangItem/index';
 import formSelect from '@/components/Select/index';
 import selectItem from '@/components/SelectItem/index';
 import ConfirmModal from '@/components/ConfirmModal';
+import ApproveModal from '@/components/ApproveModal';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
-import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getContractAt, getConnectedAddress, initRPCProvider, isLogin } from '@/utils/dashBoardTools';
+import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getContractAt, getContractAtForApprove, getConnectedAddress, initRPCProvider, isLogin } from '@/utils/dashBoardTools';
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
@@ -173,6 +180,10 @@ export default {
       exchangeData: null,
       sendMetadata: null,
       showTradeConfirm: false,
+
+      showApproveModal: false,
+      approveMetadata: null,
+
     }
   },
   components: {
@@ -182,6 +193,7 @@ export default {
     "v-formSelect": formSelect,
     'v-statusPop': StatusPop,
     'v-confirmModal': ConfirmModal,
+    'v-approveModal': ApproveModal,
   },
   computed: {
     approveBtnTxt() {
@@ -348,6 +360,7 @@ export default {
         }
       )
       .then(async tx=>{
+        console.log('WETH2Token tx:', tx)
         tx.wait()
         .then(async res=>{
           console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", res);
@@ -399,6 +412,7 @@ export default {
         }
       )
       .then(async tx=>{
+        console.log('Token2WETH tx:', tx)
         tx.wait()
         .then(async res=>{
           console.log("swapExactTokensForETHSupportingFeeOnTransferTokens: ", res);
@@ -498,6 +512,7 @@ export default {
           overrides
         )
         .then(async tx=>{
+          console.log('Token2Token tx:', tx)
           tx.wait()
           .then(async res=>{
             console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", res);
@@ -573,7 +588,7 @@ export default {
       }
       return data
     },
-    async getUserAllowanceForToken() {
+    async getUserAllowanceForToken(getAllowanceTokenData=false) {
       const token = this.exchangeFromToken;
       const selectedConnectAddress = getConnectedAddress()
       const chainId = this.currentChainInfo && this.currentChainInfo['id']
@@ -583,6 +598,9 @@ export default {
         token_address: token['tokenAddress'],
         user_address: selectedConnectAddress,
         swap_address: this.routerAddress,
+      }
+      if (getAllowanceTokenData) {
+        return { hasError: false, isApprove: false, allowanceTokenData }
       }
       const { hasError, isApprove } = await this.$store.dispatch('GetUserAllowanceForToken', {...allowanceTokenData})
       return { hasError, isApprove, allowanceTokenData }
@@ -617,18 +635,48 @@ export default {
         Toast('Do not need approve')
         return
       }
+
+      this.showLoading = true
       const { hasError, isApprove, allowanceTokenData } = await this.getUserAllowanceForToken()
       if (isApprove) {
+        this.showLoading = false
         Toast('Already Approved')
         return
       }
+      this.showLoading = false
+
       const submitData = this.getSubmitData()
       console.log('submitData', submitData)
+
+      const selectedConnectAddress = getConnectedAddress()
+      const gasPrice = submitData.gasInfo['gasPrice']
+      this.approveMetadata = {
+        userAddress: selectedConnectAddress,
+        tokenName: token.tokenName,
+        tokenAddress: token.tokenAddress,
+        gas: 21000,
+        gasPrice,
+        netInfo: this.currentChainInfo,
+      }
+      
+      submitData.gasInfo['gasPrice'] = web3.utils.toWei(gasPrice, 'gwei')
+      this.approveData = _.cloneDeep(submitData)
+      console.log('approveData', this.approveData)
+
+      this.showApproveModal = true
+
+      return
+
+
+      
       const TokenContract = await getContractAt({ tokenAddress: token.tokenAddress, abi: token.abiJson }, this)
       const approveTokenAmount = ethers.constants.MaxUint256; // max
-      const overrides = submitData.gasInfo
+      /* const overrides = submitData.gasInfo
       const gasPrice = overrides['gasPrice']
-      overrides['gasPrice'] = web3.utils.toWei(gasPrice, 'gwei')
+      overrides['gasPrice'] = web3.utils.toWei(gasPrice, 'gwei') */
+
+      
+
       this.showLoading = true
       TokenContract.approve(this.routerAddress, approveTokenAmount, overrides)
       .then(async res=>{
@@ -694,9 +742,10 @@ export default {
         gas: gasInfo.gasLimit,
         gasPrice: gasInfo.gasPrice,
         value: amountin,
-        symbolName: this.exchangeFromToken['tokenName']
+        symbolName: this.exchangeFromToken['tokenName'],
+        netInfo: this.currentChainInfo,
       }
-      
+
       const gasPrice = data.gasInfo['gasPrice']
       data.gasInfo['gasPrice'] = web3.utils.toWei(gasPrice, 'gwei')
       this.exchangeData = _.cloneDeep(data)
@@ -787,6 +836,58 @@ export default {
           await this.exchangeToken2Token(data)
           break;
       }
+    },
+    cancelApprove() {
+      this.showApproveModal = false
+      Toast('Cancel Approve')
+    },
+    async confirmApprove() {
+      this.showApproveModal = false
+
+      const token = this.exchangeFromToken
+      const TokenContract = await getContractAt({ tokenAddress: token.tokenAddress, abi: token.abiJson }, this)
+      const approveTokenAmount = ethers.constants.MaxUint256; // max
+      const data = _.cloneDeep(this.approveData)
+      const overrides = data.gasInfo
+
+      this.showLoading = true
+      if (!TokenContract.approve) {
+        this.showLoading = false
+        Toast('No support')
+        return
+      }
+      TokenContract.approve(this.routerAddress, approveTokenAmount, overrides)
+      .then(async res=>{
+        console.log(`Approve Token-${token.tokenName} tx: `, res);
+        res.wait()
+        .then(async txRes => { // approve success
+          console.log(`Approve Token-${token.tokenName} res: `, txRes);
+          const { allowanceTokenData } = await this.getUserAllowanceForToken(true)
+          const saveTokenData = {
+            ...allowanceTokenData,
+            // allowance: approveTokenAmount
+            allowance: "Infinite"
+          }
+          const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
+          if (!hasError) {
+            console.log(`SaveUserAllowanceForToken ${token.tokenName} Suucess`)
+          } else {
+            console.log('SaveUserAllowanceForToken Error', error)
+          }
+          this.showLoading = false
+        })
+        .catch(error=>{
+          this.showLoading = false
+          Toast(`Approve ${token.tokenName} Failed`)
+          console.log(`Approve Token-${token.tokenName} error: `, err);
+        })
+      })
+      .catch(err => {
+        this.showLoading = false
+        Toast(`Approve ${token.tokenName} Failed`)
+        console.log(`Approve Token-${token.tokenName} error: `, err);
+      })
+
     },
   },
   async created() {

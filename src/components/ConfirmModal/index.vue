@@ -4,7 +4,7 @@
       <div class="confirm-modal-wraper">
         <div class="top-header">
           <div class="eidt">Edit</div>
-          <div class="net"><i></i>{{ networkName }}</div>
+          <div class="net"><i></i>{{ showValBySourceData('netInfo') }}</div>
         </div>
         <div class="account-address">
           <div class="address address-from"><i></i>{{ showValBySourceData('from') }}</div>
@@ -85,13 +85,6 @@ export default {
     }
   },
   computed: {
-    networkName() {
-      const netInfo = getInfoFromStorageByKey('netInfo')
-      if (netInfo) {
-        return netInfo.name
-      }
-      return ''
-    },
     host() {
       return window.location.origin
     },
@@ -116,6 +109,8 @@ export default {
             return metadata.gasPrice
           case 'total':
             return `${metadata.value} ${metadata.symbolName} + 0.012000 ETH` 
+          case 'netInfo':
+            return metadata && `${metadata.netInfo.name}`
         }
       }
       return ''

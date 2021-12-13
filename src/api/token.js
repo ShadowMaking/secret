@@ -70,7 +70,8 @@ export const downloadEncrpytKey = (data) => {
   return request({
     url: `/api/relay/${userId}/download`,
     method: 'post',
-    data: { address: data.address },
+    // data: { address: data.address },
+    data: { userId },
   })
 }
 

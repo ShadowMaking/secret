@@ -297,7 +297,8 @@ export default {
         gas: 21000,
         gasPrice,
         value: this.type1Value,
-        symbolName: tokenName
+        symbolName: tokenName,
+        netInfo: this.currentChainInfo,
       }
       this.showTradeConfirm = true
       return
