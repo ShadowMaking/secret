@@ -117,7 +117,6 @@ import { PROTOCOLList, PROTOCOLMAP } from '@/utils/swap.js'
 import StatusPop from '@/components/StatusPop';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
-import { swapv3Router } from '@/utils/v3swap.js'
 
 Vue.use(Icon);
 Vue.use(Loading);
@@ -637,26 +636,17 @@ export default {
         console.log(`Approve Token-${token.tokenName} error: `, err);
       })
     },
-    exchangeV3() {
-
-      swapv3Router().then(res => {
-        console.log(res)
-      })
-    },
     async exchangeSubmit() {
       if (this.currentProtocolType === 'v3') {
-        // this.exchangeV3()
         Toast('Comming Soon')
-        return
+        return 
       }
-
       if(!this.thirdLogin()) { return }
       if(!this.connectedWallet()) { return }
       
       const data = this.getSubmitData()
       if (!this.checkData(data)) { return }
 
-      
       const netWorkIsROPSTEN = window.ethereum.chainId === CHAINIDMAP['ROPSTEN']
       // fromToken is ETH or WETH
       if (!data.tokenFrom && this.exchangeFromToken) {
