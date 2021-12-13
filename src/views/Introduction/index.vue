@@ -85,14 +85,14 @@ export default {
     },
     /**
      * @description: 
-     * step1: get userInfo base on userId after third login
-     * step2: get encryptKey through download server
+     * step1: get encryptKey through download server
+     * step2: if encryptKey is not exist and create new account(privateKey) or run step3
      * step3: get decryptKey(privateKey) throuh KMS
      * step4: recovery account  by privateKey
      */    
     async getDecryptPrivateKey(thirdLoginInfo) {
       const userId = getLocationParam('id')
-      const { data: userInfo } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId  })
+      /* const { data: userInfo } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId  })
       if (!userInfo) {
         Toast({
           message: 'Get User Encrypt Faild',
@@ -100,9 +100,15 @@ export default {
         });
         console.log('Get User Encrypt Faild')
         return
-      }
-      const { data } = await this.$store.dispatch('DownloadEncrpytKey', { userId, address: userInfo['address'] })
+      } */
+      // const { data } = await this.$store.dispatch('DownloadEncrpytKey', { userId, address: userInfo['address'] })
+      const { data } = await this.$store.dispatch('DownloadEncrpytKey', { userId })
       const { cipher_key: encryptKey, address } = data
+      if (!encryptKey) {
+        console.log('This is old user, but have no encryptKey')
+        await this.createAccountForThirdLoginUser()
+        return
+      }
       const decryptInfo = await this.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
       const { hasError, data: privateKey } = decryptInfo
       if (hasError) {
