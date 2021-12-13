@@ -103,12 +103,12 @@ export default {
       } */
       // const { data } = await this.$store.dispatch('DownloadEncrpytKey', { userId, address: userInfo['address'] })
       const { data } = await this.$store.dispatch('DownloadEncrpytKey', { userId })
-      const { cipher_key: encryptKey, address } = data
-      if (!encryptKey) {
+      if (!data) {
         console.log('This is old user, but have no encryptKey')
         await this.createAccountForThirdLoginUser()
         return
       }
+      const { cipher_key: encryptKey, address } = data
       const decryptInfo = await this.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
       const { hasError, data: privateKey } = decryptInfo
       if (hasError) {
