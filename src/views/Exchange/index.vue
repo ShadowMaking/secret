@@ -93,6 +93,13 @@
       tip=""
       :show="showStatusPop"
       @childEvent="changeVisible" />
+    <v-confirmModal
+      :show="showTradeConfirm"
+      type="Swap"
+      :metadata="sendMetadata"
+      @close="showTradeConfirm=false"
+      @reject="cancelExchange"
+      @confirm="confirmExchange" />
   </div>
 </template>
 
@@ -104,6 +111,7 @@ import navTitle from '@/components/NavTitle/index';
 import exchangItem from '@/components/ExchangItem/index';
 import formSelect from '@/components/Select/index';
 import selectItem from '@/components/SelectItem/index';
+import ConfirmModal from '@/components/ConfirmModal';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getContractAt, getConnectedAddress, initRPCProvider, isLogin } from '@/utils/dashBoardTools';
 import { ethers, utils } from 'ethers'
@@ -160,6 +168,11 @@ export default {
       // *********************** uniswap2 test ************************************/
       currentProtocolType: 'v2',
       protocolList: _.cloneDeep(PROTOCOLList),
+
+      exchangeType: '', // WET2Token、Token2WETH、Token2Token
+      exchangeData: null,
+      sendMetadata: null,
+      showTradeConfirm: false,
     }
   },
   components: {
@@ -168,6 +181,7 @@ export default {
     "v-selectItem": selectItem,
     "v-formSelect": formSelect,
     'v-statusPop': StatusPop,
+    'v-confirmModal': ConfirmModal,
   },
   computed: {
     approveBtnTxt() {
@@ -546,10 +560,9 @@ export default {
     getSubmitData() {
       let gasPrice = '20' // 20 Gwei
       if (this.gasPriceType !== '~~') {
-        // gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.gasPriceType === 'Custom'?"Average":this.gasPriceType].gasPrice
         gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.gasPriceType].gasPrice
       }
-      gasPrice = web3.utils.toWei(gasPrice, 'gwei')
+      // gasPrice = web3.utils.toWei(gasPrice, 'gwei')
       const data = {
         tokenFrom: this.exchangeFromToken && this.exchangeFromToken['tokenAddress'],
         tokenTo: this.exchangeToToken && this.exchangeToToken['tokenAddress'],
@@ -558,7 +571,6 @@ export default {
         fee: 3000,
         gasInfo: { gasLimit: 1000000, gasPrice } // const gasInfo = { gasLimit: 100000, gasPrice: 20000000000 }
       }
-      console.log('exchangeData', data)
       return data
     },
     async getUserAllowanceForToken() {
@@ -589,7 +601,10 @@ export default {
         Toast('Comming Soon')
         return 
       }
-      if(!this.thirdLogin()) { return }
+      if (!isLogin()) {
+        Toast('Need Login')
+        return
+      }
       if(!this.connectedWallet()) { return }
       const token = this.exchangeFromToken
       console.log(token)
@@ -608,9 +623,12 @@ export default {
         return
       }
       const submitData = this.getSubmitData()
+      console.log('submitData', submitData)
       const TokenContract = await getContractAt({ tokenAddress: token.tokenAddress, abi: token.abiJson }, this)
       const approveTokenAmount = ethers.constants.MaxUint256; // max
       const overrides = submitData.gasInfo
+      const gasPrice = overrides['gasPrice']
+      overrides['gasPrice'] = web3.utils.toWei(gasPrice, 'gwei')
       this.showLoading = true
       TokenContract.approve(this.routerAddress, approveTokenAmount, overrides)
       .then(async res=>{
@@ -642,36 +660,48 @@ export default {
         console.log(`Approve Token-${token.tokenName} error: `, err);
       })
     },
+    // exchangeType - Token2Token || WETH2Token || Token2WETH
+    getExchangeType(data) {
+      let type = 'Token2Token'
+      const fromIsETH = !data.tokenFrom && this.exchangeFromToken
+      const toIsETH = !data.tokenTo && this.exchangeToToken
+      const fromIsToken = data.tokenFrom && this.exchangeFromToken
+      const toIsToken = data.tokenTo && this.exchangeToToken
+
+      fromIsETH && toIsToken && (type = 'WETH2Token')
+      fromIsToken && toIsETH && (type = 'Token2WETH')
+      fromIsToken && toIsToken && (type = 'Token2Token')
+
+      return type
+    },
     async exchangeSubmit() {
-      if (this.currentProtocolType === 'v3') {
-        Toast('Comming Soon')
-        return 
-      }
-      if(!this.thirdLogin()) { return }
-      if(!this.connectedWallet()) { return }
+      if (this.currentProtocolType === 'v3') { Toast('Comming Soon'); return; }
+      if (!isLogin()) { Toast('Need Login'); return; }
+      if(!this.connectedWallet()) { return; }
       
       const data = this.getSubmitData()
       if (!this.checkData(data)) { return }
 
-      // fromToken is ETH or WETH
-      if (!data.tokenFrom && this.exchangeFromToken) {
-        // fromToken selected is ETH = WETH in Ropsten
-        const WETH_DATA = {
-          ...data,
-          tokenFrom: this.WETHAddress // For WETH tokenAddress
-        }
-        await this.exchangeWETH2Token(WETH_DATA)
-      } else { // fromToken is token and toToken is token too
-        if (!data.tokenTo && this.exchangeToToken) {
-          const WETH_DATA = {
-            ...data,
-            tokenTo: this.WETHAddress // For WETH tokenAddress
-          }
-          await this.exchangeToken2WETH(WETH_DATA)
-        } else {
-          await this.exchangeToken2Token(data)
-        }
+      const exchangeType = this.getExchangeType(data)
+      this.exchangeType = exchangeType
+
+      const selectedConnectAddress = getConnectedAddress()
+      const { amountin } = data
+      const gasInfo = _.cloneDeep(data.gasInfo)
+      this.sendMetadata = {
+        from: selectedConnectAddress,
+        to: selectedConnectAddress,
+        gas: gasInfo.gasLimit,
+        gasPrice: gasInfo.gasPrice,
+        value: amountin,
+        symbolName: this.exchangeFromToken['tokenName']
       }
+      
+      const gasPrice = data.gasInfo['gasPrice']
+      data.gasInfo['gasPrice'] = web3.utils.toWei(gasPrice, 'gwei')
+      this.exchangeData = _.cloneDeep(data)
+      console.log('exchangeData', this.exchangeData)
+      this.showTradeConfirm = true
     },
     async getGasPrice() {
       const { hasError, data } = await this.$store.dispatch('GetGasPriceByEtherscan');
@@ -699,13 +729,11 @@ export default {
       this.slippageKey = val
       isInput ? (this.slippageVal = this.slippageInput) : (this.slippageVal = val)
     },
-    handleNetworkChange(data) {
-      this.currentChainInfo = data.value;
-      metamaskNetworkChange(data, async (res)=>{
-        if (!res) {
-          await this.getTokenList(true)
-        }
-      })
+    async handleNetworkChange(data) {
+      const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
+      this.currentChainInfo = chainInfo
+      await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
+      await this.getTokenList(true)
     },
     handleProtocolChange(data) {
       this.currentProtocolType = data.value['id']
@@ -737,7 +765,29 @@ export default {
       const isEth = tokenInfo && tokenInfo['tokenName'] === 'ETH'
       const isWETH = tokenInfo && tokenInfo['tokenName'] === 'WETH'
       this.showApproveButton = !isEth && !isWETH
-    }
+    },
+    cancelExchange() {
+      this.showTradeConfirm = false
+      Toast('Cancel Transaction')
+    },
+    async confirmExchange() {
+      this.showTradeConfirm = false
+      const exchangeType = this.exchangeType
+      const data = _.cloneDeep(this.exchangeData)
+      switch(exchangeType) {
+        case 'WETH2Token':
+          const tokenFrom = this.WETHAddress // For WETH tokenAddress
+          await this.exchangeWETH2Token({...data, tokenFrom})
+          break;
+        case 'Token2WETH':
+          const tokenTo = this.WETHAddress // For WETH tokenAddress
+          await this.exchangeToken2WETH({...data, tokenTo})
+          break
+        case 'Token2Token':
+          await this.exchangeToken2Token(data)
+          break;
+      }
+    },
   },
   async created() {
     const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
