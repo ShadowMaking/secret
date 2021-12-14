@@ -25,84 +25,146 @@ import {
   Route,
   Trade,  
 } from "@uniswap/v3-sdk";
-console.log(V3SwapRouter)
 
+
+const netWorkId = 3
+console.log(netWorkId)
 const v3routerAddress = '0xE592427A0AEce92De3Edee1F18E0157C05861564'
 const weth = `0xc778417e063141139fce010982780140aa0cd5ab`; // Ropsten WETH9
 const uni = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"; // Ropsten UNI
-const dai = `0xad6d458402f60fd3bd25163575031acdce07538d`; // Ropsten DAI
-const factory = "0x1F98431c8aD98523631AE4a59f267346ea31F984"; // Ropten UniswapV3Factory
+// const dai = `0xad6d458402f60fd3bd25163575031acdce07538d`; // Ropsten DAI
+// const factory = "0x1F98431c8aD98523631AE4a59f267346ea31F984"; // Ropten UniswapV3Factory
 
+// const overrides = {
+//   gasLimit: 8000000,
+//   gasPrice: 20000000000,
+// };
 
-export const swapv3Router = () => {
+export const IUniswapV3Router = (type, data) => {//type = single and multiple
+
   return new Promise( async (resolve, reject) => {
+    console.log(data)
     const v3ROUTERContract = await getContractAt({ tokenAddress: v3routerAddress, abi: V3SwapRouter.abi })
     const tradeType = TradeType.EXACT_INPUT;
-    const ETHER = Ether.onChain(3);
-    const daiToken = new Token(3, dai, 18);
-    const uniToken = new Token(3, uni, 18);
-    const wethToken = new Token(3, weth, 18);
-    const currencyIn = daiToken;
-    const currencyOut = wethToken;
-
-    const feeAmount = FeeAmount.MEDIUM;
-    const sqrtRatioX96 = encodeSqrtRatioX96(1, 1);
-    const liquidity = 1_000_000;
-    const WETH = WETH9_[1];
+    // const ETHER = Ether.onChain(3);
+    const fromToken = new Token(netWorkId, data.tokenFrom, 18);
+    let toToken = new Token(netWorkId, data.tokenTo, 18);
+    const wethToken = new Token(netWorkId, weth, 18);
+    const overrides = {
+      gasLimit: data.gasInfo.gasLimit,
+      gasPrice: Number(data.gasInfo.gasPrice),
+    };
+    const amount = data.amountin;
     
-    const pool = new Pool(
-      daiToken,
-      wethToken,
-      feeAmount,
-      sqrtRatioX96,
-      liquidity,
-      TickMath.getTickAtSqrtRatio(sqrtRatioX96),
-      [
-        {
-          index: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[feeAmount]),
-          liquidityNet: liquidity,
-          liquidityGross: liquidity,
-        },
-        {
-          index: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[feeAmount]),
-          liquidityNet: -liquidity,
-          liquidityGross: liquidity,
-        },
-      ]
-    );
 
-    const DAIAmount = CurrencyAmount.fromRawAmount(daiToken, "100000000000");
+    // const WETH = WETH9_[1];
+    
+    const DAIAmount = CurrencyAmount.fromRawAmount(fromToken, "100000000000");
     const slippageTolerance = new Percent(5, 1);
     const deadline = Math.floor(Date.now() / 1000) + 60 * 30;
-    // const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = metamaskProvider.getSigner(0);
+    
     const recipient = window.ethereum.selectedAddress;
+    const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
+    const metamasksigner = metamaskProvider.getSigner(0);
 
-    // let user = metamaskProvider.getSigner(0);
-    // console.log(user)
+    let pool, tokenFromPool, tokenToPool, trade;
 
-    const trade = await Trade.fromRoute(
-      new Route([pool], daiToken, wethToken),
-      DAIAmount,
-      tradeType
-    );
-
+    if (type == 'single') {
+      pool = newPool(fromToken, toToken)
+      trade = await Trade.fromRoute(
+        new Route([pool], fromToken, wethToken),
+        DAIAmount,
+        tradeType
+      );
+    } else {
+      tokenFromPool = newPool(fromToken, wethToken)
+      toToken = new Token(netWorkId, uni, 18);//Ropsten support uni,dai,weth
+      tokenToPool = newPool(wethToken, toToken)
+      trade = await Trade.fromRoute(
+        new Route([tokenFromPool, tokenToPool], fromToken, toToken),
+        DAIAmount,
+        tradeType
+      );
+    }
+    
     const { calldata, value } = SwapRouter.swapCallParameters(trade, {
       slippageTolerance,
       recipient,
       deadline,
     });
+    let amountVal=ethers.utils.parseUnits(amount)
 
-    // let tx = await user.sendTransaction({
-    //   from: user.address,
-    //   to: SWAP_ROUTER.address,
+    metamasksigner.sendTransaction({
+      from: recipient,
+      to: v3ROUTERContract.address,
+      data: calldata,
+      ...overrides,
+      value: amountVal,
+    }).then(async tx=>{
+        tx.wait()
+        .then(async res=>{
+          resolve(res)
+        })
+        .catch(error => {
+          resolve(null)
+        })
+      })
+      .catch(error=>{
+        resolve(null)
+      })
+    // let tx = await metamasksigner.sendTransaction({
+    //   from: recipient,
+    //   to: v3ROUTERContract.address,
     //   data: calldata,
     //   ...overrides,
-    //   ...(value && !isZero(value) ? { value } : {}),
+    //   value: amountVal,
     // });
     // console.log(tx);
     // let res = await tx.wait();
     // console.log(res);
+  })
+}
+
+let newPool = (token1, token2) => {
+  const feeAmount = FeeAmount.MEDIUM;
+  const sqrtRatioX96 = encodeSqrtRatioX96(1, 1);
+  const liquidity = 1_000_000;
+  const thisPool = new Pool(
+    token1,
+    token2,
+    feeAmount,
+    sqrtRatioX96,
+    liquidity,
+    TickMath.getTickAtSqrtRatio(sqrtRatioX96),
+    [
+      {
+        index: nearestUsableTick(TickMath.MIN_TICK, TICK_SPACINGS[feeAmount]),
+        liquidityNet: liquidity,
+        liquidityGross: liquidity,
+      },
+      {
+        index: nearestUsableTick(TickMath.MAX_TICK, TICK_SPACINGS[feeAmount]),
+        liquidityNet: -liquidity,
+        liquidityGross: liquidity,
+      },
+    ]
+  )
+  return thisPool
+}
+
+export const approveV3Router = (approveToken) => {
+  return new Promise( async (resolve, reject) => {
+    console.log(approveToken)
+    const TokenContract = await getContractAt({ tokenAddress: approveToken.tokenAddress, abi: approveToken.abiJson })
+    const approveTokenAmount = ethers.constants.MaxUint256; // max
+    TokenContract.approve(v3routerAddress, approveTokenAmount, overrides)
+      .then(async res=>{
+        console.log(res)
+        res.wait()
+        .then(async txRes => {
+          console.log(txRes)
+        })
+      })
   })
 }
 

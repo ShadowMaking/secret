@@ -117,7 +117,7 @@ import { PROTOCOLList, PROTOCOLMAP } from '@/utils/swap.js'
 import StatusPop from '@/components/StatusPop';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
-import { swapv3Router } from '@/utils/v3swap.js'
+import { IUniswapV3Router, approveV3Router } from '@/utils/v3swap.js'
 
 Vue.use(Icon);
 Vue.use(Loading);
@@ -381,7 +381,7 @@ export default {
           console.log('success')
           await this.exchangeSuccess(res, data)
           this.showLoading = false
-          Toast(`Exchange Suucess`)
+          Toast(`Exchange Success`)
         })
         .catch(error => {
           this.showLoading = false
@@ -580,12 +580,17 @@ export default {
       return true
     },
     async approveSubmit() {
-      if (this.currentProtocolType === 'v3') {
-        Toast('Comming Soon')
-        return 
-      }
       if(!this.thirdLogin()) { return }
       if(!this.connectedWallet()) { return }
+      if (this.currentProtocolType === 'v3') {
+        
+        approveV3Router(this.exchangeFromToken).then(res => {
+          console.log(res)
+        })
+        // Toast('Comming Soon')
+        return 
+      }
+      
       const token = this.exchangeFromToken
       console.log(token)
       if (!token) {
@@ -637,27 +642,49 @@ export default {
         console.log(`Approve Token-${token.tokenName} error: `, err);
       })
     },
-    exchangeV3() {
-
-      swapv3Router().then(res => {
-        console.log(res)
+    async exchangeV3(type, data, isNeedApprove) {
+      console.log(type)
+      // if (isNeedApprove) {
+      //   const { hasError, isApprove } = await this.getUserAllowanceForToken()
+      //   const fromTokenIsWETH = this.exchangeFromToken && this.exchangeFromToken['tokenName'] === 'WETH'
+      //   if (!isApprove && type === 'from' && !fromTokenIsWETH) {
+      //     Toast(`Please Allow EigenSwap to use your ${this.exchangeFromToken&&this.exchangeFromToken['tokenName']}`)
+      //     return
+      //   }
+      // }
+      IUniswapV3Router(type, data).then(async res => {
+        if (res) {
+          console.log("swapv3success: ", res);
+          await this.exchangeSuccess(res, data)
+          this.showLoading = false
+        } else {
+          this.showLoading = false
+          Toast(`Exchange Failed`)
+          console.log("swapv3error: ", error);
+        }
       })
     },
     async exchangeSubmit() {
-      if (this.currentProtocolType === 'v3') {
-        // this.exchangeV3()
-        Toast('Comming Soon')
-        return
-      }
-
+      
       if(!this.thirdLogin()) { return }
       if(!this.connectedWallet()) { return }
       
       const data = this.getSubmitData()
       if (!this.checkData(data)) { return }
 
-      
       const netWorkIsROPSTEN = window.ethereum.chainId === CHAINIDMAP['ROPSTEN']
+      if (this.currentProtocolType === 'v3') {
+        if (!netWorkIsROPSTEN) { 
+          Toast('Comming Soon') 
+          return 
+        }
+        if (data.tokenFrom !== this.WETHAddress && data.tokenTo !== this.WETHAddress) {
+          this.exchangeV3('multiple', data)
+        } else {
+          this.exchangeV3('single', data)
+        }
+        return
+      }
       // fromToken is ETH or WETH
       if (!data.tokenFrom && this.exchangeFromToken) {
         // fromToken selected is ETH = WETH in Ropsten
