@@ -25,7 +25,7 @@
               <!-- Detail -->
               <div class="tabs-content detail-wraper">
                 <div class="detail-wraper-inner">
-                  <div class="gasFee"><span class="name">Estimated gas fee</span><span class="value">0.012 ETH</span></div>
+                  <div class="gasFee"><span class="name">Estimated gas fee</span><span class="value">{{ showValBySourceData('estimatedGasFee') }} ETH</span></div>
                   <div class="gasPrice"><span class="name">GasPrice</span><span class="value">{{ showValBySourceData('gasPrice') }} Gwei</span></div>
                   <div class="gasLimit"><span class="name">GasLimit</span><span class="value">{{ 21000 }}</span></div>
                 </div>
@@ -40,7 +40,9 @@
             </van-tab>
             <!-- DATA -->
             <van-tab title="DATA" name="data">
-              <div class="tabs-content data-wraper"></div>
+              <div class="tabs-content data-wraper">
+                {{ showValBySourceData('data') }}
+              </div>
             </van-tab>
           </van-tabs>
         </div>
@@ -108,9 +110,13 @@ export default {
           case 'gasPrice':
             return metadata.gasPrice
           case 'total':
-            return `${metadata.value} ${metadata.symbolName} + 0.012000 ETH` 
+            return `${metadata.value} ${metadata.symbolName} + ${metadata.estimatedGasFee} ETH` 
           case 'netInfo':
             return metadata && `${metadata.netInfo.name}`
+          case 'data':
+            return metadata && `${metadata.DATA}` || '0x'
+          case 'estimatedGasFee':
+            return metadata && `${metadata.estimatedGasFee}`
         }
       }
       return ''

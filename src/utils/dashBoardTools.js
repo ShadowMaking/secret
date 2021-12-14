@@ -194,3 +194,10 @@ export const isLogin = () => {
   }
   return true
 }
+
+// DATA fro Transaction
+export const getDATACode = (abi, functionName, params) => {
+  const iface = new ethers.utils.Interface(abi);
+  const datacode = iface.encodeFunctionData(`${functionName}`, params)
+  return datacode
+}

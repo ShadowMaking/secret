@@ -96,7 +96,7 @@ import { wait, prettyLog } from '@/utils/index'
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
-import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getConnectedAddress, initRPCProvider, getContractWallet, isLogin } from '@/utils/dashBoardTools';
+import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getConnectedAddress, initRPCProvider, getContractWallet, isLogin, getDATACode } from '@/utils/dashBoardTools';
 
 Vue.use(Popup);
 Vue.use(Toast)
@@ -159,7 +159,10 @@ export default {
     exchangeUSForSelectedToken() {
       const selectedToken = this.selectedToken
       if (!selectedToken) { return 0 }
-      return selectedToken && (selectedToken.balance * selectedToken.exchangeForUS).toFixed(2)
+      
+      const value = ethers.utils.formatUnits(selectedToken.balance, selectedToken.decimals)
+      return selectedToken && (value * selectedToken.exchangeForUS).toFixed(2)
+      // return selectedToken && (selectedToken.balance * selectedToken.exchangeForUS).toFixed(2)
     },
     // Send for ETH ; Transfer for token
     transactionType() {
@@ -290,7 +293,26 @@ export default {
 
       const data = { gasPrice, ...sendData }
       const tokenName = this.selectedToken.tokenName
+      
       this.sendType = tokenName === 'ETH' ? 'eth':'token'
+
+      let datacode = '0x'
+      let tempgasfixlimit = '0'
+      if (this.sendType !== 'eth') {
+        const abi = this.selectedToken.abiJson
+        const decimals = BigNumber(10).pow(this.selectedToken.decimals).toNumber() // 1000000000000000000
+        const amount = this.web3.utils.toHex(BigNumber(Number(sendData.type1Value*decimals)).toFixed())
+        // const params = [sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') }]
+        const params = [sendData.toAddress, amount]
+        datacode = getDATACode(abi, 'transfer', params)
+
+        const contractWallet = await getContractWallet(this)
+        let contractWithSigner = new ethers.Contract(this.selectedToken.tokenAddress, this.selectedToken.abiJson, contractWallet)
+        tempgasfixlimit = await contractWithSigner.estimateGas.transfer(sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
+      }
+      console.log('datacode', datacode)
+      console.log('tempgasfixlimit', tempgasfixlimit)
+      
       this.sendMetadata = {
         from: selectedConnectAddress,
         to: this.addressForRecipient,
@@ -299,10 +321,11 @@ export default {
         value: this.type1Value,
         symbolName: tokenName,
         netInfo: this.currentChainInfo,
+        DATA: datacode,
+        estimatedGasFee: utils.formatEther(tempgasfixlimit) // todo
       }
       this.showTradeConfirm = true
       return
-
       console.log('Transaction Data', data)
       if (this.selectedToken.tokenName === 'ETH') { // send ETH
         this.sendType = 'eth'
@@ -312,7 +335,7 @@ export default {
         this.sendToken(data)
       }
     },
-    async getContractWallet() {
+    /* async getContractWallet() {
       const url = this.currentChainInfo.rpcUrls[0]
       const provider = initRPCProvider(url)
       const userId = getInfoFromStorageByKey('gUID')
@@ -323,7 +346,7 @@ export default {
 
       const wallet = new ethers.Wallet(privateKey, provider);
       return wallet
-    },
+    }, */
     async sendETH(data) {
       this.showLoading = true
       // const contractWallet = await this.getContractWallet()
@@ -365,10 +388,11 @@ export default {
         selectedConnectAddress,
         toAddress: sendData.toAddress
       }
-      const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(sendData.type1Value*1000000000000000000)).toFixed())
+      const decimals = BigNumber(10).pow(this.selectedToken.decimals).toNumber() // 1000000000000000000
+      // const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(sendData.type1Value*1000000000000000000)).toFixed())
+      const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(sendData.type1Value*decimals)).toFixed())
       
       this.showLoading = true
-      // const contractWallet = await this.getContractWallet()
       const contractWallet = await getContractWallet(this)
       let contractWithSigner = new ethers.Contract(this.selectedToken.tokenAddress, this.selectedToken.abiJson, contractWallet)
       const logData = {
