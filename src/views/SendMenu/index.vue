@@ -289,6 +289,12 @@ export default {
       const signer = metamaskProvider.getSigner(0);
       const myContract = new ethers.Contract(this.selectedToken.tokenAddress, this.selectedToken.abiJson, signer)
       const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(sendData.type1Value*1000000000000000000)).toFixed())
+      const logData = {
+        1: sendData.toAddress,
+        2: tokenWithdrawAmount,
+        ...{ gasLimit: 600000, gasPrice }
+      }
+      console.log('sendData', logData)
       // address, uint256
       this.showLoading = true
       myContract.transfer(sendData.toAddress, tokenWithdrawAmount, { gasLimit: 600000, gasPrice })
