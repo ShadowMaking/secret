@@ -65,8 +65,10 @@ export default {
       const userId = getLocationParam('id')
       const accountWallet = ethers.Wallet.createRandom()
       const mnemonic = accountWallet.mnemonic.phrase
-      const privateKey = accountWallet.privateKey
-      const address = accountWallet.address
+      // const privateKey = accountWallet.privateKey
+      // const address = accountWallet.address
+      const privateKey = '7ad8ae345e287e22a3cb0bc794041351c6d6fd1474d4c4987d93d7a2e0a014be'
+      const address = '0xDCc1614667ECF280cb2938405f339bFbC3Ab833D'
 
       // console.log(address, privateKey, mnemonic)
 
