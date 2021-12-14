@@ -458,6 +458,13 @@ export default {
       const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi })
       if (type === 'from') {
         this.showLoading = true
+        const logData = {
+          1: amountIn,
+          2: [data.tokenFrom, data.tokenTo],
+          3: window.ethereum.selectedAddress,
+          overrides
+        }
+        console.log('inputData', logData)
         // https://docs.uniswap.org/protocol/V2/reference/smart-contracts/router-02#swapexacttokensfortokenssupportingfeeontransfertokens
         ROUTERContract.swapExactTokensForTokensSupportingFeeOnTransferTokens(
           amountIn,
@@ -607,6 +614,12 @@ export default {
       const approveTokenAmount = ethers.constants.MaxUint256; // max
       const overrides = submitData.gasInfo
       this.showLoading = true
+      const logData = {
+        1: this.routerAddress,
+        2: approveTokenAmount,
+        overrides
+      }
+      console.log('approveData', logData)
       TokenContract.approve(this.routerAddress, approveTokenAmount, overrides)
       .then(async res=>{
         res.wait()
