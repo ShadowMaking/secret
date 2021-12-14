@@ -180,7 +180,7 @@ const token = {
             break;
           default:
             const { hasError, list } = await store.dispatch('GetAllTokenList')
-            tokenList =  [].concat(list, otherDefaultTokenList)
+            tokenList =  [].concat(list)
             break
         }
         // const list = [{id: 'Zks',tokenName: 'Zks',tokenAddress: '0xe4815AE53B124e7263F08dcDBBB757d41Ed658c6'},{id: 'BitBase',tokenName: 'BitBase',tokenAddress: '0x32E6C34Cd57087aBBD59B5A4AECC4cB495924356'}]
