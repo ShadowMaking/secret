@@ -312,7 +312,7 @@ export default {
         this.sendToken(data)
       }
     },
-    /* async getContractWallet() {
+    async getContractWallet() {
       const url = this.currentChainInfo.rpcUrls[0]
       const provider = initRPCProvider(url)
       const userId = getInfoFromStorageByKey('gUID')
@@ -323,11 +323,14 @@ export default {
 
       const wallet = new ethers.Wallet(privateKey, provider);
       return wallet
-    }, */
+    },
     async sendETH(data) {
       this.showLoading = true
       // const contractWallet = await this.getContractWallet()
       const contractWallet = await getContractWallet(this)
+      // const transactionCount = await contractWallet.getTransactionCount()
+      // console.log('transactionCount', transactionCount)
+      
       const selectedConnectAddress = getConnectedAddress()
       const transferAmount = utils.parseEther(data.type1Value);
       const sendData = {
@@ -336,7 +339,8 @@ export default {
         gasLimit: web3.utils.toHex('21000'),
         gasPrice: web3.utils.toHex(web3.utils.toWei(data.gasPrice, 'gwei')),
         value: transferAmount.toHexString(),
-        chainId: this.currentChainInfo['id']
+        chainId: this.currentChainInfo['id'],
+        // nonce: transactionCount + 1,
       }
       console.log('sendData', sendData)
       contractWallet.sendTransaction({...sendData})
@@ -367,6 +371,12 @@ export default {
       // const contractWallet = await this.getContractWallet()
       const contractWallet = await getContractWallet(this)
       let contractWithSigner = new ethers.Contract(this.selectedToken.tokenAddress, this.selectedToken.abiJson, contractWallet)
+      const logData = {
+        1: sendData.toAddress,
+        2: tokenWithdrawAmount,
+        ...{ gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') }
+      }
+      console.log('sendData', logData)
       // address, uint256
       contractWithSigner.transfer(sendData.toAddress, tokenWithdrawAmount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
       .then(async tx=>{
