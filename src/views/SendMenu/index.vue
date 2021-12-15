@@ -223,7 +223,8 @@ export default {
       this.showTradeConfirm = false
       Toast('Cancel Transaction')
     },
-    confirmSend() {
+    async confirmSend() {
+      this.showLoading = true
       this.showTradeConfirm = false
       const sendType = this.sendType
       const data = {
@@ -234,9 +235,9 @@ export default {
         type2Value: this.type2Value,
       }
       if (sendType === 'eth') {
-        this.sendETH(data)
+        await this.sendETH(data)
       } else {
-        this.sendToken(data)
+        await this.sendToken(data)
       }
     },
     checkData(data) {
@@ -284,6 +285,7 @@ export default {
       }
       
       if (!this.checkData(sendData)) { return }
+      this.showLoading = true
 
       let gasPrice = '20' // 20 Gwei
       if (this.selectedGasType) {
@@ -324,6 +326,7 @@ export default {
         DATA: datacode,
         estimatedGasFee: utils.formatEther(tempgasfixlimit) // todo
       }
+      this.showLoading = false
       this.showTradeConfirm = true
       return
       console.log('Transaction Data', data)
@@ -348,7 +351,6 @@ export default {
       return wallet
     }, */
     async sendETH(data) {
-      this.showLoading = true
       // const contractWallet = await this.getContractWallet()
       const contractWallet = await getContractWallet(this)
       // const transactionCount = await contractWallet.getTransactionCount()

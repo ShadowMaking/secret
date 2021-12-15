@@ -602,7 +602,7 @@ export default {
       const allowanceTokenData = {
         userId: getFromStorage('gUID'),
         network_id: chainId,
-        token_address: token['tokenAddress']||this.WETHAddress,
+        token_address: token['tokenAddress'],
         user_address: selectedConnectAddress,
         swap_address: this.routerAddress,
       }
@@ -638,10 +638,10 @@ export default {
         return
       }
       // fromToken is ETH
-      /* if (token && !token['tokenAddress']) {
+      if (token && !token['tokenAddress']) {
         Toast('Do not need approve')
         return
-      } */
+      }
 
       this.showLoading = true
       const { hasError, isApprove, allowanceTokenData } = await this.getUserAllowanceForToken()
@@ -660,7 +660,7 @@ export default {
       this.approveMetadata = {
         userAddress: selectedConnectAddress,
         tokenName: token.tokenName,
-        tokenAddress: token.tokenAddress||this.WETHAddress,
+        tokenAddress: token.tokenAddress,
         gas: 21000,
         gasPrice,
         netInfo: this.currentChainInfo,
@@ -828,20 +828,21 @@ export default {
       
       const isEth = token && token['tokenName'] === 'ETH'
       const isWETH = token && token['tokenName'] === 'WETH'
-      const { hasError, isApprove, allowanceTokenData } = await this.getUserAllowanceForToken()
-      if (!isApprove) {
-        this.showLoading = false
-        Toast('need Approved')
-        return
+      if (!(isEth || isWETH)) {
+        const { hasError, isApprove, allowanceTokenData } = await this.getUserAllowanceForToken()
+        if (!isApprove) {
+          this.showLoading = false
+          Toast('need Approved')
+          return
+        }
       }
-      
 
       const exchangeType = this.getExchangeType(data)
       this.exchangeType = exchangeType
 
-      const { datacode, tempgasfixlimit } = await this.getDATAForTransaction(exchangeType)
+      /* const { datacode, tempgasfixlimit } = await this.getDATAForTransaction(exchangeType)
       console.log('datacode',datacode)
-      console.log('tempgasfixlimit',tempgasfixlimit)
+      console.log('tempgasfixlimit',tempgasfixlimit) */
 
       const selectedConnectAddress = getConnectedAddress()
       const { amountin } = data
@@ -854,8 +855,8 @@ export default {
         value: amountin,
         symbolName: this.exchangeFromToken['tokenName'],
         netInfo: this.currentChainInfo,
-        DATA: datacode,
-        estimatedGasFee: utils.formatEther(tempgasfixlimit) // todo
+        DATA: '0x',
+        estimatedGasFee: '0'
       }
 
       const gasPrice = data.gasInfo['gasPrice']
@@ -923,11 +924,10 @@ export default {
       this.setShowApproveButton()
     },
     setShowApproveButton() {
-      /* const tokenInfo = this.exchangeFromToken
+      const tokenInfo = this.exchangeFromToken
       const isEth = tokenInfo && tokenInfo['tokenName'] === 'ETH'
       const isWETH = tokenInfo && tokenInfo['tokenName'] === 'WETH'
-      this.showApproveButton = !isEth && !isWETH */
-      this.showApproveButton = true
+      this.showApproveButton = !isEth && !isWETH
     },
     cancelExchange() {
       this.showTradeConfirm = false
