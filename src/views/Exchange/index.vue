@@ -155,7 +155,8 @@ export default {
       popStatus: "success",
       timeTxt: 'Will take effect in one minute',
       // *********************** uniswap2 test ************************************/
-      routerAddress: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", // Uniswap v2 Router02
+      routerAddress: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", // Uniswap v2 
+      v3routerAddress: "0xE592427A0AEce92De3Edee1F18E0157C05861564", // Uniswap v3 Router02
       WETHAddress: "0xc778417e063141139fce010982780140aa0cd5ab", // Ropsten WETH
       // *********************** uniswap2 test ************************************/
       currentProtocolType: 'v2',
@@ -563,7 +564,7 @@ export default {
         network_id: web3.utils.hexToNumberString(chainId),
         token_address: token['tokenAddress'],
         user_address: userAddress,
-        swap_address: this.routerAddress,
+        swap_address: (this.currentProtocolType === 'v3') ? this.v3routerAddress : this.routerAddress,
       }
       const { hasError, isApprove } = await this.$store.dispatch('GetUserAllowanceForToken', {...allowanceTokenData})
       return { hasError, isApprove, allowanceTokenData }
@@ -615,6 +616,7 @@ export default {
               ...allowanceTokenData,
               allowance: "Infinite"
             }
+            saveTokenData.swap_address = this.v3routerAddress
             const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
             if (!hasError) {
               console.log(`SaveUserAllowanceForToken  Success`)
