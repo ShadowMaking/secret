@@ -120,7 +120,7 @@ import selectItem from '@/components/SelectItem/index';
 import ConfirmModal from '@/components/ConfirmModal';
 import ApproveModal from '@/components/ApproveModal';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
-import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getContractAt, getContractAtForApprove, getConnectedAddress, initRPCProvider, isLogin } from '@/utils/dashBoardTools';
+import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getContractAt, getContractAtForApprove, getConnectedAddress, initRPCProvider, isLogin, getDATACode } from '@/utils/dashBoardTools';
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
@@ -239,7 +239,7 @@ export default {
         return false
       } */
       if (!data.tokenFrom && this.exchangeFromToken && !data.tokenTo && this.exchangeToToken) {
-        Toast.fail('Nonsupport')
+        Toast.fail('No support')
         return false
       }
       if (!this.exchangeFromToken || !this.exchangeToToken) {
@@ -602,7 +602,7 @@ export default {
       const allowanceTokenData = {
         userId: getFromStorage('gUID'),
         network_id: chainId,
-        token_address: token['tokenAddress'],
+        token_address: token['tokenAddress']||this.WETHAddress,
         user_address: selectedConnectAddress,
         swap_address: this.routerAddress,
       }
@@ -638,10 +638,10 @@ export default {
         return
       }
       // fromToken is ETH
-      if (token && !token['tokenAddress']) {
+      /* if (token && !token['tokenAddress']) {
         Toast('Do not need approve')
         return
-      }
+      } */
 
       this.showLoading = true
       const { hasError, isApprove, allowanceTokenData } = await this.getUserAllowanceForToken()
@@ -660,7 +660,7 @@ export default {
       this.approveMetadata = {
         userAddress: selectedConnectAddress,
         tokenName: token.tokenName,
-        tokenAddress: token.tokenAddress,
+        tokenAddress: token.tokenAddress||this.WETHAddress,
         gas: 21000,
         gasPrice,
         netInfo: this.currentChainInfo,
@@ -729,16 +729,119 @@ export default {
 
       return type
     },
+    // TODO gyy1
+    async getDATAForTransaction(exchangeType) {
+      const abi = IUniswapV2Router02.abi;
+      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi }, this)
+      const data = this.getSubmitData()
+      const overrides = { ...data.gasInfo }
+      const gasPrice = overrides['gasPrice']
+      overrides['gasPrice'] = web3.utils.toWei(gasPrice, 'gwei')
+      const selectedConnectAddress = getConnectedAddress()
+      let datacode = '0x'
+      let tempgasfixlimit = '0'
+      let fucName = ''
+      let params = []
+      switch(exchangeType) {
+        case 'WETH2Token':
+          fucName = 'swapExactETHForTokensSupportingFeeOnTransferTokens';
+          params.push(
+            0,
+            [this.WETHAddress, data.tokenTo],
+            selectedConnectAddress,
+            ethers.constants.MaxUint256,
+            {
+              ...overrides,
+              value: amount,
+            })
+          
+          tempgasfixlimit = await ROUTERContract.estimateGas[fucName](
+            0,
+            [this.WETHAddress, data.tokenTo],
+            selectedConnectAddress,
+            ethers.constants.MaxUint256,
+            {
+              ...overrides,
+              value: amount,
+            }
+          )
+          break;
+        case 'Token2Token':
+          fucName = 'swapExactTokensForTokensSupportingFeeOnTransferTokens';
+          const amountIn = ethers.utils.parseUnits(data.amountin);
+          params.push(
+            amountIn,
+            0,
+            [data.tokenFrom, data.tokenTo],
+            selectedConnectAddress,
+            ethers.constants.MaxUint256,
+            overrides
+          )
+          tempgasfixlimit = await ROUTERContract.estimateGas[fucName](
+            amountIn,
+            0,
+            [data.tokenFrom, data.tokenTo],
+            selectedConnectAddress,
+            ethers.constants.MaxUint256,
+            overrides
+          )
+          break;
+        case 'Token2WETH':
+          fucName = 'swapExactTokensForETHSupportingFeeOnTransferTokens';
+          let amount = ethers.utils.parseUnits(this.exchangeFrom);
+          params.push(
+            amount,
+            0,
+            [data.tokenFrom, this.WETHAddress],
+            selectedConnectAddress,
+            ethers.constants.MaxUint256,
+            { ...overrides }
+          )
+          tempgasfixlimit = await ROUTERContract.estimateGas[fucName](
+            amount,
+            0,
+            [data.tokenFrom, this.WETHAddress],
+            selectedConnectAddress,
+            ethers.constants.MaxUint256,
+            { ...overrides }
+          )
+          break;
+      }
+      datacode = getDATACode(abi, fucName, params)
+      return { datacode, tempgasfixlimit }
+    },
     async exchangeSubmit() {
       if (this.currentProtocolType === 'v3') { Toast('Comming Soon'); return; }
       if (!isLogin()) { Toast('Need Login'); return; }
       if(!this.connectedWallet()) { return; }
-      
+      const token = this.exchangeFromToken
+      console.log(token)
+      if (!token) {
+        Toast('Choose Token')
+        return
+      }
+
       const data = this.getSubmitData()
-      if (!this.checkData(data)) { return }
+      if (!this.checkData(data)) { this.showLoading = false; return }
+
+      this.showLoading = true
+      
+      const isEth = token && token['tokenName'] === 'ETH'
+      const isWETH = token && token['tokenName'] === 'WETH'
+      const { hasError, isApprove, allowanceTokenData } = await this.getUserAllowanceForToken()
+      if (!isApprove) {
+        this.showLoading = false
+        Toast('need Approved')
+        return
+      }
+      
 
       const exchangeType = this.getExchangeType(data)
       this.exchangeType = exchangeType
+
+      const { datacode, tempgasfixlimit } = await this.getDATAForTransaction(exchangeType)
+      console.log('datacode',datacode)
+      console.log('tempgasfixlimit',tempgasfixlimit)
 
       const selectedConnectAddress = getConnectedAddress()
       const { amountin } = data
@@ -751,12 +854,15 @@ export default {
         value: amountin,
         symbolName: this.exchangeFromToken['tokenName'],
         netInfo: this.currentChainInfo,
+        DATA: datacode,
+        estimatedGasFee: utils.formatEther(tempgasfixlimit) // todo
       }
 
       const gasPrice = data.gasInfo['gasPrice']
       data.gasInfo['gasPrice'] = web3.utils.toWei(gasPrice, 'gwei')
       this.exchangeData = _.cloneDeep(data)
       console.log('exchangeData', this.exchangeData)
+      this.showLoading = false
       this.showTradeConfirm = true
     },
     async getGasPrice() {
@@ -817,10 +923,11 @@ export default {
       this.setShowApproveButton()
     },
     setShowApproveButton() {
-      const tokenInfo = this.exchangeFromToken
+      /* const tokenInfo = this.exchangeFromToken
       const isEth = tokenInfo && tokenInfo['tokenName'] === 'ETH'
       const isWETH = tokenInfo && tokenInfo['tokenName'] === 'WETH'
-      this.showApproveButton = !isEth && !isWETH
+      this.showApproveButton = !isEth && !isWETH */
+      this.showApproveButton = true
     },
     cancelExchange() {
       this.showTradeConfirm = false
@@ -852,7 +959,19 @@ export default {
       this.showApproveModal = false
 
       const token = this.exchangeFromToken
-      const TokenContract = await getContractAt({ tokenAddress: token.tokenAddress, abi: token.abiJson }, this)
+      let tokenAddress;
+      let tokenAbi;
+      const isEth = token && token['tokenName'] === 'ETH'
+      const isWETH = token && token['tokenName'] === 'WETH'
+      if (isEth) {
+        tokenAddress = this.WETHAddress
+        const WETHToken = _.find(this.allTokenList, {tokenName: 'WETH'})
+        tokenAbi = WETHToken && WETHToken['abiJson']
+      } else {
+        tokenAddress = token.tokenAddress
+        tokenAbi = token.abiJson
+      }
+      const TokenContract = await getContractAt({ tokenAddress, abi: tokenAbi }, this)
       const approveTokenAmount = ethers.constants.MaxUint256; // max
       const data = _.cloneDeep(this.approveData)
       const overrides = data.gasInfo
@@ -888,6 +1007,7 @@ export default {
             console.log('SaveUserAllowanceForToken Error', error)
           }
           this.showLoading = false
+          Toast(`Approve ${token.tokenName} Success`)
         })
         .catch(error=>{
           this.showLoading = false
