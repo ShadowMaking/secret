@@ -43,7 +43,6 @@ const uni = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"; // Ropsten UNI
 export const IUniswapV3Router = (type, data) => {//type = single and multiple
 
   return new Promise( async (resolve, reject) => {
-    console.log(data)
     const v3ROUTERContract = await getContractAt({ tokenAddress: v3routerAddress, abi: V3SwapRouter.abi })
     const tradeType = TradeType.EXACT_INPUT;
     // const ETHER = Ether.onChain(3);
@@ -152,18 +151,26 @@ let newPool = (token1, token2) => {
   return thisPool
 }
 
+const overridesApprove = {
+  gasLimit: 8000000,
+  gasPrice: 20000000000,
+};
 export const approveV3Router = (approveToken) => {
   return new Promise( async (resolve, reject) => {
-    console.log(approveToken)
-    const TokenContract = await getContractAt({ tokenAddress: approveToken.tokenAddress, abi: approveToken.abiJson })
+   const TokenContract = await getContractAt({ tokenAddress: approveToken.tokenAddress, abi: approveToken.abiJson })
     const approveTokenAmount = ethers.constants.MaxUint256; // max
-    TokenContract.approve(v3routerAddress, approveTokenAmount, overrides)
+    TokenContract.approve(v3routerAddress, approveTokenAmount, overridesApprove)
       .then(async res=>{
         console.log(res)
         res.wait()
         .then(async txRes => {
           console.log(txRes)
+          resolve(txRes)
+        }).catch(error => {
+          resolve(null)
         })
+      }).catch(error => {
+        resolve(null)
       })
   })
 }

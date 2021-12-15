@@ -589,14 +589,6 @@ export default {
     async approveSubmit() {
       if(!this.thirdLogin()) { return }
       if(!this.connectedWallet()) { return }
-      if (this.currentProtocolType === 'v3') {
-        
-        approveV3Router(this.exchangeFromToken).then(res => {
-          console.log(res)
-        })
-        // Toast('Comming Soon')
-        return 
-      }
       
       const token = this.exchangeFromToken
       console.log(token)
@@ -613,6 +605,28 @@ export default {
       if (isApprove) {
         Toast('Already Approved')
         return
+      }
+      if (this.currentProtocolType === 'v3') {
+        approveV3Router(this.exchangeFromToken).then(async res => {
+          console.log(res)
+          if (res) {
+            Toast('Approve success')
+            const saveTokenData = {
+              ...allowanceTokenData,
+              allowance: "Infinite"
+            }
+            const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
+            if (!hasError) {
+              console.log(`SaveUserAllowanceForToken  Success`)
+            } else {
+              console.log('SaveUserAllowanceForToken Error', error)
+            }
+          } else {
+            Toast('Approve Failed')
+          }
+        })
+        // Toast('Comming Soon')
+        return 
       }
       const submitData = this.getSubmitData()
       const TokenContract = await getContractAt({ tokenAddress: token.tokenAddress, abi: token.abiJson })
@@ -691,9 +705,12 @@ export default {
           Toast('Comming Soon') 
           return 
         }
-        if (data.tokenFrom !== this.WETHAddress && data.tokenTo !== this.WETHAddress) {
+        console.log(data)//fromToken or toToken is not ETH,WETH
+        if (data.tokenFrom !== this.WETHAddress && data.tokenTo !== this.WETHAddress && data.tokenFrom && data.tokenTo) {
           this.exchangeV3('multiple', data)
         } else {
+          !data.tokenFrom && (data.tokenFrom = this.WETHAddress)
+          !data.tokenTo && (data.tokenTo = this.WETHAddress)
           this.exchangeV3('single', data)
         }
         return
