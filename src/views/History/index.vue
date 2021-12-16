@@ -21,11 +21,12 @@
 import Vue from 'vue';
 import web3 from 'web3';
 import _ from 'lodash';
-import { Search } from 'vant';
+import { Search, Toast } from 'vant';
 import { generateTransactionList } from '@/utils/index';
 import TransactionList from '@/components/TransactionList/TransactionList';
 
 Vue.use(Search);
+Vue.use(Toast);
 
 export default {
   name: 'Home',
@@ -52,7 +53,7 @@ export default {
     searchAllTrasanctionList() {
       if(!this.connectedWallet()) { return }
       this.showLoading = true
-      const selectedConnectAddress = window.ethereum.selectedAddress
+      const selectedConnectAddress = window.ethereum.selectedAddress.toLowerCase()
       let searchParam = {
         action: 'search_both_sides',//search_l2
         page: this.currentPage,
@@ -96,7 +97,7 @@ export default {
       const chainId = window.ethereum && window.ethereum.chainId;
       const userAddress = window.ethereum && window.ethereum.selectedAddress;
       if (!chainId || !userAddress) {
-        console.log('Need Connect Wallet')
+        Toast('Need Connect Wallet')
         return false
       }
       return true

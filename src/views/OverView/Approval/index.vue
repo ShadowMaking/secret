@@ -63,6 +63,7 @@ export default {
       userId: getFromStorage('gUID'),
       currentChainInfo: null,
       myTokeList: [],
+      userAddress: '',
     }
   },
   components: {
@@ -175,7 +176,7 @@ export default {
       return true
     },
     async getTokenList() {
-      const selectedConnectAddress = window.ethereum.selectedAddress;
+      const selectedConnectAddress = this.userAddress;
       if (!selectedConnectAddress) {
          return
       }
@@ -191,7 +192,7 @@ export default {
         console.log('can detect userID after third login') 
         return
       }
-      const selectedConnectAddress = window.ethereum.selectedAddress;
+      const selectedConnectAddress = this.userAddress;
       if (!selectedConnectAddress) {
         return
       }
@@ -209,8 +210,7 @@ export default {
     },
   },
   mounted() {
-    this.getTokenList()
-    this.getApprovalList()
+    if(!this.connectedWallet()) { return }
   },
   computed: {
     getTokenName() {
@@ -226,6 +226,9 @@ export default {
   created (){
     this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
     window.ethereum && (this.defaultNetWork = web3.utils.hexToNumber(window.ethereum.chainId))
+    window.ethereum && window.ethereum.selectedAddress && (this.userAddress = (window.ethereum.selectedAddress).toLowerCase());
+    this.getTokenList()
+    this.getApprovalList()
   }
 }
 </script>
