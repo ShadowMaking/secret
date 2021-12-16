@@ -261,6 +261,7 @@ export default {
       }
       return true
     },
+
     async sendSubmit() {
       /* if (!window.ethereum) {
         Toast('need install metamask')
@@ -282,6 +283,12 @@ export default {
         selectedToken: this.selectedToken,
         type1Value: this.type1Value,
         type2Value: this.type2Value,
+      }
+
+      const ETHToken = _.find(this.assetsTokenList, {tokenName: 'ETH'})
+      if (ETHToken && ETHToken.balance.lte(0)) {
+        Toast('Not Enough ETH')
+        return
       }
       
       if (!this.checkData(sendData)) { return }

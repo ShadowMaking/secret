@@ -612,6 +612,13 @@ export default {
       const { hasError, isApprove } = await this.$store.dispatch('GetUserAllowanceForToken', {...allowanceTokenData})
       return { hasError, isApprove, allowanceTokenData }
     },
+    hasBalance() {
+      const ETHToken = _.find(this.assetsTokenList, {tokenName: 'ETH'})
+      if (ETHToken && ETHToken.balance.lte(0)) {
+        return false
+      }
+      return true
+    },
     connectedWallet() {
       const chainId = this.currentChainInfo && this.currentChainInfo['id']
       const selectedConnectAddress = getConnectedAddress()
@@ -631,6 +638,12 @@ export default {
         return
       }
       if(!this.connectedWallet()) { return }
+
+      if (!this.hasBalance()) {
+        Toast('Not Enough ETH')
+        return
+      }
+      
       const token = this.exchangeFromToken
       console.log(token)
       if (!token) {
@@ -814,6 +827,10 @@ export default {
       if (this.currentProtocolType === 'v3') { Toast('Comming Soon'); return; }
       if (!isLogin()) { Toast('Need Login'); return; }
       if(!this.connectedWallet()) { return; }
+      if (!this.hasBalance()) {
+        Toast('Not Enough ETH')
+        return
+      }
       const token = this.exchangeFromToken
       console.log(token)
       if (!token) {
