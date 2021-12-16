@@ -118,6 +118,7 @@ import StatusPop from '@/components/StatusPop';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
 import { IUniswapV3Router, approveV3Router } from '@/utils/v3swap.js'
+import { IUniswapV2Router } from '@/utils/v2swap.js'
 
 Vue.use(Icon);
 Vue.use(Loading);
@@ -697,6 +698,12 @@ export default {
       
       if(!this.thirdLogin()) { return }
       if(!this.connectedWallet()) { return }
+      // if (this.currentProtocolType === 'v2') {
+      //   IUniswapV2Router('type', 1).then(async res => {
+      //     console.log(res)
+      //   })
+      //   return
+      // }
       
       const data = this.getSubmitData()
       if (!this.checkData(data)) { return }
