@@ -24,6 +24,9 @@ import _ from 'lodash';
 import { Search, Toast } from 'vant';
 import { generateTransactionList } from '@/utils/index';
 import TransactionList from '@/components/TransactionList/TransactionList';
+import { getConnectedAddress, isLogin } from '@/utils/dashBoardTools';
+import { getInfoFromStorageByKey } from '@/utils/storage';
+import { CHAINMAP } from '@/utils/netWorkForToken';
 
 Vue.use(Search);
 Vue.use(Toast);
@@ -46,14 +49,20 @@ export default {
       showNoMore: false,
       searchValue: '',
       isSearch: false,
-      defaultNetWork: 1,
+      currentChainInfo: null,
     }
+  },
+  computed: {
+    defaultNetWork() {
+      const info = getInfoFromStorageByKey('netInfo')
+      return info && info['id'] || 1
+    },
   },
   methods: {
     searchAllTrasanctionList() {
       if(!this.connectedWallet()) { return }
       this.showLoading = true
-      const selectedConnectAddress = window.ethereum.selectedAddress.toLowerCase()
+      const selectedConnectAddress = getConnectedAddress()
       let searchParam = {
         action: 'search_both_sides',//search_l2
         page: this.currentPage,
@@ -95,20 +104,33 @@ export default {
       this.searchAllTrasanctionList()
     },
     connectedWallet() {
-      const chainId = window.ethereum && window.ethereum.chainId;
-      const userAddress = window.ethereum && window.ethereum.selectedAddress;
-      if (!chainId || !userAddress) {
+      const chainId = this.currentChainInfo && this.currentChainInfo['id']
+      const selectedConnectAddress = getConnectedAddress()
+      console.log(chainId)
+      console.log(selectedConnectAddress)
+      if (!chainId || !selectedConnectAddress) {
         Toast('Need Connect Wallet')
         return false
       }
       return true
     },
   },
-  created (){
+  async created (){
     // window.onscroll = _.throttle(this.onScroll)
     window.addEventListener('scroll', this.onScroll, true)
-    window.ethereum && (this.defaultNetWork = web3.utils.hexToNumber(window.ethereum.chainId))
+    const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
+    if (netInfo) {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
+    } else {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
+    }
     this.searchAllTrasanctionList()
+  },
+  mounted() {
+    if (!isLogin()) {
+      Toast('Need Login')
+      return
+    }
   },
   beforeDestroy() {
     window.removeEventListener("scroll", this.onScroll, true);

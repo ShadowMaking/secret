@@ -500,6 +500,11 @@ export default {
   },
   async created() {
     this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
+    this.netWorkList.map(item => {
+      if (item.id == this.defaultNetWork) {
+        this.defaultIcon = item.icon
+      }
+    })
     const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
     if (netInfo) {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
@@ -507,11 +512,6 @@ export default {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
     await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
-    this.netWorkList.map(item => {
-      if (item.id == this.defaultNetWork) {
-        this.defaultIcon = item.icon
-      }
-    })
   },
   async mounted() {
     if (!isLogin()) {

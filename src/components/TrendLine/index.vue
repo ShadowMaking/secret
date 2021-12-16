@@ -18,8 +18,10 @@
 <script>
 import _ from 'lodash';
 import * as ethers from 'ethers';
-import { getDefaultETH } from '@/utils/dashBoardTools';
+import { getDefaultETHAssets, getConnectedAddress, getConnectedNet } from '@/utils/dashBoardTools';
 import { timeFormat } from '@/utils/str';
+import { CHAINMAP } from '@/utils/netWorkForToken'
+import web3 from 'web3'
 //DCCX2QFIHVFTGZKZXRN1X2ZZJWQ49P1QNX
 export default {
   name: 'TrendLine',
@@ -150,7 +152,13 @@ export default {
       this.getYValue()
     },
     async getYValue() {
-      this.balanceNowString = await getDefaultETH(this);
+      const connectedNetInfo = getConnectedNet()
+      const currentChainId = connectedNetInfo && connectedNetInfo['id']
+      const hexChainId = currentChainId && web3.utils.numberToHex(currentChainId)
+      const rpcUrl = hexChainId && CHAINMAP[hexChainId]['rpcUrls'][0]
+      const ETHAssets = await getDefaultETHAssets(this, rpcUrl);
+      console.log(ETHAssets)
+      this.balanceNowString = ETHAssets.balanceNumberString;
       let lastDate = new Date(this.datesource[0].time).getTime()/1000
       const { hasError, data } = await this.$store.dispatch('GetNormalTransByEtherscan',{address: this.address});
       this.chartSourceData = []
@@ -195,9 +203,11 @@ export default {
       }
     },
     connectedWallet() {
-      const chainId = window.ethereum && window.ethereum.chainId;
-      const userAddress = window.ethereum && window.ethereum.selectedAddress;
+      const userAddress = getConnectedAddress()
+      const connectedNetInfo = getConnectedNet()
+      const chainId = connectedNetInfo && web3.utils.numberToHex(connectedNetInfo.id)
       if (!chainId || !userAddress) {
+        Toast('Need Login')
         return false
       }
       return true
