@@ -77,16 +77,16 @@ export default {
           }
         ]
       },
-      address: window.ethereum.selectedAddress,//window.ethereum.selectedAddress,0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a
+      userAddress: '',//window.ethereum.selectedAddress,0xddbd2b932c763ba5b1b7ae3b362eac3e8d40121a
       balanceNowString: 0,
     }
   },
-  watch: {
-    '$store.state.metamask.accountsArr': function (res) {
-      this.address = res.length&&res[0] || ''
-      this.drawChart()
-    },
-  },
+  // watch: {
+  //   '$store.state.metamask.accountsArr': function (res) {
+  //     this.address = res.length&&res[0] || ''
+  //     this.drawChart()
+  //   },
+  // },
   methods: {
     changeDimension(record) {
       this.dimension = record;
@@ -160,7 +160,7 @@ export default {
       console.log(ETHAssets)
       this.balanceNowString = ETHAssets.balanceNumberString;
       let lastDate = new Date(this.datesource[0].time).getTime()/1000
-      const { hasError, data } = await this.$store.dispatch('GetNormalTransByEtherscan',{address: this.address});
+      const { hasError, data } = await this.$store.dispatch('GetNormalTransByEtherscan',{address: this.userAddress});
       this.chartSourceData = []
       this.datesource.map(item => {
          let xtime = item.time
@@ -192,7 +192,7 @@ export default {
         if (trasItem.timeStamp > xtimestamp1 && trasItem.timeStamp <= xtimestamp2) {
           let balanceString = this.chartSourceData[i][1]
           let changeValue = ethers.utils.formatEther(trasItem.value)
-          if (trasItem.from == this.address) {//out
+          if (trasItem.from == this.userAddress) {//out
             balanceString = Number(balanceString) + Number(changeValue)
           } else {
             balanceString = Number(balanceString) - Number(changeValue)
@@ -215,6 +215,7 @@ export default {
   },
   mounted() {
     this.myChart = this.$echarts.init(document.getElementById("chartContent"));
+    this.userAddress = getConnectedAddress()
     this.drawChart();
   }
 }

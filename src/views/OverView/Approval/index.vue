@@ -158,7 +158,7 @@ export default {
         txid: data.transactionHash,
         block_num: data.blockNumber,
         from: data.from,
-        to: data.to,
+        to: (data.to).toLocaleLowerCase(),
         type: TRANSACTION_TYPE['L1ToL1'],
         status: data.status,
         value: 0,
