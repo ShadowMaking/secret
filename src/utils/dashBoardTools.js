@@ -155,13 +155,13 @@ export const getContractAt = async ({ tokenAddress, abi }, self) => {
 
 export const getConnectedAddress = (byMetamask=false) => {
   if (byMetamask) {
-    return window.ethereum && window.ethereum.selectedAddress
+    return window.ethereum && window.ethereum.selectedAddress.toLocaleLowerCase()
   }
   const userId = getFromStorage('gUID')
   if (userId) {
     const userMap = getInfoFromStorageByKey('userMap');
     const userData = userMap[userId]
-    return userData['address']
+    return userData['address'].toLocaleLowerCase()
   }
   return ''
 }
