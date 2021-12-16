@@ -91,6 +91,7 @@ export default {
     searchChange() {
       this.isSearch = true
       this.transactionList = []
+      this.currentPage = 1
       this.searchAllTrasanctionList()
     },
     connectedWallet() {
