@@ -20,15 +20,16 @@
     }
     .approval-list {
       text-align: center;
-      line-height: 40px;
       .list-header {
         font-size: 0.84rem;
         font-weight: bold;
         .list-header-item {
           border-bottom: 1px solid #dfdfdf;
         }
+        line-height: 40px;
       }
       .list-item {
+      line-height: 40px;
         border-bottom: 1px solid #dfdfdf;
         line-height: 40px;
         overflow: hidden;
