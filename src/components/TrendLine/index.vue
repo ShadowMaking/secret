@@ -157,7 +157,6 @@ export default {
       const hexChainId = currentChainId && web3.utils.numberToHex(currentChainId)
       const rpcUrl = hexChainId && CHAINMAP[hexChainId]['rpcUrls'][0]
       const ETHAssets = await getDefaultETHAssets(this, rpcUrl);
-      console.log(ETHAssets)
       this.balanceNowString = ETHAssets.balanceNumberString;
       let lastDate = new Date(this.datesource[0].time).getTime()/1000
       const { hasError, data } = await this.$store.dispatch('GetNormalTransByEtherscan',{address: this.userAddress});
@@ -166,7 +165,6 @@ export default {
          let xtime = item.time
          let itemArr = [xtime, this.balanceNowString]
          this.chartSourceData.push(itemArr)
-         console.log(item.time)
       })
       if (data && data.length > 0) { 
         data.reverse().map(item => {
@@ -179,25 +177,35 @@ export default {
       this.chartOption = this.generateOption()
       this.myChart.setOption(this.chartOption);
     },
-    async dealNewData(trasItem) {
+    dealNewData(trasItem) {
       console.log("time" +new Date(trasItem.timeStamp*1000) + '-' + ethers.utils.formatEther(trasItem.value) + '-' + trasItem.from )
-      for (var i=0; i< this.chartSourceData.length; i++) {
+      for (var i=(this.chartSourceData.length-1); i> 0; i--) {
         let xtimestamp1 = new Date(this.chartSourceData[i][0]).getTime()/1000
-        let xtimestamp2
-        if (i !== this.chartSourceData.length-1){
-          xtimestamp2 = new Date(this.chartSourceData[i+1][0]).getTime()/1000
+        let xtimestamp2,j
+        if (i > 0){
+          j = i - 1
         } else {
-          xtimestamp2 = new Date(this.chartSourceData[i][0]).getTime()/1000
+          j = i
         }
-        if (trasItem.timeStamp > xtimestamp1 && trasItem.timeStamp <= xtimestamp2) {
-          let balanceString = this.chartSourceData[i][1]
+        xtimestamp2 = new Date(this.chartSourceData[j][0]).getTime()/1000
+        if (trasItem.timeStamp < xtimestamp1 && trasItem.timeStamp >= xtimestamp2) {
+          // let balanceString = this.chartSourceData[i][1]
+          let balanceString = this.balanceNowString
+          console.log(this.balanceNowString)
           let changeValue = ethers.utils.formatEther(trasItem.value)
+          let gasAmount = ethers.utils.formatEther(trasItem.gasPrice * trasItem.gasUsed)
+          console.log(gasAmount)
           if (trasItem.from == this.userAddress) {//out
-            balanceString = Number(balanceString) + Number(changeValue)
+            this.balanceNowString = Number(balanceString) + Number(changeValue) + Number(gasAmount)
           } else {
-            balanceString = Number(balanceString) - Number(changeValue)
+            this.balanceNowString = Number(balanceString) - Number(changeValue) + Number(gasAmount)
           }
-          this.chartSourceData[i][1] = balanceString
+
+          this.chartSourceData[j][1] = (this.balanceNowString > 0 ? this.balanceNowString : 0)
+          
+          for (var k=0; k< i; k++) {//reset i before defaultbalance
+            this.chartSourceData[k][1] = (this.balanceNowString > 0 ? this.balanceNowString : 0)
+          }
           return
         }
       }
