@@ -178,7 +178,6 @@ export default {
       this.myChart.setOption(this.chartOption);
     },
     dealNewData(trasItem) {
-      console.log("time" +new Date(trasItem.timeStamp*1000) + '-' + ethers.utils.formatEther(trasItem.value) + '-' + trasItem.from )
       for (var i=(this.chartSourceData.length-1); i> 0; i--) {
         let xtimestamp1 = new Date(this.chartSourceData[i][0]).getTime()/1000
         let xtimestamp2,j
@@ -191,10 +190,8 @@ export default {
         if (trasItem.timeStamp < xtimestamp1 && trasItem.timeStamp >= xtimestamp2) {
           // let balanceString = this.chartSourceData[i][1]
           let balanceString = this.balanceNowString
-          console.log(this.balanceNowString)
           let changeValue = ethers.utils.formatEther(trasItem.value)
           let gasAmount = ethers.utils.formatEther(trasItem.gasPrice * trasItem.gasUsed)
-          console.log(gasAmount)
           if (trasItem.from == this.userAddress) {//out
             this.balanceNowString = Number(balanceString) + Number(changeValue) + Number(gasAmount)
           } else {

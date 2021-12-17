@@ -27,6 +27,7 @@ import DEFAULTTOKENLISTForOther from '@/assets/token/tokenListDefaultForOther.js
 import TOKENLISTJSONTest from '@/assets/token/tokenList_test.json'
 import { CHAINIDMAP } from '@/utils/netWorkForToken'
 import { transTickerObject } from '@/utils/ccxt';
+import { getTokenPrice } from '@/utils/coinGecko';
 
 
 const token = {
@@ -274,13 +275,20 @@ const token = {
     },
     GetTokenAxchangeForUS({ commit }, params) {
       return new Promise(async (resolve, reject) => {
-        const { changeType } = params
+        const { changeType, tokenAddress } = params
         const fetchTicker = await transTickerObject(changeType)
         if (fetchTicker) {
           const forUsdt = fetchTicker.close;
           const percentage = fetchTicker.percentage;
           const change = fetchTicker.change;
           resolve({ hasError: false, forUsdt, percentage, change })
+        } else {
+          if (!changeType) {
+            const forUsdByCoin = await getTokenPrice(tokenAddress)
+            if (forUsdByCoin) {
+              resolve({ hasError: false, forUsdt: forUsdByCoin })
+            }
+          }
         }
         resolve({ hasError: true, forUsdt: 0 })
       })

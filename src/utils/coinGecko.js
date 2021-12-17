@@ -3,6 +3,7 @@ import CoinGecko from 'coingecko-api'
 const CoinGeckoClient = new CoinGecko()
 
 export async function getTokenPrice(originAddress, toName) {//toname defaultvalue usd
+  originAddress = originAddress && originAddress.toLocaleUpperCase()
   return new Promise((resolve, reject) => {
     if (CoinGeckoClient) {
       CoinGeckoClient.simple.fetchTokenPrice({

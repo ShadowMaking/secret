@@ -18,6 +18,7 @@
           :labelShow="false" 
           :defaultValue="protocolList[0]['id']"
           :dataSource="protocolList"
+          :leftIcon="protocolList[0]['icon']"
           placeholder="chose protocol"
           @change="handleProtocolChange" />
       </div>
