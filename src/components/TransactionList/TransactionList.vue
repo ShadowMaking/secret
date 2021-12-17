@@ -9,8 +9,8 @@
           {{ item }}
         </el-col>
       </el-row>
-      <div class="transaction-list-wrapper" v-if="transactionList.length">
-        <el-row class="transaction-list" v-for="(item,index) in transactionList" :key="index">
+      <div class="transaction-list-wrapper" v-if="newtransactionList.length">
+        <el-row class="transaction-list" v-for="(item,index) in newtransactionList" :key="index">
           <el-col :span="3" :class="['transaction-list-item', `status-${item.status}`]">
             <i></i>{{ item.status }}
           </el-col>
@@ -47,10 +47,10 @@
           </el-col>
         </el-row>
       </div>
-      <v-none v-if="!showLoading && transactionList.length==0" />
+      <v-none v-if="!showLoading && newtransactionList.length==0" />
     </div>
     <div class="transactions-container-mobile">
-      <div class="transaction-list-item" v-for="(item,index) in transactionList" :key="index">
+      <div class="transaction-list-item" v-for="(item,index) in newtransactionList" :key="index">
         <div class="grid grid-1">
           <div class="header">TX HASH</div>
           <div class="value"><a @click="toPageDetail(item, 'hash')">{{ item.hash }}</a></div>
@@ -86,7 +86,7 @@
           <div class="value">{{ item.time }}</div>
         </div>
       </div>
-      <v-empty v-if="!showLoading && transactionList.length==0" />
+      <v-empty v-if="!showLoading && newtransactionList.length==0" />
     </div>
     <v-loading v-show="showLoading" />
     <div v-show="_showNoMore" class="no-more">no more</div>
@@ -99,9 +99,6 @@ import None from '@/components/None/index';
 import Loading from '@/components/Loading';
 import Empty from '@/components/Empty/index';
 import { getCurrentProvider } from '@/utils/web3';
-import AsyncComputed from 'vue-async-computed';
-
-Vue.use(AsyncComputed);
 
 export default {
   name: 'TransactionList',
@@ -131,6 +128,17 @@ export default {
       default: false,
     },
   },
+  data() {
+    return {
+      newtransactionList: this.transactionList
+    }
+  },
+  watch: {
+    transactionList(newval, oldval) {
+      this.newtransactionList = newval
+      this.dealTransactionList()
+    },
+  },
   components: {
     'v-none': None,
     'v-loading': Loading,
@@ -138,23 +146,8 @@ export default {
   },
   computed: {
     _showNoMore() {
-      return this.showNoMore && this.transactionList.length > 0
+      return this.showNoMore && this.newtransactionList.length > 0
     },
-  },
-  asyncComputed:{
-    getEns() {
-      // return new Promise((resolve, reject) => {
-      //   const currentProvider = getCurrentProvider()
-      //   currentProvider.lookupAddress('0x6fC21092DA55B392b045eD78F4732bff3C580e2c').then(res => {
-      //     console.log(res)
-      //       let showEns = res ? res : 'address'
-      //       resolve(showEns)
-
-      //   }).catch(error => {
-      //       resolve('address')
-      //   })
-      // })
-    }
   },
   methods: {
     showAddress(txt) { return subStrAddress(txt)},
@@ -170,7 +163,19 @@ export default {
       const url = `https://explorer.ieigen.com/#/${routerInfo.name}?${paramsStr}`
       window.open(url, '_blank')
     },
+    async dealTransactionList() {
+      const currentProvider = getCurrentProvider()
+      this.newtransactionList.map(async (item ,index)=> {
+        let fromens = await currentProvider.lookupAddress(item.from)
+        let toens = await currentProvider.lookupAddress(item.to)
+        this.newtransactionList[index].from = (fromens ? fromens : item.from)
+        this.newtransactionList[index].to = (toens ? toens : item.to)
+      })
+    },
   },
+  // created(){
+  //   this.dealTransactionList()
+  // },
 }
 </script>
 <style lang="scss" scoped>

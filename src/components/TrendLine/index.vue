@@ -93,7 +93,6 @@ export default {
       this.drawChart()
     },
     generateOption() {
-      console.log(this.chartSourceData)
       const chartOption = _.cloneDeep(this.chartOption)
       const xAxisData = []
       const seriesData = this.chartSourceData

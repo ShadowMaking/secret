@@ -62,7 +62,9 @@ export default {
     searchAllTrasanctionList() {
       if(!this.connectedWallet()) { return }
       this.showLoading = true
+
       const selectedConnectAddress = getConnectedAddress()
+
       let searchParam = {
         action: 'search_both_sides',//search_l2
         page: this.currentPage,

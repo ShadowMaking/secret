@@ -397,10 +397,12 @@ export default {
         selectedConnectAddress,
         toAddress: sendData.toAddress
       }
+
       const decimals = BigNumber(10).pow(this.selectedToken.decimals).toNumber() // 1000000000000000000
       // const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(sendData.type1Value*1000000000000000000)).toFixed())
       const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(sendData.type1Value*decimals)).toFixed())
       
+
       this.showLoading = true
       const contractWallet = await getContractWallet(this)
       let contractWithSigner = new ethers.Contract(this.selectedToken.tokenAddress, this.selectedToken.abiJson, contractWallet)
