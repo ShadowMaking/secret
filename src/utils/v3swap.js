@@ -1,7 +1,13 @@
 'use strict';
-import * as ethers from 'ethers'
-import { getContractAt } from '@/utils/dashBoardTools';
+import Vue from 'vue';
+import { Toast } from 'vant';
+import { ethers, utils } from 'ethers'
+import { getContractAt, getConnectedAddress, initRPCProvider } from '@/utils/dashBoardTools';
 import V3SwapRouter from "./V3SwapRouter.json";
+import web3 from 'web3';
+import { CHAINMAP } from '@/utils/netWorkForToken';
+
+Vue.use(Toast);
 // import IERC20 from "./IERC20.json";
 // import IWETH from "@uniswap/v3-periphery/artifacts/contracts/interfaces/external/IWETH9.sol/IWETH9.json";
 import {
@@ -40,10 +46,10 @@ const uni = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"; // Ropsten UNI
 //   gasPrice: 20000000000,
 // };
 
-export const IUniswapV3Router = (type, data) => {//type = single and multiple
-
+export const IUniswapV3Router = (type, data, currentChainInfo, $this, contractWallet) => {//type = single and multiple
+  console.log(currentChainInfo)
   return new Promise( async (resolve, reject) => {
-    const v3ROUTERContract = await getContractAt({ tokenAddress: v3routerAddress, abi: V3SwapRouter.abi })
+    const v3ROUTERContract = await getContractAt({ tokenAddress: v3routerAddress, abi: V3SwapRouter.abi }, $this)
     const tradeType = TradeType.EXACT_INPUT;
     // const ETHER = Ether.onChain(3);
     const fromToken = new Token(netWorkId, data.tokenFrom, 18);
@@ -62,10 +68,16 @@ export const IUniswapV3Router = (type, data) => {//type = single and multiple
     const slippageTolerance = new Percent(5, 1);
     const deadline = Math.floor(Date.now() / 1000) + 60 * 30;
     
-    const recipient = window.ethereum.selectedAddress;
-    const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
-    const metamasksigner = metamaskProvider.getSigner(0);
-
+    const recipient = getConnectedAddress();
+    // const metamaskProvider1 = new ethers.providers.Web3Provider(window.ethereum);
+    // const metamasksigner1 = metamaskProvider1.getSigner(0);
+    const currentChainId = currentChainInfo && currentChainInfo['id']
+    const hexChainId = currentChainId && web3.utils.numberToHex(currentChainId)
+    const rpcUrl = hexChainId && CHAINMAP[hexChainId]['rpcUrls'][0]
+    const metamaskProvider = initRPCProvider(rpcUrl);
+    // const metamasksigner = metamaskProvider.getSigner(recipient);
+    const metamasksigner = contractWallet.connect(metamaskProvider);
+    
     let pool, tokenFromPool, tokenToPool, trade;
 
     if (type == 'single') {
@@ -91,24 +103,34 @@ export const IUniswapV3Router = (type, data) => {//type = single and multiple
       recipient,
       deadline,
     });
-    let amountVal=ethers.utils.parseUnits(amount)
-
+    // const transferAmount = utils.parseEther(amount);
+    const amountEth = ethers.utils.parseEther(amount);
+    // {
+    //   1: "0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9"
+    //   2: "0x2386f26fc10000"
+    //   gasLimit: 600000
+    //   gasPrice: "20000000000"
+    // }
     metamasksigner.sendTransaction({
-      from: recipient,
+      from: recipient,//recipient--0x4f5fd0ea6724dfbf825714c2742a37e0c0d6d7d9
       to: v3ROUTERContract.address,
       data: calldata,
       ...overrides,
-      value: amountVal,
+      value: amountEth,
     }).then(async tx=>{
+        console.log(tx)
         tx.wait()
         .then(async res=>{
+          console.log(res)
           resolve(res)
         })
         .catch(error => {
+          console.log(error)
           resolve(null)
         })
       })
       .catch(error=>{
+        console.log(error)
         resolve(null)
       })
     // let tx = await metamasksigner.sendTransaction({
@@ -155,10 +177,14 @@ const overridesApprove = {
   gasLimit: 8000000,
   gasPrice: 20000000000,
 };
-export const approveV3Router = (approveToken) => {
+export const approveV3Router = (approveToken, $this) => {
   return new Promise( async (resolve, reject) => {
-   const TokenContract = await getContractAt({ tokenAddress: approveToken.tokenAddress, abi: approveToken.abiJson })
+   const TokenContract = await getContractAt({ tokenAddress: approveToken.tokenAddress, abi: approveToken.abiJson }, $this)
     const approveTokenAmount = ethers.constants.MaxUint256; // max
+    if (!TokenContract.approve) {
+      Toast('No support')
+      return
+    }
     TokenContract.approve(v3routerAddress, approveTokenAmount, overridesApprove)
       .then(async res=>{
         console.log(res)
@@ -167,9 +193,11 @@ export const approveV3Router = (approveToken) => {
           console.log(txRes)
           resolve(txRes)
         }).catch(error => {
+          console.log(error)
           resolve(null)
         })
       }).catch(error => {
+        console.log(error)
         resolve(null)
       })
   })

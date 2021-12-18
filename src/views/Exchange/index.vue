@@ -121,7 +121,7 @@ import selectItem from '@/components/SelectItem/index';
 import ConfirmModal from '@/components/ConfirmModal';
 import ApproveModal from '@/components/ApproveModal';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
-import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getContractAt, getContractAtForApprove, getConnectedAddress, initRPCProvider, isLogin, getDATACode } from '@/utils/dashBoardTools';
+import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getContractAt, getContractAtForApprove, getConnectedAddress, initRPCProvider, isLogin, getDATACode, getContractWallet } from '@/utils/dashBoardTools';
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
@@ -634,10 +634,10 @@ export default {
       return true
     },
     async approveSubmit() {
-      if (this.currentProtocolType === 'v3') {
-        Toast('Comming Soon')
-        return 
-      }
+      // if (this.currentProtocolType === 'v3') {
+      //   Toast('Comming Soon')
+      //   return 
+      // }
       if (!isLogin()) {
         Toast('Need Login')
         return
@@ -671,30 +671,6 @@ export default {
 
       this.showLoading = false
 
-
-      if (this.currentProtocolType === 'v3') {
-        approveV3Router(this.exchangeFromToken).then(async res => {
-          console.log(res)
-          if (res) {
-            Toast('Approve success')
-            const saveTokenData = {
-              ...allowanceTokenData,
-              allowance: "Infinite"
-            }
-            saveTokenData.swap_address = this.v3routerAddress
-            const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
-            if (!hasError) {
-              console.log(`SaveUserAllowanceForToken  Success`)
-            } else {
-              console.log('SaveUserAllowanceForToken Error', error)
-            }
-          } else {
-            Toast('Approve Failed')
-          }
-        })
-        // Toast('Comming Soon')
-        return 
-      }
       const submitData = this.getSubmitData()
       console.log('submitData', submitData)
 
@@ -878,23 +854,6 @@ export default {
       const data = this.getSubmitData()
       if (!this.checkData(data)) { this.showLoading = false; return }
 
-      // const netWorkIsROPSTEN = window.ethereum.chainId === CHAINIDMAP['ROPSTEN']
-      if (this.currentProtocolType === 'v3') {
-        // if (!netWorkIsROPSTEN) { 
-        //   Toast('Comming Soon') 
-        //   return 
-        // }
-        console.log(data)//fromToken or toToken is not ETH,WETH
-        if (data.tokenFrom !== this.WETHAddress && data.tokenTo !== this.WETHAddress && data.tokenFrom && data.tokenTo) {
-          this.exchangeV3('multiple', data)
-        } else {
-          !data.tokenFrom && (data.tokenFrom = this.WETHAddress)
-          !data.tokenTo && (data.tokenTo = this.WETHAddress)
-          this.exchangeV3('single', data)
-        }
-        return
-      }
-
       this.showLoading = true
       
       const isEth = token && token['tokenName'] === 'ETH'
@@ -939,16 +898,8 @@ export default {
       this.showTradeConfirm = true
     },
     async exchangeV3(type, data, isNeedApprove) {
-      console.log(type)
-      // if (isNeedApprove) {
-      //   const { hasError, isApprove } = await this.getUserAllowanceForToken()
-      //   const fromTokenIsWETH = this.exchangeFromToken && this.exchangeFromToken['tokenName'] === 'WETH'
-      //   if (!isApprove && type === 'from' && !fromTokenIsWETH) {
-      //     Toast(`Please Allow EigenSwap to use your ${this.exchangeFromToken&&this.exchangeFromToken['tokenName']}`)
-      //     return
-      //   }
-      // }
-      IUniswapV3Router(type, data).then(async res => {
+      const contractWallet = await getContractWallet(this)
+      IUniswapV3Router(type, data, this.currentChainInfo, this, contractWallet).then(async res => {
         if (res) {
           console.log("swapv3success: ", res);
           await this.exchangeSuccess(res, data)
@@ -956,7 +907,7 @@ export default {
         } else {
           this.showLoading = false
           Toast(`Exchange Failed`)
-          console.log("swapv3error: ", error);
+          console.log("swapv3error: ");
         }
       })
     },
@@ -1031,6 +982,22 @@ export default {
       this.showTradeConfirm = false
       const exchangeType = this.exchangeType
       const data = _.cloneDeep(this.exchangeData)
+      
+      if (this.currentProtocolType === 'v3') {
+        // const netWorkIsROPSTEN = window.ethereum.chainId === CHAINIDMAP['ROPSTEN']
+        // if (!netWorkIsROPSTEN) { 
+        //   Toast('Comming Soon') 
+        //   return 
+        // }
+        if (exchangeType == 'Token2Token') {
+          this.exchangeV3('multiple', data)
+        } else {
+          !data.tokenFrom && (data.tokenFrom = this.WETHAddress)
+          !data.tokenTo && (data.tokenTo = this.WETHAddress)
+          this.exchangeV3('single', data)
+        }
+        return
+      }
       switch(exchangeType) {
         case 'WETH2Token':
           const tokenFrom = this.WETHAddress // For WETH tokenAddress
@@ -1051,6 +1018,10 @@ export default {
     },
     async confirmApprove() {
       this.showApproveModal = false
+      if (this.currentProtocolType === 'v3') {
+        this.approveV3Submit()
+        return 
+      }
 
       const token = this.exchangeFromToken
       let tokenAddress;
@@ -1115,6 +1086,28 @@ export default {
         console.log(`Approve Token-${token.tokenName} error: `, err);
       })
 
+    },
+    approveV3Submit() {
+      approveV3Router(this.exchangeFromToken, this).then(async res => {
+        console.log(res)
+        if (res) {
+          Toast('Approve success')
+          const { allowanceTokenData } = await this.getUserAllowanceForToken(true)
+          const saveTokenData = {
+            ...allowanceTokenData,
+            allowance: "Infinite"
+          }
+          saveTokenData.swap_address = this.v3routerAddress
+          const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
+          if (!hasError) {
+            console.log(`SaveUserAllowanceForToken  Success`)
+          } else {
+            console.log('SaveUserAllowanceForToken Error', error)
+          }
+        } else {
+          Toast('Approve Failed')
+        }
+      })
     },
   },
   async created() {
