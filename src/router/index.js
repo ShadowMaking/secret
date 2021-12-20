@@ -17,6 +17,7 @@ const SendMenu = () => import('../views/SendMenu/index')
 const Bridge = () => import('../views/Bridge/index')
 const History = () => import('../views/History/index')
 const Test = () => import('../views/Test')
+const NcWalletList = () => import('../views/NcWalletList/index')
 
 // cache origin push method
 const originalPush = VueRouter.prototype.push
@@ -183,7 +184,15 @@ const routes = [
       title: "test",
     },
     component: Test,
-  }
+  },
+  {
+    path: '/ncWalletList',
+    name: 'ncWalletList',
+    meta: {
+      title: "ncWalletList",
+    },
+    component: NcWalletList,
+  },
 ];
 
 const router = new VueRouter({
