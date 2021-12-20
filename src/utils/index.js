@@ -140,8 +140,6 @@ export const getRouteNameAndQuery = (record, type) => {
   return { routeName, query }
 }
 
-
-// TODO
-export const encryptKey = (str) => {
-  return `encrypt_${str}`
+export const promiseValue = (promise) => {
+  return promise.then((data) => ({hasError: false, res: data})).catch((err) => ({hasError: true, res: err}));
 }

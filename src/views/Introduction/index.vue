@@ -35,7 +35,6 @@ import Vue from 'vue';
 import { Button, Toast } from 'vant';
 import _ from 'lodash';
 import { ethers } from 'ethers'
-import { encryptKey } from '@/utils/index'
 import { getQueryString, getLocationParam } from '@/utils/index'
 
 Vue.use(Button);

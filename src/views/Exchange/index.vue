@@ -135,6 +135,7 @@ import { TRANSACTION_TYPE } from '@/api/transaction';
 import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
 import { IUniswapV3Router, approveV3Router } from '@/utils/v3swap.js'
 import { IUniswapV2Router } from '@/utils/v2swap.js'
+import { promiseValue } from '@/utils/index'
 
 
 Vue.use(Icon);
@@ -755,10 +756,8 @@ export default {
 
       return type
     },
-    // TODO gyy1
-    async getDATAForTransaction(exchangeType) {
+    async getDATAForTransaction(exchangeType, getEstimateGas=false) {
       const abi = IUniswapV2Router02.abi;
-      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi }, this)
       const data = this.getSubmitData()
       const overrides = { ...data.gasInfo }
       const gasPrice = overrides['gasPrice']
@@ -767,74 +766,82 @@ export default {
       let datacode = '0x'
       let tempgasfixlimit = '0'
       let fucName = ''
-      let params = []
+      let paramsObj = {}
       switch(exchangeType) {
         case 'WETH2Token':
           fucName = 'swapExactETHForTokensSupportingFeeOnTransferTokens';
-          params.push(
-            0,
-            [this.WETHAddress, data.tokenTo],
-            selectedConnectAddress,
-            ethers.constants.MaxUint256,
-            {
-              ...overrides,
-              value: amount,
-            })
-          
-          tempgasfixlimit = await ROUTERContract.estimateGas[fucName](
-            0,
-            [this.WETHAddress, data.tokenTo],
-            selectedConnectAddress,
-            ethers.constants.MaxUint256,
-            {
-              ...overrides,
-              value: amount,
-            }
-          )
+          paramsObj['amountOutMin'] = 0
+          paramsObj['address'] = [this.WETHAddress, data.tokenTo]
+          paramsObj['addressTo'] = selectedConnectAddress
+          paramsObj['deadline'] = ethers.constants.MaxUint256
+          // paramsObj['overrides'] = { ...overrides, value: amount }
           break;
         case 'Token2Token':
           fucName = 'swapExactTokensForTokensSupportingFeeOnTransferTokens';
           const amountIn = ethers.utils.parseUnits(data.amountin);
-          params.push(
-            amountIn,
-            0,
-            [data.tokenFrom, data.tokenTo],
-            selectedConnectAddress,
-            ethers.constants.MaxUint256,
-            overrides
-          )
-          tempgasfixlimit = await ROUTERContract.estimateGas[fucName](
-            amountIn,
-            0,
-            [data.tokenFrom, data.tokenTo],
-            selectedConnectAddress,
-            ethers.constants.MaxUint256,
-            overrides
-          )
+          paramsObj['amountIn'] = amountIn
+          paramsObj['amountOutMin'] = 0
+          paramsObj['address'] = [data.tokenFrom, data.tokenTo]
+          paramsObj['addressTo'] = selectedConnectAddress
+          paramsObj['deadline'] = ethers.constants.MaxUint256
+          // paramsObj['overrides'] = overrides
           break;
         case 'Token2WETH':
           fucName = 'swapExactTokensForETHSupportingFeeOnTransferTokens';
           let amount = ethers.utils.parseUnits(this.exchangeFrom);
-          params.push(
-            amount,
-            0,
-            [data.tokenFrom, this.WETHAddress],
-            selectedConnectAddress,
-            ethers.constants.MaxUint256,
-            { ...overrides }
-          )
-          tempgasfixlimit = await ROUTERContract.estimateGas[fucName](
-            amount,
-            0,
-            [data.tokenFrom, this.WETHAddress],
-            selectedConnectAddress,
-            ethers.constants.MaxUint256,
-            { ...overrides }
-          )
+          paramsObj['amountIn'] = amount
+          paramsObj['amountOutMin'] = amount
+          paramsObj['address'] = [data.tokenFrom, this.WETHAddress]
+          paramsObj['addressTo'] = selectedConnectAddress
+          paramsObj['deadline'] = ethers.constants.MaxUint256
+          // paramsObj['overrides'] = { ...overrides }
           break;
       }
-      datacode = getDATACode(abi, fucName, params)
+      datacode = getDATACode(abi, fucName, paramsObj)
+      if (getEstimateGas) {
+        let { hasError, res } = await this.getEstimateGas(exchangeType, paramsObj)
+        !hasError && res && (tempgasfixlimit = res)
+      }
       return { datacode, tempgasfixlimit }
+    },
+    async getEstimateGas(exchangeType, paramsObj) {
+      let hasError;
+      let data;
+      let fucName;
+      const ROUTERContract = await getContractAt({ tokenAddress: this.routerAddress, abi: IUniswapV2Router02.abi }, this)
+      switch(exchangeType) {
+        case 'WETH2Token':
+          fucName = 'swapExactETHForTokensSupportingFeeOnTransferTokens';
+          const { hasError: err1, res: data1 } = await promiseValue(ROUTERContract.estimateGas[fucName](
+            // paramsObj['amountIn'],
+            paramsObj['amountOutMin'],
+            paramsObj['address'],
+            paramsObj['addressTo'],
+            paramsObj['deadline'],
+            // paramsObj['overrides']
+          ))
+          hasError = err1
+          data = data1
+          break;
+        case 'Token2Token':
+        case 'Token2WETH':
+          fucName = exchangeType === 'Token2Token' ? 'swapExactTokensForTokensSupportingFeeOnTransferTokens' : 'swapExactTokensForETHSupportingFeeOnTransferTokens';
+          const { hasError:err2, res: data2 } = await promiseValue(ROUTERContract.estimateGas[fucName](
+            paramsObj['amountIn'],
+            paramsObj['amountOutMin'],
+            paramsObj['address'],
+            paramsObj['addressTo'],
+            paramsObj['deadline'],
+            // {...paramsObj['overrides']}
+          ))
+          hasError = err2
+          data = data2
+          break;
+      }
+      if (hasError) {
+        console.log(`excute ${fucName} estimateGas error`, data)
+      }
+      return { hasError, res: data }
     },
     async exchangeSubmit() {
       // if (this.currentProtocolType === 'v3') { Toast('Comming Soon'); return; }
@@ -871,9 +878,9 @@ export default {
       const exchangeType = this.getExchangeType(data)
       this.exchangeType = exchangeType
 
-      /* const { datacode, tempgasfixlimit } = await this.getDATAForTransaction(exchangeType)
+      const { datacode, tempgasfixlimit } = await this.getDATAForTransaction(exchangeType, true)
       console.log('datacode',datacode)
-      console.log('tempgasfixlimit',tempgasfixlimit) */
+      console.log('tempgasfixlimit',tempgasfixlimit)
 
       const selectedConnectAddress = getConnectedAddress()
       const { amountin } = data
@@ -886,8 +893,8 @@ export default {
         value: amountin,
         symbolName: this.exchangeFromToken['tokenName'],
         netInfo: this.currentChainInfo,
-        DATA: '0x',
-        estimatedGasFee: '0'
+        DATA: datacode,
+        estimatedGasFee: utils.formatEther(tempgasfixlimit) // todo
       }
 
       const gasPrice = data.gasInfo['gasPrice']
