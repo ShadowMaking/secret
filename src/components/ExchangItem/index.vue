@@ -51,7 +51,7 @@ Vue.use(Search);
 
 export default {
   name: 'ExchangItem',
-  props: ['isMax', 'type', 'sourceData', 'inputDisabled'],
+  props: ['isMax', 'type', 'sourceData', 'inputDisabled', 'inputDefaultValue'],
   data() {
     return {
       exchangVal: '',
@@ -75,6 +75,11 @@ export default {
         }
       },
       deep: true,
+    },
+    inputDefaultValue() {
+      if (this.type === 'To') {
+        this.exchangVal = this.inputDefaultValue
+      }
     },
   },
   computed: {
@@ -119,8 +124,12 @@ export default {
         this.$emit('inputChange', value);
       // }
     },
+    handleResetInputValue() {
+      this.exchangVal = ''
+    },
   },
   async mounted() {
+    this.$eventBus.$on('resetExchangeTokenInputValue', this.handleResetInputValue)
   	// var dataSource = [{id: 1,name: 'test',icon: 'https://s3.amazonaws.com/token-icons/0x6b175474e89094c44da98b954eedeac495271d0f.png'},{id: 2,name: 'test2',icon: 'https://s3.amazonaws.com/token-icons/0x6b175474e89094c44da98b954eedeac495271d0f.png'}];
     const dataSource = this.sourceData
     this.levelIds = this.levelIdNew = dataSource

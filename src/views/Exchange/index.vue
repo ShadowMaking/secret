@@ -224,6 +224,7 @@ export default {
     },
     selectChagne(type, record) {
       this[`${type}Token`] = record
+      this.$eventBus.$emit('resetExchangeTokenInputValue')
       this.setShowApproveButton()
     },
     async inputChange(type, record) {
@@ -231,10 +232,15 @@ export default {
         const tokenA = this.exchangeFromToken
         const tokenB = this.exchangeToToken
         const tokenASymbol = tokenA && !!tokenA['tokenAddress'] ?  tokenA['symbol'] : 'ETH'
-        const tokenBSymbol = tokenB && tokenB['symbol']
-        const changeType = `${tokenASymbol}/${tokenBSymbol}`
-        const { hasError, forUsdt } = await this.$store.dispatch('GetTokenAxchangeForUS', {changeType});
-        this.exchangeTo = record && (BigNumber(record).multipliedBy(BigNumber(forUsdt))).toFixed(4,1)
+        const tokenBSymbol = tokenB && !!tokenB['tokenAddress'] ?  tokenB['symbol'] : 'ETH'
+        if (tokenASymbol === tokenBSymbol) {
+          this.exchangeTo = record
+        } else {
+          const changeType = `${tokenASymbol}/${tokenBSymbol}`
+          const { hasError, forUsdt } = await this.$store.dispatch('GetTokenAxchangeForUS', {changeType});
+          this.exchangeTo = record && (BigNumber(record).multipliedBy(BigNumber(forUsdt))).toFixed(4,1)
+        }
+        console.log(this.exchangeTo)
       }
       this[type] = record
     },
