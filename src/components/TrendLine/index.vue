@@ -16,12 +16,17 @@
   </div>
 </template>
 <script>
+import Vue from 'vue'
 import _ from 'lodash';
+import { Toast } from 'vant'
 import * as ethers from 'ethers';
 import { getDefaultETHAssets, getConnectedAddress, getConnectedNet } from '@/utils/dashBoardTools';
 import { timeFormat } from '@/utils/str';
 import { CHAINMAP } from '@/utils/netWorkForToken'
 import web3 from 'web3'
+
+Vue.use(Toast)
+
 //DCCX2QFIHVFTGZKZXRN1X2ZZJWQ49P1QNX
 export default {
   name: 'TrendLine',
