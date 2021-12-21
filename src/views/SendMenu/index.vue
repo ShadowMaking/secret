@@ -435,7 +435,7 @@ export default {
         txid: res.transactionHash,
         block_num: res.blockNumber,
         from: res.from || selectedConnectAddress,
-        to: res.to || toAddress,
+        to: toAddress || res.to, // res.to is diffrent from toAddress wthen sendToken by contract
         type: TRANSACTION_TYPE['L2ToL2'],
         status: res.status || 1,
         value: info.amount,
