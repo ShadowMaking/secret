@@ -763,14 +763,17 @@ export default {
       return type
     },
     async getDATAForTransaction(exchangeType, getEstimateGas=false) {
+      let datacode = '0x'
+      let tempgasfixlimit = '0'
+      if (this.currentProtocolType === 'v3') { // todo
+        return { datacode, tempgasfixlimit }
+      }
       const abi = IUniswapV2Router02.abi;
       const data = this.getSubmitData()
       const overrides = { ...data.gasInfo }
       const gasPrice = overrides['gasPrice']
       overrides['gasPrice'] = web3.utils.toWei(gasPrice, 'gwei')
       const selectedConnectAddress = getConnectedAddress()
-      let datacode = '0x'
-      let tempgasfixlimit = '0'
       let fucName = ''
       let paramsObj = {}
       switch(exchangeType) {
