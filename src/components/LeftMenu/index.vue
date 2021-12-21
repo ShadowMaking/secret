@@ -52,10 +52,9 @@ export default {
           },{
             icon: 'el-icon-document-add', 
             name: 'Create NC-Wallet', 
-            route: '/bridge',
+            route: '/ncWalletCreate',
           }]
         },
-        {icon: 'el-icon-guide', name: 'Bridge', route: '/bridge'},
       ],
       screenWidth: null,
     }

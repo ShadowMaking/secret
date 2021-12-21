@@ -18,6 +18,8 @@ const Bridge = () => import('../views/Bridge/index')
 const History = () => import('../views/History/index')
 const Test = () => import('../views/Test')
 const NcWalletList = () => import('../views/NcWalletList/index')
+const NcWalletCreate = () => import('../views/NcWalletCreate/index')
+const SignManage = () => import('../views/NcWalletList/signManage/index')
 
 // cache origin push method
 const originalPush = VueRouter.prototype.push
@@ -192,6 +194,22 @@ const routes = [
       title: "ncWalletList",
     },
     component: NcWalletList,
+  },
+  {
+    path: '/ncWalletCreate',
+    name: 'ncWalletCreate',
+    meta: {
+      title: "ncWalletCreate",
+    },
+    component: NcWalletCreate,
+  },
+  {
+    path: '/signManage/:id',
+    name: 'signManage',
+    meta: {
+      title: "signManage",
+    },
+    component: SignManage,
   },
 ];
 

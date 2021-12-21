@@ -43,7 +43,11 @@ export default {
   },
   
   methods: {
-    
+    handleClick(row) {
+      this.$router.push({
+        path: `/signManage/${row.id}`,
+      })
+    }
   },
 }
 </script>

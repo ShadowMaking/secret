@@ -50,7 +50,8 @@ export default {
         WalletName: 2,
         Balance: 3,
         Address: 4,
-        signer: 5
+        signer: 5,
+        id: 1,
       }],
       signWalletList: [{
         CreateTime:1,

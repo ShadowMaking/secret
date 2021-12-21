@@ -103,6 +103,8 @@ export const IUniswapV3Router = (type, data, currentChainInfo, $this, contractWa
       recipient,
       deadline,
     });
+    console.log(calldata)
+    console.log(value)
     // const transferAmount = utils.parseEther(amount);
     const amountEth = ethers.utils.parseEther(amount);
     // {
