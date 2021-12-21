@@ -453,7 +453,7 @@ export default {
         block_num: res.blockNumber,
         from: selectedConnectAddress,
         to: selectedConnectAddress,
-        type: TRANSACTION_TYPE['L1ToL1'],
+        type: TRANSACTION_TYPE['L2ToL2'],
         status: 1,
         value: data.amountin,
         name: this.exchangeFromToken['tokenName'],

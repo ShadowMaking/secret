@@ -436,7 +436,7 @@ export default {
         block_num: res.blockNumber,
         from: res.from || selectedConnectAddress,
         to: res.to || toAddress,
-        type: TRANSACTION_TYPE['L1ToL1'],
+        type: TRANSACTION_TYPE['L2ToL2'],
         status: res.status || 1,
         value: info.amount,
         name: symbolName,
