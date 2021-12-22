@@ -347,6 +347,10 @@ export default {
     },
     async changeAccout(record) {
       const address = record.address
+      if (this.address.toLocaleLowerCase() === address.toLocaleLowerCase()) {
+        this.showAccountSetPopover = false
+        return
+      }
       this.address = address
       const userId = getInfoFromStorageByKey('gUID')
       const addressInfo = _.find(this.userList, { address })
