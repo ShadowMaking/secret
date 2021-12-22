@@ -1,6 +1,9 @@
 <template>
   <div class="send-menu-page content-box">
     <v-navTitle title="Send"></v-navTitle >
+    <div class="send-from-box content-page">
+      <v-transFrom @transFromChange="transFromChange"></v-transFrom>
+    </div>
     <div class="send-menu content-page">
       <!-- <v-formSelect 
         label="Recipient" 
@@ -88,6 +91,7 @@ import selectItem from '@/components/SelectItem/index';
 import formSelect from '@/components/Select/index';
 import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
+import TransFrom from '@/components/TransFrom';
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { ETHFORUS } from '@/utils/global';
@@ -141,6 +145,7 @@ export default {
       sendType: '', // eth||token
       sendMetadata: null,
       showTradeConfirm: false,
+
     }
   },
   components: {
@@ -150,6 +155,7 @@ export default {
     "v-formSelect": formSelect,
     'v-statusPop': StatusPop,
     'v-confirmModal': ConfirmModal,
+    'v-transFrom': TransFrom,
   },
   computed: {
     defaultNetWork() {
@@ -498,6 +504,9 @@ export default {
       this.currentChainInfo = chainInfo
       await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
       await this.getTokenAssetsForAccount()
+    },
+    transFromChange(data) {
+      console.log(data)
     },
   },
   async created() {

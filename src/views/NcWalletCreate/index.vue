@@ -19,12 +19,19 @@
           </el-form-item>
         </el-form>
         <v-searchSignerModal
-              :dataSource="searchSignerList"
-              @confirm="confirmSearchSigner" />
-            <div class="add-signer-tip">Any transaction requires the confirmation of: {{signerPercent}} out of {{signerTotal}} signer(s)</div>
+          :dataSource="searchSignerList"
+          @confirm="confirmSearchSigner" />
+        <div class="add-signer-tip">Any transaction requires the confirmation of: {{signerPercent}} out of {{signerTotal}} signer(s)</div>
         <div class="create-btn-box">
           <a class="common-form-btn" @click="createSubmit">Create</a>
         </div>
+        <v-statusPop
+          :status="popStatus"
+          :title="statusPopTitle"
+          :timeTxt="timeTxt"
+          tip=""
+          :show="showStatusPop"
+          @childEvent="changeVisible" />
       </div>
     </div>
   </div>
@@ -35,6 +42,7 @@ import Vue from 'vue'
 import { Tab, Tabs} from 'vant'
 import navTitle from '@/components/NavTitle/index'
 import searchSignerModal from '@/components/SearchSignerModal/index'
+import StatusPop from '@/components/StatusPop';
 
 Vue.use(Tab);
 Vue.use(Tabs);
@@ -49,11 +57,17 @@ export default {
       signerPercent: 0,
 
       searchSignerList: [],
+
+      showStatusPop: false,
+      popStatus: "success",
+      statusPopTitle: 'Created Successfully!',
+      timeTxt: '',
     }
   },
   components: {
     "v-navTitle": navTitle,
     "v-searchSignerModal": searchSignerModal,
+    'v-statusPop': StatusPop,
   },
   methods: {
     confirmSearchSigner() {
@@ -61,6 +75,9 @@ export default {
     },
     createSubmit() {
 
+    },
+    changeVisible() {
+      this.showStatusPop = false;
     },
   },
   created() {

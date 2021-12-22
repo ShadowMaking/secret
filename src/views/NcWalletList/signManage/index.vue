@@ -23,6 +23,20 @@
           <el-table-column
             prop="State"
             label="State">
+            <template slot-scope="scope">
+              <div v-if="scope.row.State == 1">
+                <el-tag>To be confirmed</el-tag>
+              </div>
+              <div v-else-if="scope.row.State == 2">
+                <el-tag type="danger">Rejected</el-tag>
+              </div>
+              <div v-else-if="scope.row.State == 2">
+                <el-tag type="success">Active</el-tag>
+              </div>
+              <div v-else>
+                <el-tag type="info">Freeze</el-tag>
+              </div>
+            </template>
           </el-table-column>
           <el-table-column
             label="Operate">
@@ -51,6 +65,13 @@ export default {
   data() {
     return {
       signList: [{
+        CreateTime:1,
+        WalletName: 2,
+        Balance: 3,
+        Address: 4,
+        State: 1,
+        id: 1,
+      },{
         CreateTime:1,
         WalletName: 2,
         Balance: 3,

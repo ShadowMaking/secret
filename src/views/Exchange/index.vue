@@ -1,6 +1,9 @@
 <template>
   <div class="exchange-page content-box">
     <v-navTitle title="Exchange"></v-navTitle>
+    <div class="send-from-box content-page">
+      <v-transFrom @transFromChange="transFromChange"></v-transFrom>
+    </div>
     <div class="exchange-content content-page">
       <div class="from-box">
         <v-formSelect 
@@ -120,6 +123,7 @@ import formSelect from '@/components/Select/index';
 import selectItem from '@/components/SelectItem/index';
 import ConfirmModal from '@/components/ConfirmModal';
 import ApproveModal from '@/components/ApproveModal';
+import TransFrom from '@/components/TransFrom';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getContractAt, getContractAtForApprove, getConnectedAddress, initRPCProvider, isLogin, getDATACode, getContractWallet } from '@/utils/dashBoardTools';
 import { ethers, utils } from 'ethers'
@@ -198,6 +202,7 @@ export default {
     'v-statusPop': StatusPop,
     'v-confirmModal': ConfirmModal,
     'v-approveModal': ApproveModal,
+    'v-transFrom': TransFrom,
   },
   computed: {
     approveBtnTxt() {
@@ -1108,6 +1113,9 @@ export default {
           Toast('Approve Failed')
         }
       })
+    },
+    transFromChange(data) {
+      console.log(data)
     },
   },
   async created() {
