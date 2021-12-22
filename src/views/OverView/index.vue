@@ -154,10 +154,17 @@ export default {
       }
       return true
     },
+    async handleAccountChange(addressInfo) {
+      this.showLoading = true;
+      this.assetsData = []
+      await this.initGthers()
+      this.showLoading = false;
+    },
   },
   created() {
     // this.timer();
     this.initGthers()
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
   },
   // destroyed() {
   //   clearTimeout(this.timer)

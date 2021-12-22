@@ -498,6 +498,11 @@ export default {
       await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
       await this.getTokenAssetsForAccount()
     },
+    async handleAccountChange(addressInfo) {
+      this.showLoading = true;
+      await this.getTokenAssetsForAccount()
+      this.showLoading = false;
+    },
   },
   async created() {
     this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
@@ -523,6 +528,7 @@ export default {
     const { hasError, forUsdt } = await this.$store.dispatch('GetTokenAxchangeForUS', { changeType: 'ETH/USDT' });
     this.ETHFORUS = forUsdt
     await this.getTokenAssetsForAccount()
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
   }
 };
 </script>

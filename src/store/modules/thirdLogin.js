@@ -94,6 +94,36 @@ const thirdLogin = {
         }
       })
     },
+    StoreBindingGoogleUserInfoList({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        const userId = params.userId;
+        const { privateKey, address, encryptPrivateKey } = params
+        if (userId) {
+          const addressListInStorage = getInfoFromStorageByKey('userList') || [];
+          const addressTarget = _.find(addressListInStorage, { address })
+          if (addressTarget) {
+            resolve({ hasError: false })
+            return
+          }
+          const userAddressList = [].concat(addressListInStorage, [{ address, encryptPrivateKey }])
+          saveToStorage({ userList: [...new Set(userAddressList)] })
+          resolve({ hasError: false })
+        } else {
+          resolve({ hasError: true  })
+        }
+      })
+    },
+    GetBindingGoogleUserInfoList({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        const userId = params.userId;
+        if (userId) {
+          const list = getInfoFromStorageByKey('userList');
+          resolve({ hasError: false, data: list||[] })
+        } else {
+          resolve({ hasError: true, data: [] })
+        }
+      })
+    },
   }
 }
 

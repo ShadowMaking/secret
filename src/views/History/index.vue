@@ -116,6 +116,10 @@ export default {
       }
       return true
     },
+    async handleAccountChange(addressInfo) {
+      this.transactionList = []
+      this.searchAllTrasanctionList()
+    },
   },
   async created (){
     // window.onscroll = _.throttle(this.onScroll)
@@ -133,6 +137,7 @@ export default {
       Toast('Need Login')
       return
     }
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
   },
   beforeDestroy() {
     window.removeEventListener("scroll", this.onScroll, true);

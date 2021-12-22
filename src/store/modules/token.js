@@ -3,7 +3,8 @@ import { utils, ethers } from 'ethers'
 import web3 from 'web3';
 import { BigNumber } from "bignumber.js";
 import { saveUserAllowanceForToken, getUserAllowanceForToken,
-  encryptPrivateKey, decryptPrivateKey,uploadEncrpytKey,downloadEncrpytKey, } from '@/api/token';
+  encryptPrivateKey, decryptPrivateKey,uploadEncrpytKey,downloadEncrpytKey,
+  uploadEncrpytKeyByAddress, downloadAllEncrpytKey, } from '@/api/token';
 import { TOKEN_L1, TOKEN_L2, getAvailableTokenAssets } from '@/utils/token';
 import { ajaxGetRequestByEtherscan } from '@/utils/index'
 import { initRPCProvider } from '@/utils/dashBoardTools'
@@ -443,6 +444,31 @@ const token = {
           }
         }).catch(error => {
           resolve({ hasError: true, data: null });
+        })
+      })
+    },
+
+    UploadEncrpytKeyByAddress({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        uploadEncrpytKeyByAddress(params).then(response => {
+          const data = response.data;
+          resolve({ hasError: false, data })
+        }).catch(error => {
+          resolve({ hasError: true, data: null });
+        })
+      })
+    },
+    DownloadAllEncrpytKey({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        downloadAllEncrpytKey(params).then(response => {
+          const { data, message, errno } = response.data;
+          if (errno === 0) {
+            resolve({ hasError: false, data })
+          } else {
+            resolve({ hasError: true, data: [] });
+          }
+        }).catch(error => {
+          resolve({ hasError: true, data: [] });
         })
       })
     },

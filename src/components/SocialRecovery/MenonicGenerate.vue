@@ -1,7 +1,7 @@
 <template>
   <div class="create-wallet-step1">
     <div class="backup-menonic" >
-      <div class="update-wrapper">
+      <div class="update-wrapper" v-if="type!=='import'">
         <span class="tip"><!-- Your secret recovery phrase or private key can help you backup and recover the secret. --></span>
         <van-button color="#495ABE" plain @click="update" size="small" class="update-mnemonic">update</van-button>
       </div>
@@ -34,7 +34,7 @@ Vue.use(Toast);
 
 export default {
   name: 'MenonicGenerate',
-  props: ['sourceData'],
+  props: ['sourceData','type'],
   data() {
     return{}
   },

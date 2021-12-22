@@ -261,8 +261,14 @@ export default {
         return item.tokenAddress == tokenAddress
       })[0].abiJson
     },
+    async handleAccountChange(addressInfo) {
+      this.showLoading = true;
+      await this.getTokenList()
+      await this.getApprovalList()
+    },
   },
   async created (){
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
     this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
     // window.ethereum && (this.defaultNetWork = web3.utils.hexToNumber(window.ethereum.chainId))
     // window.ethereum && window.ethereum.selectedAddress && (this.userAddress = (window.ethereum.selectedAddress).toLowerCase());

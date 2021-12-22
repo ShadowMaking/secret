@@ -67,19 +67,19 @@ export default {
       const privateKey = accountWallet.privateKey
       const address = accountWallet.address
 
-      // console.log(address, privateKey, mnemonic)
-
       const { hasError: encryptError, data: encryptPrivateKey } = await this.$store.dispatch('EncryptPrivateKey', { userId, privateKey: privateKey }) 
       if (encryptError) {
         Toast('EncrpytKey Failed')
         return
       }
-      const { hasError } = await this.$store.dispatch('UploadEncrpytKey', { userId, address, encryptKey: encryptPrivateKey })
+      // const { hasError } = await this.$store.dispatch('UploadEncrpytKey', { userId, address, encryptKey: encryptPrivateKey })
+      const { hasError } = await this.$store.dispatch('UploadEncrpytKeyByAddress', { userId, address, encryptKey: encryptPrivateKey })
       if (hasError) {
         Toast('Upload EncrpytKey Failed')
         return
       }
       await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, privateKey, address })
+      await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey, privateKey, address })
       this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
     },
     /**
@@ -107,7 +107,7 @@ export default {
         await this.createAccountForThirdLoginUser()
         return
       }
-      const { cipher_key: encryptKey, address } = data
+      const { cipher_key: encryptKey } = data
       const decryptInfo = await this.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
       const { hasError, data: privateKey } = decryptInfo
       if (hasError) {
@@ -116,13 +116,43 @@ export default {
       }
       const accountWallet = new ethers.Wallet(privateKey);
       await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey:encryptKey, privateKey, address: accountWallet.address })
+      await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey:encryptKey, privateKey, address: accountWallet.address })
       this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
+    },
+    /**
+     * @description: 
+     * step1: get encryptKey through download server
+     * step2: if encryptKey is not exist and create new account(privateKey) or run step3
+     * step3: get decryptKey(privateKey) throuh KMS
+     * step4: recovery account  by privateKey
+     */  
+    async getAllDecryptPrivateKey() {
+      const userId = getLocationParam('id')
+      const { data } = await this.$store.dispatch('DownloadAllEncrpytKey', { userId })
+      if (!data.length) {
+        console.log('This is old user, but have no encryptKey')
+        await this.createAccountForThirdLoginUser()
+        return
+      }
+      // TODO
+      for(let i=0; i<data.length; i++) {
+        const { cipher_key: encryptKey, user_address } = data[i]
+        const decryptInfo = await this.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
+        const { hasError, data: privateKey } = decryptInfo
+        const accountWallet = new ethers.Wallet(privateKey);
+        if (i === 0) { // connect first account address
+          await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey:encryptKey, privateKey, address: accountWallet.address })
+        }
+        await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey:encryptKey, privateKey, address: accountWallet.address })
+        this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
+      }
     },
     async getUserBindingInfo(isNewUser) {
       if (isNewUser) {
         await this.createAccountForThirdLoginUser()
       } else {
-        await this.getDecryptPrivateKey()
+        // await this.getDecryptPrivateKey()
+        await this.getAllDecryptPrivateKey()
       }
       this.clearLoading()
     },
@@ -133,6 +163,7 @@ export default {
     const newUser = getLocationParam('new')
     const isNewUser = newUser === '1'
     console.log('isNewUser', isNewUser)
+
     if (googleUserId) {
       await this.$store.dispatch('StoreGoogleUserId', {userId: googleUserId })
       await this.$store.dispatch('StoreGoogleAuthToken', {authToken: googleAuthToken })

@@ -1125,6 +1125,11 @@ export default {
         }
       })
     },
+    async handleAccountChange(addressInfo) {
+      this.showLoading = true;
+      await this.getTokenList()
+      this.showLoading = false;
+    },
   },
   async created() {
     this.netWorkList.map(item => {
@@ -1146,6 +1151,7 @@ export default {
       return
     }
     await this.getTokenList()
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
   },
 };
 </script>

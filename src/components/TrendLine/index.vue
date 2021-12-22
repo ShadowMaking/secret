@@ -221,11 +221,19 @@ export default {
       }
       return true
     },
+    async handleAccountChange(addressInfo) {
+      this.userAddress = getConnectedAddress()
+      const option = _.cloneDeep(this.chartOption)
+      option.series[0].data = []
+      this.myChart.setOption(option);
+      this.drawChart();
+    },
   },
   mounted() {
     this.myChart = this.$echarts.init(document.getElementById("chartContent"));
     this.userAddress = getConnectedAddress()
     this.drawChart();
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
   }
 }
 </script>

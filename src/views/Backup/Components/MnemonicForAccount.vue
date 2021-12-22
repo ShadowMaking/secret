@@ -31,6 +31,7 @@
       <!-- generate mnemonic -->
       <v-menonicGenerate
         key="menonic-create"
+        :type="type"
         :sourceData="mnemonicList"
         @updateMnemonic="updateMnemonic"
         @childEventConfirm="menonicbackupConfirmCallback"
@@ -84,6 +85,10 @@ export default {
     settingData: {
       type: Object,
       default: null, // {name:'',desc:''}
+    },
+    need2FA: {
+      type: Boolean,
+      default: true
     },
   },
   components: {
@@ -192,6 +197,10 @@ export default {
     },
     handlesnputFocus() {},
     confirmImportMnemonic() {
+      if (!this.need2FA) {
+        this.$emit('createComplete', this.importMnemonic.split(' ').filter(i=>!!i).join(' '), 'mnemonic');
+        return
+      }
       if (!this.thirdUserId) {
         this.$emit('notLogin');
         return
