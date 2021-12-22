@@ -2,6 +2,9 @@
   <div class="main-page home-page">
     <div class="page-wrapper">
       <div class="common-transaction-table">
+        <div class="nc-tag">
+          <span :class="[isNc && 'active']" @click="selectNC">NC-Wallet</span>
+        </div>
         <van-search 
           v-model="searchValue" 
           placeholder="Filter by TX HASH" 
@@ -50,6 +53,8 @@ export default {
       searchValue: '',
       isSearch: false,
       currentChainInfo: null,
+
+      isNc: false,
     }
   },
   computed: {
@@ -59,6 +64,9 @@ export default {
     },
   },
   methods: {
+    selectNC() {
+      this.isNc = !(this.isNc)
+    },
     searchAllTrasanctionList() {
       if(!this.connectedWallet()) { return }
       this.showLoading = true

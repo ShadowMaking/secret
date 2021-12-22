@@ -1,6 +1,6 @@
 <template>
   <div class="signManage-page">
-    <v-navTitle title="Signer"></v-navTitle >
+    <v-navTitle title="Signer" :backIcon="true"></v-navTitle >
     <div class="sign-manage-des">Non-custodial Wallet is the most reliable asset management method. It confirms each transaction by setting up one or more signers to make asset transactions more secure.</div>
     <div class="signlist-wrapper" v-if="signList.length">
       <el-table

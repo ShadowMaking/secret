@@ -65,7 +65,7 @@ export default {
   name: 'OverView',
   data() {
     return {
-      tabActive: 0,
+      tabActive: this.$route.query.tabActive ? Number(this.$route.query.tabActive) : 0,
       chartSourceData: [{
         time: '2021-01-01 00:00:00',
         value: 11
@@ -99,9 +99,7 @@ export default {
     }
   },
   watch: {
-    'fetchTicker': function(res) {
-      // this.timer()
-    },
+    
   },
   methods: {
     // timer() {

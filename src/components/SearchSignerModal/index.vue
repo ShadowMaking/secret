@@ -17,12 +17,13 @@
             reserve-keyword
             placeholder="Google Account Name、Address or ENS"
             :remote-method="remoteMethod"
-            style="width: 94%;margin-left: 3%">
+            style="width: 94%;margin-left: 3%"
+            no-data-text="no data">
             <el-option
               v-for="(item, index) in signListoptions"
               :key="index"
               :label="item.label"
-              :value="item.value">
+              :value="item.value" style="padding-left: 10px;">
             </el-option>
           </el-select>
         </div>
