@@ -1150,8 +1150,8 @@ export default {
       Toast('Need Login')
       return
     }
-    await this.getTokenList()
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
+    await this.getTokenList()
   },
 };
 </script>

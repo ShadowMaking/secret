@@ -524,11 +524,11 @@ export default {
       Toast('Need Login')
       return
     }
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
     await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
     const { hasError, forUsdt } = await this.$store.dispatch('GetTokenAxchangeForUS', { changeType: 'ETH/USDT' });
     this.ETHFORUS = forUsdt
     await this.getTokenAssetsForAccount()
-    this.$eventBus.$on('changeAccout', this.handleAccountChange)
   }
 };
 </script>

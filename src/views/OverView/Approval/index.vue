@@ -263,6 +263,8 @@ export default {
     },
     async handleAccountChange(addressInfo) {
       this.showLoading = true;
+      this.approvalList = []
+      this.myTokeList = []
       await this.getTokenList()
       await this.getApprovalList()
     },
