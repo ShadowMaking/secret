@@ -311,6 +311,7 @@ export default {
       this.walletIsLock = true;
       this.showAccountSetPopover = false
       logout();
+      this.$router.push({ name: 'tlogin' })
     },
     handleAccountsChanged(data) {
       this.address = data.accounts.length&&data.accounts[0] || ''
