@@ -235,6 +235,7 @@ export default {
       this.$router.push({ name: pageName });
     },
     chooseWallet() {
+      this.$router.push({ name: 'tlogin' })
       return
       this.popupVisible = true;
       this.installWalletModal = false;
@@ -308,6 +309,7 @@ export default {
     },
     handleDisconnect() {
       this.address = '';
+      this.userList = [];
       this.walletIsLock = true;
       this.showAccountSetPopover = false
       logout();
