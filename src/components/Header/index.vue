@@ -103,7 +103,7 @@
         </div>
       </div>
     </van-popup>
-    <van-popup v-model="showAccountPopup" round key="showAccount" get-container="#header-address-popup" :style="{ top: '134px' }">
+    <van-popup v-model="showAccountPopup" round key="showAccount" get-container="#header-address-popup" :style="{ top: '134px', border: '1px solid #ccc' }">
       <div class="show-accrout-address-popup">
         <div class="header"><h3>Account</h3></div>
         <div class="inner-wraper">
