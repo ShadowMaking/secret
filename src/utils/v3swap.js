@@ -33,7 +33,7 @@ import {
 } from "@uniswap/v3-sdk";
 
 
-const netWorkId = 3
+let netWorkId = 3
 console.log(netWorkId)
 const v3routerAddress = '0xE592427A0AEce92De3Edee1F18E0157C05861564'
 const weth = `0xc778417e063141139fce010982780140aa0cd5ab`; // Ropsten WETH9
@@ -48,6 +48,8 @@ const uni = "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984"; // Ropsten UNI
 
 export const IUniswapV3Router = (type, data, currentChainInfo, $this, contractWallet) => {//type = single and multiple
   console.log(currentChainInfo)
+  console.log('sendData:' + data)
+  if (currentChainInfo && currentChainInfo.id) {netWorkId = currentChainInfo.id}
   return new Promise( async (resolve, reject) => {
     const v3ROUTERContract = await getContractAt({ tokenAddress: v3routerAddress, abi: V3SwapRouter.abi }, $this)
     const tradeType = TradeType.EXACT_INPUT;
@@ -60,11 +62,12 @@ export const IUniswapV3Router = (type, data, currentChainInfo, $this, contractWa
       gasPrice: Number(data.gasInfo.gasPrice),
     };
     const amount = data.amountin;
+    const amountEth = ethers.utils.parseEther(amount);
     
 
     // const WETH = WETH9_[1];
     
-    const DAIAmount = CurrencyAmount.fromRawAmount(fromToken, "100000000000");
+    const DAIAmount = CurrencyAmount.fromRawAmount(fromToken, amountEth);
     const slippageTolerance = new Percent(5, 1);
     const deadline = Math.floor(Date.now() / 1000) + 60 * 30;
     
@@ -89,7 +92,7 @@ export const IUniswapV3Router = (type, data, currentChainInfo, $this, contractWa
       );
     } else {
       tokenFromPool = newPool(fromToken, wethToken)
-      toToken = new Token(netWorkId, uni, 18);//Ropsten support uni,dai,weth
+      // toToken = new Token(netWorkId, uni, 18);//Ropsten support uni,dai,weth
       tokenToPool = newPool(wethToken, toToken)
       trade = await Trade.fromRoute(
         new Route([tokenFromPool, tokenToPool], fromToken, toToken),
@@ -103,8 +106,10 @@ export const IUniswapV3Router = (type, data, currentChainInfo, $this, contractWa
       recipient,
       deadline,
     });
+    console.log(calldata)
+    console.log(value)
     // const transferAmount = utils.parseEther(amount);
-    const amountEth = ethers.utils.parseEther(amount);
+    
     // {
     //   1: "0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9"
     //   2: "0x2386f26fc10000"
@@ -116,7 +121,7 @@ export const IUniswapV3Router = (type, data, currentChainInfo, $this, contractWa
       to: v3ROUTERContract.address,
       data: calldata,
       ...overrides,
-      value: amountEth,
+      ...(value ? { value } : {}),
     }).then(async tx=>{
         console.log(tx)
         tx.wait()
