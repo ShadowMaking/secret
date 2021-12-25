@@ -38,6 +38,7 @@ export default {
   name: 'LeftMenu',
   data() {
     return {
+      defaultNetWork: '',
       menuVisible: true,
       iconVisible: false,
       activeKey: 0,
@@ -56,13 +57,9 @@ export default {
   components: {
     "v-formSelect": formSelect,
   },
-  computed: {
-    defaultNetWork() {
-      const info = getInfoFromStorageByKey('netInfo')
-      return info && info['id'] || 1
-    },
-  },
   mounted() {
+    this.defaultNetWork = this.getDefaultNetWork()
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
     this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
     this.netWorkList.map(item => {
       if (item.id == this.defaultNetWork) {
@@ -94,6 +91,10 @@ export default {
     },
   },
   methods: {
+    getDefaultNetWork() {
+      const info = getInfoFromStorageByKey('netInfo')
+      return info && info['id'] || 1
+    },
     showPopup() {
       this.menuVisible = true;
     },
@@ -104,6 +105,12 @@ export default {
     async handleNetworkChange(data) {
       const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
       await this.$store.dispatch('StoreSelectedNetwork', { netInfo: chainInfo })
+      this.$eventBus.$emit('networkChange', { chainInfo, from:'leftMenu' })
+    },
+    _handleNetworkChange({ chainInfo, from }) {
+      if (from === 'leftMenu') { return }
+      this.defaultNetWork = chainInfo.id
+      this.defaultIcon = chainInfo.icon
     },
   },
 };

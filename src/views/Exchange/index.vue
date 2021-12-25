@@ -150,7 +150,7 @@ export default {
   data() {
     return {
       currentChainInfo: null,
-      // defaultNetWork: 1,
+      defaultNetWork: '',
       defaultIcon: null,
       netWorkList: _.cloneDeep(NETWORKSFORTOKEN),
       assetsTokenList: [],
@@ -208,12 +208,12 @@ export default {
       const tokenName = this.exchangeFromToken && this.exchangeFromToken['tokenName']
       return `Allow ${protocolName} to use your ${tokenName}`
     },
-    defaultNetWork() {
+  },
+  methods: {
+    getDefaultNetWork() {
       const info = getInfoFromStorageByKey('netInfo')
       return info && info['id'] || 1
     },
-  },
-  methods: {
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
       this.$router.push({ name: 'overView' })
@@ -970,6 +970,7 @@ export default {
       const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
       this.currentChainInfo = chainInfo
       await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
+      this.$eventBus.$emit('networkChange', { chainInfo, from:'exchange' })
       await this.getTokenList(true)
     },
     handleProtocolChange(data) {
@@ -1143,8 +1144,14 @@ export default {
       await this.getTokenList()
       this.showLoading = false;
     },
+    _handleNetworkChange({ chainInfo, from }) {
+      if (from === 'exchange') { return }
+      this.defaultNetWork = chainInfo.id
+      this.defaultIcon = chainInfo.icon
+    },
   },
   async created() {
+    this.defaultNetWork = this.getDefaultNetWork()
     this.netWorkList.map(item => {
       if (item.id == this.defaultNetWork) {
         this.defaultIcon = item.icon
@@ -1163,6 +1170,7 @@ export default {
       Toast('Need Login')
       return
     }
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
     await this.getTokenList()
   },

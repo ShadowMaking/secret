@@ -36,6 +36,18 @@ export default {
   components: {
     "v-selectItem": selectItem,
   },
+  watch: {
+    defaultValue(newValue, oldValue) {
+      if (newValue !== oldValue) {
+        this.thislabel = newValue
+      }
+    },
+    leftIcon(newValue, oldValue) {
+      if (newValue !== oldValue) {
+        this.thisleftIcon = newValue
+      }
+    },
+  },
   mounted() {
     var that = this;
     // document.addEventListener('click',e => {

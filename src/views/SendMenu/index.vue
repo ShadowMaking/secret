@@ -122,6 +122,7 @@ export default {
       selectedGasType: '',
       loadingGas: false,
       currentChainInfo: null,
+      defaultNetWork: '',
       defaultIcon: null,
       netWorkList: [],
       /* reciData: [
@@ -153,10 +154,6 @@ export default {
     'v-confirmModal': ConfirmModal,
   },
   computed: {
-    defaultNetWork() {
-      const info = getInfoFromStorageByKey('netInfo')
-      return info && info['id'] || 1
-    },
     exchangeUSForSelectedToken() {
       const selectedToken = this.selectedToken
       if (!selectedToken) { return 0 }
@@ -171,6 +168,10 @@ export default {
     },
   },
   methods: {
+    getDefaultNetWork() {
+      const info = getInfoFromStorageByKey('netInfo')
+      return info && info['id'] || 1
+    },
     gasPriceValue(type) {
       return this.gasPriceInfo && this.gasPriceInfo[type].gasPrice;
     },
@@ -499,6 +500,7 @@ export default {
       const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
       this.currentChainInfo = chainInfo
       await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
+      this.$eventBus.$emit('networkChange', { chainInfo, from:'sendMenu' })
       await this.getTokenAssetsForAccount()
     },
     async handleAccountChange(addressInfo) {
@@ -506,8 +508,14 @@ export default {
       await this.getTokenAssetsForAccount()
       this.showLoading = false;
     },
+    _handleNetworkChange({ chainInfo, from }) {
+      if (from === 'sendMenu') { return }
+      this.defaultNetWork = chainInfo.id
+      this.defaultIcon = chainInfo.icon
+    },
   },
   async created() {
+    this.defaultNetWork = this.getDefaultNetWork()
     this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
     this.netWorkList.map(item => {
       if (item.id == this.defaultNetWork) {
@@ -527,6 +535,7 @@ export default {
       Toast('Need Login')
       return
     }
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
     await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
     const { hasError, forUsdt } = await this.$store.dispatch('GetTokenAxchangeForUS', { changeType: 'ETH/USDT' });
