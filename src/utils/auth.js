@@ -2,7 +2,7 @@ import Cookies from 'js-cookie';
 import { DOMAIN } from '@/utils/global';
 import { utils} from 'ethers'
 import web3 from 'web3'
-import { saveToStorage, getFromStorage } from '@/utils/storage';
+import { saveToStorage, getFromStorage, removeFromStorage } from '@/utils/storage';
 
 let expiresAddTime = 120;   // token will lose efficacy after 120 minutes
 
@@ -110,4 +110,8 @@ export const removeTokens = () => {
 
 export const getAuthToken = (key) => {
   return getFromStorage(key)
+}
+
+export const logout = () => {
+  removeFromStorage(['gUID','userMap', 'gtoken', 'userList'])
 }

@@ -197,9 +197,11 @@ export const isLogin = () => {
 }
 
 // DATA fro Transaction
-// params is Array
+// params is Array or Object
 export const getDATACode = (abi, functionName, params) => {
   const iface = new ethers.utils.Interface(abi);
-  const datacode = iface.encodeFunctionData(`${functionName}`, params)
-  return datacode
+  let paramsForFunctionName = Array.isArray(params) ? params : Object.values(params)
+  // paramsForFunctionName is params to execute functionName
+  const datacode = iface.encodeFunctionData(`${functionName}`, paramsForFunctionName)
+  return datacode || '0x'
 }

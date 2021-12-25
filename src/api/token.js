@@ -63,7 +63,6 @@ export const uploadEncrpytKey = (data) => {
   })
 }
 
-// TODO 接口传参是不是把address这个传参换成userId更为稳妥？因为有可能本地存储的address被清掉
 // curl -XPOST -H "Content-Type:application/json"  --url  "localhost:3000/relay/7/download" -d '{ "address": "2121" }'
 export const downloadEncrpytKey = (data) => {
   const userId = data['userId'];
@@ -76,3 +75,28 @@ export const downloadEncrpytKey = (data) => {
 }
 
 
+// upload changed   curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/address" -d '{ "network_id": "1", "user_address": "0x2" , "cipher_key": "0x"}'
+// download changed  curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/addresses?network_id=1'
+
+// curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/address" -d '{ "network_id": "1", "user_address": "0x2" , "cipher_key": "0x"}'
+export const uploadEncrpytKeyByAddress= (data) => {
+  const userId = data['userId'];
+  const network_id = data['network_id'] || '1';
+  const user_address = data['address'];
+  return request({
+    url: `/api/user/${userId}/address`,
+    method: 'post',
+    data: { network_id, user_address,  cipher_key: data.encryptKey },
+  })
+}
+
+// curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/addresses?network_id=1'
+// get all privateKey
+export const downloadAllEncrpytKey = (data) => {
+  const userId = data['userId'];
+  const network_id = data['network_id'] || '1';
+  return request({
+    url: `/api/user/${userId}/addresses?network_id=${network_id}`,
+    method: 'get',
+  })
+}

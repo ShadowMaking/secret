@@ -34,17 +34,31 @@
           <div class="account-popover">
             <div class="van-hairline--bottom account-header">
               <span>My Account</span>
-              <van-button plain type="info" class="lockbutton" size="small" @click="disconnect" v-show="address">Disconnect</van-button>
+              <van-button plain type="info" class="lockbutton" size="small" @click="disconnect" v-show="address">Logout</van-button>
             </div>
             <ul class="accountlist" v-if="address||gUName">
-              <li class="active">
+              <!-- <li class="active">
                 <van-icon name="success" class="active-status-icon"/>
                 <div class="account-text">
                   <span>{{ address||gUName }}</span>
                 </div>
+              </li> -->
+              <li :class="[{'active': item.address===address}]" v-for="(item,index) in userList" :key="index" @click="changeAccout(item)">
+                <van-icon name="success" class="active-status-icon"/>
+                <div class="account-text">
+                  <span>{{ item.address }}</span>
+                </div>
               </li>
             </ul>
             <div class="account-setting-wrapper van-hairline--top">
+              <div class="opt-item van-hairline--bottom" @click="toPage('importAccount')">
+                <!-- <van-icon name="down" class="opt-icon" />
+                <span>Import Account</span> -->
+                <router-link to="/importAccount">
+                  <van-icon name="down" class="opt-icon" />
+                  <span>Import Account</span>
+                </router-link>
+              </div>
               <div class="opt-item van-hairline--bottom" @click="toPage('backup', 'create')">
                <!--  <van-icon name="plus" class="opt-icon" />
                 <span>Create Account</span> -->
@@ -89,13 +103,13 @@
         </div>
       </div>
     </van-popup>
-    <van-popup v-model="showAccountPopup" round key="showAccount" get-container="#header-address-popup" :style="{ top: '134px' }">
+    <van-popup v-model="showAccountPopup" round key="showAccount" get-container="#header-address-popup" :style="{ top: '134px', border: '1px solid #ccc' }">
       <div class="show-accrout-address-popup">
         <div class="header"><h3>Account</h3></div>
         <div class="inner-wraper">
-          <div class="flex flex-content-between">
+          <div class="flex flex-content-between" style="display: none">
             <span>Connected to Metamask</span>
-            <a class="disconnect" @click="disconnect">Disconnect</a>
+            <a class="disconnect" @click="disconnect">Logout</a>
           </div>
           <div class="address">{{ address }}</div>
           <div class="flex">
@@ -112,6 +126,7 @@
 
 <script>
 import Vue from 'vue';
+import _ from 'lodash'
 import { Header, Button } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
 import { Popup, Button as VanButton, Toast, Icon, Popover } from 'vant';
@@ -119,7 +134,7 @@ import WalletStatus from '@/components/WalletStatus';
 import NetTipModal from '@/components/NetTipModal';
 import { getSelectedChainID, getNetMode, getExpectNetTypeByRouteName, metamaskIsConnect, installWeb3Wallet, installWeb3WalletMetamask } from '@/utils/web3'
 import { copyTxt, isPc } from '@/utils/index';
-import { initTokenTime, updateLoginTime, removeTokens, tokenIsExpires } from '@/utils/auth'
+import { initTokenTime, updateLoginTime, removeTokens, tokenIsExpires, logout } from '@/utils/auth'
 import { getLocationParam } from '@/utils/index'
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 
@@ -145,6 +160,7 @@ export default {
       installOtherWallet: false,
       gUName: '',
       showAccountSetPopover: false,
+      userList: [],
     }
   },
   components: {
@@ -210,7 +226,7 @@ export default {
     toPage(pageName, queryStr) {
       this.showAccountSetPopover = false
       // if (this.$route.name === pageName) {return;}
-      if (pageName === 'backup') {
+      if (pageName === 'backup' || pageName === 'importAccount') {
         return
         // this.$router.push({ name: pageName, query: {type: queryStr, sid: Math.ceil(Math.random()*100)} });
         // this.$router.push({ path: `/backup`, query: {type: queryStr, sid: Math.ceil(Math.random()*100)} });
@@ -219,6 +235,7 @@ export default {
       this.$router.push({ name: pageName });
     },
     chooseWallet() {
+      this.$router.push({ name: 'tlogin' })
       return
       this.popupVisible = true;
       this.installWalletModal = false;
@@ -292,8 +309,11 @@ export default {
     },
     handleDisconnect() {
       this.address = '';
+      this.userList = [];
       this.walletIsLock = true;
       this.showAccountSetPopover = false
+      logout();
+      this.$router.push({ name: 'tlogin' })
     },
     handleAccountsChanged(data) {
       this.address = data.accounts.length&&data.accounts[0] || ''
@@ -310,16 +330,37 @@ export default {
       const userId  = thirdloginInfo.thirdUserId
       const { data: userInfo } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId })
       this.address = userInfo.address
+      await this.getUserList(userId)
+    },
+    async getUserList(uId) {
+      const userId = uId || getInfoFromStorageByKey('gUID')
+      const { data: userList } = await this.$store.dispatch('GetBindingGoogleUserInfoList', { userId })
+      this.userList = _.cloneDeep(userList)
     },
     getContainer() {
       return document.getElementById('header');
     },
     async setInitData() {
-      const userId = getFromStorage('gUID')
+      const userId = getInfoFromStorageByKey('gUID')
       if (userId) {
         const { data: userInfo } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId  })
         this.address = userInfo && userInfo.address||'';
+        await this.getUserList(userId)
       }
+    },
+    async changeAccout(record) {
+      const address = record.address
+      if (this.address.toLocaleLowerCase() === address.toLocaleLowerCase()) {
+        this.showAccountSetPopover = false
+        return
+      }
+      this.address = address
+      const userId = getInfoFromStorageByKey('gUID')
+      const addressInfo = _.find(this.userList, { address })
+      const encryptPrivateKey = addressInfo.encryptPrivateKey
+      await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, address })
+      this.$eventBus.$emit('changeAccout', addressInfo)
+      this.showAccountSetPopover = false
     },
   },
   async mounted() {

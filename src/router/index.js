@@ -7,6 +7,7 @@ const Send = () => import('../views/Send/index')
 const Withdraw = () => import('../views/Withdraw/index')
 const ThirdLogin = () => import('../views/ThirdLogin/index')
 const Backup = () => import('../views/Backup/index')
+const ImportAccount = () => import('../views/Backup/ImportAccount')
 const SocailSendEmail = () => import('../views/SocailSendEmail/index')
 const AddFriends = () => import('../views/SocailSendEmail/AddFriends')
 const SocailRecovery = () => import('../views/SocailRecovery/index')
@@ -115,6 +116,14 @@ const routes = [
       title: "backup",
     },
     component: Backup,
+  },
+  {
+    path: '/importAccount',
+    name: 'importAccount',
+    meta: {
+      title: "importAccount",
+    },
+    component: ImportAccount,
   },
   {
     path: '/ssendemail',

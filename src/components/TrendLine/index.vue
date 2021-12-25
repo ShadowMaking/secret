@@ -16,12 +16,17 @@
   </div>
 </template>
 <script>
+import Vue from 'vue'
 import _ from 'lodash';
+import { Toast } from 'vant'
 import * as ethers from 'ethers';
 import { getDefaultETHAssets, getConnectedAddress, getConnectedNet } from '@/utils/dashBoardTools';
 import { timeFormat } from '@/utils/str';
 import { CHAINMAP } from '@/utils/netWorkForToken'
 import web3 from 'web3'
+
+Vue.use(Toast)
+
 //DCCX2QFIHVFTGZKZXRN1X2ZZJWQ49P1QNX
 export default {
   name: 'TrendLine',
@@ -216,11 +221,19 @@ export default {
       }
       return true
     },
+    async handleAccountChange(addressInfo) {
+      this.userAddress = getConnectedAddress()
+      const option = _.cloneDeep(this.chartOption)
+      option.series[0].data = []
+      this.myChart.setOption(option);
+      this.drawChart();
+    },
   },
   mounted() {
     this.myChart = this.$echarts.init(document.getElementById("chartContent"));
     this.userAddress = getConnectedAddress()
     this.drawChart();
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
   }
 }
 </script>

@@ -100,7 +100,7 @@ import { wait, prettyLog } from '@/utils/index'
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
-import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getConnectedAddress, initRPCProvider, getContractWallet, isLogin, getDATACode } from '@/utils/dashBoardTools';
+import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getConnectedAddress, initRPCProvider, getContractWallet, isLogin, getDATACode, getContractAt } from '@/utils/dashBoardTools';
 
 Vue.use(Popup);
 Vue.use(Toast)
@@ -321,8 +321,7 @@ export default {
         const params = [sendData.toAddress, amount]
         datacode = getDATACode(abi, 'transfer', params)
 
-        const contractWallet = await getContractWallet(this)
-        let contractWithSigner = new ethers.Contract(this.selectedToken.tokenAddress, this.selectedToken.abiJson, contractWallet)
+        const contractWithSigner = await getContractAt({ tokenAddress: this.selectedToken.tokenAddress, abi: this.selectedToken.abiJson }, this)
         tempgasfixlimit = await contractWithSigner.estimateGas.transfer(sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
       }
       console.log('datacode', datacode)
@@ -442,8 +441,8 @@ export default {
         txid: res.transactionHash,
         block_num: res.blockNumber,
         from: res.from || selectedConnectAddress,
-        to: res.to || toAddress,
-        type: TRANSACTION_TYPE['L1ToL1'],
+        to: toAddress || res.to, // res.to is diffrent from toAddress wthen sendToken by contract
+        type: TRANSACTION_TYPE['L2ToL2'],
         status: res.status || 1,
         value: info.amount,
         name: symbolName,
@@ -505,8 +504,14 @@ export default {
       await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
       await this.getTokenAssetsForAccount()
     },
+
     transFromChange(data) {
       console.log(data)
+    },
+    async handleAccountChange(addressInfo) {
+      this.showLoading = true;
+      await this.getTokenAssetsForAccount()
+      this.showLoading = false;
     },
   },
   async created() {
@@ -529,6 +534,7 @@ export default {
       Toast('Need Login')
       return
     }
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
     await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
     const { hasError, forUsdt } = await this.$store.dispatch('GetTokenAxchangeForUS', { changeType: 'ETH/USDT' });
     this.ETHFORUS = forUsdt

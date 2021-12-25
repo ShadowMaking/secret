@@ -40,7 +40,7 @@
 
 <script>
 import Vue from 'vue'
-import { Icon, Popup, Tab, Tabs } from 'vant'
+import { Icon, Popup, Tab, Tabs, Toast } from 'vant'
 import navTitle from '@/components/NavTitle/index'
 import history from '../History/index'
 import TrendLine from '@/components/TrendLine'
@@ -53,7 +53,6 @@ import web3 from 'web3'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
 import Approval from './Approval/index'
-import { Toast } from 'vant'
 
 Vue.use(Toast)
 Vue.use(Icon);
@@ -153,10 +152,17 @@ export default {
       }
       return true
     },
+    async handleAccountChange(addressInfo) {
+      this.showLoading = true;
+      this.assetsData = []
+      await this.initGthers()
+      this.showLoading = false;
+    },
   },
   created() {
     // this.timer();
     this.initGthers()
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
   },
   // destroyed() {
   //   clearTimeout(this.timer)

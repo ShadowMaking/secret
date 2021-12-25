@@ -28,7 +28,7 @@
       </van-steps>
       <!-- Generate -->
       <div v-show="activeStepForPrivateKey===0">
-        <div class="flex flex-content-between">
+        <div class="flex flex-content-between" v-if="type!=='import'">
           <span></span>
           <van-button color="#495ABE" plain @click="update" size="small" class="update-privatekey">update</van-button>
         </div>
@@ -101,6 +101,10 @@ export default {
     settingData: {
       type: Object,
       default: null, // {name:'',desc:''}
+    },
+    need2FA: {
+      type: Boolean,
+      default: true
     },
   },
   data() {
@@ -195,6 +199,10 @@ export default {
     },
     handlesnputFocus() {},
     confirmImportPrivatekey() {
+      if (!this.need2FA) {
+        this.$emit('createComplete', this.importPrivatekey.trim(), 'privateKey');
+        return
+      }
       if (!this.thirdUserId) {
         this.$emit('notLogin');
         return
