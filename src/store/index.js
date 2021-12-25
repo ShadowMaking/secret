@@ -7,6 +7,7 @@ import transaction from './modules/transaction';
 import token from './modules/token';
 import thirdLogin from './modules/thirdLogin';
 import socailRecovery from './modules/socailRecovery';
+import ncWallet from './modules/ncWallet';
 import getters from './getters'
 
 Vue.use(Vuex);
@@ -29,6 +30,7 @@ const store = new Vuex.Store({
     thirdLogin,
     socailRecovery,
     token,
+    ncWallet,
   },
   getters,
   // plugins: [persistedState()]

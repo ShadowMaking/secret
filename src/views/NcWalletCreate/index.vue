@@ -50,6 +50,7 @@ import SecurityModule from "./SecurityModule.json";
 import WalletJson from "./Wallet.json";
 import ProxyJson from "./Proxy.json";
 import { BigNumber } from "bignumber.js";
+import { getFromStorage } from '@/utils/storage';
 
 Vue.use(Toast);
 
@@ -68,6 +69,7 @@ export default {
       popStatus: "success",
       statusPopTitle: 'Created Successfully!',
       timeTxt: '',
+      userId: getFromStorage('gUID'),
 
       moduleRegistryRouter: '0x155Be32032f1603f043ef352BCBED8F3ca95643D',
       securityModuleRouter: '0x03D498afABE3a1F7649dF9a046b674f443E3fEe9',
@@ -129,9 +131,18 @@ export default {
     changeVisible() {
       this.showStatusPop = false;
     },
+    async getSignerList() {
+      var searchData = {
+        userId: this.userId,
+        value: 'yanziyanzi115@gmail.com'
+      }
+      const { hasError, list } = await this.$store.dispatch('searchSigner', searchData);
+      console.log(hasError)
+      console.log(list)
+    },
   },
   created() {
-    
+    this.getSignerList()
   },
 };
 </script>
