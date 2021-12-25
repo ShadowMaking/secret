@@ -8,14 +8,28 @@
         <label style="font-size: 20px"><i :class="item.icon" size="60px"></i></label>
         <span>{{item.name}}</span>
       </div>
+      <div class="network-container">
+        <v-formSelect
+          label="NETWORK"
+          :labelShow="false"
+          :defaultValue="defaultNetWork"
+          :leftIcon="defaultIcon" 
+          :dataSource="netWorkList"
+          placeholder="chose network"
+          @change="handleNetworkChange" />
+      </div>
     </van-popup>
   </div>
 </template>
 
 <script>
 import Vue from 'vue';
+import web3 from 'web3'
 import 'vant/lib/index.css'
 import { Icon, Popup } from 'vant';
+import formSelect from '@/components/Select/index';
+import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
+import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 
 Vue.use(Icon);
 Vue.use(Popup);
@@ -34,9 +48,28 @@ export default {
         // {icon: 'el-icon-guide', name: 'Bridge', route: '/bridge'},
       ],
       screenWidth: null,
+
+      defaultIcon: null,
+      netWorkList: [],
     }
   },
+  components: {
+    "v-formSelect": formSelect,
+  },
+  computed: {
+    defaultNetWork() {
+      const info = getInfoFromStorageByKey('netInfo')
+      return info && info['id'] || 1
+    },
+  },
   mounted() {
+    this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
+    this.netWorkList.map(item => {
+      if (item.id == this.defaultNetWork) {
+        this.defaultIcon = item.icon
+      }
+    })
+
     this.screenWidth = document.body.clientWidth
     window.onresize = () => {
       return (() => {
@@ -67,6 +100,10 @@ export default {
     changeMenu(index, route) {
       this.activeKey = index
       this.$router.push({ path: route})
+    },
+    async handleNetworkChange(data) {
+      const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
+      await this.$store.dispatch('StoreSelectedNetwork', { netInfo: chainInfo })
     },
   },
 };

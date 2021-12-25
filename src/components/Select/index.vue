@@ -54,6 +54,9 @@ export default {
       this.thisleftIcon = value.icon
       this.$emit('change', {value});
     },
+    resetSelectVal() {
+      this.thislabel = ''
+    }
   },
 };
 </script>

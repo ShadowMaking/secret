@@ -29,7 +29,8 @@
           type="From"
           :sourceData="assetsTokenList"
           @selectChagne="val=>selectChagne('exchangeFrom', val)"
-          @inputChange="val=>inputChange('exchangeFrom', val)" />
+          @inputChange="val=>inputChange('exchangeFrom', val)"
+          ref="tokenFromSelect" />
       </div>
       <div class="from-box">
         <v-exchangItem
@@ -39,7 +40,8 @@
           :inputDisabled="true"
           :inputDefaultValue="exchangeTo"
           @selectChagne="val=>selectChagne('exchangeTo', val)"
-          @inputChange="val=>inputChange('exchangeTo', val)" />
+          @inputChange="val=>inputChange('exchangeTo', val)"
+          ref="tokenToSelect" />
       </div>
       <ul class="setting-box">
         <li>
@@ -953,7 +955,18 @@ export default {
       this.slippageKey = val
       isInput ? (this.slippageVal = this.slippageInput) : (this.slippageVal = val)
     },
+    resetVal() {
+      this.exchangeFrom = ''
+      this.exchangeTo = ''
+      this.exchangeFromToken = null
+      this.exchangeTOToken = null
+      this.assetsTokenList = [],
+      this.allTokenList = [],
+      this.$refs.tokenFromSelect.resetSelectVal()
+      this.$refs.tokenToSelect.resetSelectVal()
+    },
     async handleNetworkChange(data) {
+      this.resetVal()
       const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
       this.currentChainInfo = chainInfo
       await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })

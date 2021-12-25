@@ -4,7 +4,8 @@
       <p class="exchange-des">{{ type }}</p>
       <div class="exchange-select-list">
         <div class="exchange-select" @click="showOptionList">
-          <img src="https://s3.amazonaws.com/token-icons/0x6b175474e89094c44da98b954eedeac495271d0f.png" class="select-img">
+          <img :src="selectedTokenInfo && selectedTokenInfo.icon" class="select-img" v-if="selectedTokenInfo">
+          <img src="@/assets/icon_token_eth.png" class="select-img" v-else>
           <span class="select-txt">{{ selectedTokenInfo && selectedTokenInfo['tokenName'] }}</span>
           <img src="@/assets/form/solidDown.png" class="select-down-img">
         </div>
@@ -67,7 +68,6 @@ export default {
   watch: {
     sourceData: {
       async handler(newV, oldV) {
-        // this.selectedTokenInfo = newV.length && newV[0]
         if (newV.length) {
           this.selectOptionData = _.cloneDeep(newV)
           this.selectedTokenInfo = newV.length && newV[0]
@@ -131,6 +131,10 @@ export default {
     handleResetInputValue() {
       this.exchangVal = ''
     },
+    resetSelectVal() {
+      this.selectedTokenInfo = null
+      this.exchangVal = ''
+    }
   },
   async mounted() {
     this.$eventBus.$on('resetExchangeTokenInputValue', this.handleResetInputValue)

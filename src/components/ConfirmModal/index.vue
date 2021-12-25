@@ -27,7 +27,7 @@
                 <div class="detail-wraper-inner">
                   <div class="gasFee"><span class="name">Estimated gas fee</span><span class="value">{{ showValBySourceData('estimatedGasFee') }} ETH</span></div>
                   <div class="gasPrice"><span class="name">GasPrice</span><span class="value">{{ showValBySourceData('gasPrice') }} Gwei</span></div>
-                  <div class="gasLimit"><span class="name">GasLimit</span><span class="value">{{ 21000 }}</span></div>
+                  <div class="gasLimit"><span class="name">GasLimit</span><span class="value">{{ showValBySourceData('gas')||21000 }}</span></div>
                 </div>
                 <div class="detail-wraper-inner">
                   <div class="total">
@@ -109,6 +109,8 @@ export default {
             return `${metadata.value} ${metadata.symbolName}`
           case 'gasPrice':
             return metadata.gasPrice
+          case 'gas':
+            return metadata.gas
           case 'total':
             return `${metadata.value} ${metadata.symbolName} + ${metadata.estimatedGasFee} ETH` 
           case 'netInfo':

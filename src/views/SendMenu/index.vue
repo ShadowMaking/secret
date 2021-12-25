@@ -22,7 +22,8 @@
         placeholder="chose token"
         leftIcon="https://s3.amazonaws.com/token-icons/0x6b175474e89094c44da98b954eedeac495271d0f.png" 
         :dataSource="assetsTokenList"
-        @change="handleTokenChange">
+        @change="handleTokenChange"
+        ref="tokenSelect">
       </v-formSelect>
       <div class="send-value-box">
         <div class="send-value-item">
@@ -367,7 +368,8 @@ export default {
       const sendData = {
         from: selectedConnectAddress,
         to: data.toAddress,
-        gasLimit: web3.utils.toHex('21000'),
+        // gasLimit: web3.utils.toHex('21000'),
+        gasLimit: web3.utils.toHex('462693'),
         gasPrice: web3.utils.toHex(web3.utils.toWei(data.gasPrice, 'gwei')),
         value: transferAmount.toHexString(),
         chainId: this.currentChainInfo['id'],
@@ -493,6 +495,7 @@ export default {
       if (data) { this.gasPriceInfo = data }
     },
     async handleNetworkChange(data) {
+      this.$refs.tokenSelect.resetSelectVal()
       const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
       this.currentChainInfo = chainInfo
       await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })

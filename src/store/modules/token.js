@@ -22,6 +22,9 @@ import DAIABIJSONFORROPSTEN from '@/assets/token/Ropsten/ABIJSON/IERC20.json'
 // import WETHABIJSONFORROPSTEN from '@/assets/token/Ropsten/ABIJSON/IWETH.json'
 import WETHABIJSONFORROPSTEN from '@/assets/token/Ropsten/ABIJSON/WETH9.json'
 
+// For Stardust Test
+import DEFAULTTOKENLISTForStardust from '@/assets/token/Stardust/tokenList.json'
+
 // Other Default Token
 import DEFAULTTOKENLISTForOther from '@/assets/token/tokenListDefaultForOther.json'
 
@@ -30,16 +33,23 @@ import { CHAINIDMAP } from '@/utils/netWorkForToken'
 import { transTickerObject } from '@/utils/ccxt';
 import { getTokenPrice } from '@/utils/coinGecko';
 
+import { TOKENMAP_NETWORK } from '@/utils/tokenMap'
+
 
 const token = {
   state: {
     // tokenList: null,
+    tokenABIMap: {},
   },
 
   mutations: {
     SET_TOKEN_LIST: (state, list) => {
       state.tokenList = list;
     },
+    SET_TOKEN_ABI: (state, abiObj) => {
+      state.tokenABIMap = _.cloneDeep(state.tokenABIMap)
+      state.tokenABIMap[abiObj.tokenAddress] = abiObj.abi
+    }
   },
   actions: {
     GetTokenByNetType({ commit }, params) {
@@ -104,23 +114,31 @@ const token = {
         })
       })
     }, */
-    // TODO
-    GetAllTokenList({ commit, ...store }, params) {
+    GetAllTokenList({ commit, ...rootStore }, params) {
       return new Promise(async (resolve, reject) => {
-        const { hasError, list=[] } = await store.dispatch('GetDefaultTokenListForOther')
-        const otherDefaultTokenList = list
-        const tokenListJson = _.cloneDeep(TOKENLISTJSONTest)
+        let chainID = web3.utils.numberToHex('1')
+        if (params && params.chainInfo) {
+          chainID = web3.utils.numberToHex(params.chainInfo.id)
+        } else {
+          const { data: netInfo } = await rootStore.dispatch('GetSelectedNetwork')
+          chainID = web3.utils.numberToHex(netInfo.id)
+        }
+        if (web3.utils.hexToNumber(chainID) === 1) {
+          resolve({ hasError: false,  list: [] })
+        }
+        const tokenListJson = _.cloneDeep(TOKENMAP_NETWORK[chainID]) || {}
         const tokenList = Object.keys(tokenListJson).map(tokenAddress => {
-          const { name, logo, erc20, symbol, decimals } = tokenListJson[tokenAddress]
+          const { name, logo, erc20, symbol, decimals, abiTokenAddress } = tokenListJson[tokenAddress]
           return {
             id: name,
             tokenName: name,
             tokenAddress,
             erc20, symbol, decimals,
-            icon: `token/tokenImages/${logo}` // TODO
+            icon: `token/tokenImages/${logo}`, // TODO
+            abiTokenAddress,
           }
         })
-        resolve({ hasError: false,  list: tokenList.concat(otherDefaultTokenList) })
+        resolve({ hasError: false,  list: tokenList })
       })
     },
     GetDefaultTokenListForOther({ commit }, params) {
@@ -141,13 +159,9 @@ const token = {
     },
     GetAvailableTokenAssets({ commit, ...store }, params) {
       return new Promise(async (resolve, reject) => {
-        // let chainID = window.ethereum.chainId
         let chainID = web3.utils.numberToHex('1')
         params.chainInfo && (chainID = web3.utils.numberToHex(params.chainInfo.id))
         let tokenList = []
-        const { hasError, list=[] } = await store.dispatch('GetDefaultTokenListForOther')
-        const otherDefaultTokenList = list
-        console.log(otherDefaultTokenList)
         switch(chainID) {
           case CHAINIDMAP['SECRETL1']:
             tokenList =[].concat(Object.keys(DEFAULTTOKENLISTForL1).map(tokenAddress => {
@@ -158,16 +172,17 @@ const token = {
                 tokenAddress,
                 erc20, symbol, decimals,
                 icon: `token/tokenImages/${logo}`, // TODO
-                abiJson: DEFAULTTOKENABIJSONForL1.abi
+                abiJson: DEFAULTTOKENABIJSONForL1.abi,
               }
-            }), otherDefaultTokenList)
+            }))
             break;
           case CHAINIDMAP['ROPSTEN']:
-            const tokenAddressList = Object.keys(DEFAULTTOKENLISTForRopsten)
+            const tokenListMap_ropsten = TOKENMAP_NETWORK[CHAINIDMAP['ROPSTEN']]
+            const tokenAddressList_ropsten = Object.keys(TOKENMAP_NETWORK[CHAINIDMAP['ROPSTEN']])
             const _tokenList = []
-            for(let i = 0; i<tokenAddressList.length; i+=1) {
-              const tokenAddress = tokenAddressList[i]
-              const { name, logo, erc20, symbol, decimals } = DEFAULTTOKENLISTForRopsten[tokenAddress]
+            for(let i = 0; i<tokenAddressList_ropsten.length; i+=1) {
+              const tokenAddress = tokenAddressList_ropsten[i]
+              const { name, logo, erc20, symbol, decimals } = tokenListMap_ropsten[tokenAddress]
               const { hasError, data } = await store.dispatch('GetTokenABIByTokenAddress', { tokenAddress })
               _tokenList.push({
                 id: name,
@@ -178,7 +193,30 @@ const token = {
                 abiJson: data
               })
             }
-            tokenList = [].concat(_tokenList, otherDefaultTokenList)
+            tokenList = [].concat(_tokenList)
+            break;
+          case CHAINIDMAP['STARDUST']:
+            const tokenListMap_stardust = TOKENMAP_NETWORK[CHAINIDMAP['STARDUST']]
+            const tokenAddressList_Stardust = Object.keys(tokenListMap_stardust)
+            const _tokenList_Stardust = []
+            for(let i = 0; i<tokenAddressList_Stardust.length; i+=1) {
+              const tokenAddress = tokenAddressList_Stardust[i]
+              let tokenAddressForABI
+              if (tokenListMap_stardust[tokenAddress]['abiTokenAddress']) {
+                tokenAddressForABI = tokenListMap_stardust[tokenAddress]['abiTokenAddress']
+              }
+              const { name, logo, erc20, symbol, decimals } = tokenListMap_stardust[tokenAddress]
+              const { hasError, data } = await store.dispatch('GetTokenABIByTokenAddress', { tokenAddress: tokenAddressForABI ? tokenAddressForABI : tokenAddress })
+              _tokenList_Stardust.push({
+                id: name,
+                tokenName: name,
+                tokenAddress,
+                erc20, symbol, decimals,
+                icon: `token/tokenImages/${logo}`, // TODO
+                abiJson: data
+              })
+            }
+            tokenList = [].concat(_tokenList_Stardust)
             break;
           default:
             const { hasError, list } = await store.dispatch('GetAllTokenList')
@@ -189,7 +227,7 @@ const token = {
         resolve({ hasError: false,  list: tokenList })
       })
     },
-    GetTokenABIByTokenAddress({ commit }, params) {
+    GetTokenABIByTokenAddress({ commit, ...rootStore }, params) {
       const tokenAddress = params.tokenAddress
       const data = {
         module: 'contract',
@@ -197,12 +235,20 @@ const token = {
         address: tokenAddress,
       }
       return new Promise((resolve, reject) => {
+        const tokenABIMap = rootStore.state.tokenABIMap
+        if (tokenABIMap && tokenABIMap[tokenAddress]) {
+          resolve({ hasError: false, data: tokenABIMap[tokenAddress] })
+          return
+        }
         ajaxGetRequestByEtherscan({ method: 'get', data })
         .then(res=>{
           const abi = res['data'] && window.JSON.parse(res['data'])
+          // set abi for token in store
+          abi && (commit('SET_TOKEN_ABI', { tokenAddress, abi }))
           resolve({ hasError: false, data: abi })
         })
         .catch(error=>{
+          console.log('params',params, error)
           resolve({ hasError: false, data: null })
         })
       })
@@ -224,6 +270,7 @@ const token = {
         /* if (tokenAddress === '0xad6d458402f60fd3bd25163575031acdce07538d') {
         } */
         const myContract = new ethers.Contract(tokenAddress, abi, signer)
+        
         if(!myContract.balanceOf) {
           resolve({ hasError: true, data: 0, balanceFormatString: '0.0000' })
           return

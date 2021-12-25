@@ -15,12 +15,17 @@ import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByK
 export const generateTokenList = async (list, self, isDefault) => {
   // const selectedConnectAddress = window.ethereum.selectedAddress;
   const selectedConnectAddress = getConnectedAddress();
-  const GetTokenBalanceMthodName = isDefault ? 'GetTokenBalanceByContract' : 'GetTokenBalanceByEtherscan'
+  const GetTokenBalanceMthodName = isDefault || isDefault===undefined ? 'GetTokenBalanceByContract' : 'GetTokenBalanceByEtherscan'
   for(let i=0; i<list.length;i+=1) {
     const tokenAddress = list[i].tokenAddress
+    let abiTokenAddress;
+    if (list[i]['abiTokenAddress']) {
+      abiTokenAddress = list[i]['abiTokenAddress']
+    }
+
     let abi = list[i].abiJson || []
     if (!isDefault || abi.length === 0) {
-      const { hasError: abiResError, data } = await self.$store.dispatch('GetTokenABIByTokenAddress', {tokenAddress});
+      const { hasError: abiResError, data } = await self.$store.dispatch('GetTokenABIByTokenAddress', {tokenAddress: abiTokenAddress?abiTokenAddress:tokenAddress});
       abi = [].concat(data||[])
     }
     const { hasError: balanceResError, data: balance, balanceFormatString } = await self.$store.dispatch(GetTokenBalanceMthodName, {
@@ -110,7 +115,7 @@ export const getEtherscanAPIBaseUrl = () => {
         etherscanAPIBaseUrl = `https://api-goerli.etherscan.io`
         break
       case CHAINIDMAP['RINKEBY']:
-        etherscanAPIBaseUrl = `https://api-goerli.etherscan.io`
+        etherscanAPIBaseUrl = `https://api-rinkeby.etherscan.io`
         break
       case CHAINIDMAP['KOVAN']:
         etherscanAPIBaseUrl = `https://api-kovan.etherscan.io`
@@ -118,6 +123,14 @@ export const getEtherscanAPIBaseUrl = () => {
       case CHAINIDMAP['ROPSTEN']:
         etherscanAPIBaseUrl = `https://api-ropsten.etherscan.io`
         break
+      case CHAINIDMAP['STARDUST']:
+        // etherscanAPIBaseUrl = `https://stardust-explorer.metis.io/api`
+        // etherscanAPIBaseUrl = `https://api-rinkeby.etherscan.io`
+        etherscanAPIBaseUrl = `https://api.etherscan.io` // because contract source code not verified in Rinkeby
+        break
+      default:
+        etherscanAPIBaseUrl = `https://api.etherscan.io`
+        break;
     }
   }
   return etherscanAPIBaseUrl
