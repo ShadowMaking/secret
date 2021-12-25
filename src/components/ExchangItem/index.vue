@@ -68,8 +68,8 @@ export default {
   watch: {
     sourceData: {
       async handler(newV, oldV) {
+        this.selectOptionData = _.cloneDeep(newV)
         if (newV.length) {
-          this.selectOptionData = _.cloneDeep(newV)
           this.selectedTokenInfo = newV.length && newV[0]
           this.selectChagne(newV[0])
         }

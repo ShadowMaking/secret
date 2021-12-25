@@ -962,15 +962,15 @@ export default {
       this.exchangeTOToken = null
       this.assetsTokenList = [],
       this.allTokenList = [],
-      this.$refs.tokenFromSelect.resetSelectVal()
-      this.$refs.tokenToSelect.resetSelectVal()
+      this.$refs.tokenFromSelect && this.$refs.tokenFromSelect.resetSelectVal()
+      this.$refs.tokenToSelect && this.$refs.tokenToSelect.resetSelectVal()
     },
-    async handleNetworkChange(data) {
+    async handleNetworkChange(data, emitEvent) {
       this.resetVal()
       const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
       this.currentChainInfo = chainInfo
       await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
-      this.$eventBus.$emit('networkChange', { chainInfo, from:'exchange' })
+      emitEvent && (this.$eventBus.$emit('networkChange', { chainInfo, from:'exchange' }))
       await this.getTokenList(true)
     },
     handleProtocolChange(data) {
@@ -978,12 +978,10 @@ export default {
       console.log(this.currentProtocolType)
     },
     async getTokenList(forAccounts) {
+      this.allTokenList = []
+      this.assetsTokenList = []
       const selectedConnectAddress = getConnectedAddress()
-      if (!selectedConnectAddress) {
-        this.allTokenList = []
-        this.assetsTokenList = []
-        return
-      }
+      if (!selectedConnectAddress) { return }
       const methodName = forAccounts ? 'GetAvailableTokenAssets' : 'GetAllTokenList'
       const { hasError, list } = await this.$store.dispatch(methodName, { selectedConnectAddress, chainInfo: this.currentChainInfo });
       const tokenList = await generateTokenList(_.cloneDeep(list), this, forAccounts)
@@ -1148,6 +1146,7 @@ export default {
       if (from === 'exchange') { return }
       this.defaultNetWork = chainInfo.id
       this.defaultIcon = chainInfo.icon
+      this.handleNetworkChange({value:{id:chainInfo.id}}, true)
     },
   },
   async created() {

@@ -201,11 +201,9 @@ export default {
       this.addressForRecipient = data.value
     },
     async getTokenAssetsForAccount() {
+      this.assetsTokenList = []
       const selectedConnectAddress = getConnectedAddress()
-      if (!selectedConnectAddress) {
-        this.assetsTokenList = []
-        return
-      }
+      if (!selectedConnectAddress) { return }
       const currentChainId = this.currentChainInfo && this.currentChainInfo['id']
       const hexChainId = currentChainId && web3.utils.numberToHex(currentChainId)
       const rpcUrl = hexChainId && CHAINMAP[hexChainId]['rpcUrls'][0]
@@ -495,12 +493,13 @@ export default {
       const { hasError, data } = await this.$store.dispatch('GetGasPriceByEtherscan');
       if (data) { this.gasPriceInfo = data }
     },
-    async handleNetworkChange(data) {
+    async handleNetworkChange(data, emitEvent) {
       this.$refs.tokenSelect.resetSelectVal()
+      this.assetsTokenList = []
       const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
       this.currentChainInfo = chainInfo
       await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
-      this.$eventBus.$emit('networkChange', { chainInfo, from:'sendMenu' })
+      emitEvent && (this.$eventBus.$emit('networkChange', { chainInfo, from:'sendMenu' }))
       await this.getTokenAssetsForAccount()
     },
     async handleAccountChange(addressInfo) {
@@ -512,6 +511,7 @@ export default {
       if (from === 'sendMenu') { return }
       this.defaultNetWork = chainInfo.id
       this.defaultIcon = chainInfo.icon
+      this.handleNetworkChange({value:{id:chainInfo.id}}, true)
     },
   },
   async created() {
