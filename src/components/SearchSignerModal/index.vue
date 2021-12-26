@@ -11,7 +11,6 @@
         <div class="sign-model-input">
           <el-select
             v-model="searchInput"
-            multiple
             filterable
             remote
             reserve-keyword
@@ -22,14 +21,14 @@
             <el-option
               v-for="(item, index) in signListoptions"
               :key="index"
-              :label="item.label"
-              :value="item.value" style="padding-left: 10px;">
+              :label="item"
+              :value="item" style="padding-left: 10px;">
             </el-option>
           </el-select>
         </div>
         <div class="button-content">
           <van-button class="opt-button" color="#367BCF" plain @click="cancelModal">Cancel</van-button>
-          <van-button class="opt-button" color="#367BCF" @click="confirm">Add</van-button>
+          <van-button class="opt-button" color="#367BCF" @click="confirmAdd">Add</van-button>
         </div>
       </div>
     </div>
@@ -57,24 +56,25 @@ export default {
 
     }
   },
-  // watch: {
-  //   dataSource() {
-  //     this.signListoptions = this.dataSource
-  //   },
-  // },
+  watch: {
+    dataSource() {
+      console.log(this.dataSource)
+      this.signListoptions = this.dataSource
+    },
+  },
   methods: {
     cancelModal() {
       this.showPopup = false;
     },
-    confirm() {
+    confirmAdd() {
       this.showPopup = false;
-      // this.$emit('confirm');
+      this.$emit('addConfirm', this.searchInput);
     },
     closeModal() {
       this.showPopup = false;
     },
     remoteMethod(query) {
-      console.log(query)
+      this.$emit('confirm', query)
     },
     addSignerBtn() {
       this.showPopup = true

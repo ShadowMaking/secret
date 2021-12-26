@@ -57,33 +57,27 @@
 </template>
 <script>
 import Vue from 'vue';
+import { Toast } from 'vant'
 import navTitle from '@/components/NavTitle/index'
 import searchSignerModal from '@/components/SearchSignerModal/index'
+import {  isLogin } from '@/utils/dashBoardTools'
+import { getFromStorage } from '@/utils/storage'
+
+Vue.use(Toast);
 
 export default {
   name: 'signManage',
+  props: ['id'],
   data() {
     return {
-      signList: [{
-        CreateTime:1,
-        WalletName: 2,
-        Balance: 3,
-        Address: 4,
-        State: 1,
-        id: 1,
-      },{
-        CreateTime:1,
-        WalletName: 2,
-        Balance: 3,
-        Address: 4,
-        State: 5,
-        id: 1,
-      }],
+      signList: [],
 
       searchSignerList: [],
 
       signerPercent: 0,
       signerTotal: 0,
+      
+      userId: getFromStorage('gUID'),
     }
   },
   components: {
@@ -98,6 +92,21 @@ export default {
     confirmSearchSigner() {
 
     },
+    async getSignerListByid() {
+      let data = {
+        userId: this.userId,
+        walletId: this.$route.params.id
+      }
+      const { hasError, list } = await this.$store.dispatch('getSignerList', {...data})
+      this.signList = list
+    },
+  },
+  created() {
+    if (!isLogin()) {
+      Toast('Need Login')
+      return
+    }
+    this.getSignerListByid()
   },
 }
 </script>

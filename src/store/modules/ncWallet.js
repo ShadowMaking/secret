@@ -6,6 +6,7 @@ import {
   getSignerList,
   updateSigner,
   deleteSigner, 
+  getWalletListAsSign,
 } from '@/api/ncwallet'
 
 
@@ -36,11 +37,11 @@ const ncWallet = {
         addWallet(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0) {
-            resolve({ hasError: false, list: data })
+            resolve({ hasError: false })
           }
-          resolve({ hasError: true, list: [], error: message });
+          resolve({ hasError: true, error: message });
         }).catch(error => {
-          resolve({ hasError: true, list: [], error });
+          resolve({ hasError: true, error });
         })
       })
     },
@@ -57,9 +58,9 @@ const ncWallet = {
         })
       })
     },
-    addSigner({ commit }, params) {
+    getWalletListAsSign({ commit }, params) {
       return new Promise((resolve, reject) => {
-        addSigner(params).then(response => {
+        getWalletListAsSign(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0) {
             resolve({ hasError: false, list: data })
@@ -70,9 +71,22 @@ const ncWallet = {
         })
       })
     },
-    getSignerList({ commit }, params) {
+    addSigner({ commit }, params) {
       return new Promise((resolve, reject) => {
         addSigner(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
+    getSignerList({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        getSignerList(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0) {
             resolve({ hasError: false, list: data })
@@ -88,11 +102,11 @@ const ncWallet = {
         updateSigner(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0) {
-            resolve({ hasError: false, list: data })
+            resolve({ hasError: false })
           }
-          resolve({ hasError: true, list: [], error: message });
+          resolve({ hasError: true, error: message });
         }).catch(error => {
-          resolve({ hasError: true, list: [], error });
+          resolve({ hasError: true, error });
         })
       })
     },
@@ -101,11 +115,11 @@ const ncWallet = {
         deleteSigner(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0) {
-            resolve({ hasError: false, list: data })
+            resolve({ hasError: false })
           }
-          resolve({ hasError: true, list: [], error: message });
+          resolve({ hasError: true, error: message });
         }).catch(error => {
-          resolve({ hasError: true, list: [], error });
+          resolve({ hasError: true, error });
         })
       })
     },

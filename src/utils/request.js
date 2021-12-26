@@ -8,7 +8,7 @@ import {
   getInfoFromStorageByKey } from '@/utils/storage';
 
 const protocol = location.protocol;
-export const WEBSITE_BASEURL = protocol + '//43.128.80.242:8443'
+export const WEBSITE_BASEURL = protocol + '//rpc.ieigen.com'
 
 axios.defaults.withCredentials = true;
 
@@ -60,7 +60,7 @@ axios.defaults.withCredentials = true;
           const userId = getFromStorage('gUID')
           const token = getAuthToken('gtoken')
           const url = `${window.location.protocol}//secret.ieigen.com`
-          // window.location.href=url
+          window.location.href=url
           return Promise.reject('error')
          default:
           //  console.log('error', res.message);

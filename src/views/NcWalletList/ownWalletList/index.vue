@@ -6,19 +6,19 @@
       style="width: 100%">
         <el-table-column
           fixed
-          prop="CreateTime"
+          prop="createdAt"
           label="Create Time">
         </el-table-column>
         <el-table-column
-          prop="WalletName"
+          prop="name"
           label="Wallet Name">
         </el-table-column>
         <el-table-column
-          prop="Balance"
+          prop="balance"
           label="Balance">
         </el-table-column>
         <el-table-column
-          prop="Address"
+          prop="address"
           label="Address">
         </el-table-column>
         <el-table-column
@@ -45,7 +45,7 @@ export default {
   methods: {
     handleClick(row) {
       this.$router.push({
-        path: `/signManage/${row.id}`,
+        path: `/signManage/${row.wallet_id}`,
       })
     }
   },

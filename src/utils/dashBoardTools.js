@@ -4,7 +4,7 @@ import { BigNumber } from "bignumber.js";
 import { defaultNetWorkForMetamask, CHAINMAP } from '@/utils/netWorkForToken';
 import { CHAINIDMAP } from '@/utils/netWorkForToken'
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
-
+import { getCurrentProvider } from '@/utils/web3';
 /**
  * @description: 
  * @param {*} list
@@ -141,7 +141,6 @@ export const getContractWallet = async (self) => {
   const decryptInfo = await self.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
   const { hasError, data: privateKey } = decryptInfo
   const wallet = new ethers.Wallet(privateKey, provider);
-  console.log(privateKey)
   // const wallet = new ethers.Wallet('0x57ab00ee8e9b0db4bdf3ba67b6b11a80d026448d89ad6c99d912050e04b5cf68', provider);
   return wallet
 }
@@ -204,4 +203,51 @@ export const getDATACode = (abi, functionName, params) => {
   // paramsForFunctionName is params to execute functionName
   const datacode = iface.encodeFunctionData(`${functionName}`, paramsForFunctionName)
   return datacode || '0x'
+}
+
+//get ENS or address
+export async function getEns(address) {
+  return new Promise((resolve, reject) => {
+    const currentProvider = getCurrentProvider()
+    if (currentProvider) {
+      currentProvider.lookupAddress(address)
+      .then(res=>{
+        if (res) {
+          resolve(res)
+        } else {
+          resolve(address)
+        }
+        
+      })
+      .catch(error => {
+        resolve(address)
+      })
+    } else {
+      resolve(address)
+    }
+  })
+}
+
+//get address banlance
+export async function getBalanceByAddress(address) {
+  return new Promise((resolve, reject) => {
+    const currentProvider = getCurrentProvider()
+    if (currentProvider) {
+      currentProvider.getBalance(address)
+      .then(res=>{
+        if (res) {
+          let etherString = ethers.utils.formatEther(res);
+          resolve(etherString)
+        } else {
+          resolve(null)
+        }
+        
+      })
+      .catch(error => {
+        resolve(null)
+      })
+    } else {
+      resolve(null)
+    }
+  })
 }

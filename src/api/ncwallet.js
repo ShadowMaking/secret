@@ -16,9 +16,13 @@ import request from '@/utils/request';
     _data = {
        email: data['value']
     }
-  } else {
+  } else if (data['value'] && data['value'].indexOf(".") != -1){
     _data = {
        ens: data['value']
+    }
+  } else {
+    _data = {
+       address: data['value'].toLocaleLowerCase()
     }
   }
   return request({
@@ -30,25 +34,45 @@ import request from '@/utils/request';
 
 /**
  * @description: Add a wallet (returns the corresponding wallet id)
- * @param {"name": "test", "address": "0x123", "ens": "test.ens"}
+ * @param {"name": "test", "address": "0x123", "ens": "test.ens", "signers": ["0x456", "0x789"]}
  * @return {*}
  */
  export const addWallet = (data) => {
+  const userId = data['userId'];
+  const _data = {
+    name: data['name'],
+    address: data['address'],
+    signers: data['signers'],
+  }
   return request({
-    url: `/api/user/{user_id}/wallet`,
+    url: `/api/user/${userId}/wallet`,
     method: 'post',
-    data,
+    data: _data,
   })
 }
 
 /**
- * @description: Get all wallets
+ * @description: Get all wallets as owner
  * @param 
  * @return {*}
  */
- export const getWalletList = (data) => {//todo
+ export const getWalletList = (data) => {
+  const userId = data['userId'];
   return request({
-    url: `/api/user/{user_id}/wallets`,
+    url: `/api/user/${userId}/wallets`,
+    method: 'get',
+  })
+}
+
+/**
+ * @description: Get all wallets as signer
+ * @param 
+ * @return {*}
+ */
+ export const getWalletListAsSign = (data) => {
+  const userId = data['userId'];
+  return request({
+    url: `/api/user/${userId}/as_signers`,
     method: 'get',
   })
 }
@@ -58,9 +82,11 @@ import request from '@/utils/request';
  * @param {"name": "name1", "ens": "example.ens", "address": "0x123"}
  * @return {*}
  */
- export const addSigner = (data) => {//todo
+ export const addSigner = (data) => {
+  const userId = data['userId'] 
+  const walletId = data['walletId']
   return request({
-    url: `/api/user/{user_id}/wallet/{wallet_id}/signer`,
+    url: `/api/user/${userId}/wallet/${walletId}/signer`,
     method: 'post',
     data
   })
@@ -72,8 +98,10 @@ import request from '@/utils/request';
  * @return {*}Status:1 to be confirmed 2 rejected  3 active
  */
  export const getSignerList = (data) => {
+  const userId = data['userId'] 
+  const walletId = data['walletId'] 
   return request({
-    url: `/api/user/{user_id}/wallet/{wallet_id}/signers`,
+    url: `/api/user/${userId}/wallet/${walletId}/signers`,
     method: 'get',
   })
 }

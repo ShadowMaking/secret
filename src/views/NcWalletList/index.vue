@@ -7,62 +7,52 @@
         <div>
           <v-ownWalletList
           :dataList="ownWalletList"
-          :showLoading="showLoading"
-          :showNoMore="showNoMore" />
-          <v-none v-if="!showLoading && ownWalletList.length==0" />
+           />
         </div>
+        <v-none v-if="!ownShowLoading && ownWalletList.length==0" />
+        <v-loading v-show="ownShowLoading" />
       </van-tab>
       <van-tab title="I am The Signer" title-style="font-weight: bold">
         <div>
           <v-signWalletList
           :dataList="signWalletList"
-          :showLoading="showLoading"
-          :showNoMore="showNoMore" />
-          <v-none v-if="!showLoading && signWalletList.length==0" />
+           />
         </div>
-        <v-none v-if="!showLoading && signWalletList.length==0" />       
+        <v-none v-if="!signShowLoading && signWalletList.length==0" />
+        <v-loading v-show="signShowLoading" />
       </van-tab>
     </van-tabs>
-    <v-loading v-show="showLoading" />
-    <div v-show="_showNoMore" class="no-more">no more</div>
   </div>
 </template>
 
 <script>
 import Vue from 'vue'
-import { Tab, Tabs} from 'vant'
+import { Tab, Tabs, Toast} from 'vant'
+import { ethers } from 'ethers'
 import navTitle from '@/components/NavTitle/index'
 import ownWalletList from './ownWalletList/index'
 import signWalletList from './signWalletList/index'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
+import { getFromStorage } from '@/utils/storage'
+import {  isLogin, getBalanceByAddress } from '@/utils/dashBoardTools';
 
 Vue.use(Tab);
 Vue.use(Tabs);
+Vue.use(Toast);
 
 export default {
   name: 'NC-Wallet',
   data() {
     return {
       tabActive: 0,
-      ownWalletList: [{
-        CreateTime:1,
-        WalletName: 2,
-        Balance: 3,
-        Address: 4,
-        signer: 5,
-        id: 1,
-      }],
-      signWalletList: [{
-        CreateTime:1,
-        WalletName: 2,
-        Balance: 3,
-        Address: 4,
-        signer: 5
-      }],
+      ownWalletList: [],
+      signWalletList: [],
       
-      showLoading: false,
-      showNoMore: false,
+      ownShowLoading: true,
+      signShowLoading: true,
+      
+      userId: getFromStorage('gUID'),
     }
   },
   components: {
@@ -72,16 +62,50 @@ export default {
     'v-none': None,
     'v-loading': Loading,
   },
-  computed: {
-    _showNoMore() {
-      return this.showNoMore && this.ownWalletList.length > 0
+  
+  methods: {
+    async getWalletAsOwner() {
+      let data = {
+        userId: this.userId
+      }
+      const { hasError, list } = await this.$store.dispatch('getWalletList', data)
+      
+      for(let i=0; i<list.length;i+=1) {
+        let itemBalance = await this.getBalance(list[i].address)
+        list[i]['balance'] = itemBalance
+      }
+      this.ownWalletList = list
+      if (hasError) {
+        this.ownShowLoading = true
+      } else {
+        this.ownShowLoading = false
+      }
+    },
+    async getWalletAsSigner() {
+      let data = {
+        userId: this.userId
+      }
+      const { hasError, list } = await this.$store.dispatch('getWalletListAsSign', data)
+      this.signWalletList = list
+      if (hasError) {
+        this.signShowLoading = true
+      } else {
+        this.signShowLoading = false
+      }
+    },
+    async getBalance(address) {
+      const balanceString = await getBalanceByAddress(address)
+      return balanceString
     },
   },
-  methods: {
-    
-  },
   created() {
-    
+    if (!isLogin()) {
+      Toast('Need Login')
+      return
+    }
+    this.getWalletAsOwner()
+    this.getWalletAsSigner()
+
   },
 };
 </script>

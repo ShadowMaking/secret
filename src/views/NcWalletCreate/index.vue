@@ -12,15 +12,15 @@
           </el-form-item>
           <el-form-item label="Set Signer">
             <el-table :data="createSignerList" border style="width: 100%" v-if="createSignerList.length">
-                <el-table-column fixed prop="AddTime" label="Add Time"></el-table-column>
-                <el-table-column fixed prop="Name" label="Name"></el-table-column>
-                <el-table-column fixed prop="Name" label="Signer Address/ENS"></el-table-column>
+                <el-table-column fixed prop="addTime" label="Add Time"></el-table-column>
+                <el-table-column fixed prop="signAddress" label="Signer Address/ENS"></el-table-column>
             </el-table>
           </el-form-item>
         </el-form>
         <v-searchSignerModal
           :dataSource="searchSignerList"
-          @confirm="confirmSearchSigner" />
+          @confirm="confirmSearchSigner"
+          @addConfirm="confirmAddSigner" />
         <div class="add-signer-tip">Any transaction requires the confirmation of: {{signerPercent}} out of {{signerTotal}} signer(s)</div>
         <div class="create-btn-box">
           <a class="common-form-btn" @click="createSubmit">Create</a>
@@ -39,20 +39,21 @@
 
 <script>
 import Vue from 'vue'
-import { Toast } from 'vant'
+import { Toast, Dialog } from 'vant'
 import { ethers } from 'ethers'
 import navTitle from '@/components/NavTitle/index'
 import searchSignerModal from '@/components/SearchSignerModal/index'
 import StatusPop from '@/components/StatusPop';
-import { getContractAt, getConnectedAddress } from '@/utils/dashBoardTools';
-import ModuleRegistry from "./ModuleRegistry.json";
+import { getContractAt, getConnectedAddress, getEns, isLogin } from '@/utils/dashBoardTools';
 import SecurityModule from "./SecurityModule.json";
 import WalletJson from "./Wallet.json";
 import ProxyJson from "./Proxy.json";
 import { BigNumber } from "bignumber.js";
 import { getFromStorage } from '@/utils/storage';
+import { timeFormat } from '@/utils/str';
 
 Vue.use(Toast);
+Vue.use(Dialog);
 
 export default {
   name: 'NC-Wallet',
@@ -60,8 +61,9 @@ export default {
     return {
       createWalletName: '',
       createSignerList: [],
+      createSignerSubmit: [],
       signerTotal: 0,
-      signerPercent: 0,
+      signerPercent: 0,//more than 1/2
 
       searchSignerList: [],
 
@@ -71,10 +73,11 @@ export default {
       timeTxt: '',
       userId: getFromStorage('gUID'),
 
-      moduleRegistryRouter: '0x155Be32032f1603f043ef352BCBED8F3ca95643D',
-      securityModuleRouter: '0x03D498afABE3a1F7649dF9a046b674f443E3fEe9',
-      walletRouter: '0x32D9b4491a6742F73032DE7BBB35017176026aD3',
-      proxyRouter: '0xB2EB9d96Edc2b0791a847136a8D984a5722edB88',
+      showLoading: false,
+
+      securityModuleRouter: '0x17708F66E60Eb7090aF70628596b6780C2B4F0ea',
+      walletRouter: '0x78412C7a5aaB090d655Bb2Fcea2Bc72BDCF813F9',
+      proxyRouter: '0x270Bf36C4bff1dd3c995d71E8CB6A9450c34D5ed',
     }
   },
   components: {
@@ -83,66 +86,111 @@ export default {
     'v-statusPop': StatusPop,
   },
   methods: {
-    confirmSearchSigner() {
-      console.log('confirm')
+    async confirmSearchSigner(value) {
+      var searchData = {
+        userId: this.userId,
+        value: value
+      }
+      const { hasError, list } = await this.$store.dispatch('searchSigner', searchData);
+      this.searchSignerList = list
     },
-    async createSubmit() {
-      let lock_period = 5 //s
-      let recovery_period = 120 //s
-      const salts = [ethers.utils.formatBytes32String('1'), ethers.utils.formatBytes32String('2')]
-      const moduleRegistryContract = await getContractAt({ tokenAddress: this.moduleRegistryRouter, abi: ModuleRegistry.abi }, this)
+    async confirmAddSigner(value) {
+      var nowDate = new Date()
+      var nowTime = timeFormat(nowDate, 'yyyy-MM-dd hh:mm:ss')
+      const signAddress = await getEns(value)
+      this.createSignerList.push({
+        signAddress: signAddress,
+        addTime: nowTime,
+      })
+      this.createSignerSubmit.push(signAddress)
+      this.signerTotal = this.createSignerList.length
+      this.signerPercent = Math.ceil(this.signerTotal/2)
+    },
+    createSubmit() {
+      Dialog.confirm({
+        message: 'Create NC-Wallet?',
+        confirmButtonText: 'Confirm',
+        confirmButtonColor: '#4375f1',
+        cancelButtonText: 'Cancel'
+      })
+      .then(() => {
+        this.createNcWallet()
+      })
+      .catch(() => {
+        console.log('cancel')
+      });
+    },
+    async createNcWallet() {
+      if (!this.checkData()) { this.showLoading = false; return }
+
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      const walletContract = await getContractAt({ tokenAddress: this.walletRouter, abi: WalletJson.abi }, this)
-      
-      let owner = getConnectedAddress()
-      let user1 = '0x5b159B15D7c1Da93F42546Ac311BEe10dB2d50fA'
-      let user2 = '0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9'
-      let signers = [user1, user2]
-      signers.sort(function(a, b) { return a - b })
-      user1 = signers[0]
-      user2 = signers[1]
-      // let priceVlaue = '0x59682f02'
-      // console.log(BigNumber(priceVlaue).toString(10))
-      let overrides = {
-        gasLimit: 8000000,
-        gasPrice: 20000000000,
-      };
-
       const proxyContract = await getContractAt({ tokenAddress: this.proxyRouter, abi: ProxyJson.abi }, this)
-      console.log(proxyContract)
-      let walletAddress = await proxyContract.getAddress(salts[1]);
-      console.log(walletAddress)
+      const saletnew = ethers.utils.randomBytes(32);
+      const overrides = {
+        gasLimit: 8000000,
+        gasPrice: 5000000000,
+      };
+      let createSignList = this.createSignerSubmit
+      // let providertest = new ethers.providers.JsonRpcProvider('https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161')
       
-
-      expect(walletAddress).to.exist;
-      console.log("proxy wallet", walletAddress)
-      const tx = await proxyContract.create(salts[0]);
+      // let user1 = ethers.Wallet.createRandom().connect(providertest)
+      // let user2 = ethers.Wallet.createRandom().connect(providertest)
+      
+      let walletAddress = await proxyContract.getAddress(saletnew);
+      
+      const tx = await proxyContract.create(saletnew,overrides);
       const tswait = await tx.wait()
       console.log(tswait)
-
-      wallet1 = Wallet__factory.connect(walletAddress, owner)
-      console.log("wallet address", wallet1.address)
+      
+      const walletContract = await getContractAt({ tokenAddress: walletAddress, abi: WalletJson.abi }, this)
+    
       let modules = [ securityModuleContract.address ]
       let encoder = ethers.utils.defaultAbiCoder
-      let data = [encoder.encode(["address[]"], [[user1.address, user2.address]])]
-      let initTx = await wallet1.initialize(modules, data);
-      await initTx.wait()
+      let data = [encoder.encode(["address[]"], [createSignList])]
+      let initTx = await walletContract.initialize(modules, data, overrides);
+      const initTxwait = await initTx.wait()
+      console.log(initTxwait)
+      this.createWallet(walletAddress)
+    },
+    async createWallet(walletAddress) {
+      let data = {
+        name: this.createWalletName,
+        address: walletAddress,//0xe744919008dd978dfAF9771E5623fDfbEd4C29D3
+        signers: this.createSignerSubmit,
+        userId: this.userId,
+      }
+      const { hasError } = await this.$store.dispatch('addWallet', {...data});
+      if (hasError) {
+        Toast.fail('Create Failed')
+      } else {
+        this.showStatusPop = true
+      }
+    },
+    checkData() {
+      if (!this.createWalletName) {
+        Toast.fail('Need Input Name')
+        return false
+      }
+      if (!this.userId) {
+        Toast.fail('Need Login')
+        return false
+      }
+      if (this.createSignerSubmit.length == 0) {
+        Toast.fail('Set Signer')
+        return false
+      }
+      return true
     },
     changeVisible() {
       this.showStatusPop = false;
-    },
-    async getSignerList() {
-      var searchData = {
-        userId: this.userId,
-        value: 'yanziyanzi115@gmail.com'
-      }
-      const { hasError, list } = await this.$store.dispatch('searchSigner', searchData);
-      console.log(hasError)
-      console.log(list)
+      this.$router.push({ name: 'ncWalletList' })
     },
   },
   created() {
-    this.getSignerList()
+    if (!isLogin()) {
+      Toast('Need Login')
+      return
+    }
   },
 };
 </script>
