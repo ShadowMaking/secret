@@ -246,6 +246,8 @@ export default {
         this.privateKey = getFromStorage('privateKey')
       }
       if (viewSecretValue == 'privateKey' && viewSecretTab == 'import') {
+        // import accout to create wallet for user directly do not set value from storage of backupdata
+        if (!this.need2FA) { return }
         this.importPrivatekey = getFromStorage('privateKey')
       }
     }

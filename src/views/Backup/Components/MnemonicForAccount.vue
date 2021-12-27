@@ -238,6 +238,8 @@ export default {
         this.mnemonic = getFromStorage('mnemonic')
       }
       if (viewSecretValue == 'mnemonic' && viewSecretTab == 'import') {
+        // import accout to create wallet for user directly do not set value from storage of backupdata
+        if (!this.need2FA) { return }
         this.importMnemonic = getFromStorage('mnemonic')
       }
     }
