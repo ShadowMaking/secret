@@ -85,10 +85,15 @@ import request from '@/utils/request';
  export const addSigner = (data) => {
   const userId = data['userId'] 
   const walletId = data['walletId']
+  let _data = {
+    name: data['name'],
+    ens: data['ens'],
+    address: data['address'],
+  }
   return request({
     url: `/api/user/${userId}/wallet/${walletId}/signer`,
     method: 'post',
-    data
+    data: _data,
   })
 }
 
@@ -125,9 +130,14 @@ import request from '@/utils/request';
  * @return 
  */
  export const deleteSigner = (data) => {
+  const userId = data['userId'] 
+  const walletId = data['walletId'] 
+  let _data = {
+    signer_id: data['signerId'],
+  }
   return request({
-    url: `/api/user/{user_id}/wallet/{wallet_id}/signer`,
+    url: `/api/user/${userId}/wallet/${walletId}/signer`,
     method: 'delete',
-    data
+    data: _data,
   })
 }

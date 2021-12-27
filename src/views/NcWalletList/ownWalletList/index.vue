@@ -32,6 +32,7 @@
 </template>
 <script>
 import Vue from 'vue';
+import { saveToStorage } from '@/utils/storage'
 
 export default {
   name: 'ownWalletList',
@@ -44,6 +45,7 @@ export default {
   
   methods: {
     handleClick(row) {
+      saveToStorage({ 'currentWallet': row.address });
       this.$router.push({
         path: `/signManage/${row.wallet_id}`,
       })

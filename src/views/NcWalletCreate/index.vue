@@ -32,6 +32,11 @@
           tip=""
           :show="showStatusPop"
           @childEvent="changeVisible" />
+        <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+          <div class="inner-wrapper">
+            <van-loading type="spinner" />
+          </div>
+        </van-popup>
       </div>
     </div>
   </div>
@@ -39,21 +44,23 @@
 
 <script>
 import Vue from 'vue'
-import { Toast, Dialog } from 'vant'
+import { Toast, Dialog, Popup, Loading } from 'vant'
 import { ethers } from 'ethers'
 import navTitle from '@/components/NavTitle/index'
 import searchSignerModal from '@/components/SearchSignerModal/index'
 import StatusPop from '@/components/StatusPop';
 import { getContractAt, getConnectedAddress, getEns, isLogin } from '@/utils/dashBoardTools';
-import SecurityModule from "./SecurityModule.json";
-import WalletJson from "./Wallet.json";
-import ProxyJson from "./Proxy.json";
+import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
+import WalletJson from "@/assets/contractJSON/Wallet.json";
+import ProxyJson from "@/assets/contractJSON/Proxy.json";
 import { BigNumber } from "bignumber.js";
 import { getFromStorage } from '@/utils/storage';
 import { timeFormat } from '@/utils/str';
 
 Vue.use(Toast);
 Vue.use(Dialog);
+Vue.use(Loading);
+Vue.use(Popup);
 
 export default {
   name: 'NC-Wallet',
@@ -102,11 +109,13 @@ export default {
         signAddress: signAddress,
         addTime: nowTime,
       })
-      this.createSignerSubmit.push(signAddress)
+      this.createSignerSubmit.push(signAddress.toLocaleLowerCase())
       this.signerTotal = this.createSignerList.length
       this.signerPercent = Math.ceil(this.signerTotal/2)
     },
     createSubmit() {
+      // this.createWallet('s')
+      // return
       Dialog.confirm({
         message: 'Create NC-Wallet?',
         confirmButtonText: 'Confirm',
@@ -121,7 +130,8 @@ export default {
       });
     },
     async createNcWallet() {
-      if (!this.checkData()) { this.showLoading = false; return }
+      if (!this.checkData()) { return }
+      this.showLoading = true; 
 
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       const proxyContract = await getContractAt({ tokenAddress: this.proxyRouter, abi: ProxyJson.abi }, this)
@@ -137,8 +147,10 @@ export default {
       // let user2 = ethers.Wallet.createRandom().connect(providertest)
       
       let walletAddress = await proxyContract.getAddress(saletnew);
+      console.log('walletAddress:' + walletAddress)
       
       const tx = await proxyContract.create(saletnew,overrides);
+      console.log(tx)
       const tswait = await tx.wait()
       console.log(tswait)
       
@@ -148,6 +160,7 @@ export default {
       let encoder = ethers.utils.defaultAbiCoder
       let data = [encoder.encode(["address[]"], [createSignList])]
       let initTx = await walletContract.initialize(modules, data, overrides);
+      console.log(initTx)
       const initTxwait = await initTx.wait()
       console.log(initTxwait)
       this.createWallet(walletAddress)
@@ -155,11 +168,19 @@ export default {
     async createWallet(walletAddress) {
       let data = {
         name: this.createWalletName,
-        address: walletAddress,//0xe744919008dd978dfAF9771E5623fDfbEd4C29D3
+        address: walletAddress.toLocaleLowerCase(),//0xe744919008dd978dfAF9771E5623fDfbEd4C29D3
         signers: this.createSignerSubmit,
         userId: this.userId,
       }
+      // let data = {
+      //   name: 'wallet271',
+      //   address: '0x72756a6a48777019D9c414bb1f84550E8458cEf9',
+      //   signers: ['0xbb2eD316211dBB0E5A68E417E0420A0dfCaD6259'],
+      //   userId: '1040',
+      // }
+      console.log(data)
       const { hasError } = await this.$store.dispatch('addWallet', {...data});
+      this.showLoading = false;
       if (hasError) {
         Toast.fail('Create Failed')
       } else {
