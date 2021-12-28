@@ -76,7 +76,7 @@ import { saveToStorage, getFromStorage } from '@/utils/storage';
 import Menonic2FAConfirm from '@/components/SocialRecovery/Menonic2FAConfirm'
 import MenonicConfirmComplete from '@/components/SocialRecovery/MenonicConfirmComplete'
 import _ from 'lodash'
-import { SecLevelEnum, generate_mnemonic, generate_key, split } from '@/utils/secretshare'
+import { SecLevelEnum, generate_mnemonic, generate_key, split, isValidPrivateKey } from '@/utils/secretshare'
 import { copyTxt } from '@/utils/index';
 
 Vue.use(Icon);
@@ -199,6 +199,10 @@ export default {
     },
     handlesnputFocus() {},
     confirmImportPrivatekey() {
+      if (!isValidPrivateKey(this.importPrivatekey)) {
+        Toast('Invalid PrivateKey')
+        return
+      }
       if (!this.need2FA) {
         this.$emit('createComplete', this.importPrivatekey.trim(), 'privateKey');
         return
@@ -224,6 +228,7 @@ export default {
       this.privateKey = privateKey
     },
     copyPrivateKey(type) {
+      if (!this.need2FA) { return }
       let copyStr;
       type === 'import' && this.importPrivatekey && (copyStr = this.importPrivatekey)
       type === 'create' && this.privateKey && (copyStr = this.privateKey)

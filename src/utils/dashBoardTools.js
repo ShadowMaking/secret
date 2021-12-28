@@ -173,8 +173,8 @@ export const getConnectedAddress = (byMetamask=false) => {
   const userId = getFromStorage('gUID')
   if (userId) {
     const userMap = getInfoFromStorageByKey('userMap');
-    const userData = userMap[userId]
-    return userData['address'].toLocaleLowerCase()
+    const userData = userMap && userMap[userId]
+    return userData && userData['address'].toLocaleLowerCase() || ''
   }
   return ''
 }

@@ -68,7 +68,7 @@ import MenonicGenerate from '@/components/SocialRecovery/MenonicGenerate'
 // import MenonicBackup from '@/components/SocialRecovery/MenonicBackup'
 import Menonic2FAConfirm from '@/components/SocialRecovery/Menonic2FAConfirm'
 import MenonicConfirmComplete from '@/components/SocialRecovery/MenonicConfirmComplete'
-import { SecLevelEnum, generate_mnemonic, generate_key, split } from '@/utils/secretshare'
+import { SecLevelEnum, generate_mnemonic, generate_key, split, isValidMenmonic } from '@/utils/secretshare'
 import { copyTxt } from '@/utils/index';
 
 Vue.use(Tab);
@@ -197,6 +197,10 @@ export default {
     },
     handlesnputFocus() {},
     confirmImportMnemonic() {
+      if (!isValidMenmonic(this.importMnemonic)) {
+        Toast('Invalid Mnemonic')
+        return
+      }
       if (!this.need2FA) {
         this.$emit('createComplete', this.importMnemonic.split(' ').filter(i=>!!i).join(' '), 'mnemonic');
         return
@@ -218,6 +222,7 @@ export default {
       return !(!this.settingData || this.settingData && !this.settingData.name)
     },
     copyMnemonic() {
+      if (!this.need2FA) { return }
       const mnemonicStr = this.importMnemonic
       if (mnemonicStr) {
         copyTxt(mnemonicStr)

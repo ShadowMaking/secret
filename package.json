@@ -15,6 +15,7 @@
     "axios": "^0.18.1",
     "big.js": "^6.1.1",
     "bignumber.js": "^9.0.1",
+    "bip39": "^3.0.4",
     "ccxt": "^1.61.66",
     "coingecko-api": "^1.0.10",
     "compression-webpack-plugin": "^5.0.0",
