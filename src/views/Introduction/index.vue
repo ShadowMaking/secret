@@ -7,7 +7,7 @@
       </div>
       <span class="tip">Social Recovery is a secret recovery mechanism, allowing you to place your secret or private data in the custody of your friends by Cryptography Threshold Secret Share and multi-sig contract wallet on Layer 2. And the multi-sig wallet will be available in early December.
       </span>
-      <span class="tip" style="color:red">Important: all your keys and shares are processed at your computer or device, Eigrn team can't access them. </span>
+      <span class="tip" style="color:red">Important: all your keys and shares are processed at your computer or device, Eigen team can't access them. </span>
       <span class="tip">Now you can:</span>
       <ul>
         <li>Create Secret: Generate your private key or key recovery phrases randomly, split and send the shares to your friends' email.</li>
