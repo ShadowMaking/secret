@@ -22,6 +22,7 @@ const NcWalletList = () => import('../views/NcWalletList/index')
 const NcWalletCreate = () => import('../views/NcWalletCreate/index')
 const SignManage = () => import('../views/NcWalletList/signManage/index')
 const TransDetail = () => import('../views/TransDetail/index')
+const NcWalletRecover = () => import('../views/NcWalletRecover/index')
 
 // cache origin push method
 const originalPush = VueRouter.prototype.push
@@ -228,6 +229,14 @@ const routes = [
       title: "transDetail",
     },
     component: TransDetail,
+  },
+  {
+    path: '/ncWalletRecover',
+    name: 'ncWalletRecover',
+    meta: {
+      title: "ncWalletRecover",
+    },
+    component: NcWalletRecover,
   },
 ];
 

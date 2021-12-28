@@ -166,9 +166,11 @@ export default {
       this.createWallet(walletAddress)
     },
     async createWallet(walletAddress) {
+      const selectedConnectAddress = getConnectedAddress()
       let data = {
         name: this.createWalletName,
-        address: walletAddress.toLocaleLowerCase(),//0xe744919008dd978dfAF9771E5623fDfbEd4C29D3
+        address: selectedConnectAddress,
+        walletAddress: walletAddress.toLocaleLowerCase(),//0xe744919008dd978dfAF9771E5623fDfbEd4C29D3
         signers: this.createSignerSubmit,
         userId: this.userId,
       }

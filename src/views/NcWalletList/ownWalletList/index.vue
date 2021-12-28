@@ -18,7 +18,7 @@
           label="Balance">
         </el-table-column>
         <el-table-column
-          prop="address"
+          prop="wallet_address"
           label="Address">
         </el-table-column>
         <el-table-column

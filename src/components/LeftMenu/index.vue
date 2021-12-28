@@ -53,6 +53,10 @@ export default {
             icon: 'el-icon-document-add', 
             name: 'Create NC-Wallet', 
             route: '/ncWalletCreate',
+          },{
+            icon: 'el-icon-sell', 
+            name: 'Recover NC-Wallet', 
+            route: '/ncWalletRecover',
           }]
         },
       ],

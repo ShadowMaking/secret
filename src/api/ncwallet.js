@@ -26,7 +26,7 @@ import request from '@/utils/request';
     }
   }
   return request({
-    url: `/api/user/${userId}/signers`,
+    url: `/api/user/${userId}/addresses`,
     method: 'get',
     params: _data
   })
@@ -43,6 +43,7 @@ import request from '@/utils/request';
     name: data['name'],
     address: data['address'],
     signers: data['signers'],
+    wallet_address: data['walletAddress'],
   }
   return request({
     url: `/api/user/${userId}/wallet`,
