@@ -12,7 +12,78 @@
           </van-steps>
         </div>
         <div class="recover-content-box">
-          <v-walletList></v-walletList>
+          <v-walletList v-show="walletShow" @recoverChild="recoverChild"></v-walletList>
+          <div class="choose-wallet-container" v-show="!walletShow">
+            <div class="choose-wallet" v-show="activeStep==0"><!-- setp0 -->
+              <p class="choose-wallet-des">The private key corresponding to the following address will be recovered</p>
+              <div class="choose-wallt-info">
+                <div class="choose-wallet-item">
+                  <p class="choose-wallet-item-name">Name</p>
+                  <p><span class="choose-wallet-item-con">My wallt</span></p>
+                </div>
+                <div class="choose-wallet-item">
+                  <p class="choose-wallet-item-name">Address</p>
+                  <span class="choose-wallet-item-con">My wallt</span>
+                </div>
+              </div>
+            </div>
+            <div class="sign-complete-box">
+              <div class="signer-confirm" v-show="activeStep==1"><!-- setp1 -->
+                <p class="choose-wallet-des">Please ask at other {{signerTotal}} signers below to confirm:</p>
+                <div class="choose-wallet-table">
+                  <div class="choose-refresh"><el-button type="success">Refresh</el-button></div>
+                  <el-table
+                    :data="signerList"
+                    empty-text="no data"
+                    header-align="center">
+                    <el-table-column
+                      prop="name"
+                      label="Name"
+                      align="center"
+                     >
+                    </el-table-column>
+                    <el-table-column
+                      prop="address"
+                      label="Signer Address/ENS"
+                      align="center"
+                      >
+                    </el-table-column>
+                    <el-table-column
+                      prop="confirmed"
+                      label="confirmed"
+                      align="center">
+                      <template slot-scope="scope">
+                        <div v-if="scope.row.confirmed == 1" class="confirm-icon">
+                          <i class="el-icon-success"></i>
+                        </div>
+                        <div v-if="scope.row.confirmed == 2" class="confirm-icon">
+                          <i class="el-icon-question"></i>
+                        </div>
+                        <div v-if="scope.row.confirmed == 3" class="confirm-icon">
+                          <i class="el-icon-error"></i>
+                        </div>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </div>
+              </div>
+              <div class="complete-box" v-show="activeStep==2"><!-- setp2 -->
+                 <p class="choose-wallet-des">Congratulations, the private key has been successfully recovered!</p>
+                 <div class="complete-success-icon">
+                  <el-row>
+                    <el-col>
+                      <el-result icon="success" title="success">
+                      </el-result>
+                    </el-col>
+                  </el-row>
+                 </div>
+              </div>
+              <div class="choose-btn">
+                <el-button type="info" @click="backStep" v-show="activeStep !==2">Back</el-button>
+                <el-button type="primary" @click="nextStep">Confirm</el-button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -36,6 +107,13 @@ export default {
   data() {
     return {
       activeStep: 0,//0-choose 1-signer confirm 2-complete
+      walletShow: true,
+      signerList: [
+       {name: 'wallet1', address: 'oxdfdf', confirmed: 1},
+       {name: 'wallet1', address: 'oxdfdf', confirmed: 2},
+       {name: 'wallet1', address: 'oxdfdf', confirmed: 3}
+      ],
+      signerTotal: 0,
     }
   },
   components: {
@@ -43,7 +121,24 @@ export default {
     "v-walletList": walletList,
   },
   methods: {
-    
+    nextStep() {
+      if (this.activeStep !== 2) {
+        this.activeStep = this.activeStep + 1
+      } else {
+        this.activeStep = 0
+        this.walletShow = true
+      }
+    },
+    backStep() {
+      if (this.activeStep == 0) {
+        this.walletShow = true
+        return
+      }
+      this.activeStep = this.activeStep - 1
+    },
+    recoverChild() {
+      this.walletShow = false
+    },
   },
   created() {
     if (!isLogin()) {
@@ -55,4 +150,11 @@ export default {
 </script>
 <style lang="scss" scoped>
   @import "index";
+  ::v-deep .el-button {
+    padding: 0.6rem 1.2rem;
+  }
+  ::v-deep .el-result__icon svg {
+    width: 60px;
+    height: 60px;
+  }
 </style>

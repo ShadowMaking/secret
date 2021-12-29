@@ -3,7 +3,8 @@
     <el-table
       :data="dataList"
       border
-      style="width: 100%">
+      style="width: 100%"
+      empty-text="no data">
         <el-table-column
           fixed
           prop="createdAt"
@@ -45,7 +46,7 @@ export default {
   
   methods: {
     handleClick(row) {
-      saveToStorage({ 'currentWallet': row.address });
+      saveToStorage({ 'currentWallet': row.wallet_address });
       this.$router.push({
         path: `/signManage/${row.wallet_id}`,
       })

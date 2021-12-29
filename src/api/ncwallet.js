@@ -26,7 +26,7 @@ import request from '@/utils/request';
     }
   }
   return request({
-    url: `/api/user/${userId}/addresses`,
+    url: `/api/user/${userId}/friends_addresses`,
     method: 'get',
     params: _data
   })
@@ -72,9 +72,13 @@ import request from '@/utils/request';
  */
  export const getWalletListAsSign = (data) => {
   const userId = data['userId'];
+  let _data = {
+    address: data['address']
+  }
   return request({
     url: `/api/user/${userId}/as_signers`,
     method: 'get',
+    params: _data
   })
 }
 
@@ -88,7 +92,6 @@ import request from '@/utils/request';
   const walletId = data['walletId']
   let _data = {
     name: data['name'],
-    ens: data['ens'],
     address: data['address'],
   }
   return request({
@@ -114,14 +117,20 @@ import request from '@/utils/request';
 
 /**
  * @description: Update status for a signer
- * @param {"signer_id": 1, "status": 2}
+ * @param {"signer_address": "0x123", "status": 2}
  * @return 
  */
  export const updateSigner = (data) => {
+  const userId = data['userId'] 
+  const walletId = data['walletId']
+  let _data = {
+    address: data['signerAddress'],
+    status: data['status'],
+  }
   return request({
-    url: `/api/user/{user_id}/wallet/{wallet_id}/signer`,
+    url: `/api/user/${userId}/wallet/${walletId}/signer`,
     method: 'post',
-    data
+    data: _data,
   })
 }
 
@@ -134,7 +143,7 @@ import request from '@/utils/request';
   const userId = data['userId'] 
   const walletId = data['walletId'] 
   let _data = {
-    signer_id: data['signerId'],
+    address: data['signerAddress'],
   }
   return request({
     url: `/api/user/${userId}/wallet/${walletId}/signer`,

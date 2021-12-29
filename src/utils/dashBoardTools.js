@@ -141,7 +141,6 @@ export const getContractWallet = async (self) => {
   const decryptInfo = await self.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
   const { hasError, data: privateKey } = decryptInfo
   const wallet = new ethers.Wallet(privateKey, provider);
-  // const wallet = new ethers.Wallet('0x57ab00ee8e9b0db4bdf3ba67b6b11a80d026448d89ad6c99d912050e04b5cf68', provider);
   return wallet
 }
 
@@ -231,11 +230,14 @@ export async function getEns(address) {
 //get address banlance
 export async function getBalanceByAddress(address) {
   return new Promise((resolve, reject) => {
+    console.log('df')
     const currentProvider = getCurrentProvider()
+    console.log(currentProvider)
     if (currentProvider) {
       currentProvider.getBalance(address)
       .then(res=>{
         if (res) {
+          console.log(res)
           let etherString = ethers.utils.formatEther(res);
           resolve(etherString)
         } else {

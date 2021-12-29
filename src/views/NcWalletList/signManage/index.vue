@@ -6,7 +6,8 @@
       <el-table
         :data="signList"
         border
-        style="width: 100%">
+        style="width: 100%"
+        empty-text="no data">
           <el-table-column
             fixed
             prop="createdAt"
@@ -22,7 +23,8 @@
           </el-table-column>
           <el-table-column
             prop="status"
-            label="State">
+            label="State"
+            v-if="!isRecover">
             <template slot-scope="scope">
               <div v-if="scope.row.status == 1">
                 <el-tag>To be confirmed</el-tag>
@@ -39,13 +41,14 @@
             </template>
           </el-table-column>
           <el-table-column
-            label="Operate">
+            label="Operate"
+            v-if="!isRecover">
               <template slot-scope="scope">
                 <el-button @click="deleteSigner(scope.row)" type="text" size="small">Delete</el-button>
               </template>
           </el-table-column>
       </el-table>
-      <div class="add-signer-box">
+      <div class="add-signer-box" v-if="!isRecover">
         <v-searchSignerModal
           :dataSource="searchSignerList"
           @confirm="confirmSearchSigner"
@@ -90,6 +93,7 @@ export default {
       walletAddress: getFromStorage('currentWallet'),
       isHasFreeze: false,
       showLoading: false,
+      isRecover: false,
 
       securityModuleRouter: '0x17708F66E60Eb7090aF70628596b6780C2B4F0ea',
       securityModuleContract: null,
@@ -107,7 +111,7 @@ export default {
     },
     deleteSigner(row) {
       Dialog.confirm({
-        message: 'Delete This Signer?',
+        message: 'Are you sure to delete this address?',
         confirmButtonText: 'Confirm',
         confirmButtonColor: '#4375f1',
         cancelButtonText: 'Cancel'
@@ -129,11 +133,11 @@ export default {
       console.log(txwait)
       this.deleteSignerSubmit(row);
     },
-    async deleteSignerSubmit(row) {//todo addsigner userid change useradress
+    async deleteSignerSubmit(row) {//todo
       let deleteData = {
         userId: this.userId,
         walletId: this.$route.params.id,
-        signerId: row.signer_id,
+        signerAddress: row.address,
       }
       const { hasError, list } = await this.$store.dispatch('deleteSigner', {...deleteData});
       this.showLoading = false
@@ -164,7 +168,7 @@ export default {
       const txwait = await tx.wait()
       this.addSignerSubmit(address);
     }, 
-    async addSignerSubmit(address) {//todo addsigner userid change useradress
+    async addSignerSubmit(address) {
       let addData = {
         userId: this.userId,
         walletId: this.$route.params.id,
@@ -206,6 +210,7 @@ export default {
       Toast('Need Login')
       return
     }
+    this.isRecover = this.$route.query.isRecover
     this.getSignerListByid()
 
     this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)

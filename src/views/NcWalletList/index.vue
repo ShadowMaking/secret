@@ -16,6 +16,7 @@
         <div>
           <v-signWalletList
           :dataList="signWalletList"
+          @signChild="getWalletAsSigner"
            />
         </div>
         <v-none v-if="!signShowLoading && signWalletList.length==0" />
@@ -35,7 +36,7 @@ import signWalletList from './signWalletList/index'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
 import { getFromStorage } from '@/utils/storage'
-import {  isLogin, getBalanceByAddress } from '@/utils/dashBoardTools';
+import {  isLogin, getBalanceByAddress, getConnectedAddress } from '@/utils/dashBoardTools';
 
 Vue.use(Tab);
 Vue.use(Tabs);
@@ -71,7 +72,7 @@ export default {
       const { hasError, list } = await this.$store.dispatch('getWalletList', data)
       
       for(let i=0; i<list.length;i+=1) {
-        let itemBalance = await this.getBalance(list[i].address)
+        let itemBalance = await this.getBalance(list[i].wallet_address)
         list[i]['balance'] = itemBalance
       }
       this.ownWalletList = list
@@ -83,10 +84,14 @@ export default {
     },
     async getWalletAsSigner() {
       let data = {
-        userId: this.userId
+        userId: this.userId,
+        address: getConnectedAddress()
       }
       const { hasError, list } = await this.$store.dispatch('getWalletListAsSign', data)
-      this.signWalletList = list
+      let newList = list.filter((item, index)=>{
+          return item.status !== 2
+      });
+      this.signWalletList = newList
       if (hasError) {
         this.signShowLoading = true
       } else {
