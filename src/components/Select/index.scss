@@ -15,7 +15,7 @@
     padding-left: 35px;
   }
   .el-select-dropdown__empty {
-    display: none;
+    // display: none;
   }
   .el-select-dropdown__item.hover, .el-select-dropdown__item:hover {
     background-color:#fff;
@@ -40,6 +40,13 @@
     padding-right: 10px;
     margin-bottom: 10px;
     line-height: 18px;
+  }
+  .loading-option {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    height: 100%;
   }
 }
 .select-option-list {

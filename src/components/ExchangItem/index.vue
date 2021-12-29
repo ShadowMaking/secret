@@ -17,7 +17,13 @@
           	<van-search v-model="searchTxt"  autofocus=true @input="searchHandle(searchTxt)"/>
           </div>
           <div class="token-list-wrapper">
-            <v-selectItem
+            <div v-if="selectOptionData.length===0 && showLoading">
+              <van-loading type="spinner" class="loading-option" />
+            </div>
+            <div v-else-if="selectOptionData.length===0 && !showLoading">
+              <div class="none-data">No matching data</div>
+            </div>
+            <v-selectItem v-else
               v-bind:rightVal="item.rightVal"
               labelShow=true
               v-bind:leftTitle="item.tokenName"
@@ -52,7 +58,7 @@ Vue.use(Search);
 
 export default {
   name: 'ExchangItem',
-  props: ['isMax', 'type', 'sourceData', 'inputDisabled', 'inputDefaultValue'],
+  props: ['isMax', 'type', 'sourceData', 'inputDisabled', 'inputDefaultValue', 'showLoading'],
   data() {
     return {
       exchangVal: '',

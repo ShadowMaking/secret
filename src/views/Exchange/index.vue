@@ -28,6 +28,7 @@
           isMax=true
           type="From"
           :sourceData="assetsTokenList"
+          :showLoading="tokenLoading"
           @selectChagne="val=>selectChagne('exchangeFrom', val)"
           @inputChange="val=>inputChange('exchangeFrom', val)"
           ref="tokenFromSelect" />
@@ -37,6 +38,7 @@
           key="toToken"
           type="To"
           :sourceData="allTokenList"
+          :showLoading="tokenLoading"
           :inputDisabled="true"
           :inputDefaultValue="exchangeTo"
           @selectChagne="val=>selectChagne('exchangeTo', val)"
@@ -155,6 +157,7 @@ export default {
       netWorkList: _.cloneDeep(NETWORKSFORTOKEN),
       assetsTokenList: [],
       allTokenList: [],
+      tokenLoading: false,
       loadingGas: false,
       gasPriceInfo: null,
       exchangeFrom: '',
@@ -980,6 +983,7 @@ export default {
     async getTokenList(forAccounts) {
       this.allTokenList = []
       this.assetsTokenList = []
+      this.tokenLoading = true
       const selectedConnectAddress = getConnectedAddress()
       if (!selectedConnectAddress) { return }
       const methodName = forAccounts ? 'GetAvailableTokenAssets' : 'GetAllTokenList'
@@ -995,6 +999,7 @@ export default {
       this.exchangeFromToken = this.assetsTokenList[0]
       this.exchangeToToken = this.allTokenList[0]
       this.setShowApproveButton()
+      this.tokenLoading = false
     },
     setShowApproveButton() {
       const tokenInfo = this.exchangeFromToken
