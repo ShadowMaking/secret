@@ -19,11 +19,11 @@
               <div class="choose-wallt-info">
                 <div class="choose-wallet-item">
                   <p class="choose-wallet-item-name">Name</p>
-                  <p><span class="choose-wallet-item-con">My wallt</span></p>
+                  <p><span class="choose-wallet-item-con">{{currentWalletName}}</span></p>
                 </div>
                 <div class="choose-wallet-item">
                   <p class="choose-wallet-item-name">Address</p>
-                  <span class="choose-wallet-item-con">My wallt</span>
+                  <span class="choose-wallet-item-con">{{currentWalletAddress}}</span>
                 </div>
               </div>
             </div>
@@ -31,7 +31,7 @@
               <div class="signer-confirm" v-show="activeStep==1"><!-- setp1 -->
                 <p class="choose-wallet-des">Please ask at other {{signerTotal}} signers below to confirm:</p>
                 <div class="choose-wallet-table">
-                  <div class="choose-refresh"><el-button type="success">Refresh</el-button></div>
+                  <div class="choose-refresh"><el-button type="success" @click="getSignerListByid">Refresh</el-button></div>
                   <el-table
                     :data="signerList"
                     empty-text="no data"
@@ -49,22 +49,23 @@
                       >
                     </el-table-column>
                     <el-table-column
-                      prop="confirmed"
+                      prop="status"
                       label="confirmed"
                       align="center">
                       <template slot-scope="scope">
-                        <div v-if="scope.row.confirmed == 1" class="confirm-icon">
-                          <i class="el-icon-success"></i>
-                        </div>
-                        <div v-if="scope.row.confirmed == 2" class="confirm-icon">
+                        <div v-if="scope.row.status == 1" class="confirm-icon">
                           <i class="el-icon-question"></i>
                         </div>
-                        <div v-if="scope.row.confirmed == 3" class="confirm-icon">
+                        <div v-if="scope.row.status == 2" class="confirm-icon">
                           <i class="el-icon-error"></i>
+                        </div>
+                        <div v-if="scope.row.status == 3" class="confirm-icon">
+                          <i class="el-icon-success"></i>
                         </div>
                       </template>
                     </el-table-column>
                   </el-table>
+                  <div class="add-signer-tip">Any transaction requires the confirmation of: {{signerPercent}} out of {{signerTotal}} signer(s)</div>
                 </div>
               </div>
               <div class="complete-box" v-show="activeStep==2"><!-- setp2 -->
@@ -96,6 +97,7 @@ import { Toast, Step, Steps } from 'vant'
 import navTitle from '@/components/NavTitle/index'
 import { isLogin } from '@/utils/dashBoardTools';
 import walletList from './walletList/index'
+import { getFromStorage } from '@/utils/storage'
 
 Vue.use(Toast);
 Vue.use(Step);
@@ -114,6 +116,12 @@ export default {
        {name: 'wallet1', address: 'oxdfdf', confirmed: 3}
       ],
       signerTotal: 0,
+      signerPercent: 0,
+
+      currentWalletAddress: '',
+      currentWalletName: '',
+      currentWalletId: '',
+      userId: getFromStorage('gUID'),
     }
   },
   components: {
@@ -136,8 +144,22 @@ export default {
       }
       this.activeStep = this.activeStep - 1
     },
-    recoverChild() {
+    recoverChild(value) {
       this.walletShow = false
+      this.currentWalletAddress = value.wallet_address
+      this.currentWalletName = value.name
+      this.currentWalletId = value.wallet_id
+      this.getSignerListByid()
+    },
+    async getSignerListByid() {
+      let data = {
+        userId: this.userId,
+        walletId: this.currentWalletId
+      }
+      const { hasError, list } = await this.$store.dispatch('getSignerList', {...data})
+      this.signerList = list
+      this.signerTotal = list.length
+      this.signerPercent = Math.ceil(this.signerTotal/2)
     },
   },
   created() {

@@ -73,8 +73,8 @@ export default {
         }
       })
     },
-    recoveryClick() {
-      this.$emit('recoverChild');
+    recoveryClick(row) {
+      this.$emit('recoverChild', row);
     },
     async getWalletList() {
       let data = {
