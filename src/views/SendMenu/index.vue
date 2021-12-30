@@ -223,12 +223,13 @@ export default {
       this.showTradeConfirm = false
       Toast('Cancel Transaction')
     },
-    async confirmSend() {
+    async confirmSend({ overrides }) {
       this.showLoading = true
       this.showTradeConfirm = false
       const sendType = this.sendType
       const data = {
-        gasPrice: this.sendMetadata.gasPrice,
+        gasPrice: overrides.gasPrice || this.sendMetadata.gasPrice,
+        gasLimit: overrides.gasLimit || this.sendMetadata.gas,
         toAddress: this.addressForRecipient,
         selectedToken: this.selectedToken,
         type1Value: this.type1Value,
@@ -324,7 +325,7 @@ export default {
       this.sendMetadata = {
         from: selectedConnectAddress,
         to: this.addressForRecipient,
-        gas: 21000,
+        gas: this.sendType !== 'eth' ? 600000 : 462693, // gasLimit default is 21000
         gasPrice,
         value: this.type1Value,
         symbolName: tokenName,
@@ -367,8 +368,7 @@ export default {
       const sendData = {
         from: selectedConnectAddress,
         to: data.toAddress,
-        // gasLimit: web3.utils.toHex('21000'),
-        gasLimit: web3.utils.toHex('462693'),
+        gasLimit: web3.utils.toHex(data.gasLimit),
         gasPrice: web3.utils.toHex(web3.utils.toWei(data.gasPrice, 'gwei')),
         value: transferAmount.toHexString(),
         chainId: this.currentChainInfo['id'],
@@ -391,7 +391,7 @@ export default {
       })
     },
     async sendToken(data) {
-      const { gasPrice, ...sendData } = data
+      const { gasPrice, gasLimit, ...sendData } = data
       const selectedConnectAddress = getConnectedAddress()
       const address = {
         selectedConnectAddress,
@@ -409,11 +409,11 @@ export default {
       const logData = {
         1: sendData.toAddress,
         2: tokenWithdrawAmount,
-        ...{ gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') }
+        ...{ gasLimit, gasPrice: web3.utils.toWei(gasPrice, 'gwei') }
       }
       console.log('sendData', logData)
       // address, uint256
-      contractWithSigner.transfer(sendData.toAddress, tokenWithdrawAmount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
+      contractWithSigner.transfer(sendData.toAddress, tokenWithdrawAmount, { gasLimit, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
       .then(async tx=>{
         console.log('sendToken tx:', tx)
         tx.wait()

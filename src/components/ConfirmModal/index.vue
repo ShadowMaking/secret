@@ -26,8 +26,19 @@
               <div class="tabs-content detail-wraper">
                 <div class="detail-wraper-inner">
                   <div class="gasFee"><span class="name">Estimated gas fee</span><span class="value">{{ showValBySourceData('estimatedGasFee') }} ETH</span></div>
-                  <div class="gasPrice"><span class="name">GasPrice</span><span class="value">{{ showValBySourceData('gasPrice') }} Gwei</span></div>
-                  <div class="gasLimit"><span class="name">GasLimit</span><span class="value">{{ showValBySourceData('gas')||21000 }}</span></div>
+                  <div class="gasPrice">
+                    <span class="name">GasPrice</span>
+                    <span v-if="!showGasPrice" class="value">{{ gasPriceVal }}  Gwei <van-icon name="edit" @click="showEdit('GasPrice')" /></span>
+                    <span v-if="showGasPrice" >
+                      <input style="width: 80px" type='text' name="formVal" placeholder="0" v-model="gasPriceVal" @input="inputChange" @keyup="e=>hanldeValue(e,'gasPrice')" @blur="showGasPrice=false" />
+                      <span> Gwei</span>
+                    </span>
+                  </div>
+                  <div class="gasLimit">
+                    <span class="name">GasLimit</span>
+                    <span v-if="!showGasLimit" class="value">{{ gasLimitVal||21000 }} <van-icon name="edit" @click="showEdit('GasLimit')" /> </span>
+                    <input v-if="showGasLimit" style="width: 80px" type='text' name="formVal2" placeholder="0" v-model="gasLimitVal" @input="inputChange" @keyup="e=>hanldeValue(e,'gasLimit')" @blur="showGasLimit=false" />
+                  </div>
                 </div>
                 <div class="detail-wraper-inner">
                   <div class="total">
@@ -83,7 +94,11 @@ export default {
   data() {
     return {
       showPopup: false,
-      tabActive: 'detail'
+      tabActive: 'detail',
+      gasPriceVal: '',
+      gasLimitVal: '',
+      showGasPrice: false,
+      showGasLimit: false,
     }
   },
   computed: {
@@ -95,6 +110,12 @@ export default {
     show() {
       this.showPopup = this.show
     },
+    metadata: {
+      handler(newV, oldV) {
+        this.setInitData()
+      },
+      deep: true
+    }
   },
   methods: {
     showValBySourceData(type){
@@ -129,11 +150,30 @@ export default {
     },
     confirm() {
       this.showPopup = false;
-      this.$emit('confirm',{show: false});
+      this.$emit('confirm',{show: false, overrides: { gasPrice: this.gasPriceVal, gasLimit: this.gasLimitVal }});
     },
     closeModal() {
       this.showPopup = false;
       this.$emit('close',{show: false, submit: false});
+    },
+    setInitData() {
+      if (this.metadata) {
+        const gasPrice = this.metadata['gasPrice']
+        const gasLimit = this.metadata['gas']
+        this.gasPriceVal = gasPrice
+        this.gasLimitVal = gasLimit
+      }
+    },
+    hanldeValue(e, type) {
+      let value = e.target.value
+      value=value.replace(/^\D*(\d*(?:\.\d{0,4})?).*$/g, '$1')
+      this[`${type}Val`] = value
+    },
+    inputChange(e) {
+      const val = e.target.value
+    },
+    showEdit(type) {
+      this[`show${type}`] = true
     },
   },
 }

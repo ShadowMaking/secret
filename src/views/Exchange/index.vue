@@ -1011,10 +1011,12 @@ export default {
       this.showTradeConfirm = false
       Toast('Cancel Transaction')
     },
-    async confirmExchange() {
+    async confirmExchange({ overrides }) {
       this.showTradeConfirm = false
       const exchangeType = this.exchangeType
       const data = _.cloneDeep(this.exchangeData)
+      data['gasInfo']['gasLimit'] = overrides.gasLimit
+      data['gasInfo']['gasPrice'] = web3.utils.toWei(overrides.gasPrice, 'gwei')
       
       if (this.currentProtocolType === 'v3') {
         // const netWorkIsROPSTEN = window.ethereum.chainId === CHAINIDMAP['ROPSTEN']
