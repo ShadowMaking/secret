@@ -53,14 +53,17 @@
                       label="confirmed"
                       align="center">
                       <template slot-scope="scope">
-                        <div v-if="scope.row.status == 1" class="confirm-icon">
+                        <div v-if="scope.row.status == signerStatus['startRecover']" class="confirm-icon">
                           <i class="el-icon-question"></i>
                         </div>
-                        <div v-if="scope.row.status == 2" class="confirm-icon">
+                        <div v-if="scope.row.status == signerStatus['ignoreRecover']" class="confirm-icon">
                           <i class="el-icon-error"></i>
                         </div>
-                        <div v-if="scope.row.status == 3" class="confirm-icon">
+                        <div v-if="scope.row.status == signerStatus['agreeRecover']" class="confirm-icon">
                           <i class="el-icon-success"></i>
+                        </div>
+                        <div v-if="scope.row.status == signerStatus['freezeRecover']" class="confirm-icon">
+                          <i class="el-icon-error"></i>
                         </div>
                       </template>
                     </el-table-column>
@@ -81,7 +84,7 @@
               </div>
               <div class="choose-btn">
                 <el-button type="info" @click="backStep" v-show="activeStep !==2">Back</el-button>
-                <el-button type="primary" @click="nextStep">Confirm</el-button>
+                <el-button type="primary" @click="nextStep">{{confirmTxt}}</el-button>
               </div>
             </div>
           </div>
@@ -98,6 +101,7 @@ import navTitle from '@/components/NavTitle/index'
 import { isLogin } from '@/utils/dashBoardTools';
 import walletList from './walletList/index'
 import { getFromStorage } from '@/utils/storage'
+import { signerStatus } from '@/utils/global';
 
 Vue.use(Toast);
 Vue.use(Step);
@@ -108,13 +112,10 @@ export default {
   name: 'NC-Wallet-Recover',
   data() {
     return {
+      signerStatus,
       activeStep: 0,//0-choose 1-signer confirm 2-complete
       walletShow: true,
-      signerList: [
-       {name: 'wallet1', address: 'oxdfdf', confirmed: 1},
-       {name: 'wallet1', address: 'oxdfdf', confirmed: 2},
-       {name: 'wallet1', address: 'oxdfdf', confirmed: 3}
-      ],
+      signerList: [],
       signerTotal: 0,
       signerPercent: 0,
 
@@ -122,6 +123,10 @@ export default {
       currentWalletName: '',
       currentWalletId: '',
       userId: getFromStorage('gUID'),
+      agreeRecoverNum: 0,
+      isStartRecover: false,
+
+      confirmTxt: 'Confirm',
     }
   },
   components: {
@@ -130,19 +135,54 @@ export default {
   },
   methods: {
     nextStep() {
-      if (this.activeStep !== 2) {
-        this.activeStep = this.activeStep + 1
-      } else {
+      this.confirmTxt = 'Confirm'
+      if (this.activeStep == 0) {
+        if (this.signerList.length == 0) { 
+          Toast('no signer') 
+          return
+        }
+        this.startRecover() //trigger need multicall
+      } else if (this.activeStep == 1) {
+        this.executeRecover() //need not multicall
+      } else if (this.activeStep == 2) {
         this.activeStep = 0
         this.walletShow = true
       }
     },
     backStep() {
+      this.confirmTxt = 'Confirm'
       if (this.activeStep == 0) {
         this.walletShow = true
         return
       }
       this.activeStep = this.activeStep - 1
+    },
+    startRecover() {
+      this.signerList.map(async item => {
+        console.log(item)
+        let data = {
+          userId: this.userId,
+          walletId: this.currentWalletId,
+          signerAddress: item.address,
+          status: signerStatus['startRecover'],
+        }
+        const { hasError } = await this.$store.dispatch('updateSigner', {...data});
+        if (hasError) {
+          console.log('Update Failed')
+        } else {
+          console.log('Update success')
+        }
+      })
+      this.activeStep = this.activeStep + 1
+      this.confirmTxt = 'Execute'
+    },
+    executeRecover() {
+      if (this.agreeRecoverNum >= this.signerPercent) {
+        console.log('start excute')
+        this.activeStep = this.activeStep + 1
+      } else {
+        Toast(`Any transaction requires the confirmation of: ${signerPercent} signers`)
+      }
     },
     recoverChild(value) {
       this.walletShow = false
@@ -157,8 +197,24 @@ export default {
         walletId: this.currentWalletId
       }
       const { hasError, list } = await this.$store.dispatch('getSignerList', {...data})
-      this.signerList = list
-      this.signerTotal = list.length
+      for (var i=0; i<list.length; i++) {
+        if (list[i].status >= 5) {
+          this.isStartRecover = true
+          this.activeStep = 1
+          return
+        }
+      }
+      let newList = list.filter((item, index)=>{
+        if (!this.isStartRecover) {
+          return item.status == this.signerStatus['active']
+        } else {
+          item.status == this.signerStatus['agreeRecover'] && (this.agreeRecoverNum = this.agreeRecoverNum + 1)
+          return (item.status == this.signerStatus['startRecover'] || item.status == this.signerStatus['agreeRecover'] || item.status == this.signerStatus['ignoreRecover'] || item.status == this.signerStatus['freezeRecover'])
+        }
+      });
+      // let newList = list
+      this.signerList = newList
+      this.signerTotal = newList.length
       this.signerPercent = Math.ceil(this.signerTotal/2)
     },
   },

@@ -37,6 +37,7 @@ import None from '@/components/None/index'
 import Loading from '@/components/Loading'
 import { getFromStorage } from '@/utils/storage'
 import {  isLogin, getBalanceByAddress, getConnectedAddress } from '@/utils/dashBoardTools';
+import { signerStatus } from '@/utils/global';
 
 Vue.use(Tab);
 Vue.use(Tabs);
@@ -46,6 +47,7 @@ export default {
   name: 'NC-Wallet',
   data() {
     return {
+      signerStatus,
       tabActive: 0,
       ownWalletList: [],
       signWalletList: [],
@@ -89,7 +91,7 @@ export default {
       }
       const { hasError, list } = await this.$store.dispatch('getWalletListAsSign', data)
       let newList = list.filter((item, index)=>{
-          return item.status !== 2
+          return item.status !== this.signerStatus['rejected']
       });
       this.signWalletList = newList
       if (hasError) {

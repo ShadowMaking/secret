@@ -60,7 +60,7 @@ axios.defaults.withCredentials = true;
           const userId = getFromStorage('gUID')
           const token = getAuthToken('gtoken')
           const url = `${window.location.protocol}//secret.ieigen.com`
-          window.location.href=url
+          // window.location.href=url
           return Promise.reject('error')
          default:
           //  console.log('error', res.message);

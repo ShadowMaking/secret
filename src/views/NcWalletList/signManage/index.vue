@@ -26,13 +26,13 @@
             label="State"
             v-if="!isRecover">
             <template slot-scope="scope">
-              <div v-if="scope.row.status == 1">
+              <div v-if="scope.row.status == signerStatus['confirmed']">
                 <el-tag>To be confirmed</el-tag>
               </div>
-              <div v-else-if="scope.row.status == 2">
+              <div v-else-if="scope.row.status == signerStatus['rejected']">
                 <el-tag type="danger">Rejected</el-tag>
               </div>
-              <div v-else-if="scope.row.status == 3">
+              <div v-else-if="scope.row.status == signerStatus['active']">
                 <el-tag type="success">Active</el-tag>
               </div>
               <div v-else>
@@ -73,6 +73,7 @@ import searchSignerModal from '@/components/SearchSignerModal/index'
 import {  isLogin, getContractAt } from '@/utils/dashBoardTools'
 import { getFromStorage, removeFromStorage } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
+import { signerStatus } from '@/utils/global';
 
 Vue.use(Toast);
 Vue.use(Loading);
@@ -85,6 +86,7 @@ export default {
     return {
       signList: [],
       searchSignerList: [],
+      signerStatus,
 
       signerPercent: 0,
       signerTotal: 0,
