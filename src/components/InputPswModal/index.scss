@@ -1,0 +1,44 @@
+.status-popUp {
+  background: #fff;
+  text-align: center;
+  border-radius: 10px;
+  padding: 30px;
+  width: 330px;
+  border: 1px solid rgb(204, 204, 204);
+  .input-psw-container {
+    font-size: 1rem;
+    input[type="password"]{ width: 170px; height: 35px; line-height: 35px; border: 1px solid rgb(204, 204, 204); padding: 0 10px; border-radius: 5px;}
+    input[type="password"].error { border-color: #f81d22;}
+  }
+  .psw-tip {
+    font-size: .8125rem;
+    color: #AEB2B8;
+    line-height: 25px;
+    padding: 10px 0;
+    >span { display: block; text-align: left;}
+  }
+  .error-tip {
+    padding-left: 30px;
+    color: #f81d22;
+    font-size: .8125rem;
+  }
+  .opt-container {
+    display: flex;
+    width: 100%;
+    button { flex: 1; margin: 0 10px; }
+  }
+  .main-txt {
+    font-size: 1.4375rem;
+    color: #333333;
+    margin: 20px 0 15px;
+  }
+  .supplement-txt {
+    font-size: .8125rem;
+    color: #606265;
+    line-height: 18px;
+  }
+  .supplement-txt + .button {
+    margin-top: 20px;
+    border-radius: 5px;
+  }
+}

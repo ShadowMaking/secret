@@ -41,8 +41,8 @@ export const removeFromStorage = (keys, storageType = 'local') => {
   }
 }
 
-export const getInfoFromStorageByKey = (key) => {
-  const info = getFromStorage(key)
+export const getInfoFromStorageByKey = (key, storageType = 'local') => {
+  const info = getFromStorage(key, storageType)
   if (info) {
     return window.JSON.parse(info)
   }
