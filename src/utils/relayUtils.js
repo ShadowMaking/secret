@@ -45,7 +45,8 @@ export const generatePublickKeyByRelayPublickKey = (relayPubKey) => {
 // publicKey and privateKey
 export const generateEncryptPrivateKeyByPublicKey = (relayPubKey, privateKey) =>{
   const publicKey = generatePublickKeyByRelayPublickKey(relayPubKey);
-  const c1 = ecies.encrypt(publicKey, privateKey, OPTIONS_ENCRYPT).toString("hex");
+  const _privateKey = encode(privateKey); // convert privateKey to base64
+  const c1 = ecies.encrypt(publicKey, _privateKey, OPTIONS_ENCRYPT).toString("hex");
   return c1
 }
 
