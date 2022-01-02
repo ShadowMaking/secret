@@ -171,20 +171,19 @@ export default {
       for(let i=0; i<data.length; i++) {
         const { cipher_key: encryptKey, user_address } = data[i]
         // const decryptInfo = await this.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
-        // const ddd = web3.utils.toHex(encryptKey)
         const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
         const { hasError, data: decryptedPrivateKey } = decryptInfo
         if(hasError) {
           this.showInputPswModal = true;
           console.log('DecryptPrivateKeyByEcies failed! Retry!')
-          return false
+          return
         }
         console.log('还原私钥用的 aesKey：', this.aesKey)
         const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
         if (!privateKey) {
           this.showInputPswModal = true;
           console.log('Recovery privateKey failed! Retry!')
-          return false
+          return
         }
         const accountWallet = new ethers.Wallet(privateKey);
         if (i === 0) { // connect first account address

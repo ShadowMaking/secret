@@ -22,6 +22,8 @@ const decode = (base64Str) => {
   return str;
 }
 
+const str2Base64 = (str) => ecies.Buffer.from(str).toString("base64")
+
 export const OPTIONS_ENCRYPT = {
   hashName: 'sha512',
   hashLength: 64,
@@ -46,7 +48,7 @@ export const generatePublickKeyByRelayPublickKey = (relayPubKey) => {
 // publicKey and privateKey
 export const generateEncryptPrivateKeyByPublicKey = (relayPubKey, privateKey) =>{
   const publicKey = generatePublickKeyByRelayPublickKey(relayPubKey);
-  const _privateKey = encode(privateKey); // convert privateKey to base64
+  const _privateKey = str2Base64(privateKey); // convert privateKey to base64
   const c1 = ecies.encrypt(publicKey, _privateKey, OPTIONS_ENCRYPT).toString("hex");
   return c1
 }
@@ -54,7 +56,8 @@ export const generateEncryptPrivateKeyByPublicKey = (relayPubKey, privateKey) =>
 // publicKey and password
 export const generateEncryptPswByPublicKey = (relayPubKey, password) =>{
   const publicKey = generatePublickKeyByRelayPublickKey(relayPubKey);
-  const psw = encode(password)
+  // const psw = password.toString('base64')
+  const psw = str2Base64(password)
   const cc1 = ecies.encrypt(publicKey, psw, OPTIONS_ENCRYPT).toString("hex");
   return cc1
 }
@@ -68,10 +71,8 @@ export const generateCR1ByPublicKey = (relayPubKey) => {
 
 // 3i2SIHXBK3sxy/ILNXLRyseH/0h0wvYsdzyWbuoUNbWtBUdlFCV6JGMTFX8Jbu+t2oGW6Utg60rLFq7xV59MsroS+HNSNmWs/L4VT5G6MlmKe5KpT/RkL+CE3r1EeYkcNCYGxufzOJpljrSVR2RFH1cR/cs=
 export const getDecryptPrivateKey  = (sourcePrivateKey, aesKey) => {
-  console.log('dec 返回的数据', sourcePrivateKey)
   const _privateKey = ecies.aes_dec('aes-256-gcm', aesKey, ecies.Buffer.from(sourcePrivateKey, "base64"))
-  const privateKey = ecies.Buffer.from(_privateKey).toString()
-  const privateKey2 = ecies.Buffer.from(_privateKey, "base64").toString("hex")
-  console.log('还原的privateKey', privateKey, privateKey2)
-  return privateKey2
+  const privateKey = ecies.Buffer.from(_privateKey, "base64").toString()
+  // const privateKey2 = ecies.Buffer.from(_privateKey, "base64").toString("hex")
+  return privateKey
 }
