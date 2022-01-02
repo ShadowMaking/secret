@@ -35,11 +35,12 @@
 import Vue from 'vue';
 import { Button, Toast } from 'vant';
 import _ from 'lodash';
+import web3 from 'web3'
 import { ethers } from 'ethers'
 import { getQueryString, getLocationParam } from '@/utils/index'
 import InputPswModal from '@/components/InputPswModal'
 // import * as ecies from "@/utils/ecies";
-import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey } from '@/utils/relayUtils'
+import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
 Vue.use(Button);
 
@@ -53,6 +54,7 @@ export default {
     return {
       userPsw: '',
       publicKey: '',
+      aesKey: '', // every decrypt has the same aesKey
       encryptPsw: '',
       encryptPrivateKeyPublicKey: '',
       encryptCr1: '',
@@ -169,11 +171,19 @@ export default {
       for(let i=0; i<data.length; i++) {
         const { cipher_key: encryptKey, user_address } = data[i]
         // const decryptInfo = await this.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
+        // const ddd = web3.utils.toHex(encryptKey)
         const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
-        const { hasError, data: privateKey } = decryptInfo
+        const { hasError, data: decryptedPrivateKey } = decryptInfo
         if(hasError) {
           this.showInputPswModal = true;
           console.log('DecryptPrivateKeyByEcies failed! Retry!')
+          return false
+        }
+        console.log('还原私钥用的 aesKey：', this.aesKey)
+        const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
+        if (!privateKey) {
+          this.showInputPswModal = true;
+          console.log('Recovery privateKey failed! Retry!')
           return false
         }
         const accountWallet = new ethers.Wallet(privateKey);
@@ -209,7 +219,11 @@ export default {
       
       // const password = ecies.crypto.randomBytes(16).toString("base64");
       const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
-      const encryptCr1 = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      // const test = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
+      // console.log('test', encryptPsw, test)
+      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      console.log('生成cr1的 aesKey：', aesKey)
+      this.aesKey = aesKey
       this.encryptPsw = encryptPsw
       this.encryptCr1 = encryptCr1
       console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)

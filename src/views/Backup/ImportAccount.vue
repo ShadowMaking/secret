@@ -97,6 +97,7 @@ export default {
 
       userPsw: '',
       publicKey: '',
+      aesKey: '', // every decrypt has the same aesKey
       encryptPsw: '',
       encryptPrivateKeyPublicKey: '',
       encryptCr1: '',
@@ -211,8 +212,14 @@ export default {
         Toast('Import Failed')
         return
       }
+      const { data } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId })
+      if (!data) {
+        await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, privateKey, address })
+      }
       await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey, privateKey, address })
+      this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
       Toast('Import Account Successfully')
+      this.userPsw = '';
     },
     formatterTrim(value) {
       return formatTrim(value)
@@ -253,7 +260,8 @@ export default {
       console.log(`GetPublicKey result is: ${publicKey}`)
       
       const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
-      const encryptCr1 = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      this.aesKey = aesKey
       this.encryptPsw = encryptPsw
       this.encryptCr1 = encryptCr1
       console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)

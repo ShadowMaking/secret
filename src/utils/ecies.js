@@ -177,4 +177,4 @@ const decrypt = function (keyPair, message, options) {
 }
 
 export { encrypt, decrypt, aes_dec, aes_enc };
-export { crypto, ec }
+export { crypto, ec, Buffer }

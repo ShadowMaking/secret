@@ -1,4 +1,5 @@
 import * as ecies from "./ecies";
+export { ecies }
 
 // for debug
 const debug_pub = "04a52438a5c1bba393d167994974b6d299bbdb078263144c9d9429bb65bb151fa3718657caea7bb5adef04a8cf8d40ff20bbc3a9330f04c2acb5b209cd25a2d863";
@@ -59,8 +60,18 @@ export const generateEncryptPswByPublicKey = (relayPubKey, password) =>{
 }
 
 export const generateCR1ByPublicKey = (relayPubKey) => {
-  const aesKey = ecies.crypto.randomBytes(32)
+  const aesKey = ecies.crypto.randomBytes(32);
   const publicKey = generatePublickKeyByRelayPublickKey(relayPubKey);
   const cr1 = ecies.encrypt(publicKey, aesKey, OPTIONS_ENCRYPT).toString("hex")
-  return cr1
+  return { cr1, aesKey }
+}
+
+// 3i2SIHXBK3sxy/ILNXLRyseH/0h0wvYsdzyWbuoUNbWtBUdlFCV6JGMTFX8Jbu+t2oGW6Utg60rLFq7xV59MsroS+HNSNmWs/L4VT5G6MlmKe5KpT/RkL+CE3r1EeYkcNCYGxufzOJpljrSVR2RFH1cR/cs=
+export const getDecryptPrivateKey  = (sourcePrivateKey, aesKey) => {
+  console.log('dec 返回的数据', sourcePrivateKey)
+  const _privateKey = ecies.aes_dec('aes-256-gcm', aesKey, ecies.Buffer.from(sourcePrivateKey, "base64"))
+  const privateKey = ecies.Buffer.from(_privateKey).toString()
+  const privateKey2 = ecies.Buffer.from(_privateKey, "base64").toString("hex")
+  console.log('还原的privateKey', privateKey, privateKey2)
+  return privateKey2
 }
