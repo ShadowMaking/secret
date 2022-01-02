@@ -178,7 +178,6 @@ export default {
           console.log('DecryptPrivateKeyByEcies failed! Retry!')
           return
         }
-        console.log('还原私钥用的 aesKey：', this.aesKey)
         const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
         if (!privateKey) {
           this.showInputPswModal = true;
@@ -221,7 +220,6 @@ export default {
       // const test = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
       // console.log('test', encryptPsw, test)
       const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
-      console.log('生成cr1的 aesKey：', aesKey)
       this.aesKey = aesKey
       this.encryptPsw = encryptPsw
       this.encryptCr1 = encryptCr1
