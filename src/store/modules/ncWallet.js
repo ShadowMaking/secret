@@ -7,6 +7,7 @@ import {
   updateSigner,
   deleteSigner, 
   getWalletListAsSign,
+  uploadSignmessage,
 } from '@/api/ncwallet'
 
 
@@ -113,6 +114,19 @@ const ncWallet = {
     deleteSigner({ commit }, params) {
       return new Promise((resolve, reject) => {
         deleteSigner(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
+    uploadSignmessage({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        uploadSignmessage(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0) {
             resolve({ hasError: false })

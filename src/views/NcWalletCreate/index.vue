@@ -7,7 +7,7 @@
       <p class="create-des" style="margin-top: 15px;">Quickly create a Non-custodial Wallet:</p>
       <div class="create-wallet-form">
         <el-form label-position="left">
-          <el-form-item label="Set Wallet Name" label-width="130px">
+          <el-form-item label="Set Wallet Name" label-width="135px">
             <el-input v-model="createWalletName"></el-input>
           </el-form-item>
           <el-form-item label="Set Signer">
@@ -56,6 +56,7 @@ import ProxyJson from "@/assets/contractJSON/Proxy.json";
 import { BigNumber } from "bignumber.js";
 import { getFromStorage } from '@/utils/storage';
 import { timeFormat } from '@/utils/str';
+import { securityModuleRouter, proxyRouter } from '@/utils/global';
 
 Vue.use(Toast);
 Vue.use(Dialog);
@@ -82,9 +83,8 @@ export default {
 
       showLoading: false,
 
-      securityModuleRouter: '0x17708F66E60Eb7090aF70628596b6780C2B4F0ea',
-      walletRouter: '0x78412C7a5aaB090d655Bb2Fcea2Bc72BDCF813F9',
-      proxyRouter: '0x270Bf36C4bff1dd3c995d71E8CB6A9450c34D5ed',
+      securityModuleRouter,
+      proxyRouter,
     }
   },
   components: {

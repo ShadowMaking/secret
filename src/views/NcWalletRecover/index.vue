@@ -53,6 +53,9 @@
                       label="confirmed"
                       align="center">
                       <template slot-scope="scope">
+                        <div v-if="scope.row.status == signerStatus['active']" class="confirm-icon">
+                          <i class="el-icon-question"></i>
+                        </div>
                         <div v-if="scope.row.status == signerStatus['startRecover']" class="confirm-icon">
                           <i class="el-icon-question"></i>
                         </div>
@@ -98,10 +101,11 @@
 import Vue from 'vue'
 import { Toast, Step, Steps } from 'vant'
 import navTitle from '@/components/NavTitle/index'
-import { isLogin } from '@/utils/dashBoardTools';
+import { isLogin, getContractAt } from '@/utils/dashBoardTools';
 import walletList from './walletList/index'
 import { getFromStorage } from '@/utils/storage'
-import { signerStatus } from '@/utils/global';
+import { signerStatus, securityModuleRouter } from '@/utils/global';
+import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 
 Vue.use(Toast);
 Vue.use(Step);
@@ -127,6 +131,7 @@ export default {
       isStartRecover: false,
 
       confirmTxt: 'Confirm',
+      securityModuleRouter,
     }
   },
   components: {
@@ -176,10 +181,23 @@ export default {
       this.activeStep = this.activeStep + 1
       this.confirmTxt = 'Execute'
     },
-    executeRecover() {
-      if (this.agreeRecoverNum >= this.signerPercent) {
+    async executeRecover() {
+     if (this.agreeRecoverNum >= this.signerPercent) {
         console.log('start excute')
-        this.activeStep = this.activeStep + 1
+        const overrides = {
+          gasLimit: 8000000,
+          gasPrice: 5000000000,
+        };
+        const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+        const signesd = await securityModuleContract.signerInfos(this.currentWalletAddress)
+        console.log(signesd)
+        console.log(securityModuleContract)
+        console.log(this.currentWalletAddress)
+        let tx = await securityModuleContract.executeRecovery(this.currentWalletAddress, overrides)
+        console.log(tx)
+        // let txwait = await tx.wait()
+        // console.log(txwait)
+        // this.activeStep = this.activeStep + 1
       } else {
         Toast(`Any transaction requires the confirmation of: ${signerPercent} signers`)
       }
@@ -201,9 +219,9 @@ export default {
         if (list[i].status >= 5) {
           this.isStartRecover = true
           this.activeStep = 1
-          return
         }
       }
+      console.log(this.isStartRecover)
       let newList = list.filter((item, index)=>{
         if (!this.isStartRecover) {
           return item.status == this.signerStatus['active']

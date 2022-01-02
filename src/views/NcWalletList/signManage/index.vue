@@ -73,7 +73,7 @@ import searchSignerModal from '@/components/SearchSignerModal/index'
 import {  isLogin, getContractAt } from '@/utils/dashBoardTools'
 import { getFromStorage, removeFromStorage } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
-import { signerStatus } from '@/utils/global';
+import { signerStatus, securityModuleRouter } from '@/utils/global';
 
 Vue.use(Toast);
 Vue.use(Loading);
@@ -97,7 +97,7 @@ export default {
       showLoading: false,
       isRecover: false,
 
-      securityModuleRouter: '0x17708F66E60Eb7090aF70628596b6780C2B4F0ea',
+      securityModuleRouter,
       securityModuleContract: null,
     }
   },
