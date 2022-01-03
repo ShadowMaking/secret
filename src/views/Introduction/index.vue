@@ -112,8 +112,9 @@ export default {
         return { hasError: true, msg:  'Upload EncrpytKey Failed! Retry!'}
         return false 
       }
-      await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, privateKey, address })
-      await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey, privateKey, address })
+      await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, address })
+      await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey: encryptPrivateKey, privateKey })
+      await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey, address })
       this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
       return { hasError: false }
     },
@@ -150,8 +151,9 @@ export default {
         return
       }
       const accountWallet = new ethers.Wallet(privateKey);
-      await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey:encryptKey, privateKey, address: accountWallet.address })
-      await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey:encryptKey, privateKey, address: accountWallet.address })
+      await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey:encryptKey, address: accountWallet.address })
+      await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address: accountWallet.address, encryptKey, privateKey })
+      await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey:encryptKey, address: accountWallet.address })
       this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
     },
     /**
@@ -169,29 +171,39 @@ export default {
         await this.createAccountForThirdLoginUser()
         return
       }
-      // TODO
+
+      let decrypted  = false; // only decrypt the first for current account
+      let privateKey = '';
       for(let i=0; i<data.length; i++) {
         const { cipher_key: encryptKey, user_address } = data[i]
-        // const decryptInfo = await this.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
-        const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
-        const { hasError, data: decryptedPrivateKey } = decryptInfo
-        if(hasError) {
-          this.clearLoading()
-          this.showInputPswModal = true;
-          return { hasError: true, msg:  'DecryptPrivateKeyByEcies failed! Retry!'}
+        let accountWallet
+        let address = user_address || ''
+        if (!address || !decrypted) {
+          decrypted = true;
+          // const decryptInfo = await this.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
+          const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
+          const { hasError, data: decryptedPrivateKey } = decryptInfo
+          if(hasError) {
+            this.clearLoading()
+            this.showInputPswModal = true;
+            return { hasError: true, msg:  'DecryptPrivateKeyByEcies failed! Retry!'}
+          }
+          console.log('aesKey-recover:', this.aesKey)
+          privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
+          if (!privateKey) {
+            this.clearLoading()
+            this.showInputPswModal = true;
+            return { hasError: true, msg:  'Recovery privateKey failed! Retry!'}
+          }
+          accountWallet = new ethers.Wallet(privateKey);
+          address = accountWallet.address
         }
-        const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
-        if (!privateKey) {
-          this.clearLoading()
-          this.showInputPswModal = true;
-          return { hasError: true, msg:  'Recovery privateKey failed! Retry!'}
-        }
-        const accountWallet = new ethers.Wallet(privateKey);
         if (i === 0) { // connect first account address
-          await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey:encryptKey, privateKey, address: accountWallet.address })
+          await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey:encryptKey, address })
+          await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey, privateKey })
         }
-        await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey:encryptKey, privateKey, address: accountWallet.address })
-        this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
+        await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey:encryptKey, address })
+        this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });        
       }
       return { hasError: false }
     },
@@ -231,6 +243,7 @@ export default {
       // const password = ecies.crypto.randomBytes(16).toString("base64");
       const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
       const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      console.log('aesKey:', aesKey)
       this.aesKey = aesKey
       this.encryptPsw = encryptPsw
       this.encryptCr1 = encryptCr1

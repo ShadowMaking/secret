@@ -214,9 +214,10 @@ export default {
       }
       const { data } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId })
       // if (!data) {
-        await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, privateKey, address })
+        await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, address })
+        await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey: encryptPrivateKey, privateKey })
       // }
-      await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey, privateKey, address })
+      await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey, address })
       this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
       Toast('Import Account Successfully', 5)
       this.userPsw = '';

@@ -151,9 +151,14 @@ export const getContractWallet = async (self) => {
   const userId = getInfoFromStorageByKey('gUID')
   const { data: userInfo } = await self.$store.dispatch('GetBindingGoogleUserInfo', {userId})
   const encryptKey = userInfo.encryptPrivateKey
-  const decryptInfo = await self.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
-  const { hasError, data: privateKey } = decryptInfo
-
+  const address  = userInfo.address
+  const decryptInfo = await self.$store.dispatch('GetDecryptPrivateKeyFromStore', {userId, address, encryptKey })
+  // const decryptInfo = await self.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
+  // const { hasError, data: privateKey } = decryptInfo
+  const { hasError,  data: privateKey } = decryptInfo
+  if (hasError || !privateKey) {  // TODO need get decrpyt privateKey by address
+    return null
+  }
   const wallet = new ethers.Wallet(privateKey, provider);
   return wallet
 }

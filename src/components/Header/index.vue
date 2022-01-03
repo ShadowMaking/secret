@@ -43,7 +43,7 @@
                   <span>{{ address||gUName }}</span>
                 </div>
               </li> -->
-              <li :class="[{'active': item.address===address}]" v-for="(item,index) in userList" :key="index" @click="changeAccout(item)">
+              <li :class="[{'active': item.address===address}]" v-for="(item,index) in userList" :key="index" @click="changeAccount(item)">
                 <van-icon name="success" class="active-status-icon"/>
                 <div class="account-text">
                   <span>{{ item.address }}</span>
@@ -121,6 +121,7 @@
     </van-popup>
     <v-walletstatus :show="installWalletModal" key="installWalletModal" :installOtherWallet="installOtherWallet" />
     <v-netTipPopup :show="showNetTip" key="netTipModal" :showType="expectNetType" />
+    <v-inputPsw :show="showInputPswModal" :canCloseByBtn="true" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
 
@@ -132,11 +133,12 @@ import { DEFAULTIMG } from '@/utils/global';
 import { Popup, Button as VanButton, Toast, Icon, Popover } from 'vant';
 import WalletStatus from '@/components/WalletStatus';
 import NetTipModal from '@/components/NetTipModal';
+import InputPswModal from '@/components/InputPswModal'
 import { getSelectedChainID, getNetMode, getExpectNetTypeByRouteName, metamaskIsConnect, installWeb3Wallet, installWeb3WalletMetamask } from '@/utils/web3'
 import { copyTxt, isPc } from '@/utils/index';
 import { initTokenTime, updateLoginTime, removeTokens, tokenIsExpires, logout } from '@/utils/auth'
-import { getLocationParam } from '@/utils/index'
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
+import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
 Vue.use(Popup);
 Vue.use(VanButton);
@@ -161,11 +163,22 @@ export default {
       gUName: '',
       showAccountSetPopover: false,
       userList: [],
+
+      changeTargetAccountInfo: null,
+      userPsw: '',
+      publicKey: '',
+      aesKey: '', // every decrypt has the same aesKey
+      encryptPsw: '',
+      encryptPrivateKeyPublicKey: '',
+      encryptCr1: '',
+      confirmPswBtnLoading: false,
+      showInputPswModal: false,
     }
   },
   components: {
     "v-walletstatus": WalletStatus,
     "v-netTipPopup": NetTipModal,
+    'v-inputPsw': InputPswModal
   },
   computed: {
     metamaskInstall() {
@@ -348,7 +361,7 @@ export default {
         await this.getUserList(userId)
       }
     },
-    async changeAccout(record) {
+    async handleChangeAccount(record, privateKey) {
       const address = record.address
       if (this.address.toLocaleLowerCase() === address.toLocaleLowerCase()) {
         this.showAccountSetPopover = false
@@ -359,8 +372,66 @@ export default {
       const addressInfo = _.find(this.userList, { address })
       const encryptPrivateKey = addressInfo.encryptPrivateKey
       await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, address })
+      await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey: encryptPrivateKey, privateKey })
       this.$eventBus.$emit('changeAccout', addressInfo)
       this.showAccountSetPopover = false
+    },
+    async changeAccount(record) {
+      this.changeTargetAccountInfo  = _.cloneDeep(record)
+      this.showInputPswModal = true
+    },
+    async confirmPswOk({ show, psw }) {
+      this.userPsw = psw; // password of user input for encrypt privateKey
+      this.confirmPswBtnLoading = true
+      const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
+      if (hasError) {
+        Toast('Get PublickKey fasiled! Retry')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      this.publicKey = publicKey;
+      console.log(`GetPublicKey result is: ${publicKey}`)
+      
+      // const password = ecies.crypto.randomBytes(16).toString("base64");
+      const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
+      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      console.log('aesKey:', aesKey)
+      this.aesKey = aesKey
+      this.encryptPsw = encryptPsw
+      this.encryptCr1 = encryptCr1
+      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+
+      // decrpyt privateKey for target address
+      const { hasError: getPrivateKeyError, privateKey, msg } = await this.getPrivateKeyForAddress()
+      if (getPrivateKeyError) {
+        this.confirmPswBtnLoading = false
+        Toast(msg, 5)
+        return
+      }
+
+      this.confirmPswBtnLoading = false
+      this.showInputPswModal = false
+      this.$eventBus.$emit('resetValueAfterInputPsw')
+      await this.handleChangeAccount(this.changeTargetAccountInfo, privateKey)
+    },
+    async getPrivateKeyForAddress() {
+      let privateKey;
+      const info = _.cloneDeep(this.changeTargetAccountInfo)
+      const address = info.address
+      const userId = getInfoFromStorageByKey('gUID')
+      const { data: userList } = await this.$store.dispatch('GetBindingGoogleUserInfoList', { userId })
+      const targetInfoInStorage = _.find(userList, { address })
+      if (targetInfoInStorage) {
+        const encryptKey = targetInfoInStorage.encryptPrivateKey
+        const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
+        const { hasError, data: decryptedPrivateKey } = decryptInfo
+        if(hasError) {
+          return { hasError: true, msg:  'DecryptPrivateKeyByEcies failed! Retry!'}
+        }
+        console.log('aesKey-recover:', this.aesKey)
+        privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
+      }
+      return { hasError: false, privateKey}
     },
   },
   async mounted() {
