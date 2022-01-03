@@ -110,7 +110,6 @@ export default {
         this.clearLoading()
         this.showInputPswModal = true;
         return { hasError: true, msg:  'Upload EncrpytKey Failed! Retry!'}
-        return false 
       }
       await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, address })
       await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey: encryptPrivateKey, privateKey })

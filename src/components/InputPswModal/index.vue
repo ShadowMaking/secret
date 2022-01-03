@@ -13,8 +13,8 @@
         <span>3. Biometric technology will be adopted to realize the no-password authentication in the future.</span>
       </div> -->
       <ul class="psw-tip">
-        <li>Password is used to enhance the security of your KMS/HSM encrypted private key, and should be alphanumeric with at least 6 characters. Combining with Social Login and TEE technology, Eigen guarantees only you can access your plain private key.</li>
-        <li>IMPORTANT: If you forget your password, you can not recover your private key, you can use NCW to realize the social recovery.</li>
+        <li>Password is used to enhance the security of your KMS/HSM encrypted private key,  and should be alphanumeric with at least 6 characters that contains at least one uppercase, one lowercase,  a number and a special character,  like 123@Abc.  Combining with Social Login and TEE technology, Eigen guarantees only you can access your plain private key.</li>
+        <li>IMPORTANT:  If you forget your password, you will not be able recover your private key, But you can use the NCW to realize the social recovery.</li>
         <li>Biometric technology will be adopted to realize the no-password authentication in the future.</li>
       </ul>
       <van-button v-if="!canCloseByBtn" block color="#495ABF" class="button" @click="confirmPsw" :disabled="showPswError||!pswVal||btnLoading">{{ btnLoading?"loading":"Confirm" }}</van-button>

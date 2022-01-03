@@ -114,4 +114,5 @@ export const getAuthToken = (key) => {
 
 export const logout = () => {
   removeFromStorage(['gUID','userMap', 'gtoken', 'userList'])
+  window.sessionStorage.clear()
 }
