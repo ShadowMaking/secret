@@ -1,0 +1,9 @@
+{
+  "0x6E5791aD106fCADfba3115cdC21d1Ad3471D2e13": {
+    "name": "Metis",
+    "logo": "DAI.svg",
+    "erc20": true,
+    "symbol": "tMetis",
+    "decimals": 18
+  }
+}

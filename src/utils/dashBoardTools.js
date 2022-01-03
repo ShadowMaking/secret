@@ -15,12 +15,17 @@ import { getCurrentProvider } from '@/utils/web3';
 export const generateTokenList = async (list, self, isDefault) => {
   // const selectedConnectAddress = window.ethereum.selectedAddress;
   const selectedConnectAddress = getConnectedAddress();
-  const GetTokenBalanceMthodName = isDefault ? 'GetTokenBalanceByContract' : 'GetTokenBalanceByEtherscan'
+  const GetTokenBalanceMthodName = isDefault || isDefault===undefined ? 'GetTokenBalanceByContract' : 'GetTokenBalanceByEtherscan'
   for(let i=0; i<list.length;i+=1) {
     const tokenAddress = list[i].tokenAddress
+    let abiTokenAddress;
+    if (list[i]['abiTokenAddress']) {
+      abiTokenAddress = list[i]['abiTokenAddress']
+    }
+
     let abi = list[i].abiJson || []
     if (!isDefault || abi.length === 0) {
-      const { hasError: abiResError, data } = await self.$store.dispatch('GetTokenABIByTokenAddress', {tokenAddress});
+      const { hasError: abiResError, data } = await self.$store.dispatch('GetTokenABIByTokenAddress', {tokenAddress: abiTokenAddress?abiTokenAddress:tokenAddress});
       abi = [].concat(data||[])
     }
     const { hasError: balanceResError, data: balance, balanceFormatString } = await self.$store.dispatch(GetTokenBalanceMthodName, {
@@ -110,7 +115,7 @@ export const getEtherscanAPIBaseUrl = () => {
         etherscanAPIBaseUrl = `https://api-goerli.etherscan.io`
         break
       case CHAINIDMAP['RINKEBY']:
-        etherscanAPIBaseUrl = `https://api-goerli.etherscan.io`
+        etherscanAPIBaseUrl = `https://api-rinkeby.etherscan.io`
         break
       case CHAINIDMAP['KOVAN']:
         etherscanAPIBaseUrl = `https://api-kovan.etherscan.io`
@@ -118,6 +123,14 @@ export const getEtherscanAPIBaseUrl = () => {
       case CHAINIDMAP['ROPSTEN']:
         etherscanAPIBaseUrl = `https://api-ropsten.etherscan.io`
         break
+      case CHAINIDMAP['STARDUST']:
+        // etherscanAPIBaseUrl = `https://stardust-explorer.metis.io/api`
+        // etherscanAPIBaseUrl = `https://api-rinkeby.etherscan.io`
+        etherscanAPIBaseUrl = `https://api.etherscan.io` // because contract source code not verified in Rinkeby
+        break
+      default:
+        etherscanAPIBaseUrl = `https://api.etherscan.io`
+        break;
     }
   }
   return etherscanAPIBaseUrl
@@ -135,12 +148,14 @@ export const getContractWallet = async (self) => {
   const network = getConnectedNet()
   const rpcUrl = network['rpcUrls'][0]
   const provider = initRPCProvider(rpcUrl)
-  const userId = getInfoFromStorageByKey('gUID')
-  const { data: userInfo } = await self.$store.dispatch('GetBindingGoogleUserInfo', {userId})
-  const encryptKey = userInfo.encryptPrivateKey
-  const decryptInfo = await self.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
-  const { hasError, data: privateKey } = decryptInfo
-  const wallet = new ethers.Wallet(privateKey, provider);
+  // const userId = getInfoFromStorageByKey('gUID')
+  // const { data: userInfo } = await self.$store.dispatch('GetBindingGoogleUserInfo', {userId})
+  // const encryptKey = userInfo.encryptPrivateKey
+  // const decryptInfo = await self.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
+  // const { hasError, data: privateKey } = decryptInfo
+  // const wallet = new ethers.Wallet(privateKey, provider);
+  const wallet = new ethers.Wallet('d26e62d7726062e735d6d130b3c624e97921eecc3bde9263b404121f6f0dccc4', provider);
+  // const wallet = new ethers.Wallet('0x8dbdfb80e36d3e741845d15fe01ee97db15d18c95f12df9d7a9ec2e68e5e5fa8', provider);
   return wallet
 }
 
@@ -159,8 +174,8 @@ export const getConnectedAddress = (byMetamask=false) => {
   const userId = getFromStorage('gUID')
   if (userId) {
     const userMap = getInfoFromStorageByKey('userMap');
-    const userData = userMap[userId]
-    return userData['address'].toLocaleLowerCase()
+    const userData = userMap && userMap[userId]
+    return userData && userData['address'].toLocaleLowerCase() || ''
   }
   return ''
 }

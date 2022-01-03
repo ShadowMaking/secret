@@ -56,7 +56,7 @@ export default {
       walletList: [],
       userId: getFromStorage('gUID'),
 
-      showLoading: false,
+      showLoading: true,
     }
   },
   components: {

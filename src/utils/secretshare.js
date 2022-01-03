@@ -3,7 +3,9 @@ import ss from 'secrets.js-34r7h'
  
 // why need: https://docs.ethers.io/v5/cookbook/react-native/#cookbook-reactnative-security
 import "@ethersproject/shims"
+import web3 from 'web3'
 import * as ethers from 'ethers'
+// import * as bip39 from 'bip39';
 
 import { defaultPath, HDNode, entropyToMnemonic, Mnemonic } from "@ethersproject/hdnode";
 import { keccak256 } from "@ethersproject/keccak256";
@@ -80,4 +82,28 @@ export const combine = (shares) => {
   const com = ss.combine(shares)
   // return ss.combine(shares)
   return ss.hex2str(com)
+}
+
+// const signature = "0x528459e4aec8934dc2ee94c4f3265cf6ce00d47cf42bb106afda3642c72e25eb42544137118256121502784e5a6425e6183ca964421ecd577db6c66ba9bccdcf1b";
+// const address = ethers.utils.recoverAddress(privateKeyStr, signature);
+export const isValidPrivateKey = (privateKeyStr) => {
+  privateKeyStr = privateKeyStr.trim()
+  const strStartWith0x = privateKeyStr.startsWith('0x')
+  const _privateKeyStr = strStartWith0x ? privateKeyStr : `0x${privateKeyStr}`
+  const strLenEqualto66 = `${_privateKeyStr}`.length === 66
+  const isHex = web3.utils.isHex(privateKeyStr) && strLenEqualto66;
+  if (!isHex) { return false }
+  const uint8ArrayForStr= ethers.utils.arrayify(_privateKeyStr)
+  const uint8Array1 = ethers.utils.stripZeros(uint8ArrayForStr)
+  const uint8Array2 = ethers.utils.zeroPad(uint8ArrayForStr, 32)
+  if (uint8Array1.length ===32 || uint8Array2.length ===32) {
+    return true
+  }
+  return false
+}
+
+export const isValidMenmonic = (mnemonicStr) => {
+  // const isMnemonic = bip39.validateMnemonic(mnemonicStr)
+  const isMnemonic = ethers.utils.isValidMnemonic(mnemonicStr)
+  return isMnemonic
 }

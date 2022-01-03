@@ -31,18 +31,22 @@
           isMax=true
           type="From"
           :sourceData="assetsTokenList"
+          :showLoading="tokenLoading"
           @selectChagne="val=>selectChagne('exchangeFrom', val)"
-          @inputChange="val=>inputChange('exchangeFrom', val)" />
+          @inputChange="val=>inputChange('exchangeFrom', val)"
+          ref="tokenFromSelect" />
       </div>
       <div class="from-box">
         <v-exchangItem
           key="toToken"
           type="To"
           :sourceData="allTokenList"
+          :showLoading="tokenLoading"
           :inputDisabled="true"
           :inputDefaultValue="exchangeTo"
           @selectChagne="val=>selectChagne('exchangeTo', val)"
-          @inputChange="val=>inputChange('exchangeTo', val)" />
+          @inputChange="val=>inputChange('exchangeTo', val)"
+          ref="tokenToSelect" />
       </div>
       <ul class="setting-box">
         <li>
@@ -152,11 +156,12 @@ export default {
   data() {
     return {
       currentChainInfo: null,
-      // defaultNetWork: 1,
+      defaultNetWork: '',
       defaultIcon: null,
       netWorkList: _.cloneDeep(NETWORKSFORTOKEN),
       assetsTokenList: [],
       allTokenList: [],
+      tokenLoading: false,
       loadingGas: false,
       gasPriceInfo: null,
       exchangeFrom: '',
@@ -211,12 +216,12 @@ export default {
       const tokenName = this.exchangeFromToken && this.exchangeFromToken['tokenName']
       return `Allow ${protocolName} to use your ${tokenName}`
     },
-    defaultNetWork() {
+  },
+  methods: {
+    getDefaultNetWork() {
       const info = getInfoFromStorageByKey('netInfo')
       return info && info['id'] || 1
     },
-  },
-  methods: {
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
       this.$router.push({ name: 'overView' })
@@ -958,10 +963,22 @@ export default {
       this.slippageKey = val
       isInput ? (this.slippageVal = this.slippageInput) : (this.slippageVal = val)
     },
-    async handleNetworkChange(data) {
+    resetVal() {
+      this.exchangeFrom = ''
+      this.exchangeTo = ''
+      this.exchangeFromToken = null
+      this.exchangeTOToken = null
+      this.assetsTokenList = [],
+      this.allTokenList = [],
+      this.$refs.tokenFromSelect && this.$refs.tokenFromSelect.resetSelectVal()
+      this.$refs.tokenToSelect && this.$refs.tokenToSelect.resetSelectVal()
+    },
+    async handleNetworkChange(data, emitEvent) {
+      this.resetVal()
       const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
       this.currentChainInfo = chainInfo
       await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
+      emitEvent && (this.$eventBus.$emit('networkChange', { chainInfo, from:'exchange' }))
       await this.getTokenList(true)
     },
     handleProtocolChange(data) {
@@ -969,12 +986,11 @@ export default {
       console.log(this.currentProtocolType)
     },
     async getTokenList(forAccounts) {
+      this.allTokenList = []
+      this.assetsTokenList = []
+      this.tokenLoading = true
       const selectedConnectAddress = getConnectedAddress()
-      if (!selectedConnectAddress) {
-        this.allTokenList = []
-        this.assetsTokenList = []
-        return
-      }
+      if (!selectedConnectAddress) { return }
       const methodName = forAccounts ? 'GetAvailableTokenAssets' : 'GetAllTokenList'
       const { hasError, list } = await this.$store.dispatch(methodName, { selectedConnectAddress, chainInfo: this.currentChainInfo });
       const tokenList = await generateTokenList(_.cloneDeep(list), this, forAccounts)
@@ -988,6 +1004,7 @@ export default {
       this.exchangeFromToken = this.assetsTokenList[0]
       this.exchangeToToken = this.allTokenList[0]
       this.setShowApproveButton()
+      this.tokenLoading = false
     },
     setShowApproveButton() {
       const tokenInfo = this.exchangeFromToken
@@ -999,10 +1016,12 @@ export default {
       this.showTradeConfirm = false
       Toast('Cancel Transaction')
     },
-    async confirmExchange() {
+    async confirmExchange({ overrides }) {
       this.showTradeConfirm = false
       const exchangeType = this.exchangeType
       const data = _.cloneDeep(this.exchangeData)
+      data['gasInfo']['gasLimit'] = overrides.gasLimit
+      data['gasInfo']['gasPrice'] = web3.utils.toWei(overrides.gasPrice, 'gwei')
       
       if (this.currentProtocolType === 'v3') {
         // const netWorkIsROPSTEN = window.ethereum.chainId === CHAINIDMAP['ROPSTEN']
@@ -1140,8 +1159,15 @@ export default {
       this.showLoading = false;
 
     },
+    _handleNetworkChange({ chainInfo, from }) {
+      if (from === 'exchange') { return }
+      this.defaultNetWork = chainInfo.id
+      this.defaultIcon = chainInfo.icon
+      this.handleNetworkChange({value:{id:chainInfo.id}}, true)
+    },
   },
   async created() {
+    this.defaultNetWork = this.getDefaultNetWork()
     this.netWorkList.map(item => {
       if (item.id == this.defaultNetWork) {
         this.defaultIcon = item.icon
@@ -1160,6 +1186,7 @@ export default {
       Toast('Need Login')
       return
     }
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
     await this.getTokenList()
   },

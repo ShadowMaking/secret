@@ -42,4 +42,10 @@
     }
 
   }
+  .network-container {
+    position: absolute;
+    bottom: 0;
+    padding: 10px 10px 0;
+    .select-box { border: 1px solid #e6e7e9;}
+  }
 }

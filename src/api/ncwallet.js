@@ -170,3 +170,21 @@ import request from '@/utils/request';
     data: _data,
   })
 }
+
+/**
+ * @description: Update owner address for a wallet 
+ * @param {"owner_address": "0x123"}
+ * @return 
+ */
+ export const updateOwnerAddress = (data) => {
+  const userId = data['userId'] 
+  const walletId = data['walletId']
+  let _data = {
+    owner_address: data['ownerAddress'],
+  }
+  return request({
+    url: `/api/user/${userId}/wallet/${walletId}`,
+    method: 'post',
+    data: _data,
+  })
+}

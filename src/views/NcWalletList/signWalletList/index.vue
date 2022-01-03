@@ -32,7 +32,7 @@
                 <el-button @click="handleClick(scope.row)" type="text" size="small" class="sign-operate ignore-btn">Ignore</el-button>
                 <el-button @click="handleClick(scope.row)" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
               </div> -->
-              <div v-if="scope.row.status == signerStatus['freeze']">
+              <div v-if="scope.row.status == signerStatus['freeze'] || scope.row.status == signerStatus['freezeRecover']">
                 <span style="color:red">Has been freeze</span>
               </div>
               <div v-if="scope.row.status == signerStatus['startRecover']">
@@ -40,10 +40,7 @@
                 <el-button @click="handleClick(scope.row, 'Ignore')" type="text" size="small" class="sign-operate ignore-btn">Ignore</el-button>
                 <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
               </div>
-              <div v-if="scope.row.status == signerStatus['agreeRecover']">
-                <el-button @click="handleClick(scope.row, 'triggerRecover')" type="text" size="small" class="sign-operate agree-btn">Recover</el-button>
-              </div>
-             <div v-if="scope.row.status == signerStatus['ignoreRecover'] || scope.row.status == signerStatus['active']">
+              <div v-if="scope.row.status == signerStatus['ignoreRecover'] || scope.row.status == signerStatus['active'] || scope.row.status == signerStatus['agreeRecover']" >
                 <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
               </div>
             </template>
@@ -111,9 +108,6 @@ export default {
         case 'Ignore':
           this.openDialog('Are you sure to Ignore Recover?', row, this.signerStatus['ignoreRecover'])
           break;
-        case 'triggerRecover':
-          this.openDialog('Are you sure to Recover?', row, this.signerStatus['agreeRecover'],true)
-          break;
         default:
           break;
       }
@@ -165,7 +159,7 @@ export default {
     async singerSignMessage(row) {
       let currentWalletAddress = row.wallet_address
       //todo
-      let newOwnAddress = '0xd921D039e3dcBF7759be2cf4aAED5DF053700cfe'//row.owner_address
+      let newOwnAddress = row.owner_address
       let amount = 0
       const SMABI = [
           "function executeRecovery(address)",
@@ -185,10 +179,8 @@ export default {
         ethers.utils.hexZeroPad(ethers.utils.hexlify(sequenceId), 32),
       ].map((hex) => hex.slice(2)).join("")}`;
       let hash = ethers.utils.keccak256(input)
-      console.log(hash)
       const currentSignerWallet = await getContractWallet(this)
-      console.log(currentSignerWallet)
-      let sig = await currentSignerWallet.signMessage(hash);
+      let sig = await currentSignerWallet.signMessage(ethers.utils.arrayify(hash));
       let sequenceIdnext = await walletContract.getNextSequenceId()
       this.signMessageSubmit(sig, row, amount, replaceOwnerData, sequenceIdnext)
       console.log(sig)//0x1d402d94b2b74bef3ee0b483a04f711bc8d47452d8916c9420835057a229a1263a68541b57c2fe600984befc1c465280fc95e0dd84a730b085ad6d4d9146bb191c
@@ -198,8 +190,8 @@ export default {
       let data = {
         userId: this.userId,
         walletId: row.wallet_id,
-        signerAddress: row.address,
-        signMessage: msg,
+        signerAddress: row.address,//0x4339ec4c9b7f68a5ffaa9628c6625a02cea26cd0
+        signMessage: msg,//0x53457c545dce7a83aa9f5e10cba31f31b51227a40f45d88f91186266efc9593c3eba3f11220e21f9ac11e8e955ecd9d3e40b73a444b82cf394c2e5a080cb96121b
       }
       const { hasError } = await this.$store.dispatch('uploadSignmessage', {...data});
       if (hasError) {
@@ -213,12 +205,6 @@ export default {
           gasLimit: 8000000,
           gasPrice: 5000000000,
         };
-        console.log(row.wallet_address)
-        console.log(this.securityModuleRouter)
-        console.log(replaceOwnerData)
-        console.log(sequenceId)
-        console.log(expireTime)
-        console.log(signatures)
         let res = await this.securityModuleContract.multicall(
             row.wallet_address,
             [this.securityModuleRouter, amount, replaceOwnerData, sequenceId, expireTime],
@@ -236,7 +222,8 @@ export default {
   async created() {
     this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
     console.log(this.securityModuleContract)
-    let res1 = await this.securityModuleContract.isSigner('0xfe0f2aba799163b7eff74b978db5fde71a9a6852', '0xbb2eD316211dBB0E5A68E417E0420A0dfCaD6259');
+    const walletContract = await getContractAt({ tokenAddress: '0xefd03740ee37b06328b2abe7af2c2e754711aeb7', abi: WalletJson.abi }, this)
+    let res1 = await walletContract.owner();
     console.log(res1)
   },
 }

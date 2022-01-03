@@ -32,11 +32,11 @@
               <div v-else-if="scope.row.status == signerStatus['rejected']">
                 <el-tag type="danger">Rejected</el-tag>
               </div>
-              <div v-else-if="scope.row.status == signerStatus['active']">
-                <el-tag type="success">Active</el-tag>
+              <div v-else-if="scope.row.status == signerStatus['freeze']">
+                <el-tag type="info">Freeze</el-tag>
               </div>
               <div v-else>
-                <el-tag type="info">Freeze</el-tag>
+                <el-tag type="success">Active</el-tag>
               </div>
             </template>
           </el-table-column>
@@ -195,7 +195,7 @@ export default {
       this.signList = list
       this.signerTotal = list.length
       this.signerPercent = Math.ceil(this.signerTotal/2)
-      this.getIsFreeze(list)
+      // this.getIsFreeze(list)
     },
     async getIsFreeze(list) {//todo判断是否isHasFreeze
       
@@ -216,7 +216,8 @@ export default {
     this.getSignerListByid()
 
     this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-    console.log(this.securityModuleContract)
+    const signerin = await this.securityModuleContract.getSigners(this.walletAddress)
+    console.log(signerin)
   },
 }
 </script>

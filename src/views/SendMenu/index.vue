@@ -25,7 +25,8 @@
         placeholder="chose token"
         leftIcon="https://s3.amazonaws.com/token-icons/0x6b175474e89094c44da98b954eedeac495271d0f.png" 
         :dataSource="assetsTokenList"
-        @change="handleTokenChange">
+        @change="handleTokenChange"
+        ref="tokenSelect">
       </v-formSelect>
       <div class="send-value-box">
         <div class="send-value-item">
@@ -125,6 +126,7 @@ export default {
       selectedGasType: '',
       loadingGas: false,
       currentChainInfo: null,
+      defaultNetWork: '',
       defaultIcon: null,
       netWorkList: [],
       /* reciData: [
@@ -158,10 +160,6 @@ export default {
     'v-transFrom': TransFrom,
   },
   computed: {
-    defaultNetWork() {
-      const info = getInfoFromStorageByKey('netInfo')
-      return info && info['id'] || 1
-    },
     exchangeUSForSelectedToken() {
       const selectedToken = this.selectedToken
       if (!selectedToken) { return 0 }
@@ -176,6 +174,10 @@ export default {
     },
   },
   methods: {
+    getDefaultNetWork() {
+      const info = getInfoFromStorageByKey('netInfo')
+      return info && info['id'] || 1
+    },
     gasPriceValue(type) {
       return this.gasPriceInfo && this.gasPriceInfo[type].gasPrice;
     },
@@ -205,11 +207,9 @@ export default {
       this.addressForRecipient = data.value
     },
     async getTokenAssetsForAccount() {
+      this.assetsTokenList = []
       const selectedConnectAddress = getConnectedAddress()
-      if (!selectedConnectAddress) {
-        this.assetsTokenList = []
-        return
-      }
+      if (!selectedConnectAddress) { return }
       const currentChainId = this.currentChainInfo && this.currentChainInfo['id']
       const hexChainId = currentChainId && web3.utils.numberToHex(currentChainId)
       const rpcUrl = hexChainId && CHAINMAP[hexChainId]['rpcUrls'][0]
@@ -229,12 +229,13 @@ export default {
       this.showTradeConfirm = false
       Toast('Cancel Transaction')
     },
-    async confirmSend() {
+    async confirmSend({ overrides }) {
       this.showLoading = true
       this.showTradeConfirm = false
       const sendType = this.sendType
       const data = {
-        gasPrice: this.sendMetadata.gasPrice,
+        gasPrice: overrides.gasPrice || this.sendMetadata.gasPrice,
+        gasLimit: overrides.gasLimit || this.sendMetadata.gas,
         toAddress: this.addressForRecipient,
         selectedToken: this.selectedToken,
         type1Value: this.type1Value,
@@ -330,7 +331,7 @@ export default {
       this.sendMetadata = {
         from: selectedConnectAddress,
         to: this.addressForRecipient,
-        gas: 21000,
+        gas: this.sendType !== 'eth' ? 600000 : 462693, // gasLimit default is 21000
         gasPrice,
         value: this.type1Value,
         symbolName: tokenName,
@@ -373,7 +374,7 @@ export default {
       const sendData = {
         from: selectedConnectAddress,
         to: data.toAddress,
-        gasLimit: web3.utils.toHex('21000'),
+        gasLimit: web3.utils.toHex(data.gasLimit),
         gasPrice: web3.utils.toHex(web3.utils.toWei(data.gasPrice, 'gwei')),
         value: transferAmount.toHexString(),
         chainId: this.currentChainInfo['id'],
@@ -396,7 +397,7 @@ export default {
       })
     },
     async sendToken(data) {
-      const { gasPrice, ...sendData } = data
+      const { gasPrice, gasLimit, ...sendData } = data
       const selectedConnectAddress = getConnectedAddress()
       const address = {
         selectedConnectAddress,
@@ -414,11 +415,11 @@ export default {
       const logData = {
         1: sendData.toAddress,
         2: tokenWithdrawAmount,
-        ...{ gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') }
+        ...{ gasLimit, gasPrice: web3.utils.toWei(gasPrice, 'gwei') }
       }
       console.log('sendData', logData)
       // address, uint256
-      contractWithSigner.transfer(sendData.toAddress, tokenWithdrawAmount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
+      contractWithSigner.transfer(sendData.toAddress, tokenWithdrawAmount, { gasLimit, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
       .then(async tx=>{
         console.log('sendToken tx:', tx)
         tx.wait()
@@ -498,10 +499,13 @@ export default {
       const { hasError, data } = await this.$store.dispatch('GetGasPriceByEtherscan');
       if (data) { this.gasPriceInfo = data }
     },
-    async handleNetworkChange(data) {
+    async handleNetworkChange(data, emitEvent) {
+      this.$refs.tokenSelect.resetSelectVal()
+      this.assetsTokenList = []
       const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
       this.currentChainInfo = chainInfo
       await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
+      emitEvent && (this.$eventBus.$emit('networkChange', { chainInfo, from:'sendMenu' }))
       await this.getTokenAssetsForAccount()
     },
 
@@ -513,8 +517,15 @@ export default {
       await this.getTokenAssetsForAccount()
       this.showLoading = false;
     },
+    _handleNetworkChange({ chainInfo, from }) {
+      if (from === 'sendMenu') { return }
+      this.defaultNetWork = chainInfo.id
+      this.defaultIcon = chainInfo.icon
+      this.handleNetworkChange({value:{id:chainInfo.id}}, true)
+    },
   },
   async created() {
+    this.defaultNetWork = this.getDefaultNetWork()
     this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
     this.netWorkList.map(item => {
       if (item.id == this.defaultNetWork) {
@@ -534,6 +545,7 @@ export default {
       Toast('Need Login')
       return
     }
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
     await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
     const { hasError, forUsdt } = await this.$store.dispatch('GetTokenAxchangeForUS', { changeType: 'ETH/USDT' });

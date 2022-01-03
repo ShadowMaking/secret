@@ -8,6 +8,7 @@ import token from './modules/token';
 import thirdLogin from './modules/thirdLogin';
 import socailRecovery from './modules/socailRecovery';
 import ncWallet from './modules/ncWallet';
+import relay from './modules/relay';
 import getters from './getters'
 
 Vue.use(Vuex);
@@ -31,7 +32,8 @@ const store = new Vuex.Store({
     socailRecovery,
     token,
     ncWallet,
-  },
+    relay,
+},
   getters,
   // plugins: [persistedState()]
 })

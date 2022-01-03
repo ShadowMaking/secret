@@ -4,7 +4,8 @@
       <p class="exchange-des">{{ type }}</p>
       <div class="exchange-select-list">
         <div class="exchange-select" @click="showOptionList">
-          <img src="https://s3.amazonaws.com/token-icons/0x6b175474e89094c44da98b954eedeac495271d0f.png" class="select-img">
+          <img :src="selectedTokenInfo && selectedTokenInfo.icon" class="select-img" v-if="selectedTokenInfo">
+          <img src="@/assets/icon_token_eth.png" class="select-img" v-else>
           <span class="select-txt">{{ selectedTokenInfo && selectedTokenInfo['tokenName'] }}</span>
           <img src="@/assets/form/solidDown.png" class="select-down-img">
         </div>
@@ -16,7 +17,13 @@
           	<van-search v-model="searchTxt"  autofocus=true @input="searchHandle(searchTxt)"/>
           </div>
           <div class="token-list-wrapper">
-            <v-selectItem
+            <div v-if="selectOptionData.length===0 && showLoading">
+              <van-loading type="spinner" class="loading-option" />
+            </div>
+            <div v-else-if="selectOptionData.length===0 && !showLoading">
+              <div class="none-data">No matching data</div>
+            </div>
+            <v-selectItem v-else
               v-bind:rightVal="item.rightVal"
               labelShow=true
               v-bind:leftTitle="item.tokenName"
@@ -51,7 +58,7 @@ Vue.use(Search);
 
 export default {
   name: 'ExchangItem',
-  props: ['isMax', 'type', 'sourceData', 'inputDisabled', 'inputDefaultValue'],
+  props: ['isMax', 'type', 'sourceData', 'inputDisabled', 'inputDefaultValue', 'showLoading'],
   data() {
     return {
       exchangVal: '',
@@ -67,9 +74,8 @@ export default {
   watch: {
     sourceData: {
       async handler(newV, oldV) {
-        // this.selectedTokenInfo = newV.length && newV[0]
+        this.selectOptionData = _.cloneDeep(newV)
         if (newV.length) {
-          this.selectOptionData = _.cloneDeep(newV)
           this.selectedTokenInfo = newV.length && newV[0]
           this.selectChagne(newV[0])
         }
@@ -131,6 +137,10 @@ export default {
     handleResetInputValue() {
       this.exchangVal = ''
     },
+    resetSelectVal() {
+      this.selectedTokenInfo = null
+      this.exchangVal = ''
+    }
   },
   async mounted() {
     this.$eventBus.$on('resetExchangeTokenInputValue', this.handleResetInputValue)
