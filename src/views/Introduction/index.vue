@@ -28,20 +28,40 @@
         <li>Withdraw to L1：Transfer assets from the EigenSecret l2 wallet to the Layer1 wallet.</li>
       </ul>
     </div> -->
+    <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
 <script>
 import Vue from 'vue';
 import { Button, Toast } from 'vant';
 import _ from 'lodash';
+import web3 from 'web3'
 import { ethers } from 'ethers'
 import { getQueryString, getLocationParam } from '@/utils/index'
+import InputPswModal from '@/components/InputPswModal'
+// import * as ecies from "@/utils/ecies";
+import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
 Vue.use(Button);
 
 export default {
   name: "Introduction",
   computed: { },
+  components: {
+    'v-inputPsw': InputPswModal
+  },
+  data() {
+    return {
+      userPsw: '',
+      publicKey: '',
+      aesKey: '', // every decrypt has the same aesKey
+      encryptPsw: '',
+      encryptPrivateKeyPublicKey: '',
+      encryptCr1: '',
+      confirmPswBtnLoading: false,
+      showInputPswModal: false,
+    }
+  },
   methods: {
     showLoading() {
       Toast.loading({
@@ -67,20 +87,36 @@ export default {
       const privateKey = accountWallet.privateKey
       const address = accountWallet.address
 
-      const { hasError: encryptError, data: encryptPrivateKey } = await this.$store.dispatch('EncryptPrivateKey', { userId, privateKey: privateKey }) 
+      const encryptPrivateKeyPublicKey = generateEncryptPrivateKeyByPublicKey(this.publicKey, privateKey)
+      this.encryptPrivateKeyPublicKey = encryptPrivateKeyPublicKey;
+      console.log('encryptPrivateKeyPublicKey', encryptPrivateKeyPublicKey)
+
+      /* const { hasError: encryptError, data: encryptPrivateKey } = await this.$store.dispatch('EncryptPrivateKey', { userId, privateKey: privateKey }) 
       if (encryptError) {
         Toast('EncrpytKey Failed')
         return
+      } */
+
+      const { hasError: encryptError, data: encryptPrivateKey } = await this.$store.dispatch('EncryptPrivateKeyByEcies', { userId, c1: this.encryptPrivateKeyPublicKey, cc1: this.encryptPsw }) 
+      if (encryptError) {
+        this.clearLoading()
+        this.showInputPswModal = true;
+        return { hasError: true, msg:  'EncrpytKey Failed! Retry!'}
       }
+
       // const { hasError } = await this.$store.dispatch('UploadEncrpytKey', { userId, address, encryptKey: encryptPrivateKey })
       const { hasError } = await this.$store.dispatch('UploadEncrpytKeyByAddress', { userId, address, encryptKey: encryptPrivateKey })
       if (hasError) {
-        Toast('Upload EncrpytKey Failed')
-        return
+        this.clearLoading()
+        this.showInputPswModal = true;
+        return { hasError: true, msg:  'Upload EncrpytKey Failed! Retry!'}
+        return false 
       }
-      await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, privateKey, address })
-      await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey, privateKey, address })
+      await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, address })
+      await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey: encryptPrivateKey, privateKey })
+      await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey, address })
       this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
+      return { hasError: false }
     },
     /**
      * @description: 
@@ -88,7 +124,7 @@ export default {
      * step2: if encryptKey is not exist and create new account(privateKey) or run step3
      * step3: get decryptKey(privateKey) throuh KMS
      * step4: recovery account  by privateKey
-     */    
+     */
     async getDecryptPrivateKey(thirdLoginInfo) {
       const userId = getLocationParam('id')
       /* const { data: userInfo } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId  })
@@ -115,8 +151,9 @@ export default {
         return
       }
       const accountWallet = new ethers.Wallet(privateKey);
-      await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey:encryptKey, privateKey, address: accountWallet.address })
-      await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey:encryptKey, privateKey, address: accountWallet.address })
+      await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey:encryptKey, address: accountWallet.address })
+      await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address: accountWallet.address, encryptKey, privateKey })
+      await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey:encryptKey, address: accountWallet.address })
       this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
     },
     /**
@@ -125,7 +162,7 @@ export default {
      * step2: if encryptKey is not exist and create new account(privateKey) or run step3
      * step3: get decryptKey(privateKey) throuh KMS
      * step4: recovery account  by privateKey
-     */  
+     */
     async getAllDecryptPrivateKey() {
       const userId = getLocationParam('id')
       const { data } = await this.$store.dispatch('DownloadAllEncrpytKey', { userId })
@@ -134,27 +171,87 @@ export default {
         await this.createAccountForThirdLoginUser()
         return
       }
-      // TODO
+
+      let decrypted  = false; // only decrypt the first for current account
+      let privateKey = '';
       for(let i=0; i<data.length; i++) {
         const { cipher_key: encryptKey, user_address } = data[i]
-        const decryptInfo = await this.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
-        const { hasError, data: privateKey } = decryptInfo
-        const accountWallet = new ethers.Wallet(privateKey);
-        if (i === 0) { // connect first account address
-          await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey:encryptKey, privateKey, address: accountWallet.address })
+        let accountWallet
+        let address = user_address || ''
+        if (!address || !decrypted) {
+          decrypted = true;
+          // const decryptInfo = await this.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
+          const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
+          const { hasError, data: decryptedPrivateKey } = decryptInfo
+          if(hasError) {
+            this.clearLoading()
+            this.showInputPswModal = true;
+            return { hasError: true, msg:  'DecryptPrivateKeyByEcies failed! Retry!'}
+          }
+          console.log('aesKey-recover:', this.aesKey)
+          privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
+          if (!privateKey) {
+            this.clearLoading()
+            this.showInputPswModal = true;
+            return { hasError: true, msg:  'Recovery privateKey failed! Retry!'}
+          }
+          accountWallet = new ethers.Wallet(privateKey);
+          address = accountWallet.address
         }
-        await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey:encryptKey, privateKey, address: accountWallet.address })
-        this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
+        if (i === 0) { // connect first account address
+          await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey:encryptKey, address })
+          await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey, privateKey })
+        }
+        await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey:encryptKey, address })
+        this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });        
       }
+      return { hasError: false }
     },
     async getUserBindingInfo(isNewUser) {
+      let requestHasError = false
+      let msg
       if (isNewUser) {
-        await this.createAccountForThirdLoginUser()
+        const { hasError, msg: msg1 } = await this.createAccountForThirdLoginUser()
+        requestHasError = hasError
+        msg  = msg1
       } else {
         // await this.getDecryptPrivateKey()
-        await this.getAllDecryptPrivateKey()
+        const { hasError: _hasError, msg: msg2 } = await this.getAllDecryptPrivateKey()
+        requestHasError = _hasError
+        msg  = msg2
       }
-      this.clearLoading()
+      if (!requestHasError) {
+        this.userPsw = ''
+        this.showInputPswModal = false
+        this.clearLoading()
+      } else {
+        Toast(msg, 5)
+      }
+    },
+    async confirmPswOk({ show, psw }) {
+      this.userPsw = psw; // password of user input for encrypt privateKey
+      this.confirmPswBtnLoading = true
+      const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
+      if (hasError) {
+        Toast('Get PublickKey fasiled! Retry')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      this.publicKey = publicKey;
+      console.log(`GetPublicKey result is: ${publicKey}`)
+      
+      // const password = ecies.crypto.randomBytes(16).toString("base64");
+      const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
+      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      console.log('aesKey:', aesKey)
+      this.aesKey = aesKey
+      this.encryptPsw = encryptPsw
+      this.encryptCr1 = encryptCr1
+      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+      this.confirmPswBtnLoading = false
+      this.showInputPswModal = false
+      this.showLoading();
+      await this.getUserBindingInfo(this.isNewUser)
     },
   },
   async mounted() {
@@ -163,6 +260,11 @@ export default {
     const newUser = getLocationParam('new')
     const isNewUser = newUser === '1'
     console.log('isNewUser', isNewUser)
+    this.isNewUser = isNewUser
+
+    // FOR DEBUG
+    // this.showInputPswModal = true
+    // return
 
     if (googleUserId) {
       await this.$store.dispatch('StoreGoogleUserId', {userId: googleUserId })
@@ -170,8 +272,9 @@ export default {
       const { hasError, data: userInfo } = await this.$store.dispatch('GetUserInfoById', { userId: googleUserId })
       this.$eventBus.$emit('thirdLogin', { success: !hasError, userInfo });
 
-      this.showLoading();
-      await this.getUserBindingInfo(isNewUser)
+      // this.showLoading();
+      this.showInputPswModal = true; // input password
+      // await this.getUserBindingInfo(isNewUser)
     }
   },
   created() {},

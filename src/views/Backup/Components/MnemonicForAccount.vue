@@ -229,8 +229,12 @@ export default {
         Toast('Copied')
       }
     },
+    _handleImportedAccountByPassword() {
+      this.importMnemonic = ''
+    }
   },
   mounted() {
+    this.$eventBus.$on('importedAccountByPassword', this._handleImportedAccountByPassword)
     if (this.type === 'create') {
       let mnemonic = this.generateMnemonic()
       this.mnemonic = mnemonic
