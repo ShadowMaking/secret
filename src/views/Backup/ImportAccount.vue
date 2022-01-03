@@ -45,6 +45,7 @@
       key="thirdlogintip"
       :show="showThirdLoginTip"
       @childEvent="closeThirdLoginTip" />
+    <v-inputPsw :show="showInputPswModal" :canCloseByBtn="true" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
 <script>
@@ -56,7 +57,9 @@ import { saveToStorage, getFromStorage, getInfoFromStorageByKey } from '@/utils/
 import MnemonicForAccount from './Components/MnemonicForAccount'
 import PrivatekeyForAccount from './Components/PrivatekeyForAccount'
 import ThirdLoginTip from '@/components/ThirdLoginTip';
+import InputPswModal from '@/components/InputPswModal'
 import { formatTrim, objHasOwnProperty } from '@/utils/str';
+import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey } from '@/utils/relayUtils'
 
 Vue.use(Field)
 Vue.use(Popup)
@@ -71,6 +74,7 @@ export default {
     'v-mnemonicType': MnemonicForAccount,
     'v-privatekeyType': PrivatekeyForAccount,
     'v-thirdlogintip': ThirdLoginTip,
+    'v-inputPsw': InputPswModal
   },
   data() {
     return {
@@ -89,10 +93,19 @@ export default {
       backupComment: '',
       backupNameForImport: '',
       backupCommentForImport: '',
+      
+
+      userPsw: '',
+      publicKey: '',
+      aesKey: '', // every decrypt has the same aesKey
+      encryptPsw: '',
+      encryptPrivateKeyPublicKey: '',
+      encryptCr1: '',
+      confirmPswBtnLoading: false,
+      showInputPswModal: false,
     }
   },
   computed: {
-
     settingDataForCreate() {
       return {
         name: this.backupName,
@@ -158,6 +171,11 @@ export default {
       this.showThirdLoginTip = info.show
     },
     async hanldeCreateComplete(val, type) {
+      if (!this.encryptPsw) {
+        this.showInputPswModal = true
+        return
+      }
+
       console.log(val, type)
       let wallet;
       let address;
@@ -172,10 +190,20 @@ export default {
         address = wallet.address
       }
       const userId = getInfoFromStorageByKey('gUID')
-      const { hasError: encryptError, data: encryptPrivateKey } = await this.$store.dispatch('EncryptPrivateKey', { userId, privateKey }) 
+      
+      /* const { hasError: encryptError, data: encryptPrivateKey } = await this.$store.dispatch('EncryptPrivateKey', { userId, privateKey }) 
       if (encryptError) {
         console.log('EncrpytKey Failed')
         Toast('Import Failed')
+        return
+      } */
+      const encryptPrivateKeyPublicKey = generateEncryptPrivateKeyByPublicKey(this.publicKey, privateKey)
+      this.encryptPrivateKeyPublicKey = encryptPrivateKeyPublicKey;
+      console.log('encryptPrivateKeyPublicKey', encryptPrivateKeyPublicKey)
+      
+      const { hasError: encryptError, data: encryptPrivateKey } = await this.$store.dispatch('EncryptPrivateKeyByEcies', { userId, c1: this.encryptPrivateKeyPublicKey, cc1: this.encryptPsw }) 
+      if (encryptError) {
+        Toast('EncrpytKey Failed')
         return
       }
       const { hasError } = await this.$store.dispatch('UploadEncrpytKeyByAddress', { userId, address, encryptKey: encryptPrivateKey })
@@ -184,8 +212,14 @@ export default {
         Toast('Import Failed')
         return
       }
+      const { data } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId })
+      if (!data) {
+        await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, privateKey, address })
+      }
       await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey, privateKey, address })
+      this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
       Toast('Import Account Successfully')
+      this.userPsw = '';
     },
     formatterTrim(value) {
       return formatTrim(value)
@@ -212,11 +246,34 @@ export default {
     backView(storageObj, storageName, viewName) {
       objHasOwnProperty(storageObj, storageName)&&(this[viewName] = storageObj[storageName])
     },
+    // input password modal confirm callback
+    async confirmPswOk({ show, psw }) {
+      this.userPsw = psw; // password of user input for encrypt privateKey
+      this.confirmPswBtnLoading = true
+      const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
+      if (hasError) {
+        Toast('Get PublickKey fasiled! Retry')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      this.publicKey = publicKey;
+      console.log(`GetPublicKey result is: ${publicKey}`)
+      
+      const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
+      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      this.aesKey = aesKey
+      this.encryptPsw = encryptPsw
+      this.encryptCr1 = encryptCr1
+      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+      this.confirmPswBtnLoading = false
+      this.showInputPswModal = false;
+    },
   },
   created() {
   },
   mounted() {
-    this.handlesInputFocus()
+    // this.handlesInputFocus()
+    this.showInputPswModal = true;
   },
 }
 </script>

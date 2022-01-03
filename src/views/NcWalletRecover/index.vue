@@ -53,6 +53,9 @@
                       label="confirmed"
                       align="center">
                       <template slot-scope="scope">
+                        <div v-if="scope.row.status == signerStatus['active']" class="confirm-icon">
+                          <i class="el-icon-question"></i>
+                        </div>
                         <div v-if="scope.row.status == signerStatus['startRecover']" class="confirm-icon">
                           <i class="el-icon-question"></i>
                         </div>
@@ -83,7 +86,7 @@
                  </div>
               </div>
               <div class="choose-btn">
-                <el-button type="info" @click="backStep" v-show="activeStep !==2">Back</el-button>
+                <!-- <el-button type="info" @click="backStep" v-show="activeStep !==2">Back</el-button> -->
                 <el-button type="primary" @click="nextStep">{{confirmTxt}}</el-button>
               </div>
             </div>
@@ -91,21 +94,39 @@
         </div>
       </div>
     </div>
+    <v-confirmModal
+      :show="showTradeConfirm"
+      type="Create Wallet"
+      :metadata="sendMetadata"
+      @close="showTradeConfirm=false"
+      @reject="cancelRecover"
+      @confirm="confirmRecover" />
+    <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+      <div class="inner-wrapper">
+        <van-loading type="spinner" />
+      </div>
+    </van-popup>
   </div>
 </template>
 
 <script>
 import Vue from 'vue'
-import { Toast, Step, Steps } from 'vant'
+import { Toast, Step, Steps, Loading, Popup } from 'vant'
 import navTitle from '@/components/NavTitle/index'
-import { isLogin } from '@/utils/dashBoardTools';
+import ConfirmModal from '@/components/ConfirmModal';
+import { isLogin, getContractAt, getConnectedAddress } from '@/utils/dashBoardTools';
 import walletList from './walletList/index'
 import { getFromStorage } from '@/utils/storage'
-import { signerStatus } from '@/utils/global';
+import { signerStatus, securityModuleRouter } from '@/utils/global';
+import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
+import { CHAINMAP } from '@/utils/netWorkForToken';
+import web3 from 'web3'
 
 Vue.use(Toast);
 Vue.use(Step);
 Vue.use(Steps);
+Vue.use(Loading);
+Vue.use(Popup);
 
 
 export default {
@@ -113,7 +134,7 @@ export default {
   data() {
     return {
       signerStatus,
-      activeStep: 0,//0-choose 1-signer confirm 2-complete
+      activeStep: null,//0-choose 1-signer confirm 2-complete
       walletShow: true,
       signerList: [],
       signerTotal: 0,
@@ -127,11 +148,22 @@ export default {
       isStartRecover: false,
 
       confirmTxt: 'Confirm',
+      securityModuleRouter,
+
+      showLoading: false,
+      showTradeConfirm: false,
+      overrides: {
+        gasLimit: 8000000,
+        gasPrice: 5000000000,
+      },
+      currentChainInfo: null,
+      sendMetadata: null,
     }
   },
   components: {
     "v-navTitle": navTitle,
     "v-walletList": walletList,
+    'v-confirmModal': ConfirmModal,
   },
   methods: {
     nextStep() {
@@ -143,7 +175,19 @@ export default {
         }
         this.startRecover() //trigger need multicall
       } else if (this.activeStep == 1) {
-        this.executeRecover() //need not multicall
+        this.sendMetadata = {
+          from: getConnectedAddress(),
+          to: this.securityModuleRouter,
+          gas: this.overrides.gasLimit,
+          gasPrice: this.overrides.gasPrice,
+          value: 0,
+          symbolName: 'ETH',
+          netInfo: this.currentChainInfo,
+          DATA: '',
+          estimatedGasFee: '0' // todo
+        }
+        this.showTradeConfirm = true
+        // this.executeRecover() //need not multicall
       } else if (this.activeStep == 2) {
         this.activeStep = 0
         this.walletShow = true
@@ -158,7 +202,7 @@ export default {
       this.activeStep = this.activeStep - 1
     },
     startRecover() {
-      this.signerList.map(async item => {
+      this.signerList.map(async item => {//waiting for signer agree
         console.log(item)
         let data = {
           userId: this.userId,
@@ -168,20 +212,49 @@ export default {
         }
         const { hasError } = await this.$store.dispatch('updateSigner', {...data});
         if (hasError) {
-          console.log('Update Failed')
+          Toast('Update Signer Failed')
         } else {
-          console.log('Update success')
+          console.log('Update Signer success')
         }
       })
-      this.activeStep = this.activeStep + 1
-      this.confirmTxt = 'Execute'
+      this.updateOwner()
     },
-    executeRecover() {
-      if (this.agreeRecoverNum >= this.signerPercent) {
+    async updateOwner() {
+      let data = {
+        userId: this.userId,
+        walletId: this.currentWalletId,
+        ownerAddress: getConnectedAddress(),
+      }
+      const { hasError } = await this.$store.dispatch('updateOwnerAddress', {...data});
+      if (hasError) {
+        Toast('Update Owner Failed')
+      } else {
+        console.log('Update Owner success')
+        this.activeStep = this.activeStep + 1
+        this.confirmTxt = 'Execute'
+      }
+    },
+    cancelRecover() {
+      this.showTradeConfirm = false
+      Toast('Cancel create')
+    },
+    confirmRecover() {
+      this.showLoading = true;
+      this.executeRecover()
+    },
+    async executeRecover() {
+     if (this.agreeRecoverNum >= this.signerPercent) {
         console.log('start excute')
+        const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+        console.log(this.currentWalletAddress)
+        let tx = await securityModuleContract.executeRecovery(this.currentWalletAddress, this.overrides)
+        console.log(tx)
+        let txwait = await tx.wait()
+        console.log(txwait)
+        this.showLoading = false;
         this.activeStep = this.activeStep + 1
       } else {
-        Toast(`Any transaction requires the confirmation of: ${signerPercent} signers`)
+        Toast(`Any transaction requires the confirmation of: ${this.signerPercent} signers`)
       }
     },
     recoverChild(value) {
@@ -201,9 +274,9 @@ export default {
         if (list[i].status >= 5) {
           this.isStartRecover = true
           this.activeStep = 1
-          return
         }
       }
+      console.log(this.isStartRecover)
       let newList = list.filter((item, index)=>{
         if (!this.isStartRecover) {
           return item.status == this.signerStatus['active']
@@ -218,10 +291,16 @@ export default {
       this.signerPercent = Math.ceil(this.signerTotal/2)
     },
   },
-  created() {
+  async created() {
     if (!isLogin()) {
       Toast('Need Login')
       return
+    }
+    const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
+    if (netInfo) {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
+    } else {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
   },
 };

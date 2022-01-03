@@ -57,6 +57,14 @@ const CHAINMAP  = {
                                 blockExplorerUrls: ['https://explorer.ieigen.com/'],
                                 icon: require('@/assets/network/defaultNetwork.png'),
                               },
+  // https://docs.metis.io/building-on-metis/connection-details                    
+  [web3.utils.numberToHex(588)]: {
+                                id: 588,
+                                name: 'Stardust',
+                                rpcUrls: ['https://stardust.metis.io/?owner=588'],
+                                blockExplorerUrls: ['https://stardust-explorer.metis.io/'],
+                                icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
+                              },                
   
 }
 const CHAINIDMAP  = {
@@ -69,6 +77,8 @@ const CHAINIDMAP  = {
   ARBITRUM: web3.utils.numberToHex(42161),
   SECRETL1: web3.utils.numberToHex(44010),
   SECRETL2: web3.utils.numberToHex(189250287905350),
+
+  STARDUST: web3.utils.numberToHex(588),
 }
 
 const NETWORKSFORTOKEN = Object.keys(CHAINMAP).map(chainId => {

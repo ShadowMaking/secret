@@ -7,7 +7,7 @@
       <p class="create-des" style="margin-top: 15px;">Quickly create a Non-custodial Wallet:</p>
       <div class="create-wallet-form">
         <el-form label-position="left">
-          <el-form-item label="Set Wallet Name" label-width="130px">
+          <el-form-item label="Set Wallet Name" label-width="135px">
             <el-input v-model="createWalletName"></el-input>
           </el-form-item>
           <el-form-item label="Set Signer">
@@ -39,6 +39,13 @@
         </van-popup>
       </div>
     </div>
+    <v-confirmModal
+      :show="showTradeConfirm"
+      type="Create Wallet"
+      :metadata="sendMetadata"
+      @close="showTradeConfirm=false"
+      @reject="cancelCreate"
+      @confirm="confirmCreate" />
   </div>
 </template>
 
@@ -49,6 +56,7 @@ import { ethers } from 'ethers'
 import navTitle from '@/components/NavTitle/index'
 import searchSignerModal from '@/components/SearchSignerModal/index'
 import StatusPop from '@/components/StatusPop';
+import ConfirmModal from '@/components/ConfirmModal';
 import { getContractAt, getConnectedAddress, getEns, isLogin } from '@/utils/dashBoardTools';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
@@ -56,6 +64,9 @@ import ProxyJson from "@/assets/contractJSON/Proxy.json";
 import { BigNumber } from "bignumber.js";
 import { getFromStorage } from '@/utils/storage';
 import { timeFormat } from '@/utils/str';
+import { securityModuleRouter, proxyRouter } from '@/utils/global';
+import { CHAINMAP } from '@/utils/netWorkForToken';
+import web3 from 'web3'
 
 Vue.use(Toast);
 Vue.use(Dialog);
@@ -81,16 +92,24 @@ export default {
       userId: getFromStorage('gUID'),
 
       showLoading: false,
+      showTradeConfirm: false,
 
-      securityModuleRouter: '0x17708F66E60Eb7090aF70628596b6780C2B4F0ea',
-      walletRouter: '0x78412C7a5aaB090d655Bb2Fcea2Bc72BDCF813F9',
-      proxyRouter: '0x270Bf36C4bff1dd3c995d71E8CB6A9450c34D5ed',
+      securityModuleRouter,
+      proxyRouter,
+
+      overrides: {
+        gasLimit: 8000000,
+        gasPrice: 5000000000,
+      },
+      currentChainInfo: null,
+      sendMetadata: null,
     }
   },
   components: {
     "v-navTitle": navTitle,
     "v-searchSignerModal": searchSignerModal,
     'v-statusPop': StatusPop,
+    'v-confirmModal': ConfirmModal,
   },
   methods: {
     async confirmSearchSigner(value) {
@@ -113,21 +132,26 @@ export default {
       this.signerTotal = this.createSignerList.length
       this.signerPercent = Math.ceil(this.signerTotal/2)
     },
+    cancelCreate() {
+      this.showTradeConfirm = false
+      Toast('Cancel create')
+    },
+    confirmCreate() {
+      this.createNcWallet()
+    },
     createSubmit() {
-      // this.createWallet('s')
-      // return
-      Dialog.confirm({
-        message: 'Create NC-Wallet?',
-        confirmButtonText: 'Confirm',
-        confirmButtonColor: '#4375f1',
-        cancelButtonText: 'Cancel'
-      })
-      .then(() => {
-        this.createNcWallet()
-      })
-      .catch(() => {
-        console.log('cancel')
-      });
+      this.sendMetadata = {
+        from: getConnectedAddress(),
+        to: this.securityModuleRouter,
+        gas: this.overrides.gasLimit,
+        gasPrice: this.overrides.gasPrice,
+        value: 0,
+        symbolName: 'ETH',
+        netInfo: this.currentChainInfo,
+        DATA: '',
+        estimatedGasFee: '0' // todo
+      }
+      this.showTradeConfirm = true
     },
     async createNcWallet() {
       if (!this.checkData()) { return }
@@ -136,10 +160,7 @@ export default {
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       const proxyContract = await getContractAt({ tokenAddress: this.proxyRouter, abi: ProxyJson.abi }, this)
       const saletnew = ethers.utils.randomBytes(32);
-      const overrides = {
-        gasLimit: 8000000,
-        gasPrice: 5000000000,
-      };
+      
       let createSignList = this.createSignerSubmit
       // let providertest = new ethers.providers.JsonRpcProvider('https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161')
       
@@ -149,7 +170,7 @@ export default {
       let walletAddress = await proxyContract.getAddress(saletnew);
       console.log('walletAddress:' + walletAddress)
       
-      const tx = await proxyContract.create(saletnew,overrides);
+      const tx = await proxyContract.create(saletnew,this.overrides);
       console.log(tx)
       const tswait = await tx.wait()
       console.log(tswait)
@@ -159,7 +180,7 @@ export default {
       let modules = [ securityModuleContract.address ]
       let encoder = ethers.utils.defaultAbiCoder
       let data = [encoder.encode(["address[]"], [createSignList])]
-      let initTx = await walletContract.initialize(modules, data, overrides);
+      let initTx = await walletContract.initialize(modules, data, this.overrides);
       console.log(initTx)
       const initTxwait = await initTx.wait()
       console.log(initTxwait)
@@ -209,10 +230,16 @@ export default {
       this.$router.push({ name: 'ncWalletList' })
     },
   },
-  created() {
+  async created() {
     if (!isLogin()) {
       Toast('Need Login')
       return
+    }
+    const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
+    if (netInfo) {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
+    } else {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
   },
 };

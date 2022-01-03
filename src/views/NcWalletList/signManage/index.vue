@@ -32,11 +32,11 @@
               <div v-else-if="scope.row.status == signerStatus['rejected']">
                 <el-tag type="danger">Rejected</el-tag>
               </div>
-              <div v-else-if="scope.row.status == signerStatus['active']">
-                <el-tag type="success">Active</el-tag>
+              <div v-else-if="scope.row.status == signerStatus['freeze']">
+                <el-tag type="info">Freeze</el-tag>
               </div>
               <div v-else>
-                <el-tag type="info">Freeze</el-tag>
+                <el-tag type="success">Active</el-tag>
               </div>
             </template>
           </el-table-column>
@@ -73,7 +73,7 @@ import searchSignerModal from '@/components/SearchSignerModal/index'
 import {  isLogin, getContractAt } from '@/utils/dashBoardTools'
 import { getFromStorage, removeFromStorage } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
-import { signerStatus } from '@/utils/global';
+import { signerStatus, securityModuleRouter } from '@/utils/global';
 
 Vue.use(Toast);
 Vue.use(Loading);
@@ -97,7 +97,7 @@ export default {
       showLoading: false,
       isRecover: false,
 
-      securityModuleRouter: '0x17708F66E60Eb7090aF70628596b6780C2B4F0ea',
+      securityModuleRouter,
       securityModuleContract: null,
     }
   },
@@ -195,7 +195,7 @@ export default {
       this.signList = list
       this.signerTotal = list.length
       this.signerPercent = Math.ceil(this.signerTotal/2)
-      this.getIsFreeze(list)
+      // this.getIsFreeze(list)
     },
     async getIsFreeze(list) {//todo判断是否isHasFreeze
       
@@ -216,7 +216,8 @@ export default {
     this.getSignerListByid()
 
     this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-    console.log(this.securityModuleContract)
+    const signerin = await this.securityModuleContract.getSigners(this.walletAddress)
+    console.log(signerin)
   },
 }
 </script>
