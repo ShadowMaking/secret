@@ -3,7 +3,7 @@
     <van-popup v-model="showPopup" class="status-popUp flex flex-center flex-column" @close="closeModal" :close-on-click-overlay="false">
       <span class="main-txt"></span>
       <div class="input-psw-container">
-        <span>PassWord：</span>
+        <span>Password：</span>
         <input type="password" :class="[{'error': showPswError }]" @keyup="inputChange" v-model="pswVal"/>
         <span class="error-tip" v-if=showPswError>{{ pswErrorTxt }}</span>
       </div>
@@ -12,6 +12,7 @@
         <span>2. 密码遗失将丢失钱包账户信息</span>
         <span>3. 密码至少6位，包含至少一个大写字母，一个小写字母，一个数字，一个特殊字符(!@#$%^&*)</span>
         <span>4. 请您记住并妥善保管该密码</span>
+        <span>5. 若您忘记密码，可以重新导入账户来重置密码</span>
       </div>
       <van-button v-if="!canCloseByBtn" block color="#495ABF" class="button" @click="confirmPsw" :disabled="showPswError||!pswVal||btnLoading">{{ btnLoading?"loading":"Confirm" }}</van-button>
       <div v-else class="opt-container">

@@ -99,21 +99,23 @@ export default {
 
       const { hasError: encryptError, data: encryptPrivateKey } = await this.$store.dispatch('EncryptPrivateKeyByEcies', { userId, c1: this.encryptPrivateKeyPublicKey, cc1: this.encryptPsw }) 
       if (encryptError) {
+        this.clearLoading()
         this.showInputPswModal = true;
-        Toast('EncrpytKey Failed! Retry!')
-        return
+        return { hasError: true, msg:  'EncrpytKey Failed! Retry!'}
       }
 
       // const { hasError } = await this.$store.dispatch('UploadEncrpytKey', { userId, address, encryptKey: encryptPrivateKey })
       const { hasError } = await this.$store.dispatch('UploadEncrpytKeyByAddress', { userId, address, encryptKey: encryptPrivateKey })
       if (hasError) {
+        this.clearLoading()
         this.showInputPswModal = true;
-        Toast('Upload EncrpytKey Failed! Retry!')
-        return
+        return { hasError: true, msg:  'Upload EncrpytKey Failed! Retry!'}
+        return false 
       }
       await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, privateKey, address })
       await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey, privateKey, address })
       this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
+      return { hasError: false }
     },
     /**
      * @description: 
@@ -174,15 +176,15 @@ export default {
         const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
         const { hasError, data: decryptedPrivateKey } = decryptInfo
         if(hasError) {
+          this.clearLoading()
           this.showInputPswModal = true;
-          console.log('DecryptPrivateKeyByEcies failed! Retry!')
-          return
+          return { hasError: true, msg:  'DecryptPrivateKeyByEcies failed! Retry!'}
         }
         const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
         if (!privateKey) {
+          this.clearLoading()
           this.showInputPswModal = true;
-          console.log('Recovery privateKey failed! Retry!')
-          return
+          return { hasError: true, msg:  'Recovery privateKey failed! Retry!'}
         }
         const accountWallet = new ethers.Wallet(privateKey);
         if (i === 0) { // connect first account address
@@ -191,17 +193,28 @@ export default {
         await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey:encryptKey, privateKey, address: accountWallet.address })
         this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
       }
+      return { hasError: false }
     },
     async getUserBindingInfo(isNewUser) {
+      let requestHasError = false
+      let msg
       if (isNewUser) {
-        await this.createAccountForThirdLoginUser()
+        const { hasError, msg: msg1 } = await this.createAccountForThirdLoginUser()
+        requestHasError = hasError
+        msg  = msg1
       } else {
         // await this.getDecryptPrivateKey()
-        await this.getAllDecryptPrivateKey()
+        const { hasError: _hasError, msg: msg2 } = await this.getAllDecryptPrivateKey()
+        requestHasError = _hasError
+        msg  = msg2
       }
-      this.userPsw = ''
-      this.showInputPswModal = false
-      this.clearLoading()
+      if (!requestHasError) {
+        this.userPsw = ''
+        this.showInputPswModal = false
+        this.clearLoading()
+      } else {
+        Toast(msg, 5)
+      }
     },
     async confirmPswOk({ show, psw }) {
       this.userPsw = psw; // password of user input for encrypt privateKey
@@ -217,8 +230,6 @@ export default {
       
       // const password = ecies.crypto.randomBytes(16).toString("base64");
       const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
-      // const test = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
-      // console.log('test', encryptPsw, test)
       const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
       this.aesKey = aesKey
       this.encryptPsw = encryptPsw

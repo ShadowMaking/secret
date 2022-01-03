@@ -237,8 +237,12 @@ export default {
         Toast('Copied')
       }
     },
+    _handleImportedAccountByPassword() {
+      this.importPrivatekey = ''
+    },
    },
   mounted() {
+    this.$eventBus.$on('importedAccountByPassword', this._handleImportedAccountByPassword)
     if (this.type === 'create') {
       let privateKey = this.generatePrivatekey()
       this.privateKey = privateKey
