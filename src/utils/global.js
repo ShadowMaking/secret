@@ -19,8 +19,8 @@ const etherscanAPIKeyToken = 'JKUUBYKV6BFS2J4BIV41IKF1QFZRN758TK';
 
 const SWAPADDRESS = '0x243B775Ec2dbDD7AC8982bDFa56c2d7316dD089d';
 
-const securityModuleRouter = '0x36Cd9232e19f803B0C6352c3b58930Ed310D4182';
-const proxyRouter = '0x3CF45Fb273A8Ec896fb1BB4dCDdFF0654314b6A6';
+const securityModuleRouter = '0x92B04BEf234507780CA19D19F329C7399dE67E58';
+const proxyRouter = '0x541069A635A4088054135648E691174B73ad86c4';
 
 const signerStatus = {
 	'confirmed': 1,
@@ -30,7 +30,7 @@ const signerStatus = {
 	'startRecover': 5,
 	'agreeRecover': 6,
 	'ignoreRecover': 7,
-	'freezeRecover': 8,
+	'triggerRecover': 8,
 }
 
 export {

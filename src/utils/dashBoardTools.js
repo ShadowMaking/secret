@@ -148,14 +148,18 @@ export const getContractWallet = async (self) => {
   const network = getConnectedNet()
   const rpcUrl = network['rpcUrls'][0]
   const provider = initRPCProvider(rpcUrl)
-  // const userId = getInfoFromStorageByKey('gUID')
-  // const { data: userInfo } = await self.$store.dispatch('GetBindingGoogleUserInfo', {userId})
-  // const encryptKey = userInfo.encryptPrivateKey
+  const userId = getInfoFromStorageByKey('gUID')
+  const { data: userInfo } = await self.$store.dispatch('GetBindingGoogleUserInfo', {userId})
+  const encryptKey = userInfo.encryptPrivateKey
+  const address  = userInfo.address
+  const decryptInfo = await self.$store.dispatch('GetDecryptPrivateKeyFromStore', {userId, address, encryptKey })
   // const decryptInfo = await self.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
   // const { hasError, data: privateKey } = decryptInfo
-  // const wallet = new ethers.Wallet(privateKey, provider);
-  const wallet = new ethers.Wallet('d26e62d7726062e735d6d130b3c624e97921eecc3bde9263b404121f6f0dccc4', provider);
-  // const wallet = new ethers.Wallet('0x8dbdfb80e36d3e741845d15fe01ee97db15d18c95f12df9d7a9ec2e68e5e5fa8', provider);
+  const { hasError,  data: privateKey } = decryptInfo
+  if (hasError || !privateKey) {  // TODO need get decrpyt privateKey by address
+    return null
+  }
+  const wallet = new ethers.Wallet(privateKey, provider);
   return wallet
 }
 

@@ -62,7 +62,7 @@ import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import ProxyJson from "@/assets/contractJSON/Proxy.json";
 import { BigNumber } from "bignumber.js";
-import { getFromStorage } from '@/utils/storage';
+import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import { timeFormat } from '@/utils/str';
 import { securityModuleRouter, proxyRouter } from '@/utils/global';
 import { CHAINMAP } from '@/utils/netWorkForToken';
@@ -103,6 +103,7 @@ export default {
       },
       currentChainInfo: null,
       sendMetadata: null,
+      defaultNetWork: '',
     }
   },
   components: {
@@ -229,13 +230,19 @@ export default {
       this.showStatusPop = false;
       this.$router.push({ name: 'ncWalletList' })
     },
+    getDefaultNetWork() {
+      const info = getInfoFromStorageByKey('netInfo')
+      return info && info['id'] || 1
+    },
   },
   async created() {
+    this.defaultNetWork = this.getDefaultNetWork()
     if (!isLogin()) {
       Toast('Need Login')
       return
     }
     const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
+    console.log(netInfo)
     if (netInfo) {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
     } else {

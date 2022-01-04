@@ -15,17 +15,20 @@
           <v-walletList v-show="walletShow" @recoverChild="recoverChild"></v-walletList>
           <div class="choose-wallet-container" v-show="!walletShow">
             <div class="choose-wallet" v-show="activeStep==0"><!-- setp0 -->
-              <p class="choose-wallet-des">The private key corresponding to the following address will be recovered</p>
-              <div class="choose-wallt-info">
-                <div class="choose-wallet-item">
-                  <p class="choose-wallet-item-name">Name</p>
-                  <p><span class="choose-wallet-item-con">{{currentWalletName}}</span></p>
-                </div>
-                <div class="choose-wallet-item">
-                  <p class="choose-wallet-item-name">Address</p>
-                  <span class="choose-wallet-item-con">{{currentWalletAddress}}</span>
+              <div v-show="signerTotal !== 0">
+                <p class="choose-wallet-des">The private key corresponding to the following address will be recovered</p>
+                <div class="choose-wallt-info">
+                  <div class="choose-wallet-item">
+                    <p class="choose-wallet-item-name">Name</p>
+                    <p><span class="choose-wallet-item-con">{{currentWalletName}}</span></p>
+                  </div>
+                  <div class="choose-wallet-item">
+                    <p class="choose-wallet-item-name">Address</p>
+                    <span class="choose-wallet-item-con">{{currentWalletAddress}}</span>
+                  </div>
                 </div>
               </div>
+              <div class="wallet-no-signer" v-show="signerTotal == 0">no active signer</div>
             </div>
             <div class="sign-complete-box">
               <div class="signer-confirm" v-show="activeStep==1"><!-- setp1 -->
@@ -86,7 +89,7 @@
                  </div>
               </div>
               <div class="choose-btn">
-                <!-- <el-button type="info" @click="backStep" v-show="activeStep !==2">Back</el-button> -->
+                <el-button type="info" @click="backStep" v-show="activeStep !==2">Back</el-button>
                 <el-button type="primary" @click="nextStep">{{confirmTxt}}</el-button>
               </div>
             </div>
@@ -111,7 +114,8 @@
 
 <script>
 import Vue from 'vue'
-import { Toast, Step, Steps, Loading, Popup } from 'vant'
+import { ethers } from 'ethers'
+import { Toast, Step, Steps, Loading, Popup, Dialog } from 'vant'
 import navTitle from '@/components/NavTitle/index'
 import ConfirmModal from '@/components/ConfirmModal';
 import { isLogin, getContractAt, getConnectedAddress } from '@/utils/dashBoardTools';
@@ -119,6 +123,7 @@ import walletList from './walletList/index'
 import { getFromStorage } from '@/utils/storage'
 import { signerStatus, securityModuleRouter } from '@/utils/global';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
+import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import web3 from 'web3'
 
@@ -127,14 +132,14 @@ Vue.use(Step);
 Vue.use(Steps);
 Vue.use(Loading);
 Vue.use(Popup);
-
+Vue.use(Dialog);
 
 export default {
   name: 'NC-Wallet-Recover',
   data() {
     return {
       signerStatus,
-      activeStep: null,//0-choose 1-signer confirm 2-complete
+      activeStep: 0,//0-choose 1-signer confirm 2-complete
       walletShow: true,
       signerList: [],
       signerTotal: 0,
@@ -170,23 +175,39 @@ export default {
       this.confirmTxt = 'Confirm'
       if (this.activeStep == 0) {
         if (this.signerList.length == 0) { 
-          Toast('no signer') 
+          this.walletShow = true 
           return
         }
-        this.startRecover() //trigger need multicall
+        Dialog.confirm({
+          message: 'Are you sure to recover this wallet?',
+          confirmButtonText: 'Confirm',
+          confirmButtonColor: '#4375f1',
+          cancelButtonText: 'Cancel'
+        })
+        .then(() => {
+          this.startRecover() //trigger need multicall
+        })
+        .catch(() => {
+          console.log('cancel')
+        });
       } else if (this.activeStep == 1) {
-        this.sendMetadata = {
-          from: getConnectedAddress(),
-          to: this.securityModuleRouter,
-          gas: this.overrides.gasLimit,
-          gasPrice: this.overrides.gasPrice,
-          value: 0,
-          symbolName: 'ETH',
-          netInfo: this.currentChainInfo,
-          DATA: '',
-          estimatedGasFee: '0' // todo
+        if (this.agreeRecoverNum >= this.signerPercent) {
+          this.sendMetadata = {
+            from: getConnectedAddress(),
+            to: this.securityModuleRouter,
+            gas: this.overrides.gasLimit,
+            gasPrice: this.overrides.gasPrice,
+            value: 0,
+            symbolName: 'ETH',
+            netInfo: this.currentChainInfo,
+            DATA: '',
+            estimatedGasFee: '0' // todo
+          }
+          this.showTradeConfirm = true
+        } else {
+          Toast(`Any transaction requires the confirmation of: ${this.signerPercent} signers`)
         }
-        this.showTradeConfirm = true
+        
         // this.executeRecover() //need not multicall
       } else if (this.activeStep == 2) {
         this.activeStep = 0
@@ -194,12 +215,14 @@ export default {
       }
     },
     backStep() {
-      this.confirmTxt = 'Confirm'
-      if (this.activeStep == 0) {
-        this.walletShow = true
-        return
-      }
-      this.activeStep = this.activeStep - 1
+      this.walletShow = true
+      this.activeStep == 0
+      // this.confirmTxt = 'Confirm'
+      // if (this.activeStep == 0) {
+      //   this.walletShow = true
+      //   return
+      // }
+      // this.activeStep = this.activeStep - 1
     },
     startRecover() {
       this.signerList.map(async item => {//waiting for signer agree
@@ -243,26 +266,41 @@ export default {
       this.executeRecover()
     },
     async executeRecover() {
-     if (this.agreeRecoverNum >= this.signerPercent) {
-        console.log('start excute')
-        const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-        console.log(this.currentWalletAddress)
-        let tx = await securityModuleContract.executeRecovery(this.currentWalletAddress, this.overrides)
-        console.log(tx)
-        let txwait = await tx.wait()
-        console.log(txwait)
-        this.showLoading = false;
-        this.activeStep = this.activeStep + 1
-      } else {
-        Toast(`Any transaction requires the confirmation of: ${this.signerPercent} signers`)
-      }
+      console.log('start excute')
+      const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+
+      let amount = 0
+      const SMABI = [
+          "function executeRecovery(address)",
+          "function cancelRecovery(address)",
+          "function triggerRecovery(address, address)"
+      ]
+      // let newOwnAddress = getConnectedAddress()
+      // let newOwnAddress = '0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9'
+      // let iface = new ethers.utils.Interface(SMABI)
+      // let replaceOwnerData = iface.encodeFunctionData("triggerRecovery", [this.currentWalletAddress, newOwnAddress])
+
+      // console.log(replaceOwnerData)
+      console.log(securityModuleContract)
+      let isInRecovery = await securityModuleContract.isInRecovery(this.currentWalletAddress)
+      console.log(isInRecovery)
+      let tx = await securityModuleContract.executeRecovery(this.currentWalletAddress, this.overrides)
+      console.log(tx)
+      let txwait = await tx.wait()
+      console.log(txwait)
+      this.showLoading = false;
+      this.activeStep = this.activeStep + 1
     },
-    recoverChild(value) {
+    async recoverChild(value) {
       this.walletShow = false
       this.currentWalletAddress = value.wallet_address
       this.currentWalletName = value.name
       this.currentWalletId = value.wallet_id
       this.getSignerListByid()
+
+      const walletContract = await getContractAt({ tokenAddress: this.currentWalletAddress, abi: WalletJson.abi }, this)
+      let res1 = await walletContract.owner();
+      console.log("newowner:" + res1)
     },
     async getSignerListByid() {
       let data = {

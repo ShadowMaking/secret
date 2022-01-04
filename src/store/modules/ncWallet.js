@@ -9,6 +9,7 @@ import {
   getWalletListAsSign,
   uploadSignmessage,
   updateOwnerAddress,
+  getSignMessage,
 } from '@/api/ncwallet'
 
 
@@ -130,7 +131,7 @@ const ncWallet = {
         uploadSignmessage(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0) {
-            resolve({ hasError: false })
+            resolve({ hasError: false, totalSignMessage: data })
           }
           resolve({ hasError: true, error: message });
         }).catch(error => {
@@ -144,6 +145,19 @@ const ncWallet = {
           const { errno, data, message } = response.data
           if (errno === 0) {
             resolve({ hasError: false })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
+    getSignMessage({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        getSignMessage(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false, data: data })
           }
           resolve({ hasError: true, error: message });
         }).catch(error => {

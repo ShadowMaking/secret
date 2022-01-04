@@ -163,6 +163,7 @@ import request from '@/utils/request';
   let _data = {
     address: data['signerAddress'],
     sign_message: data['signMessage'],
+    status: data['status']
   }
   return request({
     url: `/api/user/${userId}/wallet/${walletId}/signer`,
@@ -186,5 +187,23 @@ import request from '@/utils/request';
     url: `/api/user/${userId}/wallet/${walletId}`,
     method: 'post',
     data: _data,
+  })
+}
+
+/**
+ * @description: Get sign_message if available (The signer address should be given to assure that it can get sign_message)
+ * @param {"address": "0x123"}
+ * @return 
+ */
+ export const getSignMessage = (data) => {
+  const userId = data['userId'] 
+  const walletId = data['walletId']
+  let _data = {
+    address: data['signerAddress'],
+  }
+  return request({
+    url: `/api/user/${userId}/wallet/${walletId}/sign_message`,
+    method: 'get',
+    params: _data,
   })
 }

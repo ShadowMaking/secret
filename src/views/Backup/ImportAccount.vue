@@ -203,23 +203,25 @@ export default {
       
       const { hasError: encryptError, data: encryptPrivateKey } = await this.$store.dispatch('EncryptPrivateKeyByEcies', { userId, c1: this.encryptPrivateKeyPublicKey, cc1: this.encryptPsw }) 
       if (encryptError) {
-        Toast('EncrpytKey Failed')
+        Toast('EncrpytKey Failed', 5)
         return
       }
       const { hasError } = await this.$store.dispatch('UploadEncrpytKeyByAddress', { userId, address, encryptKey: encryptPrivateKey })
       if (hasError) {
         console.log('Upload EncrpytKey Failed')
-        Toast('Import Failed')
+        Toast('Import Failed', 5)
         return
       }
       const { data } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId })
-      if (!data) {
-        await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, privateKey, address })
-      }
-      await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey, privateKey, address })
+      // if (!data) {
+        await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, address })
+        await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey: encryptPrivateKey, privateKey })
+      // }
+      await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey, address })
       this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
-      Toast('Import Account Successfully')
+      Toast('Import Account Successfully', 5)
       this.userPsw = '';
+      this.$eventBus.$emit('importedAccountByPassword')
     },
     formatterTrim(value) {
       return formatTrim(value)

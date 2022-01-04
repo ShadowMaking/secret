@@ -11,11 +11,19 @@
     input[type="password"].error { border-color: #f81d22;}
   }
   .psw-tip {
+    // font-size: .8125rem;
+    // color: #AEB2B8;
+    // line-height: 25px;
+    // padding: 10px 0;
+    // >span { display: block; text-align: left;}
     font-size: .8125rem;
+    color: #9e9e9e;
+    list-style: disc;
+    padding: 20px 0;
+    line-height: 20px;
     color: #AEB2B8;
-    line-height: 25px;
-    padding: 10px 0;
-    >span { display: block; text-align: left;}
+    text-align: left;
+    li { word-break: break-word; margin-bottom: 10px; }
   }
   .error-tip {
     padding-left: 30px;

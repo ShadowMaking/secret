@@ -500,7 +500,7 @@ export default {
       if (data) { this.gasPriceInfo = data }
     },
     async handleNetworkChange(data, emitEvent) {
-      this.$refs.tokenSelect.resetSelectVal()
+      this.$refs.tokenSelect!==undefined && this.$refs.tokenSelect.resetSelectVal()
       this.assetsTokenList = []
       const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
       this.currentChainInfo = chainInfo
