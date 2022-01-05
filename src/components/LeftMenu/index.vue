@@ -2,11 +2,26 @@
   <div class="left-menu-box" id="leftmenu">
     <img src="~@/assets/menu.png" class="menu-icon" @click="showPopup" v-show="iconVisible">
     <van-popup v-model="menuVisible" position="left" class="popup-box" overlay-class="popup-overlay" :overlay="iconVisible">
-      <div v-for="(item, index) in menuData" :key="index" :class="['left-menu-item', index == activeKey ? 'active' : '']" @click="changeMenu(index, item.route)"
+      <div v-for="(item, index) in menuData" :key="index"
+      :class="[!item.children||item.children && item.children.length===0 ? 'left-menu-item':'left-menu-item-for-hasSub', index == activeKey ? 'active' : '']" @click="changeMenu(index, item.route)"
        >
         <!-- <van-icon :name="item.icon" size="20px"/> -->
-        <label style="font-size: 20px"><i :class="item.icon" size="60px"></i></label>
-        <span>{{item.name}}</span>
+        <div v-if="!item.children||item.children && item.children.length===0">
+          <label style="font-size: 20px"><i :class="item.icon" size="60px"></i></label>
+          <span>{{item.name}}</span>
+        </div>
+        <div v-else>
+          <van-collapse v-model="activeNames">
+            <van-collapse-item :title="item.name" name="1" icon="shop-o" class="item">
+              <div v-for="(item, index) in item.children" :key="index" class="item-menu">
+                <router-link :to="item.path">
+                  <!-- <van-icon name="plus" class="opt-icon" /> -->
+                  <span>{{ item.name }}</span>
+                </router-link>
+              </div>
+            </van-collapse-item>
+          </van-collapse>
+        </div>
       </div>
       <div class="network-container">
         <v-formSelect
@@ -26,13 +41,15 @@
 import Vue from 'vue';
 import web3 from 'web3'
 import 'vant/lib/index.css'
-import { Icon, Popup } from 'vant';
+import { Icon, Popup, Collapse, CollapseItem } from 'vant';
 import formSelect from '@/components/Select/index';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 
 Vue.use(Icon);
 Vue.use(Popup);
+Vue.use(Collapse);
+Vue.use(CollapseItem);
 
 export default {
   name: 'LeftMenu',
@@ -46,12 +63,19 @@ export default {
         {icon: 'el-icon-view', name: 'Overview', route: '/overView'},
         {icon: 'el-icon-position', name: 'Send', route: '/sendMenu'},
         {icon: 'el-icon-sell', name: 'Exchange', route: '/exchange'},
+        {icon: 'el-icon-sell', name: 'Tools', children: [
+          {icon: 'el-icon-plus', name: 'Create Secret', path: '/backup?type=create'},
+          {icon: 'el-icon-document', name: 'Recover Secret', path: '/srecovery'},
+          {icon: 'el-icon-s-custom', name: 'Co-Workers', path: '/addfriends'},
+        ]},
         // {icon: 'el-icon-guide', name: 'Bridge', route: '/bridge'},
       ],
       screenWidth: null,
 
       defaultIcon: null,
       netWorkList: [],
+
+      activeNames: ['1'],
     }
   },
   components: {

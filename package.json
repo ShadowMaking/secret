@@ -23,6 +23,7 @@
     "core-js": "^3.6.5",
     "crypto": "^1.0.1",
     "echarts": "^5.2.2",
+    "ecies-utils": "^1.0.1",
     "element-ui": "^2.6.1",
     "elliptic": "^6.5.4",
     "ethers": "^5.0.24",
