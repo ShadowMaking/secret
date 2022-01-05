@@ -36,12 +36,12 @@
                 <span style="color:red">Has been freeze</span>
               </div>
               <div v-if="scope.row.status == signerStatus['startRecover']">
-                <el-button @click="handleClick(scope.row, 'Recover')" type="text" size="small" class="sign-operate agree-btn">Recover</el-button>
+                <el-button @click="handleClick(scope.row, 'Recover')" type="text" size="small" class="sign-operate agree-btn">Confirm Recover</el-button>
                 <el-button @click="handleClick(scope.row, 'Ignore')" type="text" size="small" class="sign-operate ignore-btn">Ignore</el-button>
                 <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
               </div>
               <div v-if="scope.row.status == signerStatus['agreeRecover']">
-                <el-button @click="handleClick(scope.row, 'triggerRecover')" type="text" size="small" class="sign-operate agree-btn">TriggerRecover</el-button>
+                <el-button @click="handleClick(scope.row, 'triggerRecover')" type="text" size="small" class="sign-operate agree-btn">Recover</el-button>
                 <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
               </div>
               <div v-if="scope.row.status == signerStatus['ignoreRecover'] || scope.row.status == signerStatus['active']" >
@@ -69,6 +69,12 @@
       @close="showTradeConfirm=false"
       @reject="cancelCreate"
       @confirm="confirmCreate" />
+    <v-signMessageModal
+      :show="showSignMessageModal"
+      :metadata="signMessageMetadata"
+      @close="showSignMessageModal=false"
+      @reject="cancelSignMessage"
+      @confirm="confirmSignMessage" />
   </div>
 </template>
 <script>
@@ -82,6 +88,7 @@ import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { signerStatus, securityModuleRouter } from '@/utils/global';
 import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
+import SignMessageModal from '@/components/SignMessageModal';
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import web3 from 'web3'
 
@@ -118,11 +125,16 @@ export default {
         gasLimit: 8000000,
         gasPrice: 5000000000,
       },
+
+      showSignMessageModal: false,
+      signMessageMetadata: null,
+      signMsgHash: '',
     }
   },
   components: {
     'v-statusPop': StatusPop,
     'v-confirmModal': ConfirmModal,
+    'v-signMessageModal': SignMessageModal,
   },
   methods: {
     handleClick(row, type) {
@@ -135,7 +147,7 @@ export default {
           this.openDialog('Are you sure to reject?', this.signerStatus['rejected'])
           break;
         case 'Freeze':
-          this.openDialog('Are you sure to freeze?', this.signerStatus['freeze'], true)
+          this.openDialog('Are you sure to freeze?', this.signerStatus['freeze'])
           break;
         case 'Recover':
           this.openDialog('Are you sure to Recover?', this.signerStatus['agreeRecover'], true)
@@ -201,6 +213,17 @@ export default {
         }
       }
     },
+    cancelSignMessage() {
+      this.showSignMessageModal = false
+      Toast('Cancel Sign Message')
+    },
+    async confirmSignMessage() {
+      this.showLoading = true
+      const currentSignerWallet = await getContractWallet(this)
+      let sig = await currentSignerWallet.signMessage(ethers.utils.arrayify(this.signMsgHash));
+      this.signMessageSubmit(sig)
+      console.log(sig)
+    },
     async singerSignMessage(status) {
       let currentWalletAddress = this.signRow.wallet_address
       const walletContract = await getContractAt({ tokenAddress: currentWalletAddress, abi: WalletJson.abi }, this)
@@ -215,11 +238,14 @@ export default {
         ethers.utils.hexZeroPad(ethers.utils.hexlify(sequenceId), 32),
       ].map((hex) => hex.slice(2)).join("")}`;
       let hash = ethers.utils.keccak256(input)
-      const currentSignerWallet = await getContractWallet(this)
-      let sig = await currentSignerWallet.signMessage(ethers.utils.arrayify(hash));
-      // this.updateSignerStatus(status, false)//TODO serive control status
-      this.signMessageSubmit(sig)
-      console.log(sig)
+      this.signMsgHash = hash
+      this.signMessageMetadata = {
+        userAddress: getConnectedAddress(),
+        signMessage: hash,
+        netInfo: this.currentChainInfo,
+      }
+      this.showSignMessageModal = true
+      this.showLoading = false
     },
     async signMessageSubmit(msg) {
       let data = {
@@ -231,11 +257,12 @@ export default {
       }
       const { hasError, totalSignMessage } = await this.$store.dispatch('uploadSignmessage', {...data});
       console.log(totalSignMessage)
+      this.showLoading = false;
       if (hasError) {
         Toast.fail('Recover Failed')
       } else {
         this.$emit('signChild')
-        if (totalSignMessage) {//返回的msg待测试todo
+        if (totalSignMessage) {
           Dialog.confirm({
             message: 'Half of the signers have signed,Trigger recovery now?',
             confirmButtonText: 'Confirm',
@@ -254,7 +281,7 @@ export default {
         }
       }
     },
-    async getSignMessage() {//todo判断signer签名个数是否大于一半,获取signmessage
+    async getSignMessage() {
       let dataParams = {
         userId: this.userId,
         walletId: this.signRow.wallet_id,
@@ -336,6 +363,7 @@ export default {
 
   async created() {
     this.defaultNetWork = this.getDefaultNetWork()
+    console.log(this.defaultNetWork)
     const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
     if (netInfo) {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
