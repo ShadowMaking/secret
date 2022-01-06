@@ -227,7 +227,7 @@ export default {
         console.log('can not save OTP secret')
       }
       this.codeSecret = secret
-      this.codeUserName = userInfo.email
+      this.codeUserName = userInfo && userInfo.email
       this.qrCodeUrl = url
       return url
     },

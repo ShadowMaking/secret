@@ -16,6 +16,16 @@
           </div>
         </div>
       </div>
+      <div class="left-menu-item-for-hasSub">
+        <van-collapse v-model="activeNames" v-for="(item, index) in multiMenuData" :key="index">
+          <van-collapse-item :name="item.name" class="item">
+            <template #title><div><label style="font-size: 20px"><i :class="item.icon" size="60px"></i></label>{{ item.name }}</div></template>
+            <div v-for="(_item, index) in item.subMenu" :key="index" :class="['item-menu', {'active': `${index}-${_item.route}` == activeKey}]"  @click="_changeMenu(index, _item.route, 'activeKey')">
+              <router-link :to="_item.route"><span>{{ _item.name }}</span></router-link>
+            </div>
+          </van-collapse-item>
+        </van-collapse>
+      </div>
       <!-- <div v-for="(item, index) in menuData" :key="index"
       :class="[!item.children||item.children && item.children.length===0 ? 'left-menu-item':'left-menu-item-for-hasSub', index == activeKey ? 'active' : '']" @click="changeMenu(index, item.route)"
        >
@@ -76,16 +86,41 @@ export default {
         {icon: 'el-icon-view', name: 'Overview', route: '/overView'},
         {icon: 'el-icon-position', name: 'Send', route: '/sendMenu'},
         {icon: 'el-icon-sell', name: 'Exchange', route: '/exchange'},
+        // {icon: 'el-icon-suitcase-1', name: 'Tools', subMenu: [
+        //   {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
+        //   {icon: 'el-icon-document', name: 'Recover Secret', route: '/srecovery'},
+        //   {icon: 'el-icon-s-custom', name: 'Co-Workers', route: '/addfriends'},
+        // ]},
+        // {icon: 'el-icon-guide', name: 'Bridge', route: '/bridge'},
+        // {
+        //   icon: 'el-icon-collection', 
+        //   name: 'NC-Wallet', 
+        //   route: '/ncWalletList', 
+        //   subMenu: [{
+        //     icon: 'el-icon-bank-card', 
+        //     name: 'My NC-Wallet', 
+        //     route: '/ncWalletList',
+        //   },{
+        //     icon: 'el-icon-document-add', 
+        //     name: 'Create NC-Wallet', 
+        //     route: '/ncWalletCreate',
+        //   },{
+        //     icon: 'el-icon-sell', 
+        //     name: 'Recover NC-Wallet', 
+        //     route: '/ncWalletRecover',
+        //   }]
+        // },
+      ],
+      multiMenuData: [
         {icon: 'el-icon-suitcase-1', name: 'Tools', subMenu: [
           {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
           {icon: 'el-icon-document', name: 'Recover Secret', route: '/srecovery'},
           {icon: 'el-icon-s-custom', name: 'Co-Workers', route: '/addfriends'},
         ]},
-        // {icon: 'el-icon-guide', name: 'Bridge', route: '/bridge'},
         {
           icon: 'el-icon-collection', 
           name: 'NC-Wallet', 
-          route: '/ncWalletList', 
+          // route: '/ncWalletList',
           subMenu: [{
             icon: 'el-icon-bank-card', 
             name: 'My NC-Wallet', 
@@ -106,7 +141,7 @@ export default {
       defaultIcon: null,
       netWorkList: [],
 
-      activeNames: ['1'],
+      activeNames: ['Tools', 'NC-Wallet'],
     }
   },
   components: {
@@ -157,6 +192,10 @@ export default {
       this[activeType] = index
       if (activeType == 'activeChildKey') {this.activeKey = parentIndex}
       this.$router.push({ path: route})
+    },
+    _changeMenu(index, route, activeType, parentIndex) {
+      this[activeType] = `${index}-${route}`
+      if (activeType == 'activeChildKey') {this.activeKey = parentIndex}
     },
     async handleNetworkChange(data) {
       const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
