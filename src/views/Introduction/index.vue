@@ -1,6 +1,6 @@
 <template>
   <div class="social-recovery-introduction-page">
-    <div class="tip-wrapper secret">
+    <!-- <div class="tip-wrapper secret">
       <div class="top">
         <h4>Social Recovery</h4>
         <a><router-link to="/backup?type=create">GO</router-link></a>
@@ -15,7 +15,7 @@
         <li>Recover Secret：Collect the shares from your friends, and recover your original secret.</li>
       </ul>
     </div>
-    <!-- <div class="tip-wrapper bridge">
+    <div class="tip-wrapper bridge">
       <div class="top">
         <h4>Bridge</h4>
         <a><router-link to="/introduction">GO</router-link></a>
@@ -28,6 +28,10 @@
         <li>Withdraw to L1：Transfer assets from the EigenSecret l2 wallet to the Layer1 wallet.</li>
       </ul>
     </div> -->
+    <div class="welcome-tip">
+      <span>Welcome to here!</span>
+      <span>Just a moment, please! We are initializing data. </span>
+    </div>
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
@@ -39,6 +43,7 @@ import web3 from 'web3'
 import { ethers } from 'ethers'
 import { getQueryString, getLocationParam } from '@/utils/index'
 import InputPswModal from '@/components/InputPswModal'
+import { getInfoFromStorageByKey } from '@/utils/storage'
 // import * as ecies from "@/utils/ecies";
 import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
@@ -251,10 +256,11 @@ export default {
       this.showInputPswModal = false
       this.showLoading();
       await this.getUserBindingInfo(this.isNewUser)
+      this.$router.push({ name: 'overView' })
     },
   },
   async mounted() {
-    const googleUserId = getLocationParam('id')
+    const googleUserId = getLocationParam('id') || getInfoFromStorageByKey('gUID')
     const googleAuthToken = getLocationParam('auth_token')
     const newUser = getLocationParam('new')
     const isNewUser = newUser === '1'
@@ -274,6 +280,8 @@ export default {
       // this.showLoading();
       this.showInputPswModal = true; // input password
       // await this.getUserBindingInfo(isNewUser)
+    } else {
+      this.$router.push({name: 'tlogin'})
     }
   },
   created() {},

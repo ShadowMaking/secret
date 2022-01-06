@@ -1,4 +1,5 @@
-import * as ecies from "./ecies";
+// import * as ecies from "./ecies";
+import * as ecies from "ecies-utils";
 export { ecies }
 
 // for debug
