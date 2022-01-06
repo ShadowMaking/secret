@@ -186,7 +186,7 @@ export const getConnectedAddress = (byMetamask=false) => {
 
 export const getConnectedNet = (byMetamask=false) => {
   const chainInfo = getInfoFromStorageByKey('netInfo')
-  const numberChainId = chainInfo && chainInfo['id']
+  const numberChainId = chainInfo && chainInfo['id'] || 1
   let chainId = numberChainId && web3.utils.numberToHex(numberChainId)
   if (byMetamask) {
     chainId = window.ethereum && window.ethereum.chainId
