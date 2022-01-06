@@ -4,7 +4,7 @@
       <div class="send-from-list">
         <el-select 
           v-model="fromVal" 
-          placeholder="请选择" 
+          placeholder="Choose" 
           style="width: 100%"
           @change="selectChange">
           <el-option-group

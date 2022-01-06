@@ -32,11 +32,12 @@
           tip=""
           :show="showStatusPop"
           @childEvent="changeVisible" />
-        <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+        <!-- <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
           <div class="inner-wrapper">
             <van-loading type="spinner" />
           </div>
-        </van-popup>
+        </van-popup> -->
+        <v-loadingPopup :show="showLoading" :showSpinner="false" />
       </div>
     </div>
     <v-confirmModal
@@ -57,6 +58,7 @@ import navTitle from '@/components/NavTitle/index'
 import searchSignerModal from '@/components/SearchSignerModal/index'
 import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
+import LoadingPopup from '@/components/LoadingPopup';
 import { getContractAt, getConnectedAddress, getEns, isLogin } from '@/utils/dashBoardTools';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
@@ -111,6 +113,7 @@ export default {
     "v-searchSignerModal": searchSignerModal,
     'v-statusPop': StatusPop,
     'v-confirmModal': ConfirmModal,
+    'v-loadingPopup': LoadingPopup,
   },
   methods: {
     async confirmSearchSigner(value) {

@@ -56,11 +56,12 @@
           v-if="!isHasFreeze"/>
       </div>
       <div class="add-signer-tip">Any transaction requires the confirmation of: {{signerPercent}} out of {{signerTotal}} signer(s)</div>
-      <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+      <!-- <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
         <div class="inner-wrapper">
           <van-loading type="spinner" />
         </div>
-      </van-popup>
+      </van-popup> -->
+      <v-loadingPopup :show="showLoading" :showSpinner="false" />
     </div>
     
   </div>
@@ -70,6 +71,7 @@ import Vue from 'vue';
 import { Toast, Loading, Dialog } from 'vant'
 import navTitle from '@/components/NavTitle/index'
 import searchSignerModal from '@/components/SearchSignerModal/index'
+import LoadingPopup from '@/components/LoadingPopup';
 import {  isLogin, getContractAt } from '@/utils/dashBoardTools'
 import { getFromStorage, removeFromStorage } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
@@ -104,6 +106,7 @@ export default {
   components: {
     "v-navTitle": navTitle,
     "v-searchSignerModal": searchSignerModal,
+    'v-loadingPopup': LoadingPopup,
   },
   
   methods: {

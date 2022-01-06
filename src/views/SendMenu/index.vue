@@ -60,11 +60,12 @@
         </div>
       </van-popup>
     </div>
-    <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+   <!--  <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
       <div class="inner-wrapper">
         <van-loading type="spinner" />
       </div>
-    </van-popup>
+    </van-popup> -->
+    <v-loadingPopup :show="showLoading" :showSpinner="false" />
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
@@ -93,6 +94,7 @@ import formSelect from '@/components/Select/index';
 import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
 import TransFrom from '@/components/TransFrom';
+import LoadingPopup from '@/components/LoadingPopup';
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { ETHFORUS } from '@/utils/global';
@@ -158,6 +160,7 @@ export default {
     'v-statusPop': StatusPop,
     'v-confirmModal': ConfirmModal,
     'v-transFrom': TransFrom,
+    'v-loadingPopup': LoadingPopup,
   },
   computed: {
     exchangeUSForSelectedToken() {

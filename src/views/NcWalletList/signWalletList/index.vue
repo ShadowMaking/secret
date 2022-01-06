@@ -50,11 +50,12 @@
             </template>
         </el-table-column>
     </el-table>
-    <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+    <!-- <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
       <div class="inner-wrapper">
         <van-loading type="spinner" />
       </div>
-    </van-popup>
+    </van-popup> -->
+    <v-loadingPopup :show="showLoading" :showSpinner="false" />
     <v-statusPop
           :status="popStatus"
           :title="statusPopTitle"
@@ -89,6 +90,7 @@ import { signerStatus, securityModuleRouter } from '@/utils/global';
 import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
 import SignMessageModal from '@/components/SignMessageModal';
+import LoadingPopup from '@/components/LoadingPopup';
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import web3 from 'web3'
 
@@ -135,6 +137,7 @@ export default {
     'v-statusPop': StatusPop,
     'v-confirmModal': ConfirmModal,
     'v-signMessageModal': SignMessageModal,
+    'v-loadingPopup': LoadingPopup,
   },
   methods: {
     handleClick(row, type) {

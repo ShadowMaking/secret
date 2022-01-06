@@ -88,12 +88,13 @@
           </div>
         </div>
       </van-popup>
-      <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+      <!-- <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
         <div class="inner-wrapper">
           <van-loading type="spinner" />
         </div>
-      </van-popup>
+      </van-popup> -->
     </div>
+    <v-loadingPopup :show="showLoading" :showSpinner="false" />
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
@@ -139,6 +140,7 @@ import swapJson from './Swap.json'
 import { CHAINIDMAP } from '@/utils/netWorkForToken'
 import { PROTOCOLList, PROTOCOLMAP } from '@/utils/swap.js'
 import StatusPop from '@/components/StatusPop';
+import LoadingPopup from '@/components/LoadingPopup';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
 import { IUniswapV3Router, approveV3Router } from '@/utils/v3swap.js'
@@ -209,6 +211,7 @@ export default {
     'v-confirmModal': ConfirmModal,
     'v-approveModal': ApproveModal,
     'v-transFrom': TransFrom,
+    'v-loadingPopup': LoadingPopup,
   },
   computed: {
     approveBtnTxt() {
