@@ -76,7 +76,7 @@ export default {
         {icon: 'el-icon-view', name: 'Overview', route: '/overView'},
         {icon: 'el-icon-position', name: 'Send', route: '/sendMenu'},
         {icon: 'el-icon-sell', name: 'Exchange', route: '/exchange'},
-        {icon: 'el-icon-sell', name: 'Tools', subMenu: [
+        {icon: 'el-icon-suitcase-1', name: 'Tools', subMenu: [
           {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
           {icon: 'el-icon-document', name: 'Recover Secret', route: '/srecovery'},
           {icon: 'el-icon-s-custom', name: 'Co-Workers', route: '/addfriends'},
