@@ -151,10 +151,10 @@ const routes = [
     component: AddFriends,
   },
   {
-    path: '/overView',
-    name: 'overView',
+    path: '/overview',
+    name: 'overview',
     meta: {
-      title: "overView",
+      title: "overview",
     },
     component: OverView,
   },

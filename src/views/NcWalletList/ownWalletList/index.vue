@@ -25,7 +25,7 @@
         <el-table-column
           label="Signer">
             <template slot-scope="scope">
-              <el-button @click="handleClick(scope.row)" type="text" size="small">Manage</el-button>
+              <el-button @click="handleClick(scope.row)" type="text" size="small">Details</el-button>
             </template>
         </el-table-column>
     </el-table>

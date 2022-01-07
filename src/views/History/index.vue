@@ -3,7 +3,7 @@
     <div class="page-wrapper">
       <div class="common-transaction-table">
         <div class="nc-tag">
-          <span :class="[isNc && 'active']" @click="selectNC">NC-Wallet</span>
+          <span :class="[isNc && 'active']" @click="selectNC">Multisig Wallet</span>
         </div>
         <van-search 
           v-model="searchValue" 

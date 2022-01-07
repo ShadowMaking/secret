@@ -107,7 +107,7 @@ export default {
   methods: {
     backHistory() {
       this.$router.push({
-        path: `/overView`,
+        path: `/overview`,
         query: {tabActive: 1},
       })
     }

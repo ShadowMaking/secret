@@ -83,7 +83,7 @@ export default {
       activeKey: 0,
       activeChildKey: 0,
       menuData: [
-        {icon: 'el-icon-view', name: 'Overview', route: '/overView'},
+        {icon: 'el-icon-view', name: 'Overview', route: '/overview'},
         {icon: 'el-icon-position', name: 'Send', route: '/sendMenu'},
         {icon: 'el-icon-sell', name: 'Exchange', route: '/exchange'},
         // {icon: 'el-icon-suitcase-1', name: 'Tools', subMenu: [
@@ -119,19 +119,19 @@ export default {
         ]},
         {
           icon: 'el-icon-collection', 
-          name: 'NC-Wallet', 
+          name: 'Multisig Wallet', 
           // route: '/ncWalletList',
           subMenu: [{
             icon: 'el-icon-bank-card', 
-            name: 'My NC-Wallet', 
+            name: 'My Multisig Wallet', 
             route: '/ncWalletList',
           },{
             icon: 'el-icon-document-add', 
-            name: 'Create NC-Wallet', 
+            name: 'Create Multisig Wallet', 
             route: '/ncWalletCreate',
           },{
             icon: 'el-icon-sell', 
-            name: 'Recover NC-Wallet', 
+            name: 'Recover Multisig Wallet', 
             route: '/ncWalletRecover',
           }]
         },
@@ -141,7 +141,7 @@ export default {
       defaultIcon: null,
       netWorkList: [],
 
-      activeNames: ['Tools', 'NC-Wallet'],
+      activeNames: ['Tools', 'Multisig Wallet'],
     }
   },
   components: {

@@ -73,7 +73,7 @@
             <van-button block color="#495ABE" @click="generateQRSecret" class="create-button" size="small">Create</van-button>
           </div>
           <template #reference>
-            <span class="forget-tip">Forget Authentication ?</span>
+            <span class="forget-tip">Forget QR Secret ?</span>
           </template>
         </van-popover>
       </div>

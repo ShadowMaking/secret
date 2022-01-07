@@ -37,7 +37,7 @@ export default {
           label: 'shanghai'
         }]
       },{
-        label: 'NC-Wallet',
+        label: 'Multisig Wallet',
         options: [{
           value: 'chengdu',
           label: 'chengdu'

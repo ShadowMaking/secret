@@ -20,6 +20,10 @@
           label="Wallet Address">
         </el-table-column>
         <el-table-column
+          prop="owner_address"
+          label="Owner Address ">
+        </el-table-column>
+        <el-table-column
           prop="status"
           label="Operate">
             <template slot-scope="scope">
@@ -33,7 +37,7 @@
                 <el-button @click="handleClick(scope.row)" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
               </div> -->
               <div v-if="scope.row.status == signerStatus['freeze']">
-                <span style="color:red">Has been freeze</span>
+                <span style="color:red">frozen</span>
               </div>
               <div v-if="scope.row.status == signerStatus['startRecover']">
                 <el-button @click="handleClick(scope.row, 'Recover')" type="text" size="small" class="sign-operate agree-btn">Confirm Recover</el-button>
