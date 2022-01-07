@@ -125,9 +125,26 @@ export default {
       this.searchSignerList = list
     },
     async confirmAddSigner(value) {
+      if (!value) {
+        Toast('Please Choose Signer')
+        return
+      }
+      let currentOwner = getConnectedAddress()
+      if (value.toLocaleLowerCase() == currentOwner) {
+        Toast('This Owner Can Not To Be This Signer')
+        return
+      }
+      let isSignerExist = this.createSignerList.findIndex(function(item) {
+        return item.signAddress == value
+      })
+      if (isSignerExist > -1) {
+        Toast('This Signer Already Exists')
+        return
+      }
       var nowDate = new Date()
       var nowTime = timeFormat(nowDate, 'yyyy-MM-dd hh:mm:ss')
       const signAddress = await getEns(value)
+      console.log(this.createSignerList)
       this.createSignerList.push({
         signAddress: signAddress,
         addTime: nowTime,

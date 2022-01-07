@@ -1,9 +1,9 @@
 <template>
   <div class="send-menu-page content-box">
     <v-navTitle title="Send"></v-navTitle >
-    <!-- <div class="send-from-box content-page"> -->
-      <!-- <v-transFrom @transFromChange="transFromChange"></v-transFrom> -->
-    <!-- </div> -->
+    <!-- <div class="send-from-box content-page">
+      <v-transFrom @transFromChange="transFromChange"></v-transFrom>
+    </div> -->
     <div class="send-menu content-page">
       <!-- <v-formSelect 
         label="Recipient" 
