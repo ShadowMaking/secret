@@ -1,6 +1,6 @@
 <template>
   <div class="ncWalletList-page">
-    <v-navTitle title="NC-Wallet"></v-navTitle >
+    <v-navTitle title="Multisig Wallet"></v-navTitle >
     <div class="nc-wallet-des">Non-custodial Wallet is the most reliable asset management method. It confirms each transaction by setting up one or more signers to make asset transactions more secure.</div>
     <van-tabs color="#4375f1" title-active-color="#4375f1">
       <van-tab title="I am The Owner" title-style="font-weight: bold">
@@ -44,7 +44,7 @@ Vue.use(Tabs);
 Vue.use(Toast);
 
 export default {
-  name: 'NC-Wallet',
+  name: 'Multisig Wallet',
   data() {
     return {
       signerStatus,

@@ -1,6 +1,6 @@
 <template>
   <div class="ncWalletCreate-page content-box">
-    <v-navTitle title="Create NC-Wallet"></v-navTitle>
+    <v-navTitle title="Create Multisig Wallet"></v-navTitle>
     <div class="create-wallet-container content-page">
       <p class="create-title">Non-custodial Wallet</p>
       <p class="create-des">Non-custodial Wallet is the most reliable asset management method. It confirms each transaction by setting up one or more guardians to make asset transactions more secure.</p>

@@ -1,6 +1,6 @@
 <template>
   <div class="ncWalletRecover-page">
-    <v-navTitle title="Recover NC-Wallet"></v-navTitle>
+    <v-navTitle title="Recover Multisig Wallet"></v-navTitle>
     <div class="recover-wallet-container">
       <p class="recover-des">You can restore the owner private key corresponding to the backed up wallet by signer confirmation</p>
       <div class="recover-wallet-box">

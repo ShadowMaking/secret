@@ -1,6 +1,6 @@
 <template>
   <div class="wallet-list-page" >
-    <p class="wallet-des">Click the NC-Wallet that has been backed up to recover</p>
+    <p class="wallet-des">Click the Multisig Wallet that has been backed up to recover</p>
     <div v-if="walletList.length">
     <el-table
       :data="walletList"
