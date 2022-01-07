@@ -1,9 +1,9 @@
 <template>
   <div class="exchange-page content-box">
     <v-navTitle title="Exchange"></v-navTitle>
-    <div class="send-from-box content-page">
+    <!-- <div class="send-from-box content-page">
       <v-transFrom @transFromChange="transFromChange"></v-transFrom>
-    </div>
+    </div> -->
     <div class="exchange-content content-page">
       <div class="from-box">
         <v-formSelect 
@@ -210,7 +210,7 @@ export default {
     'v-statusPop': StatusPop,
     'v-confirmModal': ConfirmModal,
     'v-approveModal': ApproveModal,
-    'v-transFrom': TransFrom,
+    // 'v-transFrom': TransFrom,
     'v-loadingPopup': LoadingPopup,
   },
   computed: {

@@ -1,9 +1,9 @@
 <template>
   <div class="send-menu-page content-box">
     <v-navTitle title="Send"></v-navTitle >
-    <div class="send-from-box content-page">
-      <v-transFrom @transFromChange="transFromChange"></v-transFrom>
-    </div>
+    <!-- <div class="send-from-box content-page"> -->
+      <!-- <v-transFrom @transFromChange="transFromChange"></v-transFrom> -->
+    <!-- </div> -->
     <div class="send-menu content-page">
       <!-- <v-formSelect 
         label="Recipient" 
@@ -159,7 +159,7 @@ export default {
     "v-formSelect": formSelect,
     'v-statusPop': StatusPop,
     'v-confirmModal': ConfirmModal,
-    'v-transFrom': TransFrom,
+    // 'v-transFrom': TransFrom,
     'v-loadingPopup': LoadingPopup,
   },
   computed: {
