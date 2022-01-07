@@ -3,7 +3,7 @@
     <img src="~@/assets/menu.png" class="menu-icon" @click="showPopup" v-show="iconVisible">
     <van-popup v-model="menuVisible" position="left" class="popup-box" overlay-class="popup-overlay" :overlay="iconVisible">
       <div v-for="(item, index) in menuData" :key="index" @click="changeMenu(index, item.route, 'activeKey')"
-       >
+      >
         <!-- <van-icon :name="item.icon" size="20px"/> -->
         <div :class="['left-menu-item', index == activeKey ? 'active' : '']">
           <label style="font-size: 20px"><i :class="item.icon" size="60px"></i></label>
@@ -11,11 +11,40 @@
         </div>
         <div v-if="item.subMenu">
           <div v-for="(itemChild, indexChild) in item.subMenu" :key="indexChild" :class="['left-menu-item-child', (indexChild == activeChildKey && index == activeKey)? 'active' : '']" @click.stop="changeMenu(indexChild, itemChild.route, 'activeChildKey', index)">
-            <label style="font-size: 20px"><i :class="itemChild.icon" size="60px"></i></label>
+            <!-- <label style="font-size: 20px"><i :class="itemChild.icon" size="60px"></i></label> -->
             <span>{{itemChild.name}}</span>
           </div>
         </div>
       </div>
+      <div class="left-menu-item-for-hasSub">
+        <van-collapse v-model="activeNames" v-for="(item, index) in multiMenuData" :key="index">
+          <van-collapse-item :name="item.name" class="item">
+            <template #title><div><label style="font-size: 20px"><i :class="item.icon" size="60px"></i></label>{{ item.name }}</div></template>
+            <div v-for="(_item, index) in item.subMenu" :key="index" :class="['item-menu', {'active': `${index}-${_item.route}` == activeKey}]"  @click="_changeMenu(index, _item.route, 'activeKey')">
+              <router-link :to="_item.route"><span>{{ _item.name }}</span></router-link>
+            </div>
+          </van-collapse-item>
+        </van-collapse>
+      </div>
+      <!-- <div v-for="(item, index) in menuData" :key="index"
+      :class="[!item.children||item.children && item.children.length===0 ? 'left-menu-item':'left-menu-item-for-hasSub', index == activeKey ? 'active' : '']" @click="changeMenu(index, item.route)"
+       >
+        <div v-if="!item.children||item.children && item.children.length===0">
+          <label style="font-size: 20px"><i :class="item.icon" size="60px"></i></label>
+          <span>{{item.name}}</span>
+        </div>
+        <div v-else>
+          <van-collapse v-model="activeNames">
+            <van-collapse-item :title="item.name" name="1" icon="shop-o" class="item">
+              <div v-for="(item, index) in item.children" :key="index" class="item-menu">
+                <router-link :to="item.path">
+                  <span>{{ item.name }}</span>
+                </router-link>
+              </div>
+            </van-collapse-item>
+          </van-collapse>
+        </div>
+      </div> -->
       <div class="network-container">
         <v-formSelect
           label="NETWORK"
@@ -34,13 +63,15 @@
 import Vue from 'vue';
 import web3 from 'web3'
 import 'vant/lib/index.css'
-import { Icon, Popup } from 'vant';
+import { Icon, Popup, Collapse, CollapseItem } from 'vant';
 import formSelect from '@/components/Select/index';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 
 Vue.use(Icon);
 Vue.use(Popup);
+Vue.use(Collapse);
+Vue.use(CollapseItem);
 
 export default {
   name: 'LeftMenu',
@@ -55,11 +86,41 @@ export default {
         {icon: 'el-icon-view', name: 'Overview', route: '/overView'},
         {icon: 'el-icon-position', name: 'Send', route: '/sendMenu'},
         {icon: 'el-icon-sell', name: 'Exchange', route: '/exchange'},
+        // {icon: 'el-icon-suitcase-1', name: 'Tools', subMenu: [
+        //   {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
+        //   {icon: 'el-icon-document', name: 'Recover Secret', route: '/srecovery'},
+        //   {icon: 'el-icon-s-custom', name: 'Co-Workers', route: '/addfriends'},
+        // ]},
         // {icon: 'el-icon-guide', name: 'Bridge', route: '/bridge'},
+        // {
+        //   icon: 'el-icon-collection', 
+        //   name: 'NC-Wallet', 
+        //   route: '/ncWalletList', 
+        //   subMenu: [{
+        //     icon: 'el-icon-bank-card', 
+        //     name: 'My NC-Wallet', 
+        //     route: '/ncWalletList',
+        //   },{
+        //     icon: 'el-icon-document-add', 
+        //     name: 'Create NC-Wallet', 
+        //     route: '/ncWalletCreate',
+        //   },{
+        //     icon: 'el-icon-sell', 
+        //     name: 'Recover NC-Wallet', 
+        //     route: '/ncWalletRecover',
+        //   }]
+        // },
+      ],
+      multiMenuData: [
+        {icon: 'el-icon-suitcase-1', name: 'Tools', subMenu: [
+          {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
+          {icon: 'el-icon-document', name: 'Recover Secret', route: '/srecovery'},
+          {icon: 'el-icon-s-custom', name: 'Co-Workers', route: '/addfriends'},
+        ]},
         {
           icon: 'el-icon-collection', 
           name: 'NC-Wallet', 
-          route: '/ncWalletList', 
+          // route: '/ncWalletList',
           subMenu: [{
             icon: 'el-icon-bank-card', 
             name: 'My NC-Wallet', 
@@ -79,6 +140,8 @@ export default {
 
       defaultIcon: null,
       netWorkList: [],
+
+      activeNames: ['Tools', 'NC-Wallet'],
     }
   },
   components: {
@@ -129,6 +192,10 @@ export default {
       this[activeType] = index
       if (activeType == 'activeChildKey') {this.activeKey = parentIndex}
       this.$router.push({ path: route})
+    },
+    _changeMenu(index, route, activeType, parentIndex) {
+      this[activeType] = `${index}-${route}`
+      if (activeType == 'activeChildKey') {this.activeKey = parentIndex}
     },
     async handleNetworkChange(data) {
       const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]

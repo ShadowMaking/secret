@@ -104,11 +104,12 @@
       @close="showTradeConfirm=false"
       @reject="cancelRecover"
       @confirm="confirmRecover" />
-    <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+    <!-- <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
       <div class="inner-wrapper">
         <van-loading type="spinner" />
       </div>
-    </van-popup>
+    </van-popup> -->
+    <v-loadingPopup :show="showLoading" :showSpinner="false" />
   </div>
 </template>
 
@@ -118,6 +119,7 @@ import { ethers } from 'ethers'
 import { Toast, Step, Steps, Loading, Popup, Dialog } from 'vant'
 import navTitle from '@/components/NavTitle/index'
 import ConfirmModal from '@/components/ConfirmModal';
+import LoadingPopup from '@/components/LoadingPopup';
 import { isLogin, getContractAt, getConnectedAddress } from '@/utils/dashBoardTools';
 import walletList from './walletList/index'
 import { getFromStorage } from '@/utils/storage'
@@ -169,6 +171,7 @@ export default {
     "v-navTitle": navTitle,
     "v-walletList": walletList,
     'v-confirmModal': ConfirmModal,
+    'v-loadingPopup': LoadingPopup,
   },
   methods: {
     nextStep() {

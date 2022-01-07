@@ -10,10 +10,37 @@
       </div>
       <div slot="right" class="header-right">
         <div v-show="showConnectWallet">
-          <span @click="showAccoutAddress" class="header-address" id="header-address-popup" v-if="address!==''" >
-            {{ `${address.slice(0,6)}...${address.slice(-4)}` }}
-            <i class="link-icon"></i>
-          </span>
+          <div v-if="address!==''" >
+            <van-popover
+              key="accountSetpopover8"
+              close-on-click-outside
+              :overlay="true"
+              :get-container="getContainer"
+              v-model="showAccountInfo"
+              trigger="click"
+              placement="bottom-end">
+              <div class="show-accrout-address-popup" :style="showAccroutAddressPopupStyle()">
+                <div class="header"><h3>Account</h3></div>
+                <div class="inner-wraper">
+                  <div class="flex flex-content-between" style="display: none">
+                    <span>Connected to Metamask</span>
+                    <a class="disconnect" @click="disconnect">Logout</a>
+                  </div>
+                  <div class="address">{{ address }}</div>
+                  <div class="flex">
+                    <a class="copy-a" @click="copyAddress"><i class="a-icon "></i>{{ copyAddressTxt }}</a>
+                    <a class="view-in-explorer-a" @click="toExplorer"><i class="a-icon"></i>View in Explorer</a>
+                  </div>
+                </div>
+              </div>
+              <template #reference>
+                <span @click="showAccoutAddress" class="header-address" id="header-address-popup" v-if="address!==''" >
+                  {{ `${address.slice(0,6)}...${address.slice(-4)}` }}
+                  <i class="link-icon"></i>
+                </span>
+              </template>
+            </van-popover>
+          </div>
           <div slot="right" v-else >
             <a @click="chooseWallet" class="linkWallet">
               <span>Connect Wallet</span>
@@ -59,7 +86,7 @@
                   <span>Import Account</span>
                 </router-link>
               </div>
-              <div class="opt-item van-hairline--bottom" @click="toPage('backup', 'create')">
+              <div class="opt-item van-hairline--bottom" @click="toPage('backup', 'create')" style="display: none">
                <!--  <van-icon name="plus" class="opt-icon" />
                 <span>Create Account</span> -->
                 <router-link to="/backup?type=create">
@@ -75,11 +102,11 @@
                   <span>Import Account</span>
                 </router-link>
               </div>
-              <div class="opt-item van-hairline--bottom" @click="toPage('srecovery')">
+              <div class="opt-item van-hairline--bottom" @click="toPage('srecovery')" style="display: none">
                 <van-icon name="cluster-o" class="opt-icon" />
                 <span>Recover Secret</span>
               </div>
-              <div class="opt-item van-hairline--bottom" @click="toPage('addfriends')">
+              <div class="opt-item van-hairline--bottom" @click="toPage('addfriends')" style="display: none">
                 <van-icon name="friends-o" class="opt-icon" />
                 <span>Friends</span>
               </div>
@@ -173,6 +200,9 @@ export default {
       encryptCr1: '',
       confirmPswBtnLoading: false,
       showInputPswModal: false,
+
+      copyAddressTxt: 'Copy Address',
+      showAccountInfo: false,
     }
   },
   components: {
@@ -204,6 +234,12 @@ export default {
       if (isPc()) { return 'center' };
       return 'bottom';
     },
+    showAccroutAddressPopupStyle() {
+      if (isPc()) {
+        return { minWidth: '300px' }
+      }
+      return { maxWidth: '300px' }
+    },
     navTxt() {
       const routeName = this.$route.name;
       switch(routeName) {
@@ -216,11 +252,13 @@ export default {
       }
     },
     showAccoutAddress() {
-      this.showAccountPopup = true;
+      // this.showAccountPopup = true;
     },
     copyAddress() {
       if (copyTxt(this.address)) {
-        Toast.success('Success');
+        // Toast.success('Success');
+        this.copyAddressTxt = 'Copied'
+        setTimeout(()=>{ this.copyAddressTxt = 'Copy Address'}, 500)
       }
     },
     toExplorer() {
