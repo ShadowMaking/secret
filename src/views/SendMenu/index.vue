@@ -189,7 +189,7 @@ export default {
     },
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
-      this.$router.push({ name: 'overView' })
+      this.$router.push({ name: 'overview' })
     },
     async gasBtn() {
       this.loadingGas = true;

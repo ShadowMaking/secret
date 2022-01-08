@@ -303,7 +303,7 @@ export default {
         const disabled = this.expectNetType === 'l1' && netMode !== "l1" || this.expectNetType === 'l2' && netMode !== "l2"
 
         // dashBoard don not need L1 or L2 netWork
-        const dashBoardRouteName = ['overView', 'sendMenu', 'exchange']
+        const dashBoardRouteName = ['overview', 'sendMenu', 'exchange']
         const isDashBoardFun = dashBoardRouteName.includes(this.$route.name)
         if (!isDashBoardFun && (netMode !== "l1" && netMode !== "l2" || disabled)) {
           this.showNetTip = true;

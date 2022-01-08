@@ -227,7 +227,7 @@ export default {
     },
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
-      this.$router.push({ name: 'overView' })
+      this.$router.push({ name: 'overview' })
     },
     gasPriceValue(type) {
       return this.gasPriceInfo && this.gasPriceInfo[type].gasPrice;

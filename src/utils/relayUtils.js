@@ -1,5 +1,6 @@
 // import * as ecies from "./ecies";
-import * as ecies from "ecies-utils";
+// import * as ecies from "ecies-utils";
+import * as ecies from "@ieigen/ecies-js";
 export { ecies }
 
 // for debug
