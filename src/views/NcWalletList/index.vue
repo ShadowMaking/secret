@@ -1,7 +1,7 @@
 <template>
   <div class="ncWalletList-page">
     <v-navTitle title="Multisig Wallet"></v-navTitle >
-    <div class="nc-wallet-des">Non-custodial Wallet is the most reliable asset management method. It confirms each transaction by setting up one or more signers to make asset transactions more secure.</div>
+    <div class="nc-wallet-des">Multisig Wallet provides functionalities, including Social recovery, Multiple signature transaction, Payment limit, Lock and unlock to prevent user's funds from being lost or stolen.</div>
     <van-tabs color="#4375f1" title-active-color="#4375f1">
       <van-tab title="I am The Owner" title-style="font-weight: bold">
         <div>

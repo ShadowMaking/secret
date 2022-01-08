@@ -2,7 +2,7 @@
   <div class="ncWalletRecover-page">
     <v-navTitle title="Recover Multisig Wallet"></v-navTitle>
     <div class="recover-wallet-container">
-      <p class="recover-des">You can restore the owner private key corresponding to the backed up wallet by signer confirmation</p>
+      <p class="recover-des">Recover your wallet by multisig transaction first, and more than N/2 signers’ signature is needed, then the new owner executes the owner transfer.</p>
       <div class="recover-wallet-box">
         <div class="recover-steps">
           <van-steps :active="activeStep">

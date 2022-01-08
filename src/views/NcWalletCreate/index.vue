@@ -2,9 +2,9 @@
   <div class="ncWalletCreate-page content-box">
     <v-navTitle title="Create Multisig Wallet"></v-navTitle>
     <div class="create-wallet-container content-page">
-      <p class="create-title">Non-custodial Wallet</p>
-      <p class="create-des">Non-custodial Wallet is the most reliable asset management method. It confirms each transaction by setting up one or more guardians to make asset transactions more secure.</p>
-      <p class="create-des" style="margin-top: 15px;">Quickly create a Non-custodial Wallet:</p>
+      <p class="create-title">Multisig Wallet</p>
+      <p class="create-des">Create one right now!   Add at least one signer,  who can help you to recover your wallet, co-send large amount money, and lock the wallet when you need.</p>
+      <p class="create-des" style="margin-top: 15px;">Quickly create a Multisig Wallet:</p>
       <div class="create-wallet-form">
         <el-form label-position="left">
           <el-form-item label="Set Wallet Name" label-width="135px">

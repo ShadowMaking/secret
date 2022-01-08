@@ -123,15 +123,15 @@ export default {
           // route: '/ncWalletList',
           subMenu: [{
             icon: 'el-icon-bank-card', 
-            name: 'My Multisig Wallet', 
+            name: 'My Wallet', 
             route: '/ncWalletList',
           },{
             icon: 'el-icon-document-add', 
-            name: 'Create Multisig Wallet', 
+            name: 'Create Wallet', 
             route: '/ncWalletCreate',
           },{
             icon: 'el-icon-sell', 
-            name: 'Recover Multisig Wallet', 
+            name: 'Recover Wallet', 
             route: '/ncWalletRecover',
           }]
         },
