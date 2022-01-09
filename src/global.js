@@ -1,8 +1,8 @@
 
 /*
-开发：dev-deliver-secret.eigen.com
-测试：test.ieigen.com
-线上：rpc.ieigen.com
+dev：dev-deliver-secret.eigen.com
+test：test.ieigen.com
+prod：rpc.ieigen.com
 */
 
 let protocol = location.protocol;
