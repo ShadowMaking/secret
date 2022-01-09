@@ -14,6 +14,10 @@ switch(process.env.NODE_ENV){
     WEBSITE_BASEURL =  protocol + '//test.ieigen.com'
     LOCATION_HREF = protocol + '//dev-deliver-secret.eigen.com:8090'
   break;
+  case 'preview':
+    WEBSITE_BASEURL =  protocol + '//preview.ieigen.com'
+    LOCATION_HREF = protocol + '//preview.ieigen.com'
+  break;
   case 'test':
 		WEBSITE_BASEURL =  protocol + '//test.ieigen.com'
     LOCATION_HREF = protocol + '//test.ieigen.com'
