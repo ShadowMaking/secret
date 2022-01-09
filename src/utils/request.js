@@ -6,9 +6,7 @@ import {
   getFromStorage,
   removeFromStorage,
   getInfoFromStorageByKey } from '@/utils/storage';
-
-const protocol = location.protocol;
-export const WEBSITE_BASEURL = protocol + '//rpc.ieigen.com'
+import { WEBSITE_BASEURL } from '../global'
 
 axios.defaults.withCredentials = true;
 
