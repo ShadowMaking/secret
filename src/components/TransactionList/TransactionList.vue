@@ -19,13 +19,13 @@
           </el-col>
           <el-col :span="4" :class="['transaction-list-item', `address`]">
             <el-tooltip  effect="dark" placement="top-start">
-              <div slot="content" class="table-item-tip-tooltip">{{ item.hash }}</div>
+              <div slot="content" class="table-item-tip-tooltip" @click="copyAddress(item.hash)">{{ item.hash }}</div>
               <a @click="toPageDetail(item, 'hash')">{{ showAddress(item.hash) }}</a>
             </el-tooltip>
           </el-col>
           <el-col :span="4" :class="['transaction-list-item', `address`]" v-if="!hideFrom">
             <el-tooltip effect="dark" placement="top-start">
-              <div slot="content" class="table-item-tip-tooltip">{{ item.from }}</div>
+              <div slot="content" class="table-item-tip-tooltip" @click="copyAddress(item.from)">{{ item.from }}</div>
               <a @click="toPageDetail(item, 'from')">
                 <span class="from"></span>{{ showAddress(item.from) }}
               </a>
@@ -33,7 +33,7 @@
           </el-col>
           <el-col :span="4" :class="['transaction-list-item', `address`]" v-if="!hideTo">
             <el-tooltip effect="dark" placement="top-start">
-              <div slot="content" class="table-item-tip-tooltip">{{ item.to }}</div>
+              <div slot="content" class="table-item-tip-tooltip" @click="copyAddress(item.to)">{{ item.to }}</div>
               <a @click="toPageDetail(item, 'to')">
                 <span class="to"></span>{{ showAddress(item.to) }}
               </a>
@@ -94,11 +94,15 @@
 </template>
 <script>
 import Vue from 'vue';
+import { Toast } from 'vant';
 import { subStrAddress, getRouteNameAndQuery  } from '@/utils/index';
 import None from '@/components/None/index';
 import Loading from '@/components/Loading';
 import Empty from '@/components/Empty/index';
 import { getCurrentProvider } from '@/utils/web3';
+import { copyTxt } from '@/utils/index';
+
+Vue.use(Toast)
 
 export default {
   name: 'TransactionList',
@@ -150,6 +154,11 @@ export default {
     },
   },
   methods: {
+    copyAddress(str) {
+      if (copyTxt(str)) {
+        Toast.success('Copied');
+      }
+    },
     showAddress(txt) { return subStrAddress(txt)},
     toPageDetail(record, type) {
       const { routeName, query } = getRouteNameAndQuery(record, type);
