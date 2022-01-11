@@ -18,10 +18,16 @@
         <el-table-column
           prop="wallet_address"
           label="Wallet Address">
+          <template slot-scope="scope">
+              <span @click="copyAddress(scope.row.wallet_address)">{{scope.row.wallet_address}}</span>
+          </template>
         </el-table-column>
         <el-table-column
           prop="owner_address"
           label="Owner Address ">
+          <template slot-scope="scope">
+              <span @click="copyAddress(scope.row.owner_address)">{{scope.row.owner_address}}</span>
+          </template>
         </el-table-column>
         <el-table-column
           prop="status"
@@ -97,6 +103,7 @@ import SignMessageModal from '@/components/SignMessageModal';
 import LoadingPopup from '@/components/LoadingPopup';
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import web3 from 'web3'
+import { copyTxt } from '@/utils/index';
 
 Vue.use(Toast);
 Vue.use(Loading);
@@ -144,6 +151,11 @@ export default {
     'v-loadingPopup': LoadingPopup,
   },
   methods: {
+    copyAddress(str) {
+      if (copyTxt(str)) {
+        Toast.success('Copied');
+      }
+    },
     handleClick(row, type) {
       this.signRow = row;
       switch(type) {

@@ -20,6 +20,9 @@
           <el-table-column
             prop="address"
             label="Signer Address/ENS">
+            <template slot-scope="scope">
+              <span @click="copyAddress(scope.row.address)">{{scope.row.address}}</span>
+            </template>
           </el-table-column>
           <el-table-column
             prop="status"
@@ -76,6 +79,7 @@ import {  isLogin, getContractAt } from '@/utils/dashBoardTools'
 import { getFromStorage, removeFromStorage } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { signerStatus, securityModuleRouter } from '@/utils/global';
+import { copyTxt } from '@/utils/index';
 
 Vue.use(Toast);
 Vue.use(Loading);
@@ -110,6 +114,11 @@ export default {
   },
   
   methods: {
+    copyAddress(str) {
+      if (copyTxt(str)) {
+        Toast.success('Copied');
+      }
+    },
     backEvent() {
       removeFromStorage(['currentWallet'])
       this.$router.go(-1)

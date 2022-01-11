@@ -21,6 +21,9 @@
         <el-table-column
           prop="wallet_address"
           label="Address">
+          <template slot-scope="scope">
+              <span @click="copyAddress(scope.row.wallet_address)">{{scope.row.wallet_address}}</span>
+          </template>
         </el-table-column>
         <el-table-column
           label="Signer">
@@ -33,7 +36,11 @@
 </template>
 <script>
 import Vue from 'vue';
+import { Toast } from 'vant';
 import { saveToStorage } from '@/utils/storage'
+import { copyTxt } from '@/utils/index';
+
+Vue.use(Toast)
 
 export default {
   name: 'ownWalletList',
@@ -45,6 +52,11 @@ export default {
   },
   
   methods: {
+    copyAddress(str) {
+      if (copyTxt(str)) {
+        Toast.success('Copied');
+      }
+    },
     handleClick(row) {
       saveToStorage({ 'currentWallet': row.wallet_address });
       this.$router.push({
