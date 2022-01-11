@@ -6,9 +6,8 @@ import {
   getFromStorage,
   removeFromStorage,
   getInfoFromStorageByKey } from '@/utils/storage';
-
-const protocol = location.protocol;
-export const WEBSITE_BASEURL = protocol + '//rpc.ieigen.com'
+import { WEBSITE_BASEURL, LOCATION_HREF } from '../global'
+console.log('WEBSITE_BASEURL', WEBSITE_BASEURL)
 
 axios.defaults.withCredentials = true;
 
@@ -59,8 +58,7 @@ axios.defaults.withCredentials = true;
          case 1: // need login
           const userId = getFromStorage('gUID')
           const token = getAuthToken('gtoken')
-          const url = `${window.location.protocol}//secret.ieigen.com`
-          window.location.href=url
+          window.location.href = LOCATION_HREF
           return Promise.reject('error')
          default:
           //  console.log('error', res.message);
