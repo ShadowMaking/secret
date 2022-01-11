@@ -57,7 +57,7 @@ export const getStringInfoFromStorageByKey = (key, storageType = 'local') => {
   return null
 }
 
-// 清除缓存中的钱包等相关信息
+// clear storage's wallet info
 export const removeWallet = () => {
   if (getFromStorage('walletInfo')) {
     removeFromStorage(['walletInfo', 'walletAccounts', 'loginInfo', 'connectNet']);
