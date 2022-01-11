@@ -11,23 +11,34 @@
       // display: flex;
       align-items: center;
       width: 100%;
-      height: 40px;
       padding: 0 1rem;
       cursor: pointer;
       line-height: 40px;
       font-size: 14px;
       font-weight: 500;
       font-family: Graphik, sans-serif;
+      position: relative;
       span {
         margin-left: 10px;
       }
     }
-    .left-menu-item:hover {
+    .left-menu-item:hover, .left-menu-item-child:hover {
       background-color: #ddd;
       border-radius: 5px;
     }
-    .left-menu-item.active {
+    .left-menu-item.active, .left-menu-item-child.active {
       color: #495ABE;
+    }
+    .left-menu-item-child {
+      line-height: 30px;
+      padding-left: 2.5rem;
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      cursor: pointer;
+      span {
+        margin-left: 10px;
+      }
     }
     .left-menu-item-for-hasSub {
       .item {
@@ -35,8 +46,10 @@
         ::v-deep.van-cell { background: transparent;}
         ::v-deep.van-cell__left-icon { margin-right: 10px; font-size: 20px;}
         ::v-deep.van-collapse-item__content { background: transparent;}
+        label i { margin-right: 10px; vertical-align: middle; }
         .item-menu { font-size: 13px; line-height: 30px; padding-left: 30px; cursor: pointer; a{color: #2c3e50;display: block; width: 100%;padding: 2px 0;}}
         .item-menu:hover { background-color: #ddd; border-radius: 5px; }
+        .item-menu.active { a{color: #495ABE;} }
       }
     }
   }

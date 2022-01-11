@@ -17,7 +17,22 @@ const DOMAIN = hostName;
 
 const etherscanAPIKeyToken = 'JKUUBYKV6BFS2J4BIV41IKF1QFZRN758TK';
 
-const SWAPADDRESS = '0x243B775Ec2dbDD7AC8982bDFa56c2d7316dD089d'
+const SWAPADDRESS = '0x243B775Ec2dbDD7AC8982bDFa56c2d7316dD089d';
+
+const securityModuleRouter = '0xd7b8790EdB2de8A00906cc22086951601958E20B';
+const proxyRouter = '0xFe392b0150d1014df430D17EE3E09f500454bB0B';
+const walletTransactionRouter = '0x1587Cc57910A40058785cd5C198741dA74e808a2';
+
+const signerStatus = {
+	'confirmed': 1,
+	'rejected': 2,
+	'active': 3,
+	'freeze': 4,
+	'startRecover': 5,
+	'agreeRecover': 6,
+	'ignoreRecover': 7,
+	'triggerRecover': 8,
+}
 
 export {
   DEFAULTIMG,
@@ -29,4 +44,8 @@ export {
   TOKEN_NAME_LOCK,
   etherscanAPIKeyToken,
   SWAPADDRESS,
+  signerStatus,
+  securityModuleRouter,
+  proxyRouter,
+  walletTransactionRouter,
 }

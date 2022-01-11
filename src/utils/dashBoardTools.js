@@ -4,7 +4,7 @@ import { BigNumber } from "bignumber.js";
 import { defaultNetWorkForMetamask, CHAINMAP } from '@/utils/netWorkForToken';
 import { CHAINIDMAP } from '@/utils/netWorkForToken'
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
-
+import { getCurrentProvider } from '@/utils/web3';
 /**
  * @description: 
  * @param {*} list
@@ -12,9 +12,9 @@ import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByK
  * @param {*} isDefault Boolean  identification token is deployed on L1
  * @return {*}
  */
-export const generateTokenList = async (list, self, isDefault) => {
+export const generateTokenList = async (list, self, isDefault, connectAddress) => {
   // const selectedConnectAddress = window.ethereum.selectedAddress;
-  const selectedConnectAddress = getConnectedAddress();
+  const selectedConnectAddress = connectAddress ? connectAddress : getConnectedAddress();
   const GetTokenBalanceMthodName = isDefault || isDefault===undefined ? 'GetTokenBalanceByContract' : 'GetTokenBalanceByEtherscan'
   for(let i=0; i<list.length;i+=1) {
     const tokenAddress = list[i].tokenAddress
@@ -50,9 +50,9 @@ export const generateTokenList = async (list, self, isDefault) => {
   return list
 }
 
-export const getDefaultETHAssets = async (self, rpcUrl) => {
+export const getDefaultETHAssets = async (self, rpcUrl, accountAddress) => {
   // const selectedConnectAddress = window.ethereum.selectedAddress;
-  const selectedConnectAddress = getConnectedAddress()
+  const selectedConnectAddress = accountAddress ? accountAddress : getConnectedAddress()
   // const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
   const metamaskProvider = initRPCProvider(rpcUrl);
   const signer = metamaskProvider.getSigner(0);
@@ -186,7 +186,7 @@ export const getConnectedAddress = (byMetamask=false) => {
 
 export const getConnectedNet = (byMetamask=false) => {
   const chainInfo = getInfoFromStorageByKey('netInfo')
-  const numberChainId = chainInfo && chainInfo['id']
+  const numberChainId = chainInfo && chainInfo['id'] || 1
   let chainId = numberChainId && web3.utils.numberToHex(numberChainId)
   if (byMetamask) {
     chainId = window.ethereum && window.ethereum.chainId
@@ -221,4 +221,53 @@ export const getDATACode = (abi, functionName, params) => {
   // paramsForFunctionName is params to execute functionName
   const datacode = iface.encodeFunctionData(`${functionName}`, paramsForFunctionName)
   return datacode || '0x'
+}
+
+//get ENS or address
+export async function getEns(address) {
+  return new Promise((resolve, reject) => {
+    const currentProvider = getCurrentProvider()
+    if (currentProvider) {
+      currentProvider.lookupAddress(address)
+      .then(res=>{
+        if (res) {
+          resolve(res)
+        } else {
+          resolve(address)
+        }
+        
+      })
+      .catch(error => {
+        resolve(address)
+      })
+    } else {
+      resolve(address)
+    }
+  })
+}
+
+//get address banlance
+export async function getBalanceByAddress(address) {
+  return new Promise((resolve, reject) => {
+    const currentProvider = getCurrentProvider()
+    console.log(currentProvider)
+    if (currentProvider) {
+      currentProvider.getBalance(address)
+      .then(res=>{
+        if (res) {
+          console.log(res)
+          let etherString = ethers.utils.formatEther(res);
+          resolve(etherString)
+        } else {
+          resolve(null)
+        }
+        
+      })
+      .catch(error => {
+        resolve(null)
+      })
+    } else {
+      resolve(null)
+    }
+  })
 }

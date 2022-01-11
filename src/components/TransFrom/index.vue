@@ -1,0 +1,99 @@
+<template>
+    <div class="send-from">
+      <h3 class="send-from-title">From</h3>
+      <div class="send-from-list">
+        <el-select 
+          v-model="fromVal" 
+          placeholder="Choose" 
+          style="width: 100%"
+          @change="selectChange">
+          <el-option-group
+            v-for="group in fromOptions"
+            :key="group.label"
+            :label="group.label">
+            <el-option
+              v-for="item in group.options"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value">
+            </el-option>
+          </el-option-group>
+        </el-select>
+      </div>
+    </div>
+</template>
+
+<script>
+import Vue from 'vue';
+import { getConnectedAddress } from '@/utils/dashBoardTools';
+import { getFromStorage } from '@/utils/storage'
+
+export default {
+  name: 'selectItem',
+  data(){
+    return { 
+      // fromOptions: [{
+      //   label: '',
+      //   options: [{
+      //     value: 'shanghai',
+      //     label: 'shanghai'
+      //   }]
+      // },{
+      //   label: 'Multisig Wallet',
+      //   options: [{
+      //     value: 'chengdu',
+      //     label: 'chengdu'
+      //   },{
+      //     value: 'beijing',
+      //     label: 'beijing'
+      //   }]
+      // }],
+      fromOptions: [{
+        label: '',
+        options: []
+      }, {
+        label: 'Multisig Wallet',
+        options: []
+      }],
+      fromVal: '', 
+
+      userId: getFromStorage('gUID'),
+    }
+  },
+  methods: {
+    selectChange(value) {
+      this.$emit('transFromChange', value);
+    },
+    getFromOrigin() {
+      let currentUserAddress = getConnectedAddress()
+      if (currentUserAddress) {
+        this.fromOptions[0].options.push({
+          value: '1-' + currentUserAddress,
+          label: currentUserAddress,
+        })
+      }
+      this.getWalletAsOwner()
+    },
+    async getWalletAsOwner() {
+      let data = {
+        userId: this.userId,
+        ownerAddress: getConnectedAddress(),
+      }
+      this.fromOptions[1].options = []
+      const { hasError, list } = await this.$store.dispatch('getWalletListAsOwner', data)
+      list.map(item => {
+        this.fromOptions[1].options.push({
+          value: '2-' + item.wallet_address,
+          label: item.name + '-' + item.wallet_address,
+        })
+      })
+    },
+  },
+  created() {
+    this.getFromOrigin()
+  },
+};
+</script>
+<style lang="scss" scoped>
+  @import "index";
+</style>

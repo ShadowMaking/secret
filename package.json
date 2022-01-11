@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ethersproject/shims": "^5.4.0",
+    "@ieigen/ecies-js": "0.0.2",
     "@uniswap/v3-core": "^1.0.0",
     "arb-bridge-peripherals": "^1.0.0",
     "arb-ts": "0.0.13",

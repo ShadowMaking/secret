@@ -256,7 +256,7 @@ export default {
       this.showInputPswModal = false
       this.showLoading();
       await this.getUserBindingInfo(this.isNewUser)
-      this.$router.push({ name: 'overView' })
+      this.$router.push({ name: 'overview' })
     },
   },
   async mounted() {

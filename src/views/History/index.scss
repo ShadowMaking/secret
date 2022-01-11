@@ -6,6 +6,24 @@
     color: #202C37;
     font-size: 1.6rem;
   }
+  .nc-tag {
+    margin-bottom: 10px;
+    span {
+      padding: 5px 10px;
+      font-size: 0.84rem;
+      background-color: #fff;
+      margin-right: 10px;
+      border-radius: 5px;
+      border: 1px solid  #4375f1;
+    }
+    span:hover {
+      cursor: pointer;
+    }
+    span.active {
+      background-color: #4375f1;
+      color: #fff;
+    }
+  }
 }
 .table-item-tip-tooltip {
   font-size: 1rem;

@@ -1,14 +1,23 @@
-.status-popUp {
+.status-popup {
   background: #fff;
   text-align: center;
   border-radius: 10px;
-  padding: 30px;
+  // padding: 30px;
   width: 330px;
   border: 1px solid rgb(204, 204, 204);
+  .status-popup-container { padding: 0 30px 30px; }
   .input-psw-container {
     font-size: 1rem;
-    input[type="password"]{ width: 170px; height: 35px; line-height: 35px; border: 1px solid rgb(204, 204, 204); padding: 0 10px; border-radius: 5px;}
-    input[type="password"].error { border-color: #f81d22;}
+    margin: 30px 0 0 -20px;
+    text-align: right;
+    input[type="password"],input[type="text"]{ width: 140px; height: 35px; line-height: 35px; border: 1px solid rgb(204, 204, 204); padding: 0 10px; border-radius: 5px;}
+    input[type="password"].error, input[type="text"].error { border-color: #f81d22;}
+    .psw {
+      position: relative;
+      i {width: 32px;height: 32px;display: block; position: absolute;right: -35px;top: -6px;cursor: pointer; }
+      i.hidepsw {background: url('~@/assets/icon_eye_hide.png') center center no-repeat;background-size: 100% 100%;}
+      i.showpsw {background: url('~@/assets/icon_eye.png') center center no-repeat;background-size: 100% 100%;}
+    }
   }
   .psw-tip {
     // font-size: .8125rem;
@@ -26,27 +35,15 @@
     li { word-break: break-word; margin-bottom: 10px; }
   }
   .error-tip {
-    padding-left: 30px;
+    // padding-left: 30px;
     color: #f81d22;
     font-size: .8125rem;
+    display: block;
+    margin-top: 5px;
   }
   .opt-container {
     display: flex;
     width: 100%;
     button { flex: 1; margin: 0 10px; }
-  }
-  .main-txt {
-    font-size: 1.4375rem;
-    color: #333333;
-    margin: 20px 0 15px;
-  }
-  .supplement-txt {
-    font-size: .8125rem;
-    color: #606265;
-    line-height: 18px;
-  }
-  .supplement-txt + .button {
-    margin-top: 20px;
-    border-radius: 5px;
   }
 }

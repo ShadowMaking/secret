@@ -22,15 +22,26 @@ export const TOKENMAP_NETWORK = {
   },
   // Stardust
   [CHAINIDMAP['STARDUST']]: {
-    // 0x9e32b13ce7f2e80a01932b42553652e053d6ed8e // use this address to get abi
     // "0x6E5791aD106fCADfba3115cdC21d1Ad3471D2e13": {
+    "0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000": {
+      "name": "tMetis",
+      "logo": "DAI.svg",
+      "erc20": true,
+      "symbol": "tMetis",
+      "decimals": 18,
+      "abiTokenAddress": '0x9e32b13ce7f2e80a01932b42553652e053d6ed8e' // use this address to get abi
+    },
+  },
+  // Andromeda
+  [CHAINIDMAP['ANDRROMEDA']]: {
+    // "0x9e32b13ce7f2e80a01932b42553652e053d6ed8e": {
     "0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000": {
       "name": "Metis",
       "logo": "DAI.svg",
       "erc20": true,
       "symbol": "tMetis",
       "decimals": 18,
-      "abiTokenAddress": '0x9e32b13ce7f2e80a01932b42553652e053d6ed8e'
+      "abiTokenAddress": '0x9e32b13ce7f2e80a01932b42553652e053d6ed8e' // use this address to get abi
     },
   }
 }

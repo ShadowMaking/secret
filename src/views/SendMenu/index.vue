@@ -1,6 +1,9 @@
 <template>
   <div class="send-menu-page content-box">
     <v-navTitle title="Send"></v-navTitle >
+    <div class="send-from-box content-page">
+      <v-transFrom @transFromChange="transFromChange"></v-transFrom>
+    </div>
     <div class="send-menu content-page">
       <!-- <v-formSelect 
         label="Recipient" 
@@ -57,11 +60,12 @@
         </div>
       </van-popup>
     </div>
-    <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+   <!--  <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
       <div class="inner-wrapper">
         <van-loading type="spinner" />
       </div>
-    </van-popup>
+    </van-popup> -->
+    <v-loadingPopup :show="showLoading" :showSpinner="false" />
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
@@ -89,15 +93,19 @@ import selectItem from '@/components/SelectItem/index';
 import formSelect from '@/components/Select/index';
 import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
+import TransFrom from '@/components/TransFrom';
+import LoadingPopup from '@/components/LoadingPopup';
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
-import { ETHFORUS } from '@/utils/global';
+import { ETHFORUS, walletTransactionRouter } from '@/utils/global';
 import { BigNumber } from "bignumber.js";
 import { wait, prettyLog } from '@/utils/index'
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getConnectedAddress, initRPCProvider, getContractWallet, isLogin, getDATACode, getContractAt } from '@/utils/dashBoardTools';
+import WalletTransaction from "@/assets/contractJSON/TransactionModule.json";
+import WalletJson from "@/assets/contractJSON/Wallet.json";
 
 Vue.use(Popup);
 Vue.use(Toast)
@@ -143,6 +151,10 @@ export default {
       sendType: '', // eth||token
       sendMetadata: null,
       showTradeConfirm: false,
+
+      transFromType: 1, //1-account address ,2-wallet address
+      transFromAddress: getConnectedAddress(),
+      walletTransactionRouter,
     }
   },
   components: {
@@ -152,6 +164,8 @@ export default {
     "v-formSelect": formSelect,
     'v-statusPop': StatusPop,
     'v-confirmModal': ConfirmModal,
+    'v-transFrom': TransFrom,
+    'v-loadingPopup': LoadingPopup,
   },
   computed: {
     exchangeUSForSelectedToken() {
@@ -180,7 +194,7 @@ export default {
     },
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
-      this.$router.push({ name: 'overView' })
+      this.$router.push({ name: 'overview' })
     },
     async gasBtn() {
       this.loadingGas = true;
@@ -202,15 +216,16 @@ export default {
     },
     async getTokenAssetsForAccount() {
       this.assetsTokenList = []
-      const selectedConnectAddress = getConnectedAddress()
+      const selectedConnectAddress = this.transFromAddress ? this.transFromAddress : getConnectedAddress()
+      console.log(selectedConnectAddress)
       if (!selectedConnectAddress) { return }
       const currentChainId = this.currentChainInfo && this.currentChainInfo['id']
       const hexChainId = currentChainId && web3.utils.numberToHex(currentChainId)
       const rpcUrl = hexChainId && CHAINMAP[hexChainId]['rpcUrls'][0]
-      const ETHAssets = await getDefaultETHAssets(this, rpcUrl);
+      const ETHAssets = await getDefaultETHAssets(this, rpcUrl, selectedConnectAddress);
       const tokenListRes = await this.$store.dispatch('GetAvailableTokenAssets', { selectedConnectAddress, chainInfo: this.currentChainInfo });
       const { hasError, list } = tokenListRes
-      const tokenList = await generateTokenList(_.cloneDeep(list), this, true)
+      const tokenList = await generateTokenList(_.cloneDeep(list), this, true, selectedConnectAddress)
       console.log('tokenList', tokenList)
       this.assetsTokenList = [].concat([ETHAssets], tokenList)
     },
@@ -235,10 +250,14 @@ export default {
         type1Value: this.type1Value,
         type2Value: this.type2Value,
       }
-      if (sendType === 'eth') {
-        await this.sendETH(data)
-      } else {
-        await this.sendToken(data)
+      if (this.transFromType == 1) {//from is account address
+        if (sendType === 'eth') {
+          await this.sendETH(data)
+        } else {
+          await this.sendToken(data)
+        }
+      } else {//from is transfrom wallet
+        this.walletTrans(data)
       }
     },
     checkData(data) {
@@ -315,6 +334,7 @@ export default {
         // const params = [sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') }]
         const params = [sendData.toAddress, amount]
         datacode = getDATACode(abi, 'transfer', params)
+        
 
         const contractWithSigner = await getContractAt({ tokenAddress: this.selectedToken.tokenAddress, abi: this.selectedToken.abiJson }, this)
         tempgasfixlimit = await contractWithSigner.estimateGas.transfer(sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
@@ -323,7 +343,7 @@ export default {
       console.log('tempgasfixlimit', tempgasfixlimit)
       
       this.sendMetadata = {
-        from: selectedConnectAddress,
+        from: this.transFromAddress,
         to: this.addressForRecipient,
         gas: this.sendType !== 'eth' ? 600000 : 462693, // gasLimit default is 21000
         gasPrice,
@@ -428,21 +448,65 @@ export default {
         this.showLoading = false
       })
     },
-    async sendSuccess(res, info, address) {
+    async walletTrans(data) {
+      console.log(data)
+      const expireTime = Math.floor((new Date().getTime()) / 1000) + 600; // 60 seconds
+      
+      let txData = '0x'
+      let thisWalletAddress = this.transFromAddress
+      let amount = ethers.utils.parseEther(data.type1Value)
+      let transTo = data.toAddress
+      let transAmount = amount
+      
+      if (this.sendType !== 'eth') {
+        let iface = new ethers.utils.Interface(data.selectedToken.abiJson)
+        txData = iface.encodeFunctionData("transfer", [data.toAddress, amount])
+        transTo = data.selectedToken.tokenAddress
+        transAmount = 0
+      }
+      console.log(txData)
+
+      const walletContract = await getContractAt({ tokenAddress: this.transFromAddress, abi: WalletJson.abi }, this)
+      let sequenceId = await walletContract.getNextSequenceId()
+      
+      const walletTransactionContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: WalletTransaction.abi }, this)
+      console.log(walletTransactionContract)
+      
+      
+      walletTransactionContract.executeTransaction(
+            thisWalletAddress,
+            [transTo, transAmount, txData, sequenceId, expireTime], {gasLimit: data.gasLimit, gasPrice: web3.utils.toWei(data.gasPrice, 'gwei')}
+      ).then(async tx=>{
+        console.log(tx)
+        tx.wait().then(async res=>{
+          console.log(res)
+          await this.sendSuccess(res, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress: this.transFromAddress, toAddress: data.toAddress}, true)
+          this.showLoading = false
+        }).catch(error => {
+          this.sendFailed(error)
+          this.showLoading = false
+        })
+      }).catch(error => {
+        this.sendFailed(error)
+        this.showLoading = false
+      })
+    },
+    async sendSuccess(res, info, address, isWallet) {
       const { selectedConnectAddress, toAddress } = address;
       const symbolName = info.tokenName || 'ETH'
       this.tipTxt = 'In progress, waitting';
       const submitData = {
         txid: res.transactionHash,
         block_num: res.blockNumber,
-        from: res.from || selectedConnectAddress,
+        from: isWallet ? selectedConnectAddress : (res.from || selectedConnectAddress),
         to: toAddress || res.to, // res.to is diffrent from toAddress wthen sendToken by contract
         type: TRANSACTION_TYPE['L2ToL2'],
         status: res.status || 1,
         value: info.amount,
         name: symbolName,
         operation: symbolName === 'ETH' ? 'Send' : 'Transfer', // send、transfer、approve、swap ……
-        network_id: web3.utils.hexToNumber(window.ethereum.chainId)
+        network_id: web3.utils.hexToNumber(window.ethereum.chainId),
+        from_type: isWallet ? 1 : 0,
       }
       this.addHistoryData = _.cloneDeep(submitData);
       await this.addHistory(submitData);
@@ -501,6 +565,14 @@ export default {
       await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
       emitEvent && (this.$eventBus.$emit('networkChange', { chainInfo, from:'sendMenu' }))
       await this.getTokenAssetsForAccount()
+    },
+
+    async transFromChange(data) {
+      let dataArray = data.split('-')
+      this.transFromType = dataArray[0]
+      this.transFromAddress = dataArray[1]
+      await this.getTokenAssetsForAccount()
+      console.log(this.transFromAddress)
     },
     async handleAccountChange(addressInfo) {
       this.showLoading = true;

@@ -18,6 +18,11 @@ const SendMenu = () => import('../views/SendMenu/index')
 const Bridge = () => import('../views/Bridge/index')
 const History = () => import('../views/History/index')
 const Test = () => import('../views/Test')
+const NcWalletList = () => import('../views/NcWalletList/index')
+const NcWalletCreate = () => import('../views/NcWalletCreate/index')
+const SignManage = () => import('../views/NcWalletList/signManage/index')
+const TransDetail = () => import('../views/TransDetail/index')
+const NcWalletRecover = () => import('../views/NcWalletRecover/index')
 
 // cache origin push method
 const originalPush = VueRouter.prototype.push
@@ -146,10 +151,10 @@ const routes = [
     component: AddFriends,
   },
   {
-    path: '/overView',
-    name: 'overView',
+    path: '/overview',
+    name: 'overview',
     meta: {
-      title: "overView",
+      title: "overview",
     },
     component: OverView,
   },
@@ -192,7 +197,47 @@ const routes = [
       title: "test",
     },
     component: Test,
-  }
+  },
+  {
+    path: '/ncWalletList',
+    name: 'ncWalletList',
+    meta: {
+      title: "ncWalletList",
+    },
+    component: NcWalletList,
+  },
+  {
+    path: '/ncWalletCreate',
+    name: 'ncWalletCreate',
+    meta: {
+      title: "ncWalletCreate",
+    },
+    component: NcWalletCreate,
+  },
+  {
+    path: '/signManage/:id',
+    name: 'signManage',
+    meta: {
+      title: "signManage",
+    },
+    component: SignManage,
+  },
+  {
+    path: '/transDetail/:id',
+    name: 'transDetail',
+    meta: {
+      title: "transDetail",
+    },
+    component: TransDetail,
+  },
+  {
+    path: '/ncWalletRecover',
+    name: 'ncWalletRecover',
+    meta: {
+      title: "ncWalletRecover",
+    },
+    component: NcWalletRecover,
+  },
 ];
 
 const router = new VueRouter({

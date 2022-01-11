@@ -1,0 +1,77 @@
+@import '@/app.scss';
+.ncWalletRecover-page {
+	.recover-des {
+	  font-size: 1.08rem;
+	  line-height: 25px;
+	}
+	.recover-wallet-box {
+	  .recover-steps {
+	    margin-top: 15px;
+	    margin-bottom: 15px;
+	    width: 50%;
+	  }
+	  .choose-wallet {
+	    
+	    .choose-wallt-info {
+	      display: flex;
+	      .choose-wallet-item {
+	        min-width: 200px;
+	        text-align: center;
+	        .choose-wallet-item-name {
+              margin-bottom: 10px;
+              font-size: 0.96rem; 
+	        }
+	        .choose-wallet-item-con {
+	          border: 1px solid #dfdfdf;
+	          padding: 0.6rem 1rem;
+	          display: inline-block;
+	        }
+	      }
+	    }
+
+	  }
+	  .wallet-no-signer {
+	      width:80%;
+	      text-align: center;
+	      color: #999;
+	      margin-top: 10px;
+	      margin-bottom: 10px;
+	   }
+	  
+	}
+	.choose-wallet-des {
+      font-size: 0.96rem;
+      margin-bottom: 15px;
+    }
+	.choose-refresh {
+	  margin-top: 15px;
+	  margin-bottom: 15px;
+	  text-align: right;
+	}
+    .sign-complete-box {
+      width: 80%;
+      .choose-btn {
+	    margin-top: 30px;
+	    text-align: center;
+	  }
+    }
+    .complete-success-icon {
+      text-align: center;
+    }
+    .confirm-icon {
+      font-size: 1.5rem;
+      .el-icon-success {
+        color: #85ce61;
+      }
+      .el-icon-question {
+        color: #e6a23c;
+      }
+      .el-icon-error {
+        color: #f56c6c;
+      }
+    }
+    .add-signer-tip {
+      margin-top: 20px;
+      color: #999;
+    }
+}

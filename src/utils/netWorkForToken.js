@@ -65,6 +65,13 @@ const CHAINMAP  = {
                                 blockExplorerUrls: ['https://stardust-explorer.metis.io/'],
                                 icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
                               },                
+  [web3.utils.numberToHex(1088)]: {
+                                id: 1088,
+                                name: 'Andromeda',
+                                rpcUrls: ['https://andromeda.metis.io/?owner=1088'],
+                                blockExplorerUrls: ['https://andromeda-explorer.metis.io/'],
+                                icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
+                              },                
   
 }
 const CHAINIDMAP  = {
@@ -79,6 +86,7 @@ const CHAINIDMAP  = {
   SECRETL2: web3.utils.numberToHex(189250287905350),
 
   STARDUST: web3.utils.numberToHex(588),
+  ANDRROMEDA: web3.utils.numberToHex(1088),
 }
 
 const NETWORKSFORTOKEN = Object.keys(CHAINMAP).map(chainId => {

@@ -1,6 +1,9 @@
 <template>
   <div class="exchange-page content-box">
     <v-navTitle title="Exchange"></v-navTitle>
+    <!-- <div class="send-from-box content-page">
+      <v-transFrom @transFromChange="transFromChange"></v-transFrom>
+    </div> -->
     <div class="exchange-content content-page">
       <div class="from-box">
         <v-formSelect 
@@ -85,12 +88,13 @@
           </div>
         </div>
       </van-popup>
-      <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
+      <!-- <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
         <div class="inner-wrapper">
           <van-loading type="spinner" />
         </div>
-      </van-popup>
+      </van-popup> -->
     </div>
+    <v-loadingPopup :show="showLoading" :showSpinner="false" />
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
@@ -124,6 +128,7 @@ import formSelect from '@/components/Select/index';
 import selectItem from '@/components/SelectItem/index';
 import ConfirmModal from '@/components/ConfirmModal';
 import ApproveModal from '@/components/ApproveModal';
+import TransFrom from '@/components/TransFrom';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getContractAt, getContractAtForApprove, getConnectedAddress, initRPCProvider, isLogin, getDATACode, getContractWallet } from '@/utils/dashBoardTools';
 import { ethers, utils } from 'ethers'
@@ -135,6 +140,7 @@ import swapJson from './Swap.json'
 import { CHAINIDMAP } from '@/utils/netWorkForToken'
 import { PROTOCOLList, PROTOCOLMAP } from '@/utils/swap.js'
 import StatusPop from '@/components/StatusPop';
+import LoadingPopup from '@/components/LoadingPopup';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
 import { IUniswapV3Router, approveV3Router } from '@/utils/v3swap.js'
@@ -204,6 +210,8 @@ export default {
     'v-statusPop': StatusPop,
     'v-confirmModal': ConfirmModal,
     'v-approveModal': ApproveModal,
+    // 'v-transFrom': TransFrom,
+    'v-loadingPopup': LoadingPopup,
   },
   computed: {
     approveBtnTxt() {
@@ -219,7 +227,7 @@ export default {
     },
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
-      this.$router.push({ name: 'overView' })
+      this.$router.push({ name: 'overview' })
     },
     gasPriceValue(type) {
       return this.gasPriceInfo && this.gasPriceInfo[type].gasPrice;
@@ -1144,10 +1152,15 @@ export default {
         }
       })
     },
+
+    transFromChange(data) {
+      console.log(data)
+    },
     async handleAccountChange(addressInfo) {
       this.showLoading = true;
       await this.getTokenList()
       this.showLoading = false;
+
     },
     _handleNetworkChange({ chainInfo, from }) {
       if (from === 'exchange') { return }
