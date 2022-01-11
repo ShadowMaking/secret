@@ -19,8 +19,9 @@ const etherscanAPIKeyToken = 'JKUUBYKV6BFS2J4BIV41IKF1QFZRN758TK';
 
 const SWAPADDRESS = '0x243B775Ec2dbDD7AC8982bDFa56c2d7316dD089d';
 
-const securityModuleRouter = '0x92B04BEf234507780CA19D19F329C7399dE67E58';
-const proxyRouter = '0x541069A635A4088054135648E691174B73ad86c4';
+const securityModuleRouter = '0xd7b8790EdB2de8A00906cc22086951601958E20B';
+const proxyRouter = '0xFe392b0150d1014df430D17EE3E09f500454bB0B';
+const walletTransactionRouter = '0x1587Cc57910A40058785cd5C198741dA74e808a2';
 
 const signerStatus = {
 	'confirmed': 1,
@@ -46,4 +47,5 @@ export {
   signerStatus,
   securityModuleRouter,
   proxyRouter,
+  walletTransactionRouter,
 }

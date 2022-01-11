@@ -44,7 +44,7 @@ Vue.use(Tabs);
 Vue.use(Toast);
 
 export default {
-  name: 'Multisig Wallet',
+  name: 'NcWalletList',
   data() {
     return {
       signerStatus,

@@ -63,10 +63,11 @@ import { getContractAt, getConnectedAddress, getEns, isLogin } from '@/utils/das
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import ProxyJson from "@/assets/contractJSON/Proxy.json";
+import WalletTransaction from "@/assets/contractJSON/TransactionModule.json";
 import { BigNumber } from "bignumber.js";
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import { timeFormat } from '@/utils/str';
-import { securityModuleRouter, proxyRouter } from '@/utils/global';
+import { securityModuleRouter, proxyRouter, walletTransactionRouter } from '@/utils/global';
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import web3 from 'web3'
 
@@ -98,6 +99,7 @@ export default {
 
       securityModuleRouter,
       proxyRouter,
+      walletTransactionRouter,
 
       overrides: {
         gasLimit: 8000000,
@@ -180,6 +182,7 @@ export default {
 
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       const proxyContract = await getContractAt({ tokenAddress: this.proxyRouter, abi: ProxyJson.abi }, this)
+      const transactionContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: WalletTransaction.abi }, this)
       const saletnew = ethers.utils.randomBytes(32);
       
       let createSignList = this.createSignerSubmit
@@ -198,9 +201,11 @@ export default {
       
       const walletContract = await getContractAt({ tokenAddress: walletAddress, abi: WalletJson.abi }, this)
     
-      let modules = [ securityModuleContract.address ]
+      let modules = [ transactionContract.address, securityModuleContract.address ]
       let encoder = ethers.utils.defaultAbiCoder
-      let data = [encoder.encode(["address[]"], [createSignList])]
+      let du = ethers.utils.parseEther("15")//one day
+      let lap = ethers.utils.parseEther("10")//one 
+      let data = [encoder.encode(["uint", "uint"], [du, lap]), encoder.encode(["address[]"], [createSignList])]
       let initTx = await walletContract.initialize(modules, data, this.overrides);
       console.log(initTx)
       const initTxwait = await initTx.wait()

@@ -53,7 +53,7 @@ import request from '@/utils/request';
 }
 
 /**
- * @description: Get all wallets as owner
+ * @description: Get all wallets as owner(userid)
  * @param 
  * @return {*}
  */
@@ -62,6 +62,23 @@ import request from '@/utils/request';
   return request({
     url: `/api/user/${userId}/wallets`,
     method: 'get',
+  })
+}
+
+/**
+ * @description: Get all wallets as owner(address)
+ * @param address
+ * @return {*}
+ */
+ export const getWalletListAsOwner = (data) => {
+  const userId = data['userId'];
+  const _data = {
+    address: data['ownerAddress'].toLocaleLowerCase()
+  }
+  return request({
+    url: `/api/user/${userId}/wallets`,
+    method: 'get',
+    params: _data
   })
 }
 

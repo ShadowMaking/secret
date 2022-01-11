@@ -49,6 +49,14 @@ export const getInfoFromStorageByKey = (key, storageType = 'local') => {
   return null
 }
 
+export const getStringInfoFromStorageByKey = (key, storageType = 'local') => {
+  const info = getFromStorage(key, storageType)
+  if (info) {
+    return info
+  }
+  return null
+}
+
 // 清除缓存中的钱包等相关信息
 export const removeWallet = () => {
   if (getFromStorage('walletInfo')) {

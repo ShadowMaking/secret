@@ -4,7 +4,8 @@ import {
   saveToStorage,
   getFromStorage,
   removeFromStorage,
-  getInfoFromStorageByKey } from '@/utils/storage';
+  getInfoFromStorageByKey,
+  getStringInfoFromStorageByKey } from '@/utils/storage';
 
 const token = {
   state: {
@@ -44,7 +45,7 @@ const token = {
             privateKey = privateKeyInfo && privateKeyInfo[`${userId}||${address}||${encryptKey}`]
           } else {
             const key = `${userId}||${address}||${encryptKey}`
-            privateKey = getInfoFromStorageByKey(key, 'session')
+            privateKey = getStringInfoFromStorageByKey(key, 'session')
           }
           resolve({ hasError: false, data: privateKey })
         } else {

@@ -2,6 +2,7 @@ import {
   searchSigner,
   addWallet,
   getWalletList,
+  getWalletListAsOwner,
   addSigner,
   getSignerList,
   updateSigner,
@@ -51,6 +52,19 @@ const ncWallet = {
     getWalletList({ commit }, params) {
       return new Promise((resolve, reject) => {
         getWalletList(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false, list: data })
+          }
+          resolve({ hasError: true, list: [], error: message });
+        }).catch(error => {
+          resolve({ hasError: true, list: [], error });
+        })
+      })
+    },
+    getWalletListAsOwner({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        getWalletListAsOwner(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0) {
             resolve({ hasError: false, list: data })

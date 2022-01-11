@@ -192,10 +192,10 @@ export default {
         } else if (status == this.signerStatus['triggerRecover']) {
           this.getSignMessage()
         } else if (status == this.signerStatus['freeze']) {
-          let tx = await this.securityModuleContract.lock(this.signRow.wallet_address, this.overrides)
-          console.log(tx)
-          const txwait = await tx.wait()
-          console.log(txwait)
+          // let tx = await this.securityModuleContract.lock(this.signRow.wallet_address, this.overrides)
+          // console.log(tx)
+          // const txwait = await tx.wait()
+          // console.log(txwait)
         }
       } else {
         this.updateSignerStatus(status, true)

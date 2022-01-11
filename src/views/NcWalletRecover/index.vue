@@ -285,8 +285,6 @@ export default {
 
       // console.log(replaceOwnerData)
       console.log(securityModuleContract)
-      let isInRecovery = await securityModuleContract.isInRecovery(this.currentWalletAddress)
-      console.log(isInRecovery)
       let tx = await securityModuleContract.executeRecovery(this.currentWalletAddress, this.overrides)
       console.log(tx)
       let txwait = await tx.wait()

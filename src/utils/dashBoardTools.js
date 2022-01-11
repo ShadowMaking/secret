@@ -12,9 +12,9 @@ import { getCurrentProvider } from '@/utils/web3';
  * @param {*} isDefault Boolean  identification token is deployed on L1
  * @return {*}
  */
-export const generateTokenList = async (list, self, isDefault) => {
+export const generateTokenList = async (list, self, isDefault, connectAddress) => {
   // const selectedConnectAddress = window.ethereum.selectedAddress;
-  const selectedConnectAddress = getConnectedAddress();
+  const selectedConnectAddress = connectAddress ? connectAddress : getConnectedAddress();
   const GetTokenBalanceMthodName = isDefault || isDefault===undefined ? 'GetTokenBalanceByContract' : 'GetTokenBalanceByEtherscan'
   for(let i=0; i<list.length;i+=1) {
     const tokenAddress = list[i].tokenAddress
@@ -50,9 +50,9 @@ export const generateTokenList = async (list, self, isDefault) => {
   return list
 }
 
-export const getDefaultETHAssets = async (self, rpcUrl) => {
+export const getDefaultETHAssets = async (self, rpcUrl, accountAddress) => {
   // const selectedConnectAddress = window.ethereum.selectedAddress;
-  const selectedConnectAddress = getConnectedAddress()
+  const selectedConnectAddress = accountAddress ? accountAddress : getConnectedAddress()
   // const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum);
   const metamaskProvider = initRPCProvider(rpcUrl);
   const signer = metamaskProvider.getSigner(0);

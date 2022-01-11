@@ -53,6 +53,7 @@ export default {
       searchValue: '',
       isSearch: false,
       currentChainInfo: null,
+      fromType: 0, //0-user address 1-wallet address
 
       isNc: false,
     }
@@ -66,6 +67,9 @@ export default {
   methods: {
     selectNC() {
       this.isNc = !(this.isNc)
+      this.fromType = (this.isNc ? 1 : 0)
+      this.searchAllTrasanctionList()
+      this.transactionList = []
     },
     searchAllTrasanctionList() {
       if(!this.connectedWallet()) { return }
@@ -80,6 +84,7 @@ export default {
         address: selectedConnectAddress,
         txid: this.searchValue,
         network_id: this.defaultNetWork,
+        from_type: this.fromType
       }
       this.getTrasanctionList(searchParam)
     },
