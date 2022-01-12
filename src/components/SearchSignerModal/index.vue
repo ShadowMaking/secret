@@ -77,6 +77,8 @@ export default {
       this.$emit('confirm', query)
     },
     addSignerBtn() {
+      this.signListoptions = []
+      this.searchInput = ''
       this.showPopup = true
     },
   },
