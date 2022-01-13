@@ -972,7 +972,8 @@ export default {
       const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
       this.currentChainInfo = chainInfo
       await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
-      emitEvent && (this.$eventBus.$emit('networkChange', { chainInfo, from:'exchange' }))
+      // emitEvent && (this.$eventBus.$emit('networkChange', { chainInfo, from:'exchange' }))
+      this.$eventBus.$emit('networkChange', { chainInfo, from:'exchange' })
       await this.getTokenList(true)
     },
     handleProtocolChange(data) {
