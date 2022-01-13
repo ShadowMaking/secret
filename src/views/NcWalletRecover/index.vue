@@ -110,6 +110,7 @@
       </div>
     </van-popup> -->
     <v-loadingPopup :show="showLoading" :showSpinner="false" />
+    <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
 
@@ -120,13 +121,15 @@ import { Toast, Step, Steps, Loading, Popup, Dialog } from 'vant'
 import navTitle from '@/components/NavTitle/index'
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingPopup from '@/components/LoadingPopup';
-import { isLogin, getContractAt, getConnectedAddress } from '@/utils/dashBoardTools';
+import InputPswModal from '@/components/InputPswModal'
+import { isLogin, getContractAt, getConnectedAddress, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore } from '@/utils/dashBoardTools';
 import walletList from './walletList/index'
-import { getFromStorage } from '@/utils/storage'
+import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import { signerStatus, securityModuleRouter } from '@/utils/global';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { CHAINMAP } from '@/utils/netWorkForToken';
+import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import web3 from 'web3'
 
 Vue.use(Toast);
@@ -165,6 +168,19 @@ export default {
       },
       currentChainInfo: null,
       sendMetadata: null,
+
+      currentOptType: '', // executeRecover||recoverChild
+      currentRecord: null,
+      // ***************** inputPsw start ***************** //
+      userPsw: '',
+      publicKey: '',
+      aesKey: '', // every decrypt has the same aesKey
+      encryptPsw: '',
+      encryptPrivateKeyPublicKey: '',
+      encryptCr1: '',
+      confirmPswBtnLoading: false,
+      showInputPswModal: false,
+      // ***************** inputPsw end ***************** //
     }
   },
   components: {
@@ -172,6 +188,7 @@ export default {
     "v-walletList": walletList,
     'v-confirmModal': ConfirmModal,
     'v-loadingPopup': LoadingPopup,
+    'v-inputPsw': InputPswModal,
   },
   methods: {
     nextStep() {
@@ -268,7 +285,7 @@ export default {
       this.showLoading = true;
       this.executeRecover()
     },
-    async executeRecover() {
+    async dealDataBeforeExecuteRecover() {
       console.log('start excute')
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
 
@@ -292,7 +309,20 @@ export default {
       this.showLoading = false;
       this.activeStep = this.activeStep + 1
     },
-    async recoverChild(value) {
+    async executeRecover() { //  gyy
+      this.currentRecord = null
+      this.currentOptType = 'executeRecover'
+      // check privateKey whether is existed
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      await this.dealDataBeforeExecuteRecover()
+    },
+    async dealDataBeforeRecoverChild() {
+      const value = this.currentRecord
+
       this.walletShow = false
       this.currentWalletAddress = value.wallet_address
       this.currentWalletName = value.name
@@ -302,6 +332,17 @@ export default {
       const walletContract = await getContractAt({ tokenAddress: this.currentWalletAddress, abi: WalletJson.abi }, this)
       let res1 = await walletContract.owner();
       console.log("newowner:" + res1)
+    },
+    async recoverChild(value) { // gyy
+      this.currentRecord = _.cloneDeep(value)
+      this.currentOptType = 'recoverChild'
+      // check privateKey whether is existed
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      await this.dealDataBeforeRecoverChild()
     },
     async getSignerListByid() {
       let data = {
@@ -328,6 +369,52 @@ export default {
       this.signerList = newList
       this.signerTotal = newList.length
       this.signerPercent = Math.ceil(this.signerTotal/2)
+    },
+    async confirmPswOk({ show, psw }) {
+      this.userPsw = psw; // password of user input for encrypt privateKey
+      this.confirmPswBtnLoading = true
+      const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
+      if (hasError) {
+        Toast('Get PublickKey Failed! Retry')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      this.publicKey = publicKey;
+      console.log(`GetPublicKey result is: ${publicKey}`)
+      
+      // const password = ecies.crypto.randomBytes(16).toString("base64");
+      const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
+      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      console.log('aesKey:', aesKey)
+      this.aesKey = aesKey
+      this.encryptPsw = encryptPsw
+      this.encryptCr1 = encryptCr1
+      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+
+      // to decrypt privatekey
+      const userId = getInfoFromStorageByKey('gUID')
+      const address = getConnectedAddress()
+      const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
+      const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
+      if(decryptInfo.hasError) {
+        Toast('DecryptPrivateKeyByEcies failed! Retry!')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      const decryptedPrivateKey = decryptInfo.data
+      const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
+      privateKey && (await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey, privateKey }))
+
+      this.confirmPswBtnLoading = false
+      this.showInputPswModal = false
+
+      if (this.currentOptType === 'executeRecover') {
+        await this.dealDataBeforeExecuteRecover()
+      }
+      if (this.currentOptType === 'recoverChild') {
+        await this.dealDataBeforeRecoverChild()
+      }
+      
     },
   },
   async created() {

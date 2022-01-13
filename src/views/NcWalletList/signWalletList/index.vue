@@ -86,6 +86,7 @@
       @close="showSignMessageModal=false"
       @reject="cancelSignMessage"
       @confirm="confirmSignMessage" />
+    <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
 <script>
@@ -94,16 +95,18 @@ import { ethers } from 'ethers'
 import { Toast, Loading, Popup, Dialog } from 'vant'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
-import {  getContractAt, getConnectedAddress, getContractWallet } from '@/utils/dashBoardTools'
+import { getContractAt, getConnectedAddress, getContractWallet, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore } from '@/utils/dashBoardTools'
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { signerStatus, securityModuleRouter } from '@/utils/global';
 import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
 import SignMessageModal from '@/components/SignMessageModal';
 import LoadingPopup from '@/components/LoadingPopup';
+import InputPswModal from '@/components/InputPswModal'
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import web3 from 'web3'
 import { copyTxt } from '@/utils/index';
+import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
 Vue.use(Toast);
 Vue.use(Loading);
@@ -142,6 +145,18 @@ export default {
       showSignMessageModal: false,
       signMessageMetadata: null,
       signMsgHash: '',
+
+      currentOptType:'', // singerSignMessage||triggerRecover
+      // ***************** inputPsw start ***************** //
+      userPsw: '',
+      publicKey: '',
+      aesKey: '', // every decrypt has the same aesKey
+      encryptPsw: '',
+      encryptPrivateKeyPublicKey: '',
+      encryptCr1: '',
+      confirmPswBtnLoading: false,
+      showInputPswModal: false,
+      // ***************** inputPsw end ***************** //
     }
   },
   components: {
@@ -149,6 +164,7 @@ export default {
     'v-confirmModal': ConfirmModal,
     'v-signMessageModal': SignMessageModal,
     'v-loadingPopup': LoadingPopup,
+    'v-inputPsw': InputPswModal,
   },
   methods: {
     copyAddress(str) {
@@ -243,7 +259,7 @@ export default {
       this.signMessageSubmit(sig)
       console.log(sig)
     },
-    async singerSignMessage(status) {
+    async dealDataBeforeSingerSignMessage() {
       let currentWalletAddress = this.signRow.wallet_address
       const walletContract = await getContractAt({ tokenAddress: currentWalletAddress, abi: WalletJson.abi }, this)
       let sequenceId = await walletContract.getNextSequenceId()
@@ -265,6 +281,16 @@ export default {
       }
       this.showSignMessageModal = true
       this.showLoading = false
+    },
+    async singerSignMessage(status) {
+      this.currentOptType = 'singerSignMessage'
+      // check privateKey whether is existed
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      await this.dealDataBeforeSingerSignMessage()
     },
     async signMessageSubmit(msg) {
       let data = {
@@ -349,7 +375,7 @@ export default {
       this.showLoading = true
       this.triggerRecover()
     },
-    async triggerRecover() {
+    async dealDataBeforeTriggerRecover() {
       let currentWalletAddress = this.signRow.wallet_address
       const walletContract = await getContractAt({ tokenAddress: currentWalletAddress, abi: WalletJson.abi }, this)
       let sequenceId = await walletContract.getNextSequenceId()
@@ -370,6 +396,16 @@ export default {
       this.showStatusPop = true
       console.log(triggerres)
     },
+    async triggerRecover() {
+      this.currentOptType = 'triggerRecover'
+      // check privateKey whether is existed
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      await this.dealDataBeforeTriggerRecover()
+    },
     changeVisible() {
       this.showStatusPop = false;
     },
@@ -377,6 +413,52 @@ export default {
       const info = getInfoFromStorageByKey('netInfo')
       console.log(info)
       return info && info['id'] || 1
+    },
+    async confirmPswOk({ show, psw }) {
+      this.userPsw = psw; // password of user input for encrypt privateKey
+      this.confirmPswBtnLoading = true
+      const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
+      if (hasError) {
+        Toast('Get PublickKey Failed! Retry')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      this.publicKey = publicKey;
+      console.log(`GetPublicKey result is: ${publicKey}`)
+      
+      // const password = ecies.crypto.randomBytes(16).toString("base64");
+      const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
+      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      console.log('aesKey:', aesKey)
+      this.aesKey = aesKey
+      this.encryptPsw = encryptPsw
+      this.encryptCr1 = encryptCr1
+      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+
+      // to decrypt privatekey
+      const userId = getInfoFromStorageByKey('gUID')
+      const address = getConnectedAddress()
+      const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
+      const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
+      if(decryptInfo.hasError) {
+        Toast('DecryptPrivateKeyByEcies failed! Retry!')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      const decryptedPrivateKey = decryptInfo.data
+      const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
+      privateKey && (await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey, privateKey }))
+
+      this.confirmPswBtnLoading = false
+      this.showInputPswModal = false
+
+      if (this.currentOptType === 'singerSignMessage') {
+        await this.dealDataBeforeSingerSignMessage()
+      }
+      if (this.currentOptType === 'triggerRecover') {
+        await this.dealDataBeforeTriggerRecover()
+      }
+      
     },
   },
 

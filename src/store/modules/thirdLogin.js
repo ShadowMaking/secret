@@ -69,7 +69,8 @@ const thirdLogin = {
     StoreBindingGoogleUserInfo({ commit }, params) {
       return new Promise((resolve, reject) => {
         const userId = params.userId;
-        const { address, encryptPrivateKey } = params
+        const { encryptPrivateKey } = params
+        const address = params.address.toLocaleLowerCase()
         if (userId) {
           const userMap = {}
           userMap[userId] = {
@@ -97,7 +98,8 @@ const thirdLogin = {
     StoreBindingGoogleUserInfoList({ commit }, params) {
       return new Promise((resolve, reject) => {
         const userId = params.userId;
-        const { address, encryptPrivateKey } = params
+        const { encryptPrivateKey } = params
+        const address = params.address.toLocaleLowerCase()
         if (userId) {
           const addressListInStorage = getInfoFromStorageByKey('userList') || [];
           const addressTarget = _.find(addressListInStorage, { address })

@@ -60,11 +60,6 @@
         </div>
       </van-popup>
     </div>
-   <!--  <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-      <div class="inner-wrapper">
-        <van-loading type="spinner" />
-      </div>
-    </van-popup> -->
     <v-loadingPopup :show="showLoading" :showSpinner="false" />
     <v-statusPop
       :status="popStatus"
@@ -80,6 +75,7 @@
       @close="showTradeConfirm=false"
       @reject="cancelSend"
       @confirm="confirmSend" />
+    <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
 
@@ -95,17 +91,21 @@ import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
 import TransFrom from '@/components/TransFrom';
 import LoadingPopup from '@/components/LoadingPopup';
+import InputPswModal from '@/components/InputPswModal'
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
-import { ETHFORUS, walletTransactionRouter } from '@/utils/global';
+import { walletTransactionRouter } from '@/utils/global';
 import { BigNumber } from "bignumber.js";
-import { wait, prettyLog } from '@/utils/index'
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
-import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
-import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getConnectedAddress, initRPCProvider, getContractWallet, isLogin, getDATACode, getContractAt } from '@/utils/dashBoardTools';
+import { getInfoFromStorageByKey } from '@/utils/storage';
+import {
+  generateTokenList, getDefaultETHAssets, getConnectedAddress,
+  getContractWallet, isLogin, getDATACode, getContractAt, 
+  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, } from '@/utils/dashBoardTools';
 import WalletTransaction from "@/assets/contractJSON/TransactionModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
+import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
 Vue.use(Popup);
 Vue.use(Toast)
@@ -155,6 +155,17 @@ export default {
       transFromType: 1, //1-account address ,2-wallet address
       transFromAddress: getConnectedAddress(),
       walletTransactionRouter,
+
+      // ***************** inputPsw start ***************** //
+      userPsw: '',
+      publicKey: '',
+      aesKey: '', // every decrypt has the same aesKey
+      encryptPsw: '',
+      encryptPrivateKeyPublicKey: '',
+      encryptCr1: '',
+      confirmPswBtnLoading: false,
+      showInputPswModal: false,
+      // ***************** inputPsw end ***************** //
     }
   },
   components: {
@@ -166,6 +177,7 @@ export default {
     'v-confirmModal': ConfirmModal,
     'v-transFrom': TransFrom,
     'v-loadingPopup': LoadingPopup,
+    'v-inputPsw': InputPswModal,
   },
   computed: {
     exchangeUSForSelectedToken() {
@@ -281,23 +293,7 @@ export default {
       }
       return true
     },
-
-    async sendSubmit() {
-      /* if (!window.ethereum) {
-        Toast('need install metamask')
-        return
-      }
-      if (!window.ethereum.selectedAddress) {
-        Toast('need connect metamask')
-        return
-      } */
-
-      const selectedConnectAddress = getConnectedAddress()
-      if (!selectedConnectAddress) {
-        Toast('Need Login')
-        return
-      }
-
+    async dealDataBeforeSend() {
       const sendData = {
         toAddress: this.addressForRecipient,
         selectedToken: this.selectedToken,
@@ -318,15 +314,12 @@ export default {
       if (this.selectedGasType) {
         gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.selectedGasType].gasPrice
       }
-      // gasPrice = web3.utils.toWei(gasPrice, 'gwei')
 
-      const data = { gasPrice, ...sendData }
       const tokenName = this.selectedToken.tokenName
-      
       this.sendType = tokenName === 'ETH' ? 'eth':'token'
 
-      let datacode = '0x'
-      let tempgasfixlimit = '0'
+      let datacode = '0x'; // transaction DATA
+      let tempgasfixlimit = '0'; // transaction estimate gas fee
       if (this.sendType !== 'eth') {
         const abi = this.selectedToken.abiJson
         const decimals = BigNumber(10).pow(this.selectedToken.decimals).toNumber() // 1000000000000000000
@@ -334,7 +327,6 @@ export default {
         // const params = [sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') }]
         const params = [sendData.toAddress, amount]
         datacode = getDATACode(abi, 'transfer', params)
-        
 
         const contractWithSigner = await getContractAt({ tokenAddress: this.selectedToken.tokenAddress, abi: this.selectedToken.abiJson }, this)
         tempgasfixlimit = await contractWithSigner.estimateGas.transfer(sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
@@ -355,30 +347,71 @@ export default {
       }
       this.showLoading = false
       this.showTradeConfirm = true
-      return
-      console.log('Transaction Data', data)
-      if (this.selectedToken.tokenName === 'ETH') { // send ETH
-        this.sendType = 'eth'
-        this.sendETH(data)
-      } else { // send token
-        this.sendType = 'token'
-        this.sendToken(data)
-      }
     },
-    /* async getContractWallet() {
-      const url = this.currentChainInfo.rpcUrls[0]
-      const provider = initRPCProvider(url)
-      const userId = getInfoFromStorageByKey('gUID')
-      const { data: userInfo } = await this.$store.dispatch('GetBindingGoogleUserInfo', {userId})
-      const encryptKey = userInfo.encryptPrivateKey
-      const decryptInfo = await this.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
-      const { hasError, data: privateKey } = decryptInfo
+    async sendSubmit() {
+      /* if (!window.ethereum) {
+        Toast('need install metamask')
+        return
+      }
+      if (!window.ethereum.selectedAddress) {
+        Toast('need connect metamask')
+        return
+      } */
 
-      const wallet = new ethers.Wallet(privateKey, provider);
-      return wallet
-    }, */
+      const selectedConnectAddress = getConnectedAddress()
+      if (!selectedConnectAddress) {
+        Toast('Need Login')
+        return
+      }
+
+      // check privateKey whether is existed
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      await this.dealDataBeforeSend()
+    },
+    async confirmPswOk({ show, psw }) {
+      this.userPsw = psw; // password of user input for encrypt privateKey
+      this.confirmPswBtnLoading = true
+      const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
+      if (hasError) {
+        Toast('Get PublickKey Failed! Retry')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      this.publicKey = publicKey;
+      console.log(`GetPublicKey result is: ${publicKey}`)
+      
+      // const password = ecies.crypto.randomBytes(16).toString("base64");
+      const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
+      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      console.log('aesKey:', aesKey)
+      this.aesKey = aesKey
+      this.encryptPsw = encryptPsw
+      this.encryptCr1 = encryptCr1
+      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+
+      // to decrypt privatekey
+      const userId = getInfoFromStorageByKey('gUID')
+      const address = getConnectedAddress()
+      const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
+      const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
+      if(decryptInfo.hasError) {
+        Toast('DecryptPrivateKeyByEcies failed! Retry!')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      const decryptedPrivateKey = decryptInfo.data
+      const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
+      privateKey && (await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey, privateKey }))
+
+      this.confirmPswBtnLoading = false
+      this.showInputPswModal = false
+      await this.dealDataBeforeSend()
+    },
     async sendETH(data) {
-      // const contractWallet = await this.getContractWallet()
       const contractWallet = await getContractWallet(this)
       // const transactionCount = await contractWallet.getTransactionCount()
       // console.log('transactionCount', transactionCount)

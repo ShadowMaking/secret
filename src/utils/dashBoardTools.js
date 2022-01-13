@@ -1,4 +1,4 @@
-import { ethers, utilss } from 'ethers'
+import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
 import { defaultNetWorkForMetamask, CHAINMAP } from '@/utils/netWorkForToken';
@@ -144,27 +144,47 @@ export const getDefaultETH = async (self) => { // TODO
   return ethers.utils.formatEther(balance)
 }
 
-export const getContractWallet = async (self) => {
-  const network = getConnectedNet()
-  const rpcUrl = network['rpcUrls'][0]
-  const provider = initRPCProvider(rpcUrl)
+export const getDecryptPrivateKeyFromStore = async (self) => {
   const userId = getInfoFromStorageByKey('gUID')
   const { data: userInfo } = await self.$store.dispatch('GetBindingGoogleUserInfo', {userId})
   const encryptKey = userInfo.encryptPrivateKey
   const address  = userInfo.address
   const decryptInfo = await self.$store.dispatch('GetDecryptPrivateKeyFromStore', {userId, address, encryptKey })
-  // const decryptInfo = await self.$store.dispatch('DecryptPrivateKey', {userId, encryptKey })
-  // const { hasError, data: privateKey } = decryptInfo
   const { hasError,  data: privateKey } = decryptInfo
   if (hasError || !privateKey) {  // TODO need get decrpyt privateKey by address
+    self.$eventBus.$emit('hasNoPrivateKey')
     return null
   }
-  const wallet = new ethers.Wallet(privateKey, provider);
-  return wallet
+  return privateKey
+}
+
+export const getEncryptKeyByAddressFromStore = async (address, self) => {
+  const userId = getInfoFromStorageByKey('gUID')
+  const { data } = await self.$store.dispatch('GetBindingGoogleUserInfoList', {userId})
+  const target = _.find(data, (item) => item.address.toLocaleLowerCase() === address.toLocaleLowerCase())
+  if (target) {
+    return target.encryptPrivateKey
+  }
+  return ''
+}
+
+export const getContractWallet = async (self) => {
+  const network = getConnectedNet()
+  const rpcUrl = network['rpcUrls'][0]
+  const provider = initRPCProvider(rpcUrl)
+  const privateKey = await getDecryptPrivateKeyFromStore(self)
+  if (privateKey) {
+    const wallet = new ethers.Wallet(privateKey, provider);
+    return wallet
+  }
+  return null
+
+  
 }
 
 export const getContractAt = async ({ tokenAddress, abi }, self) => {
   const contractWallet = await getContractWallet(self)
+  if (!contractWallet) { return null }
   let contractWithSigner = new ethers.Contract(tokenAddress, abi, contractWallet)
   await contractWithSigner.attach(tokenAddress)
   console.log("Contract: ", contractWithSigner.address);
