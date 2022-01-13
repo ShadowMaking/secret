@@ -151,6 +151,7 @@ export default {
       return
     }
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
+    this.$eventBus.$on('networkChange', this.handleAccountChange)
   },
   beforeDestroy() {
     window.removeEventListener("scroll", this.onScroll, true);
