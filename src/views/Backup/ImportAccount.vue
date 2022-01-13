@@ -261,7 +261,7 @@ export default {
       this.userPsw = psw; // password of user input for encrypt privateKey
       this.confirmPswBtnLoading = true
       const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
-      if (hasError) {
+      if (hasError||!publicKey) {
         Toast('Get PublickKey fasiled! Retry')
         this.confirmPswBtnLoading = false
         return

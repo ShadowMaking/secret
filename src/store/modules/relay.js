@@ -60,7 +60,7 @@ const token = {
         // resolve({ hasError: false, data: PUBK })
         getAllPublicKey(params).then(response => {
           const { errno, data, message } = response.data
-          const pbk = data && data.length && data[0].public_key
+          const pbk = data && data.length && data[0].public_key || ''
           if (errno === 0) {
             resolve({ hasError: false, data: pbk })
           } else {
