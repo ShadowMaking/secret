@@ -7,9 +7,12 @@ var publicPath = path.join(rootPath, 'public')
 const CompressionWebpackPlugin = require('compression-webpack-plugin');
 const productionGzipExtensions = ['js', 'css'];
 const isProduction = process.env.NODE_ENV === 'production';
+const isPreview = process.env.NODE_ENV === 'preview';
+const isTest = process.env.NODE_ENV === 'test';
 
 
 module.exports = {
+  filenameHashing: true,
   devServer: {
     disableHostCheck: true,
     open: process.platform === "darwin",
@@ -47,9 +50,11 @@ module.exports = {
         config.plugin('webpack-bundle-analyzer').use(require('webpack-bundle-analyzer').BundleAnalyzerPlugin).end();
       }
     }
+    config.output.filename('js/[name].[hash].js').chunkFilename('js/[name].[hash].js').end()
   },
   configureWebpack: config => {
-    if (isProduction) {
+    // if (isProduction) {
+    if (isProduction||isPreview||isTest) {
       config.plugins.push(new CompressionWebpackPlugin({
         algorithm: 'gzip',
         test: /\.js$|\.html$|\.json$|\.css/,  // test: /\.js$|\.html$|\.css/,
