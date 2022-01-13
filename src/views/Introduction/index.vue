@@ -125,8 +125,8 @@ export default {
       const { data } = await this.$store.dispatch('DownloadAllEncrpytKey', { userId })
       if (!data.length) {
         console.log('This is old user, but have no encryptKey')
-        await this.createAccountForThirdLoginUser()
-        return
+        const createRes = await this.createAccountForThirdLoginUser()
+        return {...createRes}
       }
 
       let decrypted  = true; // only decrypt the first for current account
