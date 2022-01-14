@@ -54,6 +54,7 @@ import None from '@/components/None/index'
 import Loading from '@/components/Loading'
 import Approval from './Approval/index'
 
+
 Vue.use(Toast)
 Vue.use(Icon);
 Vue.use(Popup);

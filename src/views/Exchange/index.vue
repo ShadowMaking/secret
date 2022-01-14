@@ -227,7 +227,10 @@ export default {
     },
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
-      this.$router.push({ name: 'overview' })
+      this.$router.push({
+        path: `/overview`,
+        query: {tabActive: 1},
+      })
     },
     gasPriceValue(type) {
       return this.gasPriceInfo && this.gasPriceInfo[type].gasPrice;

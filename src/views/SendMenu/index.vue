@@ -194,7 +194,10 @@ export default {
     },
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
-      this.$router.push({ name: 'overview' })
+      this.$router.push({
+          path: `/overview`,
+          query: {tabActive: 1},
+      })
     },
     async gasBtn() {
       this.loadingGas = true;
@@ -398,10 +401,11 @@ export default {
       contractWallet.sendTransaction({...sendData})
       .then(async tx=>{
         console.log('sendETH tx:', tx)
+        await this.sendSuccess(tx, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress, toAddress: data.toAddress})
         tx.wait()
         .then(async res => {
           console.log('sendETH tx wait res:', res)
-          await this.sendSuccess(res, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress, toAddress: data.toAddress})
+          
           this.showLoading = false
         })
       })
@@ -436,10 +440,11 @@ export default {
       contractWithSigner.transfer(sendData.toAddress, tokenWithdrawAmount, { gasLimit, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
       .then(async tx=>{
         console.log('sendToken tx:', tx)
+        await this.sendSuccess(tx, {...this.selectedToken, amount: sendData.type1Value}, address)
         tx.wait()
         .then(async res => {
           console.log('sendToken tx wait res:', res)
-          await this.sendSuccess(res, {...this.selectedToken, amount: sendData.type1Value}, address)
+          
           this.showLoading = false
         })
       })
@@ -478,9 +483,9 @@ export default {
             [transTo, transAmount, txData, sequenceId, expireTime], {gasLimit: data.gasLimit, gasPrice: web3.utils.toWei(data.gasPrice, 'gwei')}
       ).then(async tx=>{
         console.log(tx)
+        await this.sendSuccess(tx, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress: this.transFromAddress, toAddress: data.toAddress}, true)
         tx.wait().then(async res=>{
           console.log(res)
-          await this.sendSuccess(res, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress: this.transFromAddress, toAddress: data.toAddress}, true)
           this.showLoading = false
         }).catch(error => {
           this.sendFailed(error)
@@ -496,8 +501,8 @@ export default {
       const symbolName = info.tokenName || 'ETH'
       this.tipTxt = 'In progress, waitting';
       const submitData = {
-        txid: res.transactionHash,
-        block_num: res.blockNumber,
+        txid: res.hash,
+        // block_num: res.blockNumber,
         from: isWallet ? selectedConnectAddress : (res.from || selectedConnectAddress),
         to: toAddress || res.to, // res.to is diffrent from toAddress wthen sendToken by contract
         type: TRANSACTION_TYPE['L2ToL2'],
@@ -537,8 +542,10 @@ export default {
         this.showLoading = false
 
         this.showStatusPop = true;
-        this.statusPopTitle = 'Send Submitted'
+        this.statusPopTitle = 'Submitted'
         this.popStatus = 'success';
+        console.log('add')
+        this.$eventBus.$emit('addTransactionHistory')
       }
       return { hasError: res.hasError };
     },

@@ -8,6 +8,7 @@
         </div>
         <div class="right-content-box">
           <router-view :key="$route.path" />
+          <v-socketModal></v-socketModal>
         </div>
       </div>
     </div>
@@ -18,6 +19,8 @@
   import _ from 'lodash';
   import leftmenu from '@/components/LeftMenu/index';
   import Header from '@/components/Header/index';
+  import socketModal from '@/components/socketModal/index';
+  
  
   export default {
     name: 'APP',
@@ -29,15 +32,14 @@
     components: {
       "v-leftmenu": leftmenu,
       "v-Header": Header,
+      "v-socketModal": socketModal,
     },
     methods: {
       oversize(margin) {
         this.isMargin = margin
       },
     },
-    created () {
-      
-    },
+    created () {},
   }
 </script>
 
