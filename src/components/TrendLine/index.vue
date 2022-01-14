@@ -228,12 +228,14 @@ export default {
       this.myChart.setOption(option);
       this.drawChart();
     },
+
   },
   mounted() {
     this.myChart = this.$echarts.init(document.getElementById("chartContent"));
     this.userAddress = getConnectedAddress()
     this.drawChart();
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
+    this.$eventBus.$on('networkChange', this.handleAccountChange)
   }
 }
 </script>

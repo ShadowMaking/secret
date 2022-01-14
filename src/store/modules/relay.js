@@ -21,7 +21,8 @@ const token = {
     SaveDecryptPrivateKeyInStore({ commit }, params) {
       return new Promise((resolve, reject) => {
         const userId = params.userId;
-        const { address, encryptKey, privateKey } = params
+        const { encryptKey, privateKey } = params
+        const address = params.address.toLocaleLowerCase()
         if (userId) {
           const privateKeyInfo = {}
           const key = `${userId}||${address}||${encryptKey}`
@@ -37,7 +38,8 @@ const token = {
     GetDecryptPrivateKeyFromStore({ commit, ...rootStore }, params) {
       return new Promise((resolve, reject) => {
         const userId = params.userId;
-        const { address, encryptKey } = params
+        const { encryptKey } = params
+        const address = params.address.toLocaleLowerCase()
         if (userId) {
           const  privateKeyInfo = rootStore.state['privateKeyInfoForAddress']
           let privateKey
@@ -58,7 +60,7 @@ const token = {
         // resolve({ hasError: false, data: PUBK })
         getAllPublicKey(params).then(response => {
           const { errno, data, message } = response.data
-          const pbk = data && data.length && data[0].public_key
+          const pbk = data && data.length && data[0].public_key || ''
           if (errno === 0) {
             resolve({ hasError: false, data: pbk })
           } else {

@@ -45,6 +45,7 @@
       key="thirdlogintip"
       :show="showThirdLoginTip"
       @childEvent="closeThirdLoginTip" />
+    <v-loadingPopup :show="showLoading" :showSpinner="false" />
     <v-inputPsw :show="showInputPswModal" :canCloseByBtn="true" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
@@ -58,6 +59,7 @@ import MnemonicForAccount from './Components/MnemonicForAccount'
 import PrivatekeyForAccount from './Components/PrivatekeyForAccount'
 import ThirdLoginTip from '@/components/ThirdLoginTip';
 import InputPswModal from '@/components/InputPswModal'
+import LoadingPopup from '@/components/LoadingPopup';
 import { formatTrim, objHasOwnProperty } from '@/utils/str';
 import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey } from '@/utils/relayUtils'
 
@@ -74,7 +76,8 @@ export default {
     'v-mnemonicType': MnemonicForAccount,
     'v-privatekeyType': PrivatekeyForAccount,
     'v-thirdlogintip': ThirdLoginTip,
-    'v-inputPsw': InputPswModal
+    'v-inputPsw': InputPswModal,
+    'v-loadingPopup': LoadingPopup,
   },
   data() {
     return {
@@ -94,7 +97,9 @@ export default {
       backupNameForImport: '',
       backupCommentForImport: '',
       
+      showLoading: false,
 
+      // ***************** inputPsw start ***************** //
       userPsw: '',
       publicKey: '',
       aesKey: '', // every decrypt has the same aesKey
@@ -103,6 +108,7 @@ export default {
       encryptCr1: '',
       confirmPswBtnLoading: false,
       showInputPswModal: false,
+      // ***************** inputPsw end ***************** //
     }
   },
   computed: {
@@ -175,6 +181,7 @@ export default {
         this.showInputPswModal = true
         return
       }
+      this.showLoading = true
 
       console.log(val, type)
       let wallet;
@@ -219,6 +226,7 @@ export default {
       // }
       await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey, address })
       this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
+      this.showLoading = false
       Toast('Import Account Successfully', 5)
       this.userPsw = '';
       this.$eventBus.$emit('importedAccountByPassword')
@@ -253,7 +261,7 @@ export default {
       this.userPsw = psw; // password of user input for encrypt privateKey
       this.confirmPswBtnLoading = true
       const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
-      if (hasError) {
+      if (hasError||!publicKey) {
         Toast('Get PublickKey fasiled! Retry')
         this.confirmPswBtnLoading = false
         return

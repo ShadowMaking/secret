@@ -66,7 +66,7 @@
       </van-popup> -->
       <v-loadingPopup :show="showLoading" :showSpinner="false" />
     </div>
-    
+    <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
 <script>
@@ -75,11 +75,14 @@ import { Toast, Loading, Dialog } from 'vant'
 import navTitle from '@/components/NavTitle/index'
 import searchSignerModal from '@/components/SearchSignerModal/index'
 import LoadingPopup from '@/components/LoadingPopup';
-import {  isLogin, getContractAt } from '@/utils/dashBoardTools'
-import { getFromStorage, removeFromStorage } from '@/utils/storage'
+import {  isLogin, getContractAt, getConnectedAddress, getEncryptKeyByAddressFromStore } from '@/utils/dashBoardTools'
+import { getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { signerStatus, securityModuleRouter } from '@/utils/global';
 import { copyTxt } from '@/utils/index';
+import InputPswModal from '@/components/InputPswModal'
+import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
+import _ from 'lodash'
 
 Vue.use(Toast);
 Vue.use(Loading);
@@ -105,12 +108,26 @@ export default {
 
       securityModuleRouter,
       securityModuleContract: null,
+
+      currentOptType:'', // deleteSigner||addSigner
+      currentRecord: null,
+      // ***************** inputPsw start ***************** //
+      userPsw: '',
+      publicKey: '',
+      aesKey: '', // every decrypt has the same aesKey
+      encryptPsw: '',
+      encryptPrivateKeyPublicKey: '',
+      encryptCr1: '',
+      confirmPswBtnLoading: false,
+      showInputPswModal: false,
+      // ***************** inputPsw end ***************** //
     }
   },
   components: {
     "v-navTitle": navTitle,
     "v-searchSignerModal": searchSignerModal,
     'v-loadingPopup': LoadingPopup,
+    'v-inputPsw': InputPswModal,
   },
   
   methods: {
@@ -137,7 +154,8 @@ export default {
         console.log('cancel')
       });
     },
-    async confirmDeleteSigner(row) {
+    async dealDataDeleteSigner() {
+      const row = this.currentRecord
       console.log(row)
       this.showLoading = true
       let tx = await this.securityModuleContract.removeSigner(
@@ -146,6 +164,17 @@ export default {
       const txwait = await tx.wait()
       console.log(txwait)
       this.deleteSignerSubmit(row);
+    },
+    async confirmDeleteSigner(row) {
+      this.currentOptType = 'deleteSigner'
+      this.currentRecord = _.cloneDeep(row)
+
+      // check privateKey whether is existed
+      if (!this.securityModuleContract) {
+        this.showInputPswModal = true;
+        return
+      }
+      await this.dealDataDeleteSigner()
     },
     async deleteSignerSubmit(row) {//todo
       let deleteData = {
@@ -170,17 +199,29 @@ export default {
       const { hasError, list } = await this.$store.dispatch('searchSigner', searchData);
       this.searchSignerList = list
     },
-    async confirmAddSigner(address) {
-     if (!address) {
-        Toast('Need Choose Signer')
-        return
-      }
+    async dealDataAddSigner() {
+      const address = this.currentRecord
       this.showLoading = true
       let tx = await this.securityModuleContract.addSigner(
       this.walletAddress, address)
       console.log(tx)
       const txwait = await tx.wait()
       this.addSignerSubmit(address);
+    },
+    async confirmAddSigner(address) {
+      this.currentOptType = 'addSigner'
+      this.currentRecord = _.cloneDeep(address)
+     if (!address) {
+        Toast('Need Choose Signer')
+        return
+      }
+
+      // check privateKey whether is existed
+      if (!this.securityModuleContract) {
+        this.showInputPswModal = true;
+        return
+      }
+      await this.dealDataAddSigner()
     }, 
     async addSignerSubmit(address) {
       let addData = {
@@ -218,6 +259,59 @@ export default {
         }
       }
     },
+    async confirmPswOk({ show, psw }) {
+      this.userPsw = psw; // password of user input for encrypt privateKey
+      this.confirmPswBtnLoading = true
+      const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
+      if (hasError) {
+        Toast('Get PublickKey Failed! Retry')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      this.publicKey = publicKey;
+      console.log(`GetPublicKey result is: ${publicKey}`)
+      
+      // const password = ecies.crypto.randomBytes(16).toString("base64");
+      const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
+      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      console.log('aesKey:', aesKey)
+      this.aesKey = aesKey
+      this.encryptPsw = encryptPsw
+      this.encryptCr1 = encryptCr1
+      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+
+      // to decrypt privatekey
+      const userId = getInfoFromStorageByKey('gUID')
+      const address = getConnectedAddress()
+      const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
+      const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
+      if(decryptInfo.hasError) {
+        Toast('DecryptPrivateKeyByEcies failed! Retry!')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      const decryptedPrivateKey = decryptInfo.data
+      const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
+      privateKey && (await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey, privateKey }))
+
+      this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      if (!this.securityModuleContract) {
+        Toast('Failed! Retry!')
+        this.confirmPswBtnLoading = false
+        return
+      }
+
+      this.confirmPswBtnLoading = false
+      this.showInputPswModal = false
+
+      if (this.currentOptType === 'addSigner') {
+        await this.dealDataAddSigner()
+      }
+      if (this.currentOptType === 'deleteSigner') {
+        await this.dealDataDeleteSigner()
+      }
+      
+    },
   },
   async created() {
     if (!isLogin()) {
@@ -228,8 +322,10 @@ export default {
     this.getSignerListByid()
 
     this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-    const signerin = await this.securityModuleContract.getSigners(this.walletAddress)
-    console.log(signerin)
+    if (this.securityModuleContract) {
+      const signerin = await this.securityModuleContract.getSigners(this.walletAddress)
+      console.log(signerin)
+    }
   },
 }
 </script>

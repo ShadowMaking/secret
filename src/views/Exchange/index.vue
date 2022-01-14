@@ -115,6 +115,7 @@
       @close="showApproveModal=false"
       @reject="cancelApprove"
       @confirm="confirmApprove" />
+    <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
 
@@ -128,15 +129,17 @@ import formSelect from '@/components/Select/index';
 import selectItem from '@/components/SelectItem/index';
 import ConfirmModal from '@/components/ConfirmModal';
 import ApproveModal from '@/components/ApproveModal';
+import InputPswModal from '@/components/InputPswModal'
 import TransFrom from '@/components/TransFrom';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
-import { generateTokenList, getDefaultETHAssets, metamaskNetworkChange, getContractAt, getContractAtForApprove, getConnectedAddress, initRPCProvider, isLogin, getDATACode, getContractWallet } from '@/utils/dashBoardTools';
+import {
+  generateTokenList, getDefaultETHAssets, getConnectedAddress,
+  getContractWallet, isLogin, getDATACode, getContractAt, 
+  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, } from '@/utils/dashBoardTools';
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
-import { SWAPADDRESS } from '@/utils/global'
-import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
-import swapJson from './Swap.json'
+import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import { CHAINIDMAP } from '@/utils/netWorkForToken'
 import { PROTOCOLList, PROTOCOLMAP } from '@/utils/swap.js'
 import StatusPop from '@/components/StatusPop';
@@ -144,8 +147,8 @@ import LoadingPopup from '@/components/LoadingPopup';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
 import { IUniswapV3Router, approveV3Router } from '@/utils/v3swap.js'
-import { IUniswapV2Router } from '@/utils/v2swap.js'
 import { promiseValue } from '@/utils/index'
+import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
 
 Vue.use(Icon);
@@ -200,6 +203,18 @@ export default {
       showApproveModal: false,
       approveMetadata: null,
 
+      currentOptType:'', // exchangeSubmit||approveSubmit
+
+      // ***************** inputPsw start ***************** //
+      userPsw: '',
+      publicKey: '',
+      aesKey: '', // every decrypt has the same aesKey
+      encryptPsw: '',
+      encryptPrivateKeyPublicKey: '',
+      encryptCr1: '',
+      confirmPswBtnLoading: false,
+      showInputPswModal: false,
+      // ***************** inputPsw end ***************** //
     }
   },
   components: {
@@ -212,6 +227,7 @@ export default {
     'v-approveModal': ApproveModal,
     // 'v-transFrom': TransFrom,
     'v-loadingPopup': LoadingPopup,
+    'v-inputPsw': InputPswModal,
   },
   computed: {
     approveBtnTxt() {
@@ -656,6 +672,28 @@ export default {
       }
       return true
     },
+    async dealDataBeforeApprove() {
+      const token = this.exchangeFromToken
+      const submitData = this.getSubmitData()
+      console.log('submitData', submitData)
+
+      const selectedConnectAddress = getConnectedAddress()
+      const gasPrice = submitData.gasInfo['gasPrice']
+      this.approveMetadata = {
+        userAddress: selectedConnectAddress,
+        tokenName: token.tokenName,
+        tokenAddress: token.tokenAddress,
+        gas: 21000,
+        gasPrice,
+        netInfo: this.currentChainInfo,
+      }
+      
+      submitData.gasInfo['gasPrice'] = web3.utils.toWei(gasPrice, 'gwei')
+      this.approveData = _.cloneDeep(submitData)
+      console.log('approveData', this.approveData)
+
+      this.showApproveModal = true
+    },
     async approveSubmit() {
       // if (this.currentProtocolType === 'v3') {
       //   Toast('Comming Soon')
@@ -691,77 +729,16 @@ export default {
         Toast('Already Approved')
         return
       }
-
       this.showLoading = false
 
-      const submitData = this.getSubmitData()
-      console.log('submitData', submitData)
-
-      const selectedConnectAddress = getConnectedAddress()
-      const gasPrice = submitData.gasInfo['gasPrice']
-      this.approveMetadata = {
-        userAddress: selectedConnectAddress,
-        tokenName: token.tokenName,
-        tokenAddress: token.tokenAddress,
-        gas: 21000,
-        gasPrice,
-        netInfo: this.currentChainInfo,
+      this.currentOptType = 'approveSubmit'
+      // check privateKey whether is existed
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
       }
-      
-      submitData.gasInfo['gasPrice'] = web3.utils.toWei(gasPrice, 'gwei')
-      this.approveData = _.cloneDeep(submitData)
-      console.log('approveData', this.approveData)
-
-      this.showApproveModal = true
-
-      return
-
-
-      
-      const TokenContract = await getContractAt({ tokenAddress: token.tokenAddress, abi: token.abiJson }, this)
-      const approveTokenAmount = ethers.constants.MaxUint256; // max
-      /* const overrides = submitData.gasInfo
-      const gasPrice = overrides['gasPrice']
-      overrides['gasPrice'] = web3.utils.toWei(gasPrice, 'gwei') */
-
-      
-
-      this.showLoading = true
-      const logData = {
-        1: this.routerAddress,
-        2: approveTokenAmount,
-        overrides
-      }
-      console.log('approveData', logData)
-      TokenContract.approve(this.routerAddress, approveTokenAmount, overrides)
-      .then(async res=>{
-        res.wait()
-        .then(async txRes => { // approve success
-          console.log(`Approve Token-${token.tokenName} res: `, txRes);
-          const saveTokenData = {
-            ...allowanceTokenData,
-            // allowance: approveTokenAmount
-            allowance: "Infinite"
-          }
-          const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
-          if (!hasError) {
-            console.log(`SaveUserAllowanceForToken ${token.tokenName} Suucess`)
-          } else {
-            console.log('SaveUserAllowanceForToken Error', error)
-          }
-          this.showLoading = false
-        })
-        .catch(error=>{
-          this.showLoading = false
-          Toast(`Approve ${token.tokenName} Failed`)
-          console.log(`Approve Token-${token.tokenName} error: `, err);
-        })
-      })
-      .catch(err => {
-        this.showLoading = false
-        Toast(`Approve ${token.tokenName} Failed`)
-        console.log(`Approve Token-${token.tokenName} error: `, err);
-      })
+      await this.dealDataBeforeApprove()
     },
 
     // exchangeType - Token2Token || WETH2Token || Token2WETH
@@ -868,23 +845,9 @@ export default {
       }
       return { hasError, res: data }
     },
-    async exchangeSubmit() {
-      // if (this.currentProtocolType === 'v3') { Toast('Comming Soon'); return; }
-      if (!isLogin()) { Toast('Need Login'); return; }
-      if(!this.connectedWallet()) { return; }
-      if (!this.hasBalance()) {
-        Toast('Not Enough ETH')
-        return
-      }
+    async dealDataBeforeExchange() {
       const token = this.exchangeFromToken
-      console.log(token)
-      if (!token) {
-        Toast('Choose Token')
-        return
-      }
-
       const data = this.getSubmitData()
-      if (!this.checkData(data)) { this.showLoading = false; return }
 
       this.showLoading = true
       
@@ -928,6 +891,34 @@ export default {
       console.log('exchangeData', this.exchangeData)
       this.showLoading = false
       this.showTradeConfirm = true
+    },
+    async exchangeSubmit() {
+      // if (this.currentProtocolType === 'v3') { Toast('Comming Soon'); return; }
+      if (!isLogin()) { Toast('Need Login'); return; }
+      if(!this.connectedWallet()) { return; }
+      if (!this.hasBalance()) {
+        Toast('Not Enough ETH')
+        return
+      }
+      const token = this.exchangeFromToken
+      console.log(token)
+      if (!token) {
+        Toast('Choose Token')
+        return
+      }
+
+      const data = this.getSubmitData()
+      if (!this.checkData(data)) { this.showLoading = false; return }
+
+      this.currentOptType = 'exchangeSubmit'
+      
+      // check privateKey whether is existed
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      await this.dealDataBeforeExchange()
     },
     async exchangeV3(type, data, isNeedApprove) {
       const contractWallet = await getContractWallet(this)
@@ -984,7 +975,8 @@ export default {
       const chainInfo = CHAINMAP[web3.utils.numberToHex(data.value.id)]
       this.currentChainInfo = chainInfo
       await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
-      emitEvent && (this.$eventBus.$emit('networkChange', { chainInfo, from:'exchange' }))
+      // emitEvent && (this.$eventBus.$emit('networkChange', { chainInfo, from:'exchange' }))
+      this.$eventBus.$emit('networkChange', { chainInfo, from:'exchange' })
       await this.getTokenList(true)
     },
     handleProtocolChange(data) {
@@ -1170,6 +1162,52 @@ export default {
       this.defaultNetWork = chainInfo.id
       this.defaultIcon = chainInfo.icon
       this.handleNetworkChange({value:{id:chainInfo.id}}, true)
+    },
+    async confirmPswOk({ show, psw }) {
+      this.userPsw = psw; // password of user input for encrypt privateKey
+      this.confirmPswBtnLoading = true
+      const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
+      if (hasError) {
+        Toast('Get PublickKey Failed! Retry')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      this.publicKey = publicKey;
+      console.log(`GetPublicKey result is: ${publicKey}`)
+      
+      // const password = ecies.crypto.randomBytes(16).toString("base64");
+      const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
+      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      console.log('aesKey:', aesKey)
+      this.aesKey = aesKey
+      this.encryptPsw = encryptPsw
+      this.encryptCr1 = encryptCr1
+      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+
+      // to decrypt privatekey
+      const userId = getInfoFromStorageByKey('gUID')
+      const address = getConnectedAddress()
+      const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
+      const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
+      if(decryptInfo.hasError) {
+        Toast('DecryptPrivateKeyByEcies failed! Retry!')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      const decryptedPrivateKey = decryptInfo.data
+      const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
+      privateKey && (await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey, privateKey }))
+
+      this.confirmPswBtnLoading = false
+      this.showInputPswModal = false
+
+      if (this.currentOptType === 'exchangeSubmit') {
+        await this.dealDataBeforeExchange()
+      }
+      if (this.currentOptType === 'approveSubmit') {
+        await this.dealDataBeforeApprove()
+      }
+      
     },
   },
   async created() {

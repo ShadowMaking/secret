@@ -47,6 +47,7 @@
       @close="showTradeConfirm=false"
       @reject="cancelCreate"
       @confirm="confirmCreate" />
+    <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
 
@@ -59,7 +60,8 @@ import searchSignerModal from '@/components/SearchSignerModal/index'
 import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingPopup from '@/components/LoadingPopup';
-import { getContractAt, getConnectedAddress, getEns, isLogin } from '@/utils/dashBoardTools';
+import InputPswModal from '@/components/InputPswModal'
+import { getContractAt, getConnectedAddress, getEns, isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore } from '@/utils/dashBoardTools';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import ProxyJson from "@/assets/contractJSON/Proxy.json";
@@ -69,6 +71,7 @@ import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import { timeFormat } from '@/utils/str';
 import { securityModuleRouter, proxyRouter, walletTransactionRouter } from '@/utils/global';
 import { CHAINMAP } from '@/utils/netWorkForToken';
+import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import web3 from 'web3'
 
 Vue.use(Toast);
@@ -108,6 +111,18 @@ export default {
       currentChainInfo: null,
       sendMetadata: null,
       defaultNetWork: '',
+
+
+      // ***************** inputPsw start ***************** //
+      userPsw: '',
+      publicKey: '',
+      aesKey: '', // every decrypt has the same aesKey
+      encryptPsw: '',
+      encryptPrivateKeyPublicKey: '',
+      encryptCr1: '',
+      confirmPswBtnLoading: false,
+      showInputPswModal: false,
+      // ***************** inputPsw end ***************** //
     }
   },
   components: {
@@ -116,6 +131,7 @@ export default {
     'v-statusPop': StatusPop,
     'v-confirmModal': ConfirmModal,
     'v-loadingPopup': LoadingPopup,
+    'v-inputPsw': InputPswModal,
   },
   methods: {
     async confirmSearchSigner(value) {
@@ -162,7 +178,7 @@ export default {
     confirmCreate() {
       this.createNcWallet()
     },
-    createSubmit() {
+    async dealDataBeforeCreate() {
       this.sendMetadata = {
         from: getConnectedAddress(),
         to: this.securityModuleRouter,
@@ -176,8 +192,18 @@ export default {
       }
       this.showTradeConfirm = true
     },
-    async createNcWallet() {
+    async createSubmit() {
       if (!this.checkData()) { return }
+      // check privateKey whether is existed
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      await this.dealDataBeforeCreate()
+    },
+    async createNcWallet() {
+      // if (!this.checkData()) { return }
       this.showLoading = true; 
 
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
@@ -258,6 +284,45 @@ export default {
     getDefaultNetWork() {
       const info = getInfoFromStorageByKey('netInfo')
       return info && info['id'] || 1
+    },
+    async confirmPswOk({ show, psw }) {
+      this.userPsw = psw; // password of user input for encrypt privateKey
+      this.confirmPswBtnLoading = true
+      const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
+      if (hasError) {
+        Toast('Get PublickKey Failed! Retry')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      this.publicKey = publicKey;
+      console.log(`GetPublicKey result is: ${publicKey}`)
+      
+      // const password = ecies.crypto.randomBytes(16).toString("base64");
+      const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
+      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      console.log('aesKey:', aesKey)
+      this.aesKey = aesKey
+      this.encryptPsw = encryptPsw
+      this.encryptCr1 = encryptCr1
+      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+
+      // to decrypt privatekey
+      const userId = getInfoFromStorageByKey('gUID')
+      const address = getConnectedAddress()
+      const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
+      const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
+      if(decryptInfo.hasError) {
+        Toast('DecryptPrivateKeyByEcies failed! Retry!')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      const decryptedPrivateKey = decryptInfo.data
+      const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
+      privateKey && (await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey, privateKey }))
+
+      this.confirmPswBtnLoading = false
+      this.showInputPswModal = false
+      await this.dealDataBeforeCreate()
     },
   },
   async created() {
