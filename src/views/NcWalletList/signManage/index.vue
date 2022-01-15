@@ -75,7 +75,7 @@ import { Toast, Loading, Dialog } from 'vant'
 import navTitle from '@/components/NavTitle/index'
 import searchSignerModal from '@/components/SearchSignerModal/index'
 import LoadingPopup from '@/components/LoadingPopup';
-import {  isLogin, getContractAt, getConnectedAddress, getEncryptKeyByAddressFromStore } from '@/utils/dashBoardTools'
+import {  isLogin, getContractAt, getConnectedAddress, getEncryptKeyByAddressFromStore, addTransHistory } from '@/utils/dashBoardTools'
 import { getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { signerStatus, securityModuleRouter } from '@/utils/global';
@@ -111,6 +111,7 @@ export default {
 
       currentOptType:'', // deleteSigner||addSigner
       currentRecord: null,
+
       // ***************** inputPsw start ***************** //
       userPsw: '',
       publicKey: '',
@@ -158,12 +159,20 @@ export default {
       const row = this.currentRecord
       console.log(row)
       this.showLoading = true
-      let tx = await this.securityModuleContract.removeSigner(
-      this.walletAddress, row.address)
-      console.log(tx)
-      const txwait = await tx.wait()
-      console.log(txwait)
-      this.deleteSignerSubmit(row);
+      
+      this.securityModuleContract.removeSigner(
+        this.walletAddress, row.address).then(async tx=> {
+         this.deleteSignerSubmit(row);
+         addTransHistory(tx, 'Delete Signer', this)
+         
+         tx.wait().then(async res => {
+          console.log('Delete Signer:', res)
+          this.showLoading = false
+        })
+      }).catch(error => {
+        this.submitFailed('Delete')
+      })
+      
     },
     async confirmDeleteSigner(row) {
       this.currentOptType = 'deleteSigner'
@@ -176,19 +185,17 @@ export default {
       }
       await this.dealDataDeleteSigner()
     },
-    async deleteSignerSubmit(row) {//todo
+    async deleteSignerSubmit(row) {
       let deleteData = {
         userId: this.userId,
         walletId: this.$route.params.id,
         signerAddress: row.address,
       }
       const { hasError, list } = await this.$store.dispatch('deleteSigner', {...deleteData});
-      this.showLoading = false
       if (hasError) {
-        Toast.fail('Delete Failed')
+        this.submitFailed('Delete')
       } else {
-        Toast('Delete success')
-        this.getSignerListByid()
+        this.submitSuccess('Delete')
       }
     },
     async confirmSearchSigner(value) {
@@ -202,11 +209,19 @@ export default {
     async dealDataAddSigner() {
       const address = this.currentRecord
       this.showLoading = true
-      let tx = await this.securityModuleContract.addSigner(
-      this.walletAddress, address)
-      console.log(tx)
-      const txwait = await tx.wait()
-      this.addSignerSubmit(address);
+      this.securityModuleContract.addSigner(
+        this.walletAddress, address).then(async tx=> {
+         this.addSignerSubmit(address);
+         addTransHistory(tx, 'Add Signer', this)
+         
+         tx.wait().then(async res => {
+          console.log('Add Signer:', res)
+          this.showLoading = false
+        })
+      }).catch(error => {
+        console.log(error)
+        this.submitFailed('Add')
+      })
     },
     async confirmAddSigner(address) {
       this.currentOptType = 'addSigner'
@@ -231,13 +246,20 @@ export default {
         name: 'signer'
       }
       const { hasError, list } = await this.$store.dispatch('addSigner', {...addData});
-      this.showLoading = false
       if (hasError) {
-        Toast.fail('Create Failed')
+        this.submitFailed('Add')
       } else {
-        Toast('Create success')
-        this.getSignerListByid()
+        this.submitSuccess('Add')
       }
+    },
+    submitFailed(type) {
+      Toast.fail(`${type} Failed`)
+      this.showLoading = false
+    },
+    submitSuccess(type) {
+      this.showLoading = false
+      Toast(`${type} success`)
+      this.getSignerListByid()
     },
     async getSignerListByid() {
       let data = {
@@ -322,10 +344,6 @@ export default {
     this.getSignerListByid()
 
     this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-    if (this.securityModuleContract) {
-      const signerin = await this.securityModuleContract.getSigners(this.walletAddress)
-      console.log(signerin)
-    }
   },
 }
 </script>

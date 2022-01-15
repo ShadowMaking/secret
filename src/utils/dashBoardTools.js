@@ -5,6 +5,7 @@ import { defaultNetWorkForMetamask, CHAINMAP } from '@/utils/netWorkForToken';
 import { CHAINIDMAP } from '@/utils/netWorkForToken'
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import { getCurrentProvider } from '@/utils/web3';
+import { TRANSACTION_TYPE } from '@/api/transaction';
 /**
  * @description: 
  * @param {*} list
@@ -290,4 +291,27 @@ export async function getBalanceByAddress(address) {
       resolve(null)
     }
   })
+}
+
+export const addTransHistory = async (txInfo, taransType, self, value, name) => {
+  const currentChainInfo = getConnectedNet()
+  const chainId = currentChainInfo && currentChainInfo['id']
+  const submitData = {
+    txid: txInfo.hash,
+    from: txInfo.from,
+    to: (txInfo.to).toLocaleLowerCase(),
+    type: TRANSACTION_TYPE['L2ToL2'],
+    status: 0,//0-tobeconfirm 1-success 2-confirming -1-fail
+    value: value ? value : 0,
+    operation: taransType,
+    network_id: chainId,
+    name: name ? name: null
+  }
+  const res = await self.$store.dispatch('AddTransactionHistory', {...submitData});
+  if (res.hasError) {
+    console.log('Transaction success，but error when add history')
+  } else  {
+    self.$eventBus.$emit('addTransactionHistory')
+    console.log('add history success')
+  }
 }

@@ -52,7 +52,7 @@ export const getStatusTxt = (record) => {
   let statusTxt = 'pending';
   switch(record.status) {
     case 0:
-      statusTxt = 'fail'
+      statusTxt = 'pending'
       break;
     case 1:
       if (record.type === TRANSACTION_TYPE['L2ToL1']) {
@@ -62,7 +62,10 @@ export const getStatusTxt = (record) => {
       }
       break;
     case 2:
-      statusTxt = 'success'
+      statusTxt = 'confirming'
+      break;
+    case -1:
+      statusTxt = 'fail'
       break;
     default:
       statusTxt = 'pending';

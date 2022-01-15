@@ -122,7 +122,7 @@ import navTitle from '@/components/NavTitle/index'
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
-import { isLogin, getContractAt, getConnectedAddress, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore } from '@/utils/dashBoardTools';
+import { isLogin, getContractAt, getConnectedAddress, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory } from '@/utils/dashBoardTools';
 import walletList from './walletList/index'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import { signerStatus, securityModuleRouter } from '@/utils/global';
@@ -302,12 +302,20 @@ export default {
 
       // console.log(replaceOwnerData)
       console.log(securityModuleContract)
-      let tx = await securityModuleContract.executeRecovery(this.currentWalletAddress, this.overrides)
-      console.log(tx)
-      let txwait = await tx.wait()
-      console.log(txwait)
-      this.showLoading = false;
-      this.activeStep = this.activeStep + 1
+      securityModuleContract.executeRecovery(this.currentWalletAddress, this.overrides).then(async tx=> {
+          addTransHistory(tx, 'Execute Recover', this)
+          this.showLoading = false;
+          this.activeStep = this.activeStep + 1
+         
+         tx.wait().then(async res => {
+          console.log('Execute Recover:', res)
+          this.showLoading = false
+        })
+      }).catch(error => {
+        console.log(error)
+        Toast('Execute Recover Failed')
+      })
+      
     },
     async executeRecover() { //  gyy
       this.currentRecord = null

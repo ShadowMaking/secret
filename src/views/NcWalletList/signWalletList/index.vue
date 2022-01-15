@@ -95,7 +95,7 @@ import { ethers } from 'ethers'
 import { Toast, Loading, Popup, Dialog } from 'vant'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
-import { getContractAt, getConnectedAddress, getContractWallet, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore } from '@/utils/dashBoardTools'
+import { getContractAt, getConnectedAddress, getContractWallet, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory } from '@/utils/dashBoardTools'
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { signerStatus, securityModuleRouter } from '@/utils/global';
 import StatusPop from '@/components/StatusPop';
@@ -384,17 +384,23 @@ export default {
       let expireTime = Math.floor((new Date().getTime()) / 1000) + 600;
       let signatures = this.signMsg;
       
-      let res = await this.securityModuleContract.multicall(
+      this.securityModuleContract.multicall(
           this.signRow.wallet_address,
           [this.securityModuleRouter, this.signAmount, replaceOwnerData, sequenceId, expireTime],
           signatures,
           this.overrides
-      );
-      console.log(res)
-      const triggerres = await res.wait()
-      this.showLoading = false
-      this.showStatusPop = true
-      console.log(triggerres)
+        ).then(async tx=> {
+         addTransHistory(res, 'Trigger Recover', this)
+         this.showLoading = false
+         this.showStatusPop = true
+         
+         tx.wait().then(async res => {
+          console.log('Trigger Recover:', res)
+          this.showLoading = false
+        })
+      }).catch(error => {
+        Toast('Trigger Recover failed')
+      })
     },
     async triggerRecover() {
       this.currentOptType = 'triggerRecover'

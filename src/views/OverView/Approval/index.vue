@@ -61,7 +61,7 @@ import VLoading from '@/components/Loading'
 import InputPswModal from '@/components/InputPswModal'
 import { Popup, Toast, Loading } from 'vant';
 import { TRANSACTION_TYPE } from '@/api/transaction'
-import { generateTokenList, getConnectedAddress, getContractAt, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore } from '@/utils/dashBoardTools';
+import { generateTokenList, getConnectedAddress, getContractAt, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory } from '@/utils/dashBoardTools';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import ApproveModal from '@/components/ApproveModal';
 
@@ -164,12 +164,12 @@ export default {
     async addTransHistory(data, tokenAddress) {
       const chainId = this.currentChainInfo && this.currentChainInfo['id']
       const submitData = {
-        txid: data.transactionHash,
-        block_num: data.blockNumber,
+        txid: data.hash,
+        // block_num: data.blockNumber,
         from: data.from,
         to: (data.to).toLocaleLowerCase(),
-        type: TRANSACTION_TYPE['L1ToL1'],
-        status: data.status,
+        type: TRANSACTION_TYPE['L2ToL2'],
+        status: 0,
         value: 0,
         name: this.getTokenName(tokenAddress),
         operation: 'Approve',
@@ -180,6 +180,7 @@ export default {
       if (res.hasError) {
         console.log('Transaction success，but error when add history')
       } else  {
+        this.$eventBus.$emit('addTransactionHistory')
         console.log('add history success')
       }
     },
@@ -200,40 +201,42 @@ export default {
       TokenContract.approve(swapAddress, approveTokenAmount, gasInfo)
       .then(async res=>{
         console.log(`Approve Token tx: `, res);
+        this.changeApproveStatus(tokenAddress,swapAddress,approveTokenAmount)
+        addTransHistory(res,'Approve',0,this.currentChainInfo, this, this.getTokenName(tokenAddress))
         const txRes = await res.wait()
         console.log(`Approve Token res: `, txRes);
-
-        const userAddress = getConnectedAddress()
-        const chainId = this.currentChainInfo && this.currentChainInfo['id']
-
-        const allowanceTokenData = {
-          userId: this.userId,
-          network_id: chainId,
-          token_address: tokenAddress,
-          user_address: userAddress,
-          swap_address: swapAddress,
-        }
-
-        const saveTokenData = {
-          ...allowanceTokenData,
-          allowance: approveTokenAmount
-        }
-        //change approval status
-        const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
-        if (hasError) {
-          this.showLoadingModal = false
-          console.log('SaveUserAllowanceForToken Error', error)
-        } else {
-          await this.addTransHistory(txRes, tokenAddress)
-          await this.getApprovalList()
-          this.showLoadingModal = false
-          Toast('success')
-        }
       })
       .catch(err => {
         this.showLoadingModal = false
         console.log(`Approve Token-error: `, err);
       })
+    },
+    async changeApproveStatus(tokenAddress,swapAddress,approveTokenAmount) {
+      const userAddress = getConnectedAddress()
+      const chainId = this.currentChainInfo && this.currentChainInfo['id']
+
+      const allowanceTokenData = {
+        userId: this.userId,
+        network_id: chainId,
+        token_address: tokenAddress,
+        user_address: userAddress,
+        swap_address: swapAddress,
+      }
+
+      const saveTokenData = {
+        ...allowanceTokenData,
+        allowance: approveTokenAmount
+      }
+      //change approval status
+      const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
+      if (hasError) {
+        this.showLoadingModal = false
+        console.log('SaveUserAllowanceForToken Error', error)
+      } else {
+        this.showLoadingModal = false
+        Toast('success')
+        await this.getApprovalList()
+      }
     },
     thirdLogin() {
       const userId = this.userId

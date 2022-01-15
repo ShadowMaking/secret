@@ -404,11 +404,11 @@ export default {
       )
       .then(async tx=>{
         console.log('WETH2Token tx:', tx)
+        await this.exchangeSuccess(tx, data)
         tx.wait()
         .then(async res=>{
           console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", res);
           console.log('success')
-          await this.exchangeSuccess(res, data)
           this.showLoading = false
           Toast(`Exchange Suucess`)
         })
@@ -456,11 +456,11 @@ export default {
       )
       .then(async tx=>{
         console.log('Token2WETH tx:', tx)
+        await this.exchangeSuccess(tx, data)
         tx.wait()
         .then(async res=>{
           console.log("swapExactTokensForETHSupportingFeeOnTransferTokens: ", res);
           console.log('success')
-          await this.exchangeSuccess(res, data)
           this.showLoading = false
           Toast(`Exchange Success`)
         })
@@ -481,12 +481,12 @@ export default {
       const currentChainId = this.currentChainInfo && this.currentChainInfo['id']
       // this.tipTxt = 'In progress, waitting';
       const submitData = {
-        txid: res.transactionHash,
-        block_num: res.blockNumber,
+        txid: res.hash,
+        // block_num: res.blockNumber,
         from: selectedConnectAddress,
         to: selectedConnectAddress,
         type: TRANSACTION_TYPE['L2ToL2'],
-        status: 1,
+        status: 0,
         value: data.amountin,
         name: this.exchangeFromToken['tokenName'],
         operation: 'Swap',  // send、transfer、approve、swap ……
@@ -509,6 +509,7 @@ export default {
         this.showStatusPop = true;
         this.statusPopTitle = 'Exchange Submitted'
         this.popStatus = 'success';
+        this.$eventBus.$emit('addTransactionHistory')
       }
       return { hasError: res.hasError };
     },
@@ -563,11 +564,12 @@ export default {
         )
         .then(async tx=>{
           console.log('Token2Token tx:', tx)
+          await this.exchangeSuccess(tx, data)
           tx.wait()
           .then(async res=>{
             console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", res);
             console.log('success')
-            await this.exchangeSuccess(res, data)
+            
             this.showLoading = false
             Toast(`Exchange Suucess`)
           })
@@ -599,11 +601,11 @@ export default {
           }
         )
         .then(async tx=>{
+          await this.exchangeSuccess(tx, data)
           tx.wait()
           .then(async res=>{
             console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", res);
             console.log('success')
-            await this.exchangeSuccess(res, data)
             this.showLoading = false
             Toast(`Exchange Suucess`)
           })
@@ -925,7 +927,7 @@ export default {
       IUniswapV3Router(type, data, this.currentChainInfo, this, contractWallet).then(async res => {
         if (res) {
           console.log("swapv3success: ", res);
-          await this.exchangeSuccess(res, data)
+          await this.exchangeSuccess(res, data)//TODO
           this.showLoading = false
         } else {
           this.showLoading = false

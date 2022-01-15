@@ -44,6 +44,7 @@ import request from '@/utils/request';
     address: data['address'],
     signers: data['signers'],
     wallet_address: data['walletAddress'],
+    txid: data['txid'],
   }
   return request({
     url: `/api/user/${userId}/wallet`,

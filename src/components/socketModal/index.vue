@@ -21,24 +21,24 @@
 
         confirmingList: [],
         confirmedList: [],
+
+        oneSuccess: false,
       };
     },
     methods: {
       connetSocket() {
-        console.log(this.socket)
         this.socket.on("connect", () => {
             console.log(`connect ${this.socket.id}`);
         });
         this.socket.on("start", (msg) => {
-          console.log(this.socket.id)
           this.socketEvent('[]')
         });
         this.socket.on("confirming", async(msg) => {
-          console.log(this.socket.id)
           console.log(msg)
-          if (msg.unconfirmed_txlist.length == 0) return
+          if (msg.unconfirmed_txlist.length == 0 || this.oneSuccess) return
           this.confirmingList = msg.unconfirmed_txlist
           const confrimData = await this.getTransactionStatus()
+          console.log(confrimData)
           this.socketEvent(confrimData)
         });
         this.socket.on("connect_failed", () => { console.log('connect_failed')} );
@@ -63,9 +63,13 @@
           const txReceipt = await provider.getTransactionReceipt(confirmingItemHash);
           if (txReceipt && txReceipt.blockNumber) {
             //0-success 1-send 2-confirming -1-failed
-            let transHistoryStatus = 0;
+            let transHistoryStatus = 1;
             let dealItemHash = confirmingItemHash.substring(0,8) + '...'
-            console.log(dealItemHash)
+            console.log(confirmingItemHash)
+            if (this.confirmingList.length == 1) {
+              this.oneSuccess = true
+            }
+            console.log(txReceipt.status)
             if (txReceipt.status == 1) {//success
               this.$notify({
                 title: '',
@@ -75,7 +79,7 @@
                 dangerouslyUseHTMLString: true,
                 onClick: this.goHistory
               });
-              transHistoryStatus = 0
+              transHistoryStatus = 1
             } else {
               this.$notify.error({
                 title: '',
@@ -119,6 +123,7 @@
       transactionChange() {
         console.log('transchange')
         this.socketEvent('[]')
+        this.oneSuccess = false
       },
     },
     async created () {

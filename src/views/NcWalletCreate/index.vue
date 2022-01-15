@@ -61,7 +61,7 @@ import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
-import { getContractAt, getConnectedAddress, getEns, isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore } from '@/utils/dashBoardTools';
+import { getContractAt, getConnectedAddress, getEns, isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory } from '@/utils/dashBoardTools';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import ProxyJson from "@/assets/contractJSON/Proxy.json";
@@ -218,8 +218,6 @@ export default {
       // let user2 = ethers.Wallet.createRandom().connect(providertest)
       
       let walletAddress = await proxyContract.getAddress(saletnew);
-      console.log('walletAddress:' + walletAddress)
-      
       const tx = await proxyContract.create(saletnew,this.overrides);
       console.log(tx)
       const tswait = await tx.wait()
@@ -234,18 +232,22 @@ export default {
       let data = [encoder.encode(["uint", "uint"], [du, lap]), encoder.encode(["address[]"], [createSignList])]
       let initTx = await walletContract.initialize(modules, data, this.overrides);
       console.log(initTx)
+      addTransHistory(initTx, 'Create Wallet', this)
+      this.createWallet(walletAddress, initTx.hash)
       const initTxwait = await initTx.wait()
       console.log(initTxwait)
-      this.createWallet(walletAddress)
+      
     },
-    async createWallet(walletAddress) {
+    async createWallet(walletAddress, txhash) {
       const selectedConnectAddress = getConnectedAddress()
+      console.log(txhash)
       let data = {
         name: this.createWalletName,
         address: selectedConnectAddress,
         walletAddress: walletAddress.toLocaleLowerCase(),//0xe744919008dd978dfAF9771E5623fDfbEd4C29D3
         signers: this.createSignerSubmit,
         userId: this.userId,
+        txid: txhash
       }
       // let data = {
       //   name: 'wallet271',

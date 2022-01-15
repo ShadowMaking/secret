@@ -332,6 +332,7 @@ export default {
         datacode = getDATACode(abi, 'transfer', params)
 
         const contractWithSigner = await getContractAt({ tokenAddress: this.selectedToken.tokenAddress, abi: this.selectedToken.abiJson }, this)
+        console.log(contractWithSigner)
         tempgasfixlimit = await contractWithSigner.estimateGas.transfer(sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
       }
       console.log('datacode', datacode)
@@ -539,7 +540,7 @@ export default {
         from: isWallet ? selectedConnectAddress : (res.from || selectedConnectAddress),
         to: toAddress || res.to, // res.to is diffrent from toAddress wthen sendToken by contract
         type: TRANSACTION_TYPE['L2ToL2'],
-        status: res.status || 1,
+        status: 0,
         value: info.amount,
         name: symbolName,
         operation: symbolName === 'ETH' ? 'Send' : 'Transfer', // send、transfer、approve、swap ……
