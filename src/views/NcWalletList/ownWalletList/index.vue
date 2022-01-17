@@ -26,6 +26,34 @@
           </template>
         </el-table-column>
         <el-table-column
+            prop="status"
+            label="State"
+            >
+            <template slot-scope="scope">
+              <div v-if="scope.row.wallet_status == walletStatus['Creating']">
+                <el-tag>Creating</el-tag>
+              </div>
+              <div v-else-if="scope.row.wallet_status == walletStatus['Active']">
+                <el-tag type="success">Active</el-tag>
+              </div>
+              <div v-else-if="scope.row.wallet_status == walletStatus['Fail']">
+                <el-tag type="danger">Fail</el-tag>
+              </div>
+              <div v-else-if="scope.row.wallet_status == walletStatus['Freezing']">
+                <el-tag>Freezing</el-tag>
+              </div>
+              <div v-else-if="scope.row.wallet_status == walletStatus['Frozen']">
+                <el-tag type="info">Frozen</el-tag>
+              </div>
+              <div v-else-if="scope.row.wallet_status == walletStatus['Recovering']">
+                <el-tag>Recovering</el-tag>
+              </div>
+              <div v-else-if="scope.row.wallet_status == walletStatus['Unlocking']">
+                <el-tag>Unlocking</el-tag>
+              </div>
+            </template>
+        </el-table-column>
+        <el-table-column
           label="Signer">
             <template slot-scope="scope">
               <el-button @click="handleClick(scope.row)" type="text" size="small">Details</el-button>
@@ -39,6 +67,7 @@ import Vue from 'vue';
 import { Toast } from 'vant';
 import { saveToStorage } from '@/utils/storage'
 import { copyTxt } from '@/utils/index';
+import { walletStatus } from '@/utils/global';
 
 Vue.use(Toast)
 
@@ -47,7 +76,7 @@ export default {
   props: ['dataList'],
   data() {
     return {
-      
+      walletStatus,
     }
   },
   

@@ -69,9 +69,10 @@ export default {
   methods: {
     async getWalletAsOwner() {
       let data = {
-        userId: this.userId
+        userId: this.userId,
+        ownerAddress: getConnectedAddress(),
       }
-      const { hasError, list } = await this.$store.dispatch('getWalletList', data)
+      const { hasError, list } = await this.$store.dispatch('getWalletListAsOwner', data)
       
       for(let i=0; i<list.length;i+=1) {
         let itemBalance = await this.getBalance(list[i].wallet_address)

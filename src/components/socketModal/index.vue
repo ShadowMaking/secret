@@ -14,7 +14,6 @@
     data() {
       return {
         modalVisible: false,
-        currentToken: getAuthToken('gtoken'),
         defaultNetWork: '',
         currentAccount: getConnectedAddress(),
         socket: io(WEBSITE_BASEURL),
@@ -35,6 +34,7 @@
         });
         this.socket.on("confirming", async(msg) => {
           console.log(msg)
+          console.log(this.oneSuccess)
           if (msg.unconfirmed_txlist.length == 0 || this.oneSuccess) return
           this.confirmingList = msg.unconfirmed_txlist
           const confrimData = await this.getTransactionStatus()
@@ -49,7 +49,7 @@
         this.socket.emit('confirmed', { 
           network_id: this.defaultNetWork, 
           from: this.currentAccount, 
-          token: this.currentToken, 
+          token: getAuthToken('gtoken'), 
           confirmed_txlist: list
         });
       },
@@ -69,7 +69,6 @@
             if (this.confirmingList.length == 1) {
               this.oneSuccess = true
             }
-            console.log(txReceipt.status)
             if (txReceipt.status == 1) {//success
               this.$notify({
                 title: '',

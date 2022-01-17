@@ -2,12 +2,13 @@
   <div class="signManage-page">
     <v-navTitle title="Signer" :backIcon="true" :backEvent="backEvent"></v-navTitle >
     <div class="sign-manage-des">Non-custodial Wallet is the most reliable asset management method. It confirms each transaction by setting up one or more signers to make asset transactions more secure.</div>
-    <div class="signlist-wrapper" v-if="signList.length">
+    <div class="signlist-wrapper" >
       <el-table
         :data="signList"
         border
         style="width: 100%"
-        empty-text="no data">
+        empty-text="no data"
+        >
           <el-table-column
             fixed
             prop="createdAt"
@@ -162,7 +163,7 @@ export default {
       
       this.securityModuleContract.removeSigner(
         this.walletAddress, row.address).then(async tx=> {
-         this.deleteSignerSubmit(row);
+         this.deleteSignerSubmit(row, tx.hash);
          addTransHistory(tx, 'Delete Signer', this)
          
          tx.wait().then(async res => {
@@ -185,17 +186,18 @@ export default {
       }
       await this.dealDataDeleteSigner()
     },
-    async deleteSignerSubmit(row) {
+    async deleteSignerSubmit(row, txHash) {
       let deleteData = {
         userId: this.userId,
         walletId: this.$route.params.id,
         signerAddress: row.address,
+        txid: txHash
       }
       const { hasError, list } = await this.$store.dispatch('deleteSigner', {...deleteData});
       if (hasError) {
-        this.submitFailed('Delete')
+        this.submitFailed('Submit')
       } else {
-        this.submitSuccess('Delete')
+        this.submitSuccess('Submit')
       }
     },
     async confirmSearchSigner(value) {
@@ -211,7 +213,7 @@ export default {
       this.showLoading = true
       this.securityModuleContract.addSigner(
         this.walletAddress, address).then(async tx=> {
-         this.addSignerSubmit(address);
+         this.addSignerSubmit(address, tx.hash);
          addTransHistory(tx, 'Add Signer', this)
          
          tx.wait().then(async res => {
@@ -238,18 +240,20 @@ export default {
       }
       await this.dealDataAddSigner()
     }, 
-    async addSignerSubmit(address) {
+    async addSignerSubmit(address, txHash) {
       let addData = {
         userId: this.userId,
         walletId: this.$route.params.id,
         address: address.toLocaleLowerCase(),
-        name: 'signer'
+        name: 'signer',
+        txid: txHash
       }
+      console.log(addData)
       const { hasError, list } = await this.$store.dispatch('addSigner', {...addData});
       if (hasError) {
-        this.submitFailed('Add')
+        this.submitFailed('Submit')
       } else {
-        this.submitSuccess('Add')
+        this.submitSuccess('Submit')
       }
     },
     submitFailed(type) {

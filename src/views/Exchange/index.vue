@@ -410,7 +410,7 @@ export default {
           console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", res);
           console.log('success')
           this.showLoading = false
-          Toast(`Exchange Suucess`)
+          Toast(`Exchange success`)
         })
         .catch(error => {
           this.showLoading = false

@@ -106,7 +106,7 @@ export default {
 
       overrides: {
         gasLimit: 8000000,
-        gasPrice: 5000000000,
+        gasPrice: 20000000000,//5000000000
       },
       currentChainInfo: null,
       sendMetadata: null,

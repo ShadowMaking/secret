@@ -37,13 +37,9 @@
                 <el-button @click="handleClick(scope.row, 'Agree')" type="text" size="small" class="sign-operate agree-btn">Agree</el-button>
                 <el-button @click="handleClick(scope.row, 'Reject')" type="text" size="small" class="sign-operate ignore-btn">Reject</el-button>
               </div>
-              <!-- <div v-if="scope.row.status == 2">
-                <el-button @click="handleClick(scope.row)" type="text" size="small" class="sign-operate agree-btn">Recover</el-button>
-                <el-button @click="handleClick(scope.row)" type="text" size="small" class="sign-operate ignore-btn">Ignore</el-button>
-                <el-button @click="handleClick(scope.row)" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
-              </div> -->
               <div v-if="scope.row.status == signerStatus['freeze']">
-                <span style="color:red">frozen</span>
+                <el-button @click="handleClick(scope.row, 'Unlock')" type="text" size="small" class="sign-operate agree-btn">Unlock</el-button>
+                <!-- <span style="color:red">frozen</span> -->
               </div>
               <div v-if="scope.row.status == signerStatus['startRecover']">
                 <el-button @click="handleClick(scope.row, 'Recover')" type="text" size="small" class="sign-operate agree-btn">Confirm Recover</el-button>
@@ -97,7 +93,7 @@ import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { getContractAt, getConnectedAddress, getContractWallet, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory } from '@/utils/dashBoardTools'
 import WalletJson from "@/assets/contractJSON/Wallet.json";
-import { signerStatus, securityModuleRouter } from '@/utils/global';
+import { signerStatus, securityModuleRouter, walletStatus } from '@/utils/global';
 import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
 import SignMessageModal from '@/components/SignMessageModal';
@@ -125,6 +121,7 @@ export default {
       securityModuleContract: null,
       
       signerStatus,
+      walletStatus,
       signAmount: 0,
       signRow: null,
       signMsg: '',
@@ -182,7 +179,7 @@ export default {
           this.openDialog('Are you sure to reject?', this.signerStatus['rejected'])
           break;
         case 'Freeze':
-          this.openDialog('Are you sure to freeze?', this.signerStatus['freeze'])
+          this.openDialog('Are you sure to freeze?', this.signerStatus['freeze'], true)
           break;
         case 'Recover':
           this.openDialog('Are you sure to Recover?', this.signerStatus['agreeRecover'], true)
@@ -192,6 +189,9 @@ export default {
           break;
         case 'triggerRecover':
           this.openDialog('Are you sure to Trigger Recover?', this.signerStatus['triggerRecover'], true)
+          break;
+        case 'Unlock':
+          this.openDialog('Are you sure to Unlock?', 'Unlock', true)
           break;
         default:
           break;
@@ -220,10 +220,9 @@ export default {
         } else if (status == this.signerStatus['triggerRecover']) {
           this.getSignMessage()
         } else if (status == this.signerStatus['freeze']) {
-          // let tx = await this.securityModuleContract.lock(this.signRow.wallet_address, this.overrides)
-          // console.log(tx)
-          // const txwait = await tx.wait()
-          // console.log(txwait)
+          this.freezeWallet()
+        } else if(status == 'Unlock') {
+          this.unlockWallet()
         }
       } else {
         this.updateSignerStatus(status, true)
@@ -247,6 +246,43 @@ export default {
           this.$emit('signChild');
         }
       }
+    },
+    freezeWallet() {
+      this.securityModuleContract.lock(
+          this.signRow.wallet_address,
+          this.overrides
+        ).then(async tx=> {
+          this.changeWalletSuccess(tx, 'Freezing', 'Freeze')
+          tx.wait().then(async res => {
+            console.log('Freeze:', res)
+          })
+      }).catch(error => {
+        this.showLoading = false
+        Toast('Freeze failed')
+      })
+    },
+    unlockWallet() {
+      this.securityModuleContract.unlock(
+          this.signRow.wallet_address,
+          this.overrides
+        ).then(async tx=> {
+          this.changeWalletSuccess(tx, 'Unlocking', 'Unlock')
+          tx.wait().then(async res => {
+            console.log('Unlock:', res)
+          })
+      }).catch(error => {
+        this.showLoading = false
+        Toast('Unlock failed')
+      })
+    },
+    changeWalletSuccess(res, status, operateType, isToast) {
+      this.showLoading = false
+      isToast && Toast(`${operateType} Submit Success`)
+      addTransHistory(res, operateType, this)
+      this.updateWalletStatusSubmit(this.walletStatus[status])
+    },
+    async updateWalletStatusSubmit(status) {
+      console.log(status)
     },
     cancelSignMessage() {
       this.showSignMessageModal = false
@@ -390,15 +426,14 @@ export default {
           signatures,
           this.overrides
         ).then(async tx=> {
-         addTransHistory(res, 'Trigger Recover', this)
-         this.showLoading = false
-         this.showStatusPop = true
-         
-         tx.wait().then(async res => {
-          console.log('Trigger Recover:', res)
-          this.showLoading = false
-        })
+          this.showStatusPop = true
+          this.changeWalletSuccess(res, 'Recovering', 'Trigger Recover', true)
+        
+          tx.wait().then(async res => {
+            console.log('Trigger Recover:', res)
+          })
       }).catch(error => {
+        this.showLoading = false
         Toast('Trigger Recover failed')
       })
     },

@@ -111,6 +111,7 @@ import request from '@/utils/request';
   let _data = {
     name: data['name'],
     address: data['address'],
+    txid: data['txid']
   }
   return request({
     url: `/api/user/${userId}/wallet/${walletId}/signer`,
@@ -162,6 +163,7 @@ import request from '@/utils/request';
   const walletId = data['walletId'] 
   let _data = {
     address: data['signerAddress'],
+    txid: data['txid'],
   }
   return request({
     url: `/api/user/${userId}/wallet/${walletId}/signer`,

@@ -161,29 +161,29 @@ export default {
       }
       await this.dealDataBeforeDecline()
     },
-    async addTransHistory(data, tokenAddress) {
-      const chainId = this.currentChainInfo && this.currentChainInfo['id']
-      const submitData = {
-        txid: data.hash,
-        // block_num: data.blockNumber,
-        from: data.from,
-        to: (data.to).toLocaleLowerCase(),
-        type: TRANSACTION_TYPE['L2ToL2'],
-        status: 0,
-        value: 0,
-        name: this.getTokenName(tokenAddress),
-        operation: 'Approve',
-        network_id: chainId
-      }
-      console.log(submitData)
-      const res = await this.$store.dispatch('AddTransactionHistory', {...submitData});
-      if (res.hasError) {
-        console.log('Transaction success，but error when add history')
-      } else  {
-        this.$eventBus.$emit('addTransactionHistory')
-        console.log('add history success')
-      }
-    },
+    // async addTransHistory(data, tokenAddress) {
+    //   const chainId = this.currentChainInfo && this.currentChainInfo['id']
+    //   const submitData = {
+    //     txid: data.hash,
+    //     // block_num: data.blockNumber,
+    //     from: data.from,
+    //     to: (data.to).toLocaleLowerCase(),
+    //     type: TRANSACTION_TYPE['L2ToL2'],
+    //     status: 0,
+    //     value: 0,
+    //     name: this.getTokenName(tokenAddress),
+    //     operation: 'Decline Approve',
+    //     network_id: chainId
+    //   }
+    //   console.log(submitData)
+    //   const res = await this.$store.dispatch('AddTransactionHistory', {...submitData});
+    //   if (res.hasError) {
+    //     console.log('Transaction success，but error when add history')
+    //   } else  {
+    //     this.$eventBus.$emit('addTransactionHistory')
+    //     console.log('add history success')
+    //   }
+    // },
     cancelApprove() {
       this.showApproveModal = false
       Toast('Cancel Approve')
@@ -202,13 +202,19 @@ export default {
       .then(async res=>{
         console.log(`Approve Token tx: `, res);
         this.changeApproveStatus(tokenAddress,swapAddress,approveTokenAmount)
-        addTransHistory(res,'Approve',0,this.currentChainInfo, this, this.getTokenName(tokenAddress))
-        const txRes = await res.wait()
-        console.log(`Approve Token res: `, txRes);
+        addTransHistory(res, 'Approve', this, 0, this.getTokenName(tokenAddress))
+        res.wait().then(async res=>{
+           console.log(res)
+           this.showLoadingModal = false
+        }).catch(error => {
+          this.showLoadingModal = false
+          console.log(error)
+        })
       })
       .catch(err => {
         this.showLoadingModal = false
-        console.log(`Approve Token-error: `, err);
+        Toast(`Decline Failed`)
+        console.log(`Decline error: `, err);
       })
     },
     async changeApproveStatus(tokenAddress,swapAddress,approveTokenAmount) {
