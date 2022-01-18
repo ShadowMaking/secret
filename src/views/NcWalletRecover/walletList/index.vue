@@ -46,6 +46,7 @@ import { isLogin, getBalanceByAddress} from '@/utils/dashBoardTools';
 import { getFromStorage, saveToStorage } from '@/utils/storage'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
+import { walletStatus } from '@/utils/global';
 
 Vue.use(Toast);
 
@@ -57,6 +58,7 @@ export default {
       userId: getFromStorage('gUID'),
 
       showLoading: true,
+      walletStatus,
     }
   },
   components: {
@@ -74,7 +76,14 @@ export default {
       })
     },
     recoveryClick(row) {
-      this.$emit('recoverChild', row);
+      if (row.wallet_status == walletStatus['Active'] ||
+        row.wallet_status == walletStatus['Recovering'] ||
+        row.wallet_status == walletStatus['Frozen']) {
+        this.$emit('recoverChild', row);
+      } else {
+        Toast('Wallet is Unavailable')
+      }
+      
     },
     async getWalletList() {
       let data = {
