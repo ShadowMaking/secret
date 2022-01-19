@@ -133,6 +133,10 @@ export default {
             icon: 'el-icon-sell', 
             name: 'Recover Wallet', 
             route: '/ncWalletRecover',
+          },{
+            icon: 'el-icon-s-tools', 
+            name: 'Setting', 
+            route: '/ncWalletSetting',
           }]
         },
       ],
