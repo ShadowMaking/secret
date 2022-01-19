@@ -1,7 +1,7 @@
 <template>
-  <div class="datalist-wrapper" v-if="dataList.length">
+  <div class="datalist-wrapper" v-if="walletListAsSigner.length">
     <el-table
-      :data="dataList"
+      :data="walletListAsSigner"
       border
       style="width: 100%"
       empty-text="no data"
@@ -38,8 +38,54 @@
                 <el-tag>Creating</el-tag>
               </div>
               <div v-else-if="scope.row.wallet_status == walletStatus['Active']">
-                <el-tag type="success">Active</el-tag>
+                <el-tag v-if="scope.row.isInRecovery">Recovering</el-tag>
+                <el-tag type="info" v-else-if="scope.row.isLocked">Frozen</el-tag>
+                <el-tag type="success" v-else>Active</el-tag>
               </div>
+              <div v-else-if="scope.row.wallet_status == walletStatus['Fail']">
+                <el-tag type="danger">Fail</el-tag>
+              </div>
+              <!-- old data -->
+              <div v-else-if="scope.row.wallet_status == walletStatus['Freezing']">
+                <el-tag>Freezing</el-tag>
+              </div>
+              <div v-else-if="scope.row.wallet_status == walletStatus['Frozen']">
+                <el-tag type="info">Frozen</el-tag>
+              </div>
+              <div v-else-if="scope.row.wallet_status == walletStatus['Recovering']">
+                <el-tag>Recovering</el-tag>
+              </div>
+              <div v-else-if="scope.row.wallet_status == walletStatus['Unlocking']">
+                <el-tag>Unlocking</el-tag>
+              </div>
+
+            </template>
+        </el-table-column>
+        <el-table-column
+          prop="status"
+          label="Operate">
+            <template slot-scope="scope">
+              <div v-if="scope.row.wallet_status == walletStatus['Creating']">
+                <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
+              </div>
+              <div v-else-if="scope.row.wallet_status == walletStatus['Active']">
+                <div v-if="scope.row.isLocked">
+                  <el-button @click="handleClick(scope.row, 'Unlock')" type="text" size="small" class="sign-operate agree-btn">Unlock</el-button>
+                </div>
+                <div v-else>
+                  <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
+                </div>
+                <div v-if="!scope.row.isInRecovery">
+                  <div v-if="scope.row.status == signerStatus['startRecover']">
+                    <el-button @click="handleClick(scope.row, 'Recover')" type="text" size="small" class="sign-operate agree-btn">Confirm Recover</el-button>
+                    <el-button @click="handleClick(scope.row, 'Ignore')" type="text" size="small" class="sign-operate ignore-btn">Ignore</el-button>
+                  </div>
+                  <div v-if="scope.row.status == signerStatus['agreeRecover']">
+                    <el-button @click="handleClick(scope.row, 'triggerRecover')" type="text" size="small" class="sign-operate agree-btn">Recover</el-button>
+                  </div>
+                </div>
+              </div>
+                <!-- old data -->
               <div v-else-if="scope.row.wallet_status == walletStatus['Fail']">
                 <el-tag type="danger">Fail</el-tag>
               </div>
@@ -55,43 +101,8 @@
               <div v-else-if="scope.row.wallet_status == walletStatus['Unlocking']">
                 <el-tag>Unlocking</el-tag>
               </div>
-            </template>
-        </el-table-column>
-        <el-table-column
-          prop="status"
-          label="Operate">
-            <template slot-scope="scope">
-              <div v-if="scope.row.wallet_status == walletStatus['Creating']">
-                <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
-              </div>
-              <div v-if="scope.row.wallet_status == walletStatus['Active']">
-                <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
 
-                <div v-if="scope.row.status == signerStatus['startRecover']">
-                  <el-button @click="handleClick(scope.row, 'Recover')" type="text" size="small" class="sign-operate agree-btn">Confirm Recover</el-button>
-                  <el-button @click="handleClick(scope.row, 'Ignore')" type="text" size="small" class="sign-operate ignore-btn">Ignore</el-button>
-                </div>
-                <div v-if="scope.row.status == signerStatus['agreeRecover']">
-                  <el-button @click="handleClick(scope.row, 'triggerRecover')" type="text" size="small" class="sign-operate agree-btn">Recover</el-button>
-                </div>
-                
-              </div>
-              <div v-if="scope.row.wallet_status == walletStatus['Recovering']">
-                <el-tag>Recovering</el-tag>
-              </div>
-              <div v-if="scope.row.wallet_status == walletStatus['Fail']">
-                <el-tag type="danger">Fail</el-tag>
-              </div>
-              <div v-if="scope.row.wallet_status == walletStatus['Freezing']">
-                <el-tag>Freezing</el-tag>
-              </div>
-              <div v-if="scope.row.wallet_status == walletStatus['Frozen']">
-                <el-button @click="handleClick(scope.row, 'Unlock')" type="text" size="small" class="sign-operate agree-btn">Unlock</el-button>
-              </div>
-              <div v-if="scope.row.wallet_status == walletStatus['Unlocking']">
-                <el-tag>Unlocking</el-tag>
-              </div>
-
+              
 
               <!-- <div v-if="scope.row.status == signerStatus['confirmed']">
                 <el-button @click="handleClick(scope.row, 'Agree')" type="text" size="small" class="sign-operate agree-btn">Agree</el-button>
@@ -174,7 +185,7 @@ export default {
       signMsg: '',
 
       popStatus: "success",
-      statusPopTitle: 'Recover Successfully!',
+      statusPopTitle: 'Submited Successfully!',
       showStatusPop: false,
 
       showTradeConfirm: false,
@@ -183,12 +194,14 @@ export default {
       defaultNetWork: '',
       overrides: {
         gasLimit: 8000000,
-        gasPrice: 5000000000,
+        gasPrice: 80000000000,
       },
 
       showSignMessageModal: false,
       signMessageMetadata: null,
       signMsgHash: '',
+
+      walletListAsSigner: [],
 
       currentOptType:'', // singerSignMessage||triggerRecover
       // ***************** inputPsw start ***************** //
@@ -304,6 +317,7 @@ export default {
             console.log('Freeze:', res)
           })
       }).catch(error => {
+        console.log(error)
         this.showLoading = false
         Toast('Freeze failed')
       })
@@ -326,7 +340,7 @@ export default {
       this.showLoading = false
       console.log(isToast)
       !isToast && Toast(`${operateType} Submit Success`)
-      this.updateWalletStatusSubmit(this.walletStatus[status], res.hash)
+      // this.updateWalletStatusSubmit(this.walletStatus[status], res.hash)
       addTransHistory(res, operateType, this)
     },
     async updateWalletStatusSubmit(status, txhash) {
@@ -482,6 +496,7 @@ export default {
           signatures,
           this.overrides
         ).then(async tx=> {
+          console.log(tx)
           this.showStatusPop = true
           this.changeWalletSuccess(tx, 'Recovering', 'Trigger Recover', true)
         
@@ -558,10 +573,23 @@ export default {
       }
       
     },
+    async dealDataList() {
+      let dataSource = this.dataList
+      for(var i=0; i<dataSource.length; i++) {
+        console.log(dataSource[i])
+        let isLocked = await this.securityModuleContract.isLocked(dataSource[i].wallet_address)
+        dataSource[i].isLocked = isLocked ? isLocked : false
+        let isInRecovery = await this.securityModuleContract.isInRecovery(dataSource[i].wallet_address)
+        dataSource[i].isInRecovery = isInRecovery ? isInRecovery : false
+      }
+      this.walletListAsSigner = dataSource
+      console.log(dataSource)
+    }
   },
 
   async created() {
     this.defaultNetWork = this.getDefaultNetWork()
+    this.walletListAsSigner = this.dataList
     console.log(this.defaultNetWork)
     const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
     if (netInfo) {
@@ -570,7 +598,8 @@ export default {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
     this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-    console.log(this.securityModuleContract)
+
+    this.dealDataList()
   },
 }
 </script>
@@ -582,5 +611,10 @@ export default {
   .el-button{
     margin-left: 5px;
     margin-right: 5px;
+  }
+  .el-tag {
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 10px;
   }
 </style>

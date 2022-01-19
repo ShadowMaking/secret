@@ -82,7 +82,7 @@
                  <div class="complete-success-icon">
                   <el-row>
                     <el-col>
-                      <el-result icon="success" title="success">
+                      <el-result icon="success" title="Submited Successfully">
                       </el-result>
                     </el-col>
                   </el-row>
@@ -164,7 +164,7 @@ export default {
       showTradeConfirm: false,
       overrides: {
         gasLimit: 8000000,
-        gasPrice: 5000000000,
+        gasPrice: 80000000000,
       },
       currentChainInfo: null,
       sendMetadata: null,
@@ -436,6 +436,8 @@ export default {
     } else {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
+    let providers = new ethers.providers.JsonRpcProvider('http://rpc.ieigen.com:8443')
+    console.log(providers)
   },
 };
 </script>

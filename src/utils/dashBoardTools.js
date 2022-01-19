@@ -268,7 +268,7 @@ export async function getEns(address) {
 }
 
 //get address banlance
-export async function getBalanceByAddress(address) {
+export function getBalanceByAddress(address) {
   return new Promise((resolve, reject) => {
     const currentProvider = getCurrentProvider()
     console.log(currentProvider)

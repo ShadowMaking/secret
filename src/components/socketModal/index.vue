@@ -22,6 +22,7 @@
         confirmedList: [],
 
         oneSuccess: false,
+        itemIsSuccess: false,
       };
     },
     methods: {
@@ -52,6 +53,12 @@
           token: getAuthToken('gtoken'), 
           confirmed_txlist: list
         });
+        // if (this.itemIsSuccess) {
+        //   let _this = this
+        //   setTimeout(function(){ 
+        //     _this.$eventBus.$emit('transactionStatusChange')
+        //   }, 2000);
+        // }
       },
       async getTransactionStatus() {
         this.confirmedList = []
@@ -64,6 +71,7 @@
           if (txReceipt && txReceipt.blockNumber) {
             //0-success 1-send 2-confirming -1-failed
             let transHistoryStatus = 1;
+            this.itemIsSuccess = true
             let dealItemHash = confirmingItemHash.substring(0,8) + '...'
             console.log(confirmingItemHash)
             if (this.confirmingList.length == 1) {

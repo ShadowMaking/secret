@@ -93,7 +93,7 @@ export default {
 
       showStatusPop: false,
       popStatus: "success",
-      statusPopTitle: 'Created Successfully!',
+      statusPopTitle: 'Submited Successfully!',
       timeTxt: '',
       userId: getFromStorage('gUID'),
 
@@ -106,7 +106,7 @@ export default {
 
       overrides: {
         gasLimit: 8000000,
-        gasPrice: 20000000000,//5000000000
+        gasPrice: 80000000000,//5000000000
       },
       currentChainInfo: null,
       sendMetadata: null,

@@ -1,7 +1,7 @@
 <template>
   <van-popup v-model="show" round :close-on-click-overlay="false" :class="['waiting-modal flex flex-center flex-column', {'waiting-modal-no-loadingIcon': !showSpinner} ]">
     <div class="inner-wrapper">
-      <van-loading type="spinner" vertical>Confirming...</van-loading>
+      <van-loading type="spinner" vertical>Submitting...</van-loading>
     </div>
   </van-popup>
 </template>

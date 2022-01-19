@@ -103,6 +103,7 @@ export default {
     },
     async getBalance(address) {
       const balanceString = await getBalanceByAddress(address)
+      console.log(balanceString)
       return balanceString
     },
   },
