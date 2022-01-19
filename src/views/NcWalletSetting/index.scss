@@ -1,10 +1,24 @@
 .ncWalletSetting-page {
   .wallet-setting-item {
+    max-width: 34rem;
     display: flex;
     align-items: center;
-    justify-content: 
+    justify-content: space-between;
+    margin-top: 20px;
+    .setting-item-left {
+      font-size: 0.96rem;
+    }
+    .item-left-des {
+      font-size: 0.82rem;
+    }
+    .setting-item-right {
+      .right-label {
+        font-size: 0.96rem;
+        margin-left: 10px;
+      }
+    }
   }
   .item-input {
-    width: 100px;
+    width: 6rem;
   }
 }

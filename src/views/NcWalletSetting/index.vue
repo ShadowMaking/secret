@@ -5,9 +5,20 @@
       <div class="wallet-setting-item">
         <div class="setting-item-left">Multisig Wallet Daily Limit</div>
         <div class="setting-item-right">
-          <el-input v-model="dailyLimit" class="item-input"></el-input>
+          <el-input v-model="dailyLimit" class="item-input" @blur="dailyLimitSetting"></el-input>
+          <label class="right-label">ETH</label>
         </div>
       </div>
+      <div class="wallet-setting-item">
+        <div class="setting-item-left">
+         <p>Multisig Wallet Per Transaction Limit</p>
+        </div>
+        <div class="setting-item-right">
+          <el-input v-model="oneTransLimit" class="item-input" @blur="oneTransLimitSetting"></el-input>
+          <label class="right-label">ETH</label>
+        </div>
+      </div>
+      <p class="item-left-des">*Enable multi-signature transactions beyond this limit</p>
     </div>
   </div>
 </template>
@@ -27,13 +38,19 @@ export default {
   data() {
     return {
       dailyLimit: 10,
+      oneTransLimit: 5,
     }
   },
   methods: {
-    
+    oneTransLimitSetting() {
+      console.log(this.oneTransLimit)
+    },
+    dailyLimitSetting() {
+      console.log(this.dailyLimit)
+    },
   },
-  async created (){
-    
+  created (){
+
   },
 }
 </script>
