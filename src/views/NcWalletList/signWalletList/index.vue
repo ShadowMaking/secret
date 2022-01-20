@@ -2,10 +2,9 @@
   <div class="datalist-wrapper" v-if="walletListAsSigner.length">
     <el-table
       :data="walletListAsSigner"
-      border
       style="width: 100%"
       empty-text="no data"
-      >
+      :header-cell-style="{background:'#eff1f8'}" >
         <el-table-column
           fixed
           prop="createdAt"

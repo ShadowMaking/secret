@@ -1,7 +1,6 @@
 <template>
   <div class="recovery-backup-list">
-    <!-- <h4>Secret Backed Up</h4> -->
-    <h4>Recover Secret</h4>
+    <!-- <h4>Recover Secret</h4> -->
     <span class="tip">Click the secret that has been backed up to recover</span>
     <div class="backup-list-wrapper">
       <!-- table-header -->
@@ -27,6 +26,9 @@
           </div>
         </div>
       </div>
+      <div class="no-data-container" v-if="!backupList || backupList && backupList.length==0">
+        <v-none />
+      </div>
     </div>
     <!-- <div class="opt-wrapper">
       <van-button block color="#495ABE" @click="confirmRecoveryData">Confirm</van-button>
@@ -37,6 +39,7 @@
 import Vue from 'vue';
 import { Icon, Button } from 'vant';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
+import None from '@/components/None/index'
 import _ from 'lodash'
 
 Vue.use(Icon);
@@ -45,6 +48,7 @@ Vue.use(Button);
 export default {
   name: "BackupList",
   components: {
+    'v-none': None,
   },
   data() {
     return {

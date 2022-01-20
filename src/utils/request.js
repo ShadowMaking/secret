@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { stringify } from 'qs';
-import { getCookie, getCookieFromDocument, getAuthToken } from '@/utils/auth'
+import { getCookie, getCookieFromDocument, getAuthToken, logout } from '@/utils/auth'
 import {
   saveToStorage,
   getFromStorage,
@@ -58,6 +58,7 @@ axios.defaults.withCredentials = true;
          case 1: // need login
           const userId = getFromStorage('gUID')
           const token = getAuthToken('gtoken')
+          logout()
           window.location.href = LOCATION_HREF
           return Promise.reject('error')
          default:

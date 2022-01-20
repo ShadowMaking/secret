@@ -1,5 +1,6 @@
 <template>
   <div class="social-recovery-page">
+    <v-navTitle title="Recover Secret"></v-navTitle >
     <van-steps :active="activeStepForSrecovery">
       <!-- <van-step>Type</van-step> -->
       <van-step>Choose</van-step>
@@ -49,6 +50,7 @@ import ResultView from './components/RecoveryView'
 import SecretKey from './components/SecretKey'
 import RecoveryType from './components/RecoveryType'
 import BackupList from './components/BackupList'
+import navTitle from '@/components/NavTitle/index'
 import _ from 'lodash'
 import { SecLevelEnum, generate_mnemonic, generate_key, split } from '@/utils/secretshare'
 
@@ -62,6 +64,7 @@ export default {
     'v-2FA': Menonic2FAConfirm,
     'v-resultview': ResultView,
     'v-secretkey': SecretKey,
+    "v-navTitle": navTitle,
     // 'v-recoverytype': RecoveryType,
   },
   data() {
