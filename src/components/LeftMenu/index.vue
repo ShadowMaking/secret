@@ -179,6 +179,9 @@ export default {
       },
       immediate: true
     },
+    $route(to, from) {
+      this.$route.name === 'overview' && (this.activeKey = 0)
+    }
   },
   methods: {
     getDefaultNetWork() {
