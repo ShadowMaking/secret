@@ -230,13 +230,22 @@ export default {
       let du = ethers.utils.parseEther("15")//one day
       let lap = ethers.utils.parseEther("10")//one 
       let data = [encoder.encode(["uint", "uint"], [du, lap]), encoder.encode(["address[]"], [createSignList])]
-      let initTx = await walletContract.initialize(modules, data, this.overrides);
-      console.log(initTx)
-      addTransHistory(initTx, 'Create Wallet', this)
-      this.createWallet(walletAddress, initTx.hash)
-      const initTxwait = await initTx.wait()
-      console.log(initTxwait)
       
+      walletContract.initialize(
+        modules, 
+        data, 
+        this.overrides
+      ).then(async tx=> {
+          this.createWallet(walletAddress, tx.hash)
+          addTransHistory(tx, 'Create Wallet', this)
+          tx.wait().then(async res => {
+            console.log('Create:', res)
+          })
+      }).catch(error => {
+        console.log(error)
+        this.showLoading = false
+        Toast('Create failed')
+      })
     },
     async createWallet(walletAddress, txhash) {
       const selectedConnectAddress = getConnectedAddress()

@@ -1115,7 +1115,7 @@ export default {
           const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
           this.showLoading = false
           if (!hasError) {
-            Toast(`Approve ${token.tokenName} Success`)
+            Toast(`Submitted ${token.tokenName} Success`)
             console.log(`SaveUserAllowanceForToken ${token.tokenName} Suucess`)
           } else {
             Toast(`Approve ${token.tokenName} Failed`)
@@ -1155,7 +1155,7 @@ export default {
           const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
           this.showLoading = false
           if (!hasError) {
-            Toast('Approve success')
+            Toast('Submitted success')
             console.log(`SaveUserAllowanceForToken  Success`)
           } else {
             Toast('Approve Failed')

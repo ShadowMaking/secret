@@ -171,6 +171,7 @@ export default {
           this.showLoading = false
         })
       }).catch(error => {
+        console.log(error)
         this.submitFailed('Delete')
       })
       

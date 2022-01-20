@@ -332,6 +332,7 @@ export default {
             console.log('Unlock:', res)
           })
       }).catch(error => {
+        console.log(error)
         this.showLoading = false
         Toast('Unlock failed')
       })

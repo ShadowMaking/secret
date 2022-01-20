@@ -72,7 +72,6 @@ export default {
       this.transactionList = []
     },
     searchAllTrasanctionList() {
-      console.log('chaa')
       if(!this.connectedWallet()) { return }
       this.showLoading = true
 

@@ -106,6 +106,7 @@ import {
 import WalletTransaction from "@/assets/contractJSON/TransactionModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
+import { promiseValue } from '@/utils/index'
 
 Vue.use(Popup);
 Vue.use(Toast)
@@ -269,6 +270,7 @@ export default {
         if (sendType === 'eth') {
           await this.sendETH(data)
         } else {
+          console.log('token')
           await this.sendToken(data)
         }
       } else {//from is transfrom wallet
@@ -333,7 +335,12 @@ export default {
 
         const contractWithSigner = await getContractAt({ tokenAddress: this.selectedToken.tokenAddress, abi: this.selectedToken.abiJson }, this)
         console.log(contractWithSigner)
-        tempgasfixlimit = await contractWithSigner.estimateGas.transfer(sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
+        // tempgasfixlimit = await contractWithSigner.estimateGas.transfer(sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
+        const { hasError,res } = await promiseValue(contractWithSigner.estimateGas['transfer'](
+            sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') }
+          ))
+        hasError && console.log(res)
+        !hasError && res && (tempgasfixlimit = res)
       }
       console.log('datacode', datacode)
       console.log('tempgasfixlimit', tempgasfixlimit)
@@ -483,6 +490,7 @@ export default {
         })
       })
       .catch(error => {
+        console.log(error)
         this.sendFailed(error)
         this.showLoading = false
       })

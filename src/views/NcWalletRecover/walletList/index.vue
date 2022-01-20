@@ -42,11 +42,12 @@
 <script>
 import Vue from 'vue'
 import { Toast } from 'vant'
-import { isLogin, getBalanceByAddress} from '@/utils/dashBoardTools';
+import { isLogin, getBalanceByAddress, getContractAt,getConnectedAddress} from '@/utils/dashBoardTools';
 import { getFromStorage, saveToStorage } from '@/utils/storage'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
-import { walletStatus } from '@/utils/global';
+import { walletStatus, securityModuleRouter } from '@/utils/global';
+import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 
 Vue.use(Toast);
 
@@ -59,6 +60,9 @@ export default {
 
       showLoading: true,
       walletStatus,
+
+      securityModuleRouter,
+      securityModuleContract: null,
     }
   },
   components: {
@@ -75,11 +79,18 @@ export default {
         }
       })
     },
-    recoveryClick(row) {
+    async recoveryClick(row) {
       if (row.wallet_status == walletStatus['Active'] ||
         row.wallet_status == walletStatus['Recovering'] ||
         row.wallet_status == walletStatus['Frozen']) {
-        this.$emit('recoverChild', row);
+
+        this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+        let isSigner = await this.securityModuleContract.isSigner(row.wallet_address, getConnectedAddress())
+        if (isSigner) {
+          Toast('Signer Cannot Recover Wallet')
+        } else {
+          this.$emit('recoverChild', row);
+        }
       } else {
         Toast('Wallet is Unavailable')
       }
@@ -106,7 +117,7 @@ export default {
       return balanceString
     },
   },
-  created() {
+  async created() {
     if (!isLogin()) {
       Toast('Need Login')
       return
