@@ -4,7 +4,7 @@
     <div class="create-wallet-container content-page">
       <p class="create-title">Multisig Wallet</p>
       <p class="create-des">Create one right now!   Add at least one signer,  who can help you to recover your wallet, co-send large amount money, and lock the wallet when you need.</p>
-      <p class="create-des" style="margin-top: 15px;">Quickly create a Multisig Wallet:</p>
+      <p class="create-des" style="margin-top: 15px; color: #2C3E50">Quickly create a Multisig Wallet:</p>
       <div class="create-wallet-form">
         <el-form label-position="left">
           <el-form-item label="Set Wallet Name" label-width="135px">

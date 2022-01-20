@@ -163,6 +163,7 @@ export default {
   created() {
     // this.timer();
     this.initGthers()
+    this.$eventBus.$on('disconnect', this.handleAccountChange);
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
     this.$eventBus.$on('networkChange', this.handleAccountChange)
   },

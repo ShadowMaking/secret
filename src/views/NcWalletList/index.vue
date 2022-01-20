@@ -9,7 +9,9 @@
           :dataList="ownWalletList"
            />
         </div>
-        <v-none v-if="!ownShowLoading && ownWalletList.length==0" />
+        <div class="no-data-container" v-if="!ownShowLoading && ownWalletList.length==0">
+          <v-none />
+        </div>
         <v-loading v-show="ownShowLoading" />
       </van-tab>
       <van-tab title="I am The Signer" title-style="font-weight: bold">
@@ -19,7 +21,9 @@
           @signChild="getWalletAsSigner"
            />
         </div>
-        <v-none v-if="!signShowLoading && signWalletList.length==0" />
+        <div class="no-data-container" v-if="!signShowLoading && signWalletList.length==0">
+          <v-none />
+        </div>
         <v-loading v-show="signShowLoading" />
       </van-tab>
     </van-tabs>

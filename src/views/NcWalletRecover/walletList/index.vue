@@ -4,9 +4,9 @@
     <div v-if="walletList.length">
     <el-table
       :data="walletList"
-      border
       style="width: 100%"
-      empty-text="no data">
+      empty-text="no data"
+      :header-cell-style="{background:'#eff1f8'}" >
         <el-table-column
           fixed
           prop="createdAt"
@@ -34,7 +34,9 @@
         </el-table-column>
     </el-table>
     </div>
-    <v-none v-if="!showLoading && walletList.length==0" />
+    <div v-if="!showLoading && walletList.length==0" class="no-data-container">
+      <v-none />
+    </div>
     <v-loading v-show="showLoading" />
   </div>
 </template>

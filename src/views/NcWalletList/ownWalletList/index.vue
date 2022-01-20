@@ -2,9 +2,9 @@
   <div class="datalist-wrapper" v-if="dataList.length">
     <el-table
       :data="dataList"
-      border
       style="width: 100%"
-      empty-text="no data">
+      empty-text="no data"
+      :header-cell-style="{background:'#eff1f8'}">
         <el-table-column
           fixed
           prop="createdAt"
@@ -97,4 +97,5 @@ export default {
 </script>
 <style lang="scss" scoped>
   @import 'index.scss';
+  .el-table tr { background: #eff1f8;}
 </style>

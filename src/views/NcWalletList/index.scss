@@ -3,5 +3,17 @@
 	.nc-wallet-des {
 	  font-size: 0.96rem;
 	  line-height: 30px;
+    color: #9E9E9E;
 	}
+  .no-data-container {
+    margin-top: 20px;
+    color: #eee;
+    border: 1px solid #e6e7e9;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 200px;
+  }
 }
