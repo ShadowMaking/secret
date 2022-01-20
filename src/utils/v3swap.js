@@ -124,15 +124,16 @@ export const IUniswapV3Router = (type, data, currentChainInfo, $this, contractWa
       ...(value ? { value } : {}),
     }).then(async tx=>{
         console.log(tx)
-        tx.wait()
-        .then(async res=>{
-          console.log(res)
-          resolve(res)
-        })
-        .catch(error => {
-          console.log(error)
-          resolve(null)
-        })
+        resolve(tx)
+        // tx.wait()
+        // .then(async res=>{
+        //   console.log(res)
+        //   resolve(res)
+        // })
+        // .catch(error => {
+        //   console.log(error)
+        //   resolve(null)
+        // })
       })
       .catch(error=>{
         console.log(error)
@@ -193,14 +194,15 @@ export const approveV3Router = (approveToken, $this) => {
     TokenContract.approve(v3routerAddress, approveTokenAmount, overridesApprove)
       .then(async res=>{
         console.log(res)
-        res.wait()
-        .then(async txRes => {
-          console.log(txRes)
-          resolve(txRes)
-        }).catch(error => {
-          console.log(error)
-          resolve(null)
-        })
+        resolve(res)
+        // res.wait()
+        // .then(async txRes => {
+        //   console.log(txRes)
+        //   resolve(txRes)
+        // }).catch(error => {
+        //   console.log(error)
+        //   resolve(null)
+        // })
       }).catch(error => {
         console.log(error)
         resolve(null)

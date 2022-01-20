@@ -202,7 +202,7 @@ export default {
       .then(async res=>{
         console.log(`Approve Token tx: `, res);
         this.changeApproveStatus(tokenAddress,swapAddress,approveTokenAmount)
-        addTransHistory(res, 'Approve', this, 0, this.getTokenName(tokenAddress))
+        addTransHistory(res, 'Decline', this, 0, this.getTokenName(tokenAddress))
         res.wait().then(async res=>{
            console.log(res)
            this.showLoadingModal = false
@@ -235,11 +235,11 @@ export default {
       }
       //change approval status
       const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
+      this.showLoadingModal = false
       if (hasError) {
-        this.showLoadingModal = false
+        Toast('Failed')
         console.log('SaveUserAllowanceForToken Error', error)
       } else {
-        this.showLoadingModal = false
         Toast('success')
         await this.getApprovalList()
       }

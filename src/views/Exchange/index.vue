@@ -135,7 +135,7 @@ import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import {
   generateTokenList, getDefaultETHAssets, getConnectedAddress,
   getContractWallet, isLogin, getDATACode, getContractAt, 
-  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, } from '@/utils/dashBoardTools';
+  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory} from '@/utils/dashBoardTools';
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
@@ -410,18 +410,18 @@ export default {
           console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", res);
           console.log('success')
           this.showLoading = false
-          Toast(`Exchange success`)
+          // Toast(`Exchange success`)
         })
         .catch(error => {
           this.showLoading = false
-          Toast(`Exchange Failed`)
+          // Toast(`Exchange Failed`)
           console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", error);
           console.log('error')
         })
       })
       .catch(error=>{
         this.showLoading = false
-        Toast(`Exchange Failed`)
+        Toast(`Exchange Submitted Failed`)
       })
     },
     // Token exchange for WETH
@@ -462,18 +462,18 @@ export default {
           console.log("swapExactTokensForETHSupportingFeeOnTransferTokens: ", res);
           console.log('success')
           this.showLoading = false
-          Toast(`Exchange Success`)
+          // Toast(`Exchange Success`)
         })
         .catch(error => {
           this.showLoading = false
-          Toast(`Exchange Failed`)
+          // Toast(`Exchange Failed`)
           console.log("swapExactTokensForETHSupportingFeeOnTransferTokens: ", error);
           console.log('error')
         })
       })
       .catch(error=>{
         this.showLoading = false
-        Toast(`Exchange Failed`)
+        Toast(`Exchange Submitted Failed`)
       })
     },
     async exchangeSuccess(res, data) {
@@ -571,17 +571,18 @@ export default {
             console.log('success')
             
             this.showLoading = false
-            Toast(`Exchange Suucess`)
+            // Toast(`Exchange Suucess`)
           })
           .catch(error => {
             this.showLoading = false
-            Toast(`Exchange Failed`)
+            // Toast(`Exchange Failed`)
             console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", error);
             console.log('error')
           })
         })
         .catch(error=>{
           this.showLoading = false
+          Toast(`Exchange Submitted Failed`)
           console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", error);
         })
       } else {
@@ -607,17 +608,18 @@ export default {
             console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", res);
             console.log('success')
             this.showLoading = false
-            Toast(`Exchange Suucess`)
+            // Toast(`Exchange Suucess`)
           })
           .catch(error => {
             this.showLoading = false
-            Toast(`Exchange Failed`)
+            // Toast(`Exchange Failed`)
             console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", error);
             console.log('error')
           })
         })
         .catch(error=>{
           this.showLoading = false
+          Toast(`Exchange Submitted Failed`)
           console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", error);
         })
         
@@ -929,9 +931,16 @@ export default {
           console.log("swapv3success: ", res);
           await this.exchangeSuccess(res, data)//TODO
           this.showLoading = false
+
+          tx.wait().then(async res=>{
+            console.log(res)
+          })
+          .catch(error => {
+            console.log(error)
+          })
         } else {
           this.showLoading = false
-          Toast(`Exchange Failed`)
+          Toast(`Exchange Submitted Failed`)
           console.log("swapv3error: ");
         }
       })
@@ -1095,10 +1104,8 @@ export default {
       console.log('approveData', logData)
       TokenContract.approve(this.routerAddress, approveTokenAmount, overrides)
       .then(async res=>{
-        console.log(`Approve Token-${token.tokenName} tx: `, res);
-        res.wait()
-        .then(async txRes => { // approve success
-          console.log(`Approve Token-${token.tokenName} res: `, txRes);
+          console.log(`Approve Token-${token.tokenName} tx: `, res);
+          addTransHistory(res, 'Approve', this, 'Infinite')
           const { allowanceTokenData } = await this.getUserAllowanceForToken(true)
           const saveTokenData = {
             ...allowanceTokenData,
@@ -1106,13 +1113,19 @@ export default {
             allowance: "Infinite"
           }
           const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
+          this.showLoading = false
           if (!hasError) {
+            Toast(`Approve ${token.tokenName} Success`)
             console.log(`SaveUserAllowanceForToken ${token.tokenName} Suucess`)
           } else {
+            Toast(`Approve ${token.tokenName} Failed`)
             console.log('SaveUserAllowanceForToken Error', error)
           }
-          this.showLoading = false
-          Toast(`Approve ${token.tokenName} Success`)
+          
+          
+        res.wait()
+        .then(async txRes => { // approve success
+          console.log(`Approve Token-${token.tokenName} res: `, txRes);
         })
         .catch(error=>{
           this.showLoading = false
@@ -1131,7 +1144,8 @@ export default {
       approveV3Router(this.exchangeFromToken, this).then(async res => {
         console.log(res)
         if (res) {
-          Toast('Approve success')
+          
+          addTransHistory(res, 'Approve', this, 'Infinite')
           const { allowanceTokenData } = await this.getUserAllowanceForToken(true)
           const saveTokenData = {
             ...allowanceTokenData,
@@ -1139,11 +1153,22 @@ export default {
           }
           saveTokenData.swap_address = this.v3routerAddress
           const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
+          this.showLoading = false
           if (!hasError) {
+            Toast('Approve success')
             console.log(`SaveUserAllowanceForToken  Success`)
           } else {
+            Toast('Approve Failed')
             console.log('SaveUserAllowanceForToken Error', error)
           }
+
+
+          res.wait().then(async txRes => {
+            console.log(txRes)
+          }).catch(error => {
+            console.log(error)
+          })
+          
         } else {
           Toast('Approve Failed')
         }
