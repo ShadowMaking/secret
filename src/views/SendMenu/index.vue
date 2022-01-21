@@ -106,7 +106,7 @@ import {
 import WalletTransaction from "@/assets/contractJSON/TransactionModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
-import { promiseValue } from '@/utils/index'
+import { promiseValue, formatErrorContarct } from '@/utils/index'
 
 Vue.use(Popup);
 Vue.use(Toast)
@@ -567,7 +567,8 @@ export default {
       this.showLoading = false
 
       this.showStatusPop = true;
-      this.statusPopTitle = 'Send Failed'
+      let errorValue = formatErrorContarct(error)
+      this.statusPopTitle = errorValue
       this.popStatus = 'fail';
     },
     async addHistory(data) {

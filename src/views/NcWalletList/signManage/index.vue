@@ -79,7 +79,7 @@ import {  isLogin, getContractAt, getConnectedAddress, getEncryptKeyByAddressFro
 import { getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { signerStatus, securityModuleRouter } from '@/utils/global';
-import { copyTxt } from '@/utils/index';
+import { copyTxt, formatErrorContarct } from '@/utils/index';
 import InputPswModal from '@/components/InputPswModal'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import _ from 'lodash'
@@ -171,7 +171,9 @@ export default {
         })
       }).catch(error => {
         console.log(error)
-        this.submitFailed('Delete')
+        this.showLoading = false
+        let errorValue = formatErrorContarct(err)
+        Toast.fail(errorValue)
       })
       
     },
@@ -221,8 +223,10 @@ export default {
           this.showLoading = false
         })
       }).catch(error => {
+        this.showLoading = false
+        let errorValue = formatErrorContarct(err)
+        Toast.fail(errorValue)
         console.log(error)
-        this.submitFailed('Add')
       })
     },
     async confirmAddSigner(address) {

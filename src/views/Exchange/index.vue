@@ -147,7 +147,7 @@ import LoadingPopup from '@/components/LoadingPopup';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
 import { IUniswapV3Router, approveV3Router } from '@/utils/v3swap.js'
-import { promiseValue } from '@/utils/index'
+import { promiseValue, formatErrorContarct } from '@/utils/index'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
 
@@ -421,7 +421,9 @@ export default {
       })
       .catch(error=>{
         this.showLoading = false
-        Toast(`Exchange Submitted Failed`)
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
+        console.log(error)
       })
     },
     // Token exchange for WETH
@@ -473,7 +475,9 @@ export default {
       })
       .catch(error=>{
         this.showLoading = false
-        Toast(`Exchange Submitted Failed`)
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
+        console.log(error)
       })
     },
     async exchangeSuccess(res, data) {
@@ -582,7 +586,8 @@ export default {
         })
         .catch(error=>{
           this.showLoading = false
-          Toast(`Exchange Submitted Failed`)
+          let errorValue = formatErrorContarct(error)
+          Toast.fail(errorValue)
           console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", error);
         })
       } else {
@@ -619,7 +624,8 @@ export default {
         })
         .catch(error=>{
           this.showLoading = false
-          Toast(`Exchange Submitted Failed`)
+          let errorValue = formatErrorContarct(error)
+          Toast.fail(errorValue)
           console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", error);
         })
         
@@ -1129,13 +1135,14 @@ export default {
         })
         .catch(error=>{
           this.showLoading = false
-          Toast(`Approve ${token.tokenName} Failed`)
+          // Toast(`Approve ${token.tokenName} Failed`)
           console.log(`Approve Token-${token.tokenName} error: `, err);
         })
       })
       .catch(err => {
         this.showLoading = false
-        Toast(`Approve ${token.tokenName} Failed`)
+        let errorValue = formatErrorContarct(err)
+        Toast.fail(errorValue)
         console.log(`Approve Token-${token.tokenName} error: `, err);
       })
 

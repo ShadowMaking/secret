@@ -131,6 +131,7 @@ import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import web3 from 'web3'
+import { formatErrorContarct } from '@/utils/index'
 
 Vue.use(Toast);
 Vue.use(Step);
@@ -313,7 +314,9 @@ export default {
         })
       }).catch(error => {
         console.log(error)
-        Toast('Execute Recover Failed')
+        this.showLoading = false
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
       })
       
     },

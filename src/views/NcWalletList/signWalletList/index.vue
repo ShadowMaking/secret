@@ -158,7 +158,7 @@ import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import web3 from 'web3'
-import { copyTxt } from '@/utils/index';
+import { copyTxt, formatErrorContarct } from '@/utils/index';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
 Vue.use(Toast);
@@ -318,7 +318,8 @@ export default {
       }).catch(error => {
         console.log(error)
         this.showLoading = false
-        Toast('Freeze failed')
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
       })
     },
     unlockWallet() {
@@ -333,7 +334,8 @@ export default {
       }).catch(error => {
         console.log(error)
         this.showLoading = false
-        Toast('Unlock failed')
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
       })
     },
     changeWalletSuccess(res, status, operateType, isToast) {
@@ -506,7 +508,8 @@ export default {
       }).catch(error => {
         this.showLoading = false
         console.log(error)
-        Toast('Trigger Recover failed')
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
       })
     },
     async triggerRecover() {

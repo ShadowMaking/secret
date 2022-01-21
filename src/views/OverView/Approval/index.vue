@@ -64,6 +64,7 @@ import { TRANSACTION_TYPE } from '@/api/transaction'
 import { generateTokenList, getConnectedAddress, getContractAt, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory } from '@/utils/dashBoardTools';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import ApproveModal from '@/components/ApproveModal';
+import { formatErrorContarct } from '@/utils/index'
 
 Vue.use(Toast)
 Vue.use(Popup)
@@ -213,7 +214,8 @@ export default {
       })
       .catch(err => {
         this.showLoadingModal = false
-        Toast(`Decline Failed`)
+        let errorValue = formatErrorContarct(err)
+        Toast.fail(errorValue)
         console.log(`Decline error: `, err);
       })
     },

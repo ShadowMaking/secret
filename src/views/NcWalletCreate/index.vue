@@ -73,6 +73,7 @@ import { securityModuleRouter, proxyRouter, walletTransactionRouter } from '@/ut
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import web3 from 'web3'
+import { formatErrorContarct } from '@/utils/index'
 
 Vue.use(Toast);
 Vue.use(Dialog);
@@ -218,10 +219,22 @@ export default {
       // let user2 = ethers.Wallet.createRandom().connect(providertest)
       
       let walletAddress = await proxyContract.getAddress(saletnew);
-      const tx = await proxyContract.create(saletnew,this.overrides);
-      console.log(tx)
-      const tswait = await tx.wait()
-      console.log(tswait)
+      // const tx = await proxyContract.create(saletnew,this.overrides);
+      // console.log(tx)
+      // const tswait = await tx.wait()
+      // console.log(tswait)
+
+      proxyContract.create(saletnew,this.overrides).then(async tx=> {
+          tx.wait().then(async res => {
+            console.log(res)
+          })
+      }).catch(error => {
+        console.log(error)
+        this.showLoading = false
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
+        return
+      })
       
       const walletContract = await getContractAt({ tokenAddress: walletAddress, abi: WalletJson.abi }, this)
     
@@ -244,7 +257,8 @@ export default {
       }).catch(error => {
         console.log(error)
         this.showLoading = false
-        Toast('Create failed')
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
       })
     },
     async createWallet(walletAddress, txhash) {
