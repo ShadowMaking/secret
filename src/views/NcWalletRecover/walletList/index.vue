@@ -24,7 +24,7 @@
         <el-table-column
           label="Signer">
             <template slot-scope="scope">
-              <a @click="signClick(scope.row)" style="color: #409EFF">Signer</a>
+              <a @click="signClick(scope.row)" style="color: #409EFF">{{scope.row.signer_count}}</a>
             </template>
         </el-table-column>
         <el-table-column
