@@ -85,8 +85,11 @@ export default {
       if (row.wallet_status == walletStatus['Active'] ||
         row.wallet_status == walletStatus['Recovering'] ||
         row.wallet_status == walletStatus['Frozen']) {
-
         this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+        if (!this.securityModuleContract) {
+          Toast('Try Again Later')
+          return
+        }
         let isSigner = await this.securityModuleContract.isSigner(row.wallet_address, getConnectedAddress())
         if (isSigner) {
           Toast('Signer Cannot Recover Wallet')

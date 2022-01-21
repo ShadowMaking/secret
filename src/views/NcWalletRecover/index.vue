@@ -90,7 +90,7 @@
               </div>
               <div class="choose-btn">
                 <el-button type="info" @click="backStep" v-show="activeStep !==2">Back</el-button>
-                <el-button type="primary" @click="nextStep">{{confirmTxt}}</el-button>
+                <el-button type="primary" @click="nextStep" :disabled="!isInRecovery && activeStep == 1">{{confirmTxt}}</el-button>
               </div>
             </div>
           </div>
@@ -127,7 +127,6 @@ import walletList from './walletList/index'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import { signerStatus, securityModuleRouter } from '@/utils/global';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
-import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import web3 from 'web3'
@@ -157,6 +156,7 @@ export default {
       userId: getFromStorage('gUID'),
       agreeRecoverNum: 0,
       isStartRecover: false,
+      isInRecovery: false,
 
       confirmTxt: 'Confirm',
       securityModuleRouter,
@@ -340,9 +340,10 @@ export default {
       this.currentWalletId = value.wallet_id
       this.getSignerListByid()
 
-      const walletContract = await getContractAt({ tokenAddress: this.currentWalletAddress, abi: WalletJson.abi }, this)
-      let res1 = await walletContract.owner();
-      console.log("newowner:" + res1)
+      const SecurityContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      let res = await SecurityContract.isInRecovery(this.currentWalletAddress);
+      this.isInRecovery = res
+      console.log("isInRecovery:" + res)
     },
     async recoverChild(value) { // gyy
       this.currentRecord = _.cloneDeep(value)
@@ -439,8 +440,6 @@ export default {
     } else {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
-    let providers = new ethers.providers.JsonRpcProvider('http://rpc.ieigen.com:8443')
-    console.log(providers)
   },
 };
 </script>

@@ -87,6 +87,6 @@ export default {
 <style lang="scss" scoped>
   @import './index.scss';
   ::v-deep .el-select-dropdown {
-    z-index: 2022 !important;
+    z-index: 2020 !important;
   }
 </style>
