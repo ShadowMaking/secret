@@ -271,12 +271,10 @@ export async function getEns(address) {
 export function getBalanceByAddress(address) {
   return new Promise((resolve, reject) => {
     const currentProvider = getCurrentProvider()
-    console.log(currentProvider)
     if (currentProvider) {
       currentProvider.getBalance(address)
       .then(res=>{
         if (res) {
-          console.log(res)
           let etherString = ethers.utils.formatEther(res);
           resolve(etherString)
         } else {

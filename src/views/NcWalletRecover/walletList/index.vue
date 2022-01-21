@@ -10,7 +10,8 @@
         <el-table-column
           fixed
           prop="createdAt"
-          label="Create Time">
+          label="Create Time"
+          :formatter="formatterTime">
         </el-table-column>
         <el-table-column
           prop="name"
@@ -23,13 +24,13 @@
         <el-table-column
           label="Signer">
             <template slot-scope="scope">
-              <el-button @click="signClick(scope.row)" type="text" size="small">Signer</el-button>
+              <a @click="signClick(scope.row)" style="color: #409EFF">Signer</a>
             </template>
         </el-table-column>
         <el-table-column
-          label="Operate">
+          label="Operation">
             <template slot-scope="scope">
-              <el-button @click="recoveryClick(scope.row)" type="text" size="small">Recovery</el-button>
+              <a @click="recoveryClick(scope.row)" style="color: #409EFF">Recovery</a>
             </template>
         </el-table-column>
     </el-table>
@@ -50,6 +51,7 @@ import None from '@/components/None/index'
 import Loading from '@/components/Loading'
 import { walletStatus, securityModuleRouter } from '@/utils/global';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
+import { timeFormat } from '@/utils/str';
 
 Vue.use(Toast);
 
@@ -72,6 +74,9 @@ export default {
     'v-loading': Loading,
   },
   methods: {
+    formatterTime(row) {
+      return timeFormat(row.createdAt, 'yyyy-MM-dd hh:mm:ss')
+    },
     signClick(row) {
       saveToStorage({ 'currentWallet': row.wallet_address });
       this.$router.push({
@@ -85,7 +90,7 @@ export default {
       if (row.wallet_status == walletStatus['Active'] ||
         row.wallet_status == walletStatus['Recovering'] ||
         row.wallet_status == walletStatus['Frozen']) {
-        this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+        
         if (!this.securityModuleContract) {
           Toast('Try Again Later')
           return
@@ -127,6 +132,7 @@ export default {
       Toast('Need Login')
       return
     }
+    this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
     this.getWalletList()
   },
 };

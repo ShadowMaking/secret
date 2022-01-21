@@ -8,7 +8,8 @@
         <el-table-column
           fixed
           prop="createdAt"
-          label="Create Time">
+          label="Create Time"
+          :formatter="formatterTime">
         </el-table-column>
         <el-table-column
           prop="name"
@@ -68,6 +69,7 @@ import { Toast } from 'vant';
 import { saveToStorage } from '@/utils/storage'
 import { copyTxt } from '@/utils/index';
 import { walletStatus } from '@/utils/global';
+import { timeFormat } from '@/utils/str';
 
 Vue.use(Toast)
 
@@ -81,6 +83,9 @@ export default {
   },
   
   methods: {
+    formatterTime(row) {
+      return timeFormat(row.createdAt, 'yyyy-MM-dd hh:mm:ss')
+    },
     copyAddress(str) {
       if (copyTxt(str)) {
         Toast.success('Copied');

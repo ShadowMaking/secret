@@ -7,8 +7,8 @@
         <div class="recover-steps">
           <van-steps :active="activeStep">
             <van-step>Choose</van-step>
-            <van-step>Signer Confirm</van-step>
-            <van-step>Complete</van-step>
+            <van-step>Signer Multi-sign</van-step>
+            <van-step>Recover</van-step>
           </van-steps>
         </div>
         <div class="recover-content-box">
