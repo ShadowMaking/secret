@@ -107,7 +107,7 @@ export default {
 
       overrides: {
         gasLimit: 8000000,
-        gasPrice: 80000000000,//5000000000
+        gasPrice: 20000000000,//5000000000
       },
       currentChainInfo: null,
       sendMetadata: null,
@@ -219,22 +219,23 @@ export default {
       // let user2 = ethers.Wallet.createRandom().connect(providertest)
       
       let walletAddress = await proxyContract.getAddress(saletnew);
-      // const tx = await proxyContract.create(saletnew,this.overrides);
-      // console.log(tx)
-      // const tswait = await tx.wait()
-      // console.log(tswait)
+      const tx = await proxyContract.create(saletnew,this.overrides);
+      console.log(tx)
+      const tswait = await tx.wait()
+      console.log(tswait)
 
-      proxyContract.create(saletnew,this.overrides).then(async tx=> {
-          tx.wait().then(async res => {
-            console.log(res)
-          })
-      }).catch(error => {
-        console.log(error)
-        this.showLoading = false
-        let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
-        return
-      })
+      // proxyContract.create(saletnew,this.overrides).then(async tx=> {
+      //     console.log(tx)
+      //     tx.wait().then(async res => {
+      //       console.log(res)
+      //     })
+      // }).catch(error => {
+      //   console.log(error)
+      //   this.showLoading = false
+      //   let errorValue = formatErrorContarct(error)
+      //   Toast.fail(errorValue)
+      //   return
+      // })
       
       const walletContract = await getContractAt({ tokenAddress: walletAddress, abi: WalletJson.abi }, this)
     
@@ -249,6 +250,7 @@ export default {
         data, 
         this.overrides
       ).then(async tx=> {
+          console.log(tx)
           this.createWallet(walletAddress, tx.hash)
           addTransHistory(tx, 'Create Wallet', this)
           tx.wait().then(async res => {
