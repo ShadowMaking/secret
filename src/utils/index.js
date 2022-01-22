@@ -152,11 +152,7 @@ export const formatErrorContarct = (error) => {
   let errorThrow = error.body || (error.error && error.error.body)
   if ( errorThrow) {
     let errorData = JSON.parse(errorThrow).error
-    if (errorData.code == -32000) {
-      errorValue = 'You Have Insufficient Funds'
-    } else if(errorData.message) {
-      errorValue = errorData.message
-    }
+    errorValue = errorData.message
   }
   return errorValue
 }
