@@ -92,8 +92,7 @@ export default {
         row.wallet_status == walletStatus['Frozen']) {
         
         if (!this.securityModuleContract) {
-          Toast('Try Again Later')
-          return
+          this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
         }
         let isSigner = await this.securityModuleContract.isSigner(row.wallet_address, getConnectedAddress())
         if (isSigner) {
