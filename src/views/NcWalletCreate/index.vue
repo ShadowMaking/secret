@@ -219,49 +219,51 @@ export default {
       // let user2 = ethers.Wallet.createRandom().connect(providertest)
       
       let walletAddress = await proxyContract.getAddress(saletnew);
-      const tx = await proxyContract.create(saletnew,this.overrides);
-      console.log(tx)
-      const tswait = await tx.wait()
-      console.log(tswait)
-
-      // proxyContract.create(saletnew,this.overrides).then(async tx=> {
-      //     console.log(tx)
-      //     tx.wait().then(async res => {
-      //       console.log(res)
-      //     })
-      // }).catch(error => {
+      // const tx = await proxyContract.create(saletnew,this.overrides).catch(error => {
       //   console.log(error)
-      //   this.showLoading = false
-      //   let errorValue = formatErrorContarct(error)
-      //   Toast.fail(errorValue)
-      //   return
-      // })
-      
-      const walletContract = await getContractAt({ tokenAddress: walletAddress, abi: WalletJson.abi }, this)
-    
-      let modules = [ transactionContract.address, securityModuleContract.address ]
-      let encoder = ethers.utils.defaultAbiCoder
-      let du = ethers.utils.parseEther("15")//one day
-      let lap = ethers.utils.parseEther("10")//one 
-      let data = [encoder.encode(["uint", "uint"], [du, lap]), encoder.encode(["address[]"], [createSignList])]
-      
-      walletContract.initialize(
-        modules, 
-        data, 
-        this.overrides
-      ).then(async tx=> {
+      // });
+      // console.log(tx)
+      // const tswait = await tx.wait()
+      // console.log(tswait)
+
+      proxyContract.create(saletnew,this.overrides).then(async tx=> {
           console.log(tx)
-          this.createWallet(walletAddress, tx.hash)
-          addTransHistory(tx, 'Create Wallet', this)
           tx.wait().then(async res => {
-            console.log('Create:', res)
+            console.log(res)
+            const walletContract = await getContractAt({ tokenAddress: walletAddress, abi: WalletJson.abi }, this)
+    
+            let modules = [ transactionContract.address, securityModuleContract.address ]
+            let encoder = ethers.utils.defaultAbiCoder
+            let du = ethers.utils.parseEther("15")//one day
+            let lap = ethers.utils.parseEther("10")//one 
+            let data = [encoder.encode(["uint", "uint"], [du, lap]), encoder.encode(["address[]"], [createSignList])]
+            
+            walletContract.initialize(
+              modules, 
+              data, 
+              this.overrides
+            ).then(async tx=> {
+                console.log(tx)
+                this.createWallet(walletAddress, tx.hash)
+                addTransHistory(tx, 'Create Wallet', this)
+                tx.wait().then(async res => {
+                  console.log('Create:', res)
+                })
+            }).catch(error => {
+              console.log(error)
+              this.showLoading = false
+              let errorValue = formatErrorContarct(error)
+              Toast.fail(errorValue)
+            })
           })
       }).catch(error => {
         console.log(error)
         this.showLoading = false
         let errorValue = formatErrorContarct(error)
         Toast.fail(errorValue)
+        return
       })
+      
     },
     async createWallet(walletAddress, txhash) {
       const selectedConnectAddress = getConnectedAddress()
