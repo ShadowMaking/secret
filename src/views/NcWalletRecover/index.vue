@@ -213,6 +213,8 @@ export default {
         });
       } else if (this.activeStep == 1) {
         if (this.agreeRecoverNum >= this.signerPercent) {
+          let thisGasPrice = this.overrides.gasPrice.toString()
+          let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
           this.sendMetadata = {
             from: getConnectedAddress(),
             to: this.securityModuleRouter,
@@ -292,7 +294,9 @@ export default {
       this.showTradeConfirm = false
       Toast('Cancel create')
     },
-    confirmRecover() {
+    confirmRecover({ overrides }) {
+      this.overrides.gasLimit = overrides.gasLimit
+      this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
       this.showLoading = true;
       this.executeRecover()
     },

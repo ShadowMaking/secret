@@ -107,7 +107,7 @@ export default {
 
       overrides: {
         gasLimit: 8000000,
-        gasPrice: 20000000000,//5000000000
+        gasPrice: 20000000000,//wei
       },
       currentChainInfo: null,
       sendMetadata: null,
@@ -176,7 +176,9 @@ export default {
       this.showTradeConfirm = false
       Toast('Cancel create')
     },
-    confirmCreate() {
+    confirmCreate({ overrides }) {
+      this.overrides.gasLimit = overrides.gasLimit
+      this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
       this.createNcWallet()
     },
     async dealDataBeforeCreate() {
