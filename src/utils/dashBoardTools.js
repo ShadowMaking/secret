@@ -5,6 +5,7 @@ import { defaultNetWorkForMetamask, CHAINMAP } from '@/utils/netWorkForToken';
 import { CHAINIDMAP } from '@/utils/netWorkForToken'
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import { getCurrentProvider } from '@/utils/web3';
+import { TRANSACTION_TYPE } from '@/api/transaction';
 /**
  * @description: 
  * @param {*} list
@@ -267,15 +268,13 @@ export async function getEns(address) {
 }
 
 //get address banlance
-export async function getBalanceByAddress(address) {
+export function getBalanceByAddress(address) {
   return new Promise((resolve, reject) => {
     const currentProvider = getCurrentProvider()
-    console.log(currentProvider)
     if (currentProvider) {
       currentProvider.getBalance(address)
       .then(res=>{
         if (res) {
-          console.log(res)
           let etherString = ethers.utils.formatEther(res);
           resolve(etherString)
         } else {
@@ -290,4 +289,27 @@ export async function getBalanceByAddress(address) {
       resolve(null)
     }
   })
+}
+
+export const addTransHistory = async (txInfo, taransType, self, value, name) => {
+  const currentChainInfo = getConnectedNet()
+  const chainId = currentChainInfo && currentChainInfo['id']
+  const submitData = {
+    txid: txInfo.hash,
+    from: txInfo.from,
+    to: (txInfo.to).toLocaleLowerCase(),
+    type: TRANSACTION_TYPE['L2ToL2'],
+    status: 0,//0-tobeconfirm 1-success 2-confirming -1-fail
+    value: value ? value : 0,
+    operation: taransType,
+    network_id: chainId,
+    name: name ? name: null
+  }
+  const res = await self.$store.dispatch('AddTransactionHistory', {...submitData});
+  if (res.hasError) {
+    console.log('Transaction success，but error when add history')
+  } else  {
+    self.$eventBus.$emit('addTransactionHistory')
+    console.log('add history success')
+  }
 }

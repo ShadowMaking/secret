@@ -9,7 +9,9 @@
           :dataList="ownWalletList"
            />
         </div>
-        <v-none v-if="!ownShowLoading && ownWalletList.length==0" />
+        <div class="no-data-container" v-if="!ownShowLoading && ownWalletList.length==0">
+          <v-none />
+        </div>
         <v-loading v-show="ownShowLoading" />
       </van-tab>
       <van-tab title="I am The Signer" title-style="font-weight: bold">
@@ -19,7 +21,9 @@
           @signChild="getWalletAsSigner"
            />
         </div>
-        <v-none v-if="!signShowLoading && signWalletList.length==0" />
+        <div class="no-data-container" v-if="!signShowLoading && signWalletList.length==0">
+          <v-none />
+        </div>
         <v-loading v-show="signShowLoading" />
       </van-tab>
     </van-tabs>
@@ -69,9 +73,10 @@ export default {
   methods: {
     async getWalletAsOwner() {
       let data = {
-        userId: this.userId
+        userId: this.userId,
+        ownerAddress: getConnectedAddress(),
       }
-      const { hasError, list } = await this.$store.dispatch('getWalletList', data)
+      const { hasError, list } = await this.$store.dispatch('getWalletListAsOwner', data)
       
       for(let i=0; i<list.length;i+=1) {
         let itemBalance = await this.getBalance(list[i].wallet_address)
@@ -102,6 +107,7 @@ export default {
     },
     async getBalance(address) {
       const balanceString = await getBalanceByAddress(address)
+      console.log(balanceString)
       return balanceString
     },
   },

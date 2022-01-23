@@ -61,9 +61,10 @@ import VLoading from '@/components/Loading'
 import InputPswModal from '@/components/InputPswModal'
 import { Popup, Toast, Loading } from 'vant';
 import { TRANSACTION_TYPE } from '@/api/transaction'
-import { generateTokenList, getConnectedAddress, getContractAt, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore } from '@/utils/dashBoardTools';
+import { generateTokenList, getConnectedAddress, getContractAt, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory } from '@/utils/dashBoardTools';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import ApproveModal from '@/components/ApproveModal';
+import { formatErrorContarct } from '@/utils/index'
 
 Vue.use(Toast)
 Vue.use(Popup)
@@ -161,28 +162,29 @@ export default {
       }
       await this.dealDataBeforeDecline()
     },
-    async addTransHistory(data, tokenAddress) {
-      const chainId = this.currentChainInfo && this.currentChainInfo['id']
-      const submitData = {
-        txid: data.transactionHash,
-        block_num: data.blockNumber,
-        from: data.from,
-        to: (data.to).toLocaleLowerCase(),
-        type: TRANSACTION_TYPE['L1ToL1'],
-        status: data.status,
-        value: 0,
-        name: this.getTokenName(tokenAddress),
-        operation: 'Approve',
-        network_id: chainId
-      }
-      console.log(submitData)
-      const res = await this.$store.dispatch('AddTransactionHistory', {...submitData});
-      if (res.hasError) {
-        console.log('Transaction success，but error when add history')
-      } else  {
-        console.log('add history success')
-      }
-    },
+    // async addTransHistory(data, tokenAddress) {
+    //   const chainId = this.currentChainInfo && this.currentChainInfo['id']
+    //   const submitData = {
+    //     txid: data.hash,
+    //     // block_num: data.blockNumber,
+    //     from: data.from,
+    //     to: (data.to).toLocaleLowerCase(),
+    //     type: TRANSACTION_TYPE['L2ToL2'],
+    //     status: 0,
+    //     value: 0,
+    //     name: this.getTokenName(tokenAddress),
+    //     operation: 'Decline Approve',
+    //     network_id: chainId
+    //   }
+    //   console.log(submitData)
+    //   const res = await this.$store.dispatch('AddTransactionHistory', {...submitData});
+    //   if (res.hasError) {
+    //     console.log('Transaction success，but error when add history')
+    //   } else  {
+    //     this.$eventBus.$emit('addTransactionHistory')
+    //     console.log('add history success')
+    //   }
+    // },
     cancelApprove() {
       this.showApproveModal = false
       Toast('Cancel Approve')
@@ -200,40 +202,49 @@ export default {
       TokenContract.approve(swapAddress, approveTokenAmount, gasInfo)
       .then(async res=>{
         console.log(`Approve Token tx: `, res);
-        const txRes = await res.wait()
-        console.log(`Approve Token res: `, txRes);
-
-        const userAddress = getConnectedAddress()
-        const chainId = this.currentChainInfo && this.currentChainInfo['id']
-
-        const allowanceTokenData = {
-          userId: this.userId,
-          network_id: chainId,
-          token_address: tokenAddress,
-          user_address: userAddress,
-          swap_address: swapAddress,
-        }
-
-        const saveTokenData = {
-          ...allowanceTokenData,
-          allowance: approveTokenAmount
-        }
-        //change approval status
-        const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
-        if (hasError) {
+        this.changeApproveStatus(tokenAddress,swapAddress,approveTokenAmount)
+        addTransHistory(res, 'Decline', this, 0, this.getTokenName(tokenAddress))
+        res.wait().then(async res=>{
+           console.log(res)
+           this.showLoadingModal = false
+        }).catch(error => {
           this.showLoadingModal = false
-          console.log('SaveUserAllowanceForToken Error', error)
-        } else {
-          await this.addTransHistory(txRes, tokenAddress)
-          await this.getApprovalList()
-          this.showLoadingModal = false
-          Toast('success')
-        }
+          console.log(error)
+        })
       })
       .catch(err => {
         this.showLoadingModal = false
-        console.log(`Approve Token-error: `, err);
+        let errorValue = formatErrorContarct(err)
+        Toast.fail(errorValue)
+        console.log(`Decline error: `, err);
       })
+    },
+    async changeApproveStatus(tokenAddress,swapAddress,approveTokenAmount) {
+      const userAddress = getConnectedAddress()
+      const chainId = this.currentChainInfo && this.currentChainInfo['id']
+
+      const allowanceTokenData = {
+        userId: this.userId,
+        network_id: chainId,
+        token_address: tokenAddress,
+        user_address: userAddress,
+        swap_address: swapAddress,
+      }
+
+      const saveTokenData = {
+        ...allowanceTokenData,
+        allowance: approveTokenAmount
+      }
+      //change approval status
+      const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
+      this.showLoadingModal = false
+      if (hasError) {
+        Toast('Failed')
+        console.log('SaveUserAllowanceForToken Error', error)
+      } else {
+        Toast('success')
+        await this.getApprovalList()
+      }
     },
     thirdLogin() {
       const userId = this.userId

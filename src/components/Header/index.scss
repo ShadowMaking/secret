@@ -161,7 +161,8 @@
 }
 
 
-.account-popover{
+.account-popover,
+.login-popover{
   font-size: 0.875rem;
   color: #6a737d;
   width: 300px;
@@ -218,6 +219,7 @@
   .account-setting-wrapper{
     padding: 10px;
     .opt-item {
+      cursor: pointer;
       padding: 13px 0;
       .opt-icon {margin-right: 5px; vertical-align: middle; font-size: 16px;}
       .icon-bridge {
@@ -229,5 +231,16 @@
       }
       span, i { color: #333; }
     }
+  }
+  .login-icon {
+    width: 32px;
+    height: 32px;
+    display: inline-block;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .logo-google {
+    background: url('~@/assets/google_icon.svg') center center no-repeat;
+    background-size: 100% 100%;
   }
 }

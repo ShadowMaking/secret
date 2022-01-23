@@ -11,6 +11,7 @@ import {
   uploadSignmessage,
   updateOwnerAddress,
   getSignMessage,
+  updateWalletStatus,
 } from '@/api/ncwallet'
 
 
@@ -172,6 +173,19 @@ const ncWallet = {
           const { errno, data, message } = response.data
           if (errno === 0) {
             resolve({ hasError: false, data: data })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
+    updateWalletStatus({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        updateWalletStatus(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false })
           }
           resolve({ hasError: true, error: message });
         }).catch(error => {

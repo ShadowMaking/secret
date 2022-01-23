@@ -52,7 +52,7 @@ export const getStatusTxt = (record) => {
   let statusTxt = 'pending';
   switch(record.status) {
     case 0:
-      statusTxt = 'fail'
+      statusTxt = 'pending'
       break;
     case 1:
       if (record.type === TRANSACTION_TYPE['L2ToL1']) {
@@ -62,7 +62,10 @@ export const getStatusTxt = (record) => {
       }
       break;
     case 2:
-      statusTxt = 'success'
+      statusTxt = 'confirming'
+      break;
+    case -1:
+      statusTxt = 'fail'
       break;
     default:
       statusTxt = 'pending';
@@ -142,4 +145,14 @@ export const getRouteNameAndQuery = (record, type) => {
 
 export const promiseValue = (promise) => {
   return promise.then((data) => ({hasError: false, res: data})).catch((err) => ({hasError: true, res: err}));
+}
+
+export const formatErrorContarct = (error) => {
+  let errorValue = error
+  let errorThrow = error.body || (error.error && error.error.body)
+  if ( errorThrow) {
+    let errorData = JSON.parse(errorThrow).error
+    errorValue = errorData.message
+  }
+  return errorValue
 }

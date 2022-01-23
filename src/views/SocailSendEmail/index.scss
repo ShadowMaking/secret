@@ -30,7 +30,8 @@
   .tip.color { color: rgb(247, 156, 19); font-style: normal; word-break: break-word; }
   .no-friends {
     color: #eee;
-    border: 1px solid #eee;
+    border: 1px solid #e6e7e9;
+    border-radius: 5px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -41,7 +42,7 @@
 
 /* add friend page */
 .add-friends-page {
-  padding: 20px;
+  // padding: 20px;
   font-size: .9375rem;
   h4{
     font-size: 1.2rem;
@@ -96,11 +97,10 @@
     }
   }
   span.tip{
-    font-size: 1rem;
+    font-size: 0.96rem;
+	  line-height: 30px;
     color: #9E9E9E;
     display: block;
-    line-height: 23px;
-    margin-bottom: 20px;
     word-break: break-word;
     i { font-style: normal; color: #495ABE; margin: 0 5px; text-decoration: underline;}
   }
@@ -188,7 +188,8 @@
   }
   .no-friends {
     color: #eee;
-    border: 1px solid #eee;
+    border: 1px solid #e6e7e9;
+    border-radius: 5px;
     display: flex;
     justify-content: center;
     align-items: center;

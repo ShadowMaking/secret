@@ -131,6 +131,12 @@ export default {
     },
     async handleAccountChange(addressInfo) {
       this.transactionList = []
+      this.currentPage = 1
+      this.searchAllTrasanctionList()
+    },
+    transactionStatusChange() {
+      this.transactionList = []
+      this.currentPage = 1
       this.searchAllTrasanctionList()
     },
   },
@@ -152,6 +158,7 @@ export default {
     }
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
     this.$eventBus.$on('networkChange', this.handleAccountChange)
+    this.$eventBus.$on('transactionStatusChange', this.transactionStatusChange)
   },
   beforeDestroy() {
     window.removeEventListener("scroll", this.onScroll, true);

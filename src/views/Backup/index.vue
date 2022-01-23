@@ -1,11 +1,9 @@
 <template>
-  <div class="first-wallet-page">
-    <div class="page-top">
-      <span><i>Create Recovery</i></span>
-    </div>
+  <div class="first-wallet-page content-box">
+    <v-navTitle title="Create Recovery"></v-navTitle >
     <div class="create-wallet-type">
-      <van-tabs @click="oncheckCreateType" v-model="activeCreateWalletType" animated>
-        <van-tab name="create" title="Create" class="inner-type-wrapper">
+      <van-tabs @click="oncheckCreateType" v-model="activeCreateWalletType" animated color="#4375f1">
+        <van-tab name="create" title="Create" class="inner-type-wrapper" title-style="font-weight: bold">
           <h4>For your eyes only</h4>
           <span class="tip">Your secret recovery phrase or private key can help you backup and recover the secret. Don’t expose your private key or secret recovery phase in the public network.</span>
           <!-- backup-setting -->
@@ -42,7 +40,7 @@
               @createComplete="hanldeCreateComplete"/>
           </div>
         </van-tab>
-        <van-tab name="import" title="Import" class="inner-type-wrapper">
+        <van-tab name="import" title="Import" class="inner-type-wrapper" title-style="font-weight: bold">
           <span class="tip">Add an existing account by secret recovery phrase or private key.</span>
           <!-- backup-setting -->
           <div class="backup-setting-wrapper">
@@ -94,6 +92,7 @@ import { saveToStorage, getFromStorage } from '@/utils/storage';
 import MnemonicForAccount from './Components/MnemonicForAccount'
 import PrivatekeyForAccount from './Components/PrivatekeyForAccount'
 import ThirdLoginTip from '@/components/ThirdLoginTip';
+import navTitle from '@/components/NavTitle/index'
 import { formatTrim, objHasOwnProperty } from '@/utils/str';
 
 Vue.use(Field)
@@ -109,6 +108,7 @@ export default {
     'v-mnemonicType': MnemonicForAccount,
     'v-privatekeyType': PrivatekeyForAccount,
     'v-thirdlogintip': ThirdLoginTip,
+    "v-navTitle": navTitle,
   },
   data() {
     return {
@@ -130,7 +130,6 @@ export default {
     }
   },
   computed: {
-
     settingDataForCreate() {
       return {
         name: this.backupName,

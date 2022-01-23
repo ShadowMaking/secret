@@ -34,6 +34,17 @@ const signerStatus = {
 	'triggerRecover': 8,
 }
 
+const walletStatus = {
+  'init': 0,
+  'Creating': 1,
+  'Active': 2,
+  'Recovering': 3,
+  'Fail': 4,
+  'Freezing': 5,
+  'Frozen': 6,
+  'Unlocking': 7,
+}
+
 export {
   DEFAULTIMG,
   RECHAERGE_TIP,
@@ -48,4 +59,5 @@ export {
   securityModuleRouter,
   proxyRouter,
   walletTransactionRouter,
+  walletStatus,
 }

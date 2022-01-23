@@ -7,8 +7,8 @@
         <div class="recover-steps">
           <van-steps :active="activeStep">
             <van-step>Choose</van-step>
-            <van-step>Signer Confirm</van-step>
-            <van-step>Complete</van-step>
+            <van-step>Signer Multi-sign</van-step>
+            <van-step>Recover</van-step>
           </van-steps>
         </div>
         <div class="recover-content-box">
@@ -34,7 +34,7 @@
               <div class="signer-confirm" v-show="activeStep==1"><!-- setp1 -->
                 <p class="choose-wallet-des">Please ask at other {{signerTotal}} signers below to confirm:</p>
                 <div class="choose-wallet-table">
-                  <div class="choose-refresh"><el-button type="success" @click="getSignerListByid">Refresh</el-button></div>
+                  <div class="choose-refresh"><el-button type="success" @click="recoverRefresh">Refresh</el-button></div>
                   <el-table
                     :data="signerList"
                     empty-text="no data"
@@ -82,7 +82,7 @@
                  <div class="complete-success-icon">
                   <el-row>
                     <el-col>
-                      <el-result icon="success" title="success">
+                      <el-result icon="success" title="Submited Successfully">
                       </el-result>
                     </el-col>
                   </el-row>
@@ -90,7 +90,7 @@
               </div>
               <div class="choose-btn">
                 <el-button type="info" @click="backStep" v-show="activeStep !==2">Back</el-button>
-                <el-button type="primary" @click="nextStep">{{confirmTxt}}</el-button>
+                <el-button type="primary" @click="nextStep" :disabled="!isInRecovery && activeStep == 1">{{confirmTxt}}</el-button>
               </div>
             </div>
           </div>
@@ -122,15 +122,15 @@ import navTitle from '@/components/NavTitle/index'
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
-import { isLogin, getContractAt, getConnectedAddress, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore } from '@/utils/dashBoardTools';
+import { isLogin, getContractAt, getConnectedAddress, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory } from '@/utils/dashBoardTools';
 import walletList from './walletList/index'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import { signerStatus, securityModuleRouter } from '@/utils/global';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
-import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import web3 from 'web3'
+import { formatErrorContarct } from '@/utils/index'
 
 Vue.use(Toast);
 Vue.use(Step);
@@ -156,6 +156,7 @@ export default {
       userId: getFromStorage('gUID'),
       agreeRecoverNum: 0,
       isStartRecover: false,
+      isInRecovery: false,
 
       confirmTxt: 'Confirm',
       securityModuleRouter,
@@ -164,7 +165,7 @@ export default {
       showTradeConfirm: false,
       overrides: {
         gasLimit: 8000000,
-        gasPrice: 5000000000,
+        gasPrice: 20000000000,
       },
       currentChainInfo: null,
       sendMetadata: null,
@@ -212,6 +213,8 @@ export default {
         });
       } else if (this.activeStep == 1) {
         if (this.agreeRecoverNum >= this.signerPercent) {
+          let thisGasPrice = this.overrides.gasPrice.toString()
+          let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
           this.sendMetadata = {
             from: getConnectedAddress(),
             to: this.securityModuleRouter,
@@ -247,20 +250,23 @@ export default {
     startRecover() {
       this.signerList.map(async item => {//waiting for signer agree
         console.log(item)
-        let data = {
-          userId: this.userId,
-          walletId: this.currentWalletId,
-          signerAddress: item.address,
-          status: signerStatus['startRecover'],
-        }
-        const { hasError } = await this.$store.dispatch('updateSigner', {...data});
-        if (hasError) {
-          Toast('Update Signer Failed')
-        } else {
-          console.log('Update Signer success')
-        }
+        this.updateSigner(item.address, signerStatus['startRecover'])
       })
       this.updateOwner()
+    },
+    async updateSigner(signerAddress, status) {
+      let data = {
+        userId: this.userId,
+        walletId: this.currentWalletId,
+        signerAddress: signerAddress,
+        status: status,
+      }
+      const { hasError } = await this.$store.dispatch('updateSigner', {...data});
+      if (hasError) {
+        console.log('Update Signer Failed')
+      } else {
+        console.log('Update Signer success')
+      }
     },
     async updateOwner() {
       let data = {
@@ -277,11 +283,20 @@ export default {
         this.confirmTxt = 'Execute'
       }
     },
+    async recoverRefresh() {
+      this.getSignerListByid()
+      const SecurityContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      let res = await SecurityContract.isInRecovery(this.currentWalletAddress);
+      this.isInRecovery = res
+      console.log("isInRecovery:" + res)
+    },
     cancelRecover() {
       this.showTradeConfirm = false
       Toast('Cancel create')
     },
-    confirmRecover() {
+    confirmRecover({ overrides }) {
+      this.overrides.gasLimit = overrides.gasLimit
+      this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
       this.showLoading = true;
       this.executeRecover()
     },
@@ -302,12 +317,28 @@ export default {
 
       // console.log(replaceOwnerData)
       console.log(securityModuleContract)
-      let tx = await securityModuleContract.executeRecovery(this.currentWalletAddress, this.overrides)
-      console.log(tx)
-      let txwait = await tx.wait()
-      console.log(txwait)
-      this.showLoading = false;
-      this.activeStep = this.activeStep + 1
+      securityModuleContract.executeRecovery(this.currentWalletAddress, this.overrides).then(async tx=> {
+          addTransHistory(tx, 'Execute Recover', this)
+          this.showLoading = false;
+          this.activeStep = this.activeStep + 1
+          this.resetSignStatus()
+         tx.wait().then(async res => {
+          console.log('Execute Recover:', res)
+          this.showLoading = false
+        })
+      }).catch(error => {
+        console.log(error)
+        this.showLoading = false
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
+      })
+      
+    },
+    resetSignStatus() {
+      this.signerList.map(async item => {
+        console.log(item)
+        this.updateSigner(item.address, signerStatus['active'])
+      })
     },
     async executeRecover() { //  gyy
       this.currentRecord = null
@@ -329,9 +360,10 @@ export default {
       this.currentWalletId = value.wallet_id
       this.getSignerListByid()
 
-      const walletContract = await getContractAt({ tokenAddress: this.currentWalletAddress, abi: WalletJson.abi }, this)
-      let res1 = await walletContract.owner();
-      console.log("newowner:" + res1)
+      const SecurityContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      let res = await SecurityContract.isInRecovery(this.currentWalletAddress);
+      this.isInRecovery = res
+      console.log("isInRecovery:" + res)
     },
     async recoverChild(value) { // gyy
       this.currentRecord = _.cloneDeep(value)

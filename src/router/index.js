@@ -58,7 +58,7 @@ VueRouter.prototype.replace = function (location, onResolve, onReject) {
 Vue.use(VueRouter);
 
 const routes = [
-  {
+  /* {
     path: '/',
     name: 'tlogin',
     meta: {
@@ -66,6 +66,14 @@ const routes = [
       hideHeader: true,
     },
     component: ThirdLogin,
+  }, */
+  {
+    path: '/',
+    name: 'overview',
+    meta: {
+      title: "overview",
+    },
+    component: OverView,
   },
   {
     path: '/home',

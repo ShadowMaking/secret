@@ -106,6 +106,7 @@ import {
 import WalletTransaction from "@/assets/contractJSON/TransactionModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
+import { promiseValue, formatErrorContarct } from '@/utils/index'
 
 Vue.use(Popup);
 Vue.use(Toast)
@@ -206,7 +207,10 @@ export default {
     },
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
-      this.$router.push({ name: 'overview' })
+      this.$router.push({
+          path: `/overview`,
+          query: {tabActive: 1},
+      })
     },
     async gasBtn() {
       this.loadingGas = true;
@@ -266,6 +270,7 @@ export default {
         if (sendType === 'eth') {
           await this.sendETH(data)
         } else {
+          console.log('token')
           await this.sendToken(data)
         }
       } else {//from is transfrom wallet
@@ -329,7 +334,13 @@ export default {
         datacode = getDATACode(abi, 'transfer', params)
 
         const contractWithSigner = await getContractAt({ tokenAddress: this.selectedToken.tokenAddress, abi: this.selectedToken.abiJson }, this)
-        tempgasfixlimit = await contractWithSigner.estimateGas.transfer(sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
+        console.log(contractWithSigner)
+        // tempgasfixlimit = await contractWithSigner.estimateGas.transfer(sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
+        const { hasError,res } = await promiseValue(contractWithSigner.estimateGas['transfer'](
+            sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') }
+          ))
+        hasError && console.log(res)
+        !hasError && res && (tempgasfixlimit = res)
       }
       console.log('datacode', datacode)
       console.log('tempgasfixlimit', tempgasfixlimit)
@@ -431,10 +442,11 @@ export default {
       contractWallet.sendTransaction({...sendData})
       .then(async tx=>{
         console.log('sendETH tx:', tx)
+        await this.sendSuccess(tx, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress, toAddress: data.toAddress})
         tx.wait()
         .then(async res => {
           console.log('sendETH tx wait res:', res)
-          await this.sendSuccess(res, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress, toAddress: data.toAddress})
+          
           this.showLoading = false
         })
       })
@@ -469,14 +481,16 @@ export default {
       contractWithSigner.transfer(sendData.toAddress, tokenWithdrawAmount, { gasLimit, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
       .then(async tx=>{
         console.log('sendToken tx:', tx)
+        await this.sendSuccess(tx, {...this.selectedToken, amount: sendData.type1Value}, address)
         tx.wait()
         .then(async res => {
           console.log('sendToken tx wait res:', res)
-          await this.sendSuccess(res, {...this.selectedToken, amount: sendData.type1Value}, address)
+          
           this.showLoading = false
         })
       })
       .catch(error => {
+        console.log(error)
         this.sendFailed(error)
         this.showLoading = false
       })
@@ -511,9 +525,9 @@ export default {
             [transTo, transAmount, txData, sequenceId, expireTime], {gasLimit: data.gasLimit, gasPrice: web3.utils.toWei(data.gasPrice, 'gwei')}
       ).then(async tx=>{
         console.log(tx)
+        await this.sendSuccess(tx, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress: this.transFromAddress, toAddress: data.toAddress}, true)
         tx.wait().then(async res=>{
           console.log(res)
-          await this.sendSuccess(res, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress: this.transFromAddress, toAddress: data.toAddress}, true)
           this.showLoading = false
         }).catch(error => {
           this.sendFailed(error)
@@ -529,12 +543,12 @@ export default {
       const symbolName = info.tokenName || 'ETH'
       this.tipTxt = 'In progress, waitting';
       const submitData = {
-        txid: res.transactionHash,
-        block_num: res.blockNumber,
+        txid: res.hash,
+        // block_num: res.blockNumber,
         from: isWallet ? selectedConnectAddress : (res.from || selectedConnectAddress),
         to: toAddress || res.to, // res.to is diffrent from toAddress wthen sendToken by contract
         type: TRANSACTION_TYPE['L2ToL2'],
-        status: res.status || 1,
+        status: 0,
         value: info.amount,
         name: symbolName,
         operation: symbolName === 'ETH' ? 'Send' : 'Transfer', // send、transfer、approve、swap ……
@@ -553,7 +567,8 @@ export default {
       this.showLoading = false
 
       this.showStatusPop = true;
-      this.statusPopTitle = 'Send Failed'
+      let errorValue = formatErrorContarct(error)
+      this.statusPopTitle = errorValue
       this.popStatus = 'fail';
     },
     async addHistory(data) {
@@ -570,8 +585,10 @@ export default {
         this.showLoading = false
 
         this.showStatusPop = true;
-        this.statusPopTitle = 'Send Submitted'
+        this.statusPopTitle = 'Submitted'
         this.popStatus = 'success';
+        console.log('add')
+        this.$eventBus.$emit('addTransactionHistory')
       }
       return { hasError: res.hasError };
     },
