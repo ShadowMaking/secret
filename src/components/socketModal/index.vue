@@ -84,7 +84,8 @@
                 position: 'bottom-right',
                 type: 'success',
                 dangerouslyUseHTMLString: true,
-                onClick: this.goHistory
+                onClick: this.goHistory,
+                duration: 0,
               });
               transHistoryStatus = 1
             } else {
@@ -94,7 +95,8 @@
                 position: 'bottom-right',
                 type: 'success',
                 dangerouslyUseHTMLString: true,
-                onClick: this.goHistory
+                onClick: this.goHistory,
+                duration: 0,
               });
               transHistoryStatus = -1
             }
