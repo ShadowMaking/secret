@@ -180,11 +180,13 @@ export default {
       this.createNcWallet()
     },
     async dealDataBeforeCreate() {
+      let thisGasPrice = this.overrides.gasPrice.toString()
+      let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
       this.sendMetadata = {
         from: getConnectedAddress(),
         to: this.securityModuleRouter,
         gas: this.overrides.gasLimit,
-        gasPrice: this.overrides.gasPrice,
+        gasPrice: gasPrice,
         value: 0,
         symbolName: 'ETH',
         netInfo: this.currentChainInfo,

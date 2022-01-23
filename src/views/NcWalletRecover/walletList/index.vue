@@ -110,10 +110,10 @@ export default {
         userId: this.userId
       }
       const { hasError, list } = await this.$store.dispatch('getWalletList', data)
-      for(let i=0; i<list.length;i+=1) {
-        let itemBalance = await this.getBalance(list[i].wallet_address)
-        list[i]['balance'] = itemBalance
-      }
+      // for(let i=0; i<list.length;i+=1) {
+      //   let itemBalance = await this.getBalance(list[i].wallet_address)
+      //   list[i]['balance'] = itemBalance
+      // }
       this.walletList = list
       if (hasError) {
         this.showLoading = true

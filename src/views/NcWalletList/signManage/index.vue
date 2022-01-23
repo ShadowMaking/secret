@@ -45,7 +45,7 @@
             </template>
           </el-table-column>
           <el-table-column
-            label="Operate"
+            label="Operation"
             v-if="!isRecover">
               <template slot-scope="scope">
                 <el-button @click="deleteSigner(scope.row)" type="text" size="small">Delete</el-button>
@@ -164,6 +164,10 @@ export default {
       const row = this.currentRecord
       console.log(row)
       this.showLoading = true
+
+      if (!this.securityModuleContract) {
+        this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      }
       
       this.securityModuleContract.removeSigner(
         this.walletAddress, row.address).then(async tx=> {
@@ -218,6 +222,9 @@ export default {
     async dealDataAddSigner() {
       const address = this.currentRecord
       this.showLoading = true
+      if (!this.securityModuleContract) {
+        this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      }
       this.securityModuleContract.addSigner(
         this.walletAddress, address).then(async tx=> {
          this.addSignerSubmit(address, tx.hash);

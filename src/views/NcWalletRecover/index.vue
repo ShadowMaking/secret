@@ -34,7 +34,7 @@
               <div class="signer-confirm" v-show="activeStep==1"><!-- setp1 -->
                 <p class="choose-wallet-des">Please ask at other {{signerTotal}} signers below to confirm:</p>
                 <div class="choose-wallet-table">
-                  <div class="choose-refresh"><el-button type="success" @click="getSignerListByid">Refresh</el-button></div>
+                  <div class="choose-refresh"><el-button type="success" @click="recoverRefresh">Refresh</el-button></div>
                   <el-table
                     :data="signerList"
                     empty-text="no data"
@@ -165,7 +165,7 @@ export default {
       showTradeConfirm: false,
       overrides: {
         gasLimit: 8000000,
-        gasPrice: 80000000000,
+        gasPrice: 20000000000,
       },
       currentChainInfo: null,
       sendMetadata: null,
@@ -248,20 +248,23 @@ export default {
     startRecover() {
       this.signerList.map(async item => {//waiting for signer agree
         console.log(item)
-        let data = {
-          userId: this.userId,
-          walletId: this.currentWalletId,
-          signerAddress: item.address,
-          status: signerStatus['startRecover'],
-        }
-        const { hasError } = await this.$store.dispatch('updateSigner', {...data});
-        if (hasError) {
-          Toast('Update Signer Failed')
-        } else {
-          console.log('Update Signer success')
-        }
+        this.updateSigner(item.address, signerStatus['startRecover'])
       })
       this.updateOwner()
+    },
+    async updateSigner(signerAddress, status) {
+      let data = {
+        userId: this.userId,
+        walletId: this.currentWalletId,
+        signerAddress: signerAddress,
+        status: status,
+      }
+      const { hasError } = await this.$store.dispatch('updateSigner', {...data});
+      if (hasError) {
+        console.log('Update Signer Failed')
+      } else {
+        console.log('Update Signer success')
+      }
     },
     async updateOwner() {
       let data = {
@@ -277,6 +280,13 @@ export default {
         this.activeStep = this.activeStep + 1
         this.confirmTxt = 'Execute'
       }
+    },
+    async recoverRefresh() {
+      this.getSignerListByid()
+      const SecurityContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      let res = await SecurityContract.isInRecovery(this.currentWalletAddress);
+      this.isInRecovery = res
+      console.log("isInRecovery:" + res)
     },
     cancelRecover() {
       this.showTradeConfirm = false
@@ -307,7 +317,7 @@ export default {
           addTransHistory(tx, 'Execute Recover', this)
           this.showLoading = false;
           this.activeStep = this.activeStep + 1
-         
+          this.resetSignStatus()
          tx.wait().then(async res => {
           console.log('Execute Recover:', res)
           this.showLoading = false
@@ -319,6 +329,12 @@ export default {
         Toast.fail(errorValue)
       })
       
+    },
+    resetSignStatus() {
+      this.signerList.map(async item => {
+        console.log(item)
+        this.updateSigner(item.address, signerStatus['active'])
+      })
     },
     async executeRecover() { //  gyy
       this.currentRecord = null

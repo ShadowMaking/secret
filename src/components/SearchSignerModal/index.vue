@@ -89,4 +89,10 @@ export default {
   .el-select-dropdown {
     z-index: 2020 !important;
   }
+  .search-modal-popUp {
+    z-index: 2019 !important;
+  }
+  .search-sign-page .van-overlay {
+    z-index: 2018 !important;
+  }
 </style>

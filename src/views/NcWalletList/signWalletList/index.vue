@@ -33,7 +33,7 @@
             prop="status"
             label="State"
             >
-            <template slot-scope="scope">
+            <template slot-scope="scope" v-if="isShowData">
               <div v-if="scope.row.wallet_status == walletStatus['Creating']">
                 <el-tag>Creating</el-tag>
               </div>
@@ -63,8 +63,8 @@
         </el-table-column>
         <el-table-column
           prop="status"
-          label="Operate">
-            <template slot-scope="scope">
+          label="Operation">
+            <template slot-scope="scope" v-if="isShowData">
               <div v-if="scope.row.wallet_status == walletStatus['Creating']">
                 <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
               </div>
@@ -75,7 +75,13 @@
                 <div v-else>
                   <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
                 </div>
-                <div v-if="!scope.row.isInRecovery">
+                <div v-if="scope.row.isInRecovery">
+                  <div v-if="scope.row.status == signerStatus['startRecover']">
+                    <el-button @click="handleClick(scope.row, 'Recover')" type="text" size="small" class="sign-operate agree-btn">Confirm Recover</el-button>
+                    <el-button @click="handleClick(scope.row, 'Ignore')" type="text" size="small" class="sign-operate ignore-btn">Ignore</el-button>
+                  </div>
+                 </div>
+                <div v-else>
                   <div v-if="scope.row.status == signerStatus['startRecover']">
                     <el-button @click="handleClick(scope.row, 'Recover')" type="text" size="small" class="sign-operate agree-btn">Confirm Recover</el-button>
                     <el-button @click="handleClick(scope.row, 'Ignore')" type="text" size="small" class="sign-operate ignore-btn">Ignore</el-button>
@@ -195,7 +201,7 @@ export default {
       defaultNetWork: '',
       overrides: {
         gasLimit: 8000000,
-        gasPrice: 80000000000,
+        gasPrice: 20000000000,
       },
 
       showSignMessageModal: false,
@@ -203,6 +209,7 @@ export default {
       signMsgHash: '',
 
       walletListAsSigner: [],
+      isShowData: false,
 
       currentOptType:'', // singerSignMessage||triggerRecover
       // ***************** inputPsw start ***************** //
@@ -311,7 +318,10 @@ export default {
         }
       }
     },
-    freezeWallet() {
+    async freezeWallet() {
+      if (!this.securityModuleContract) {
+        this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      }
       this.securityModuleContract.lock(
           this.signRow.wallet_address,
           this.overrides
@@ -327,7 +337,10 @@ export default {
         Toast.fail(errorValue)
       })
     },
-    unlockWallet() {
+    async unlockWallet() {
+      if (!this.securityModuleContract) {
+        this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      }
       this.securityModuleContract.unlock(
           this.signRow.wallet_address,
           this.overrides
@@ -417,10 +430,20 @@ export default {
       console.log(totalSignMessage)
       this.showLoading = false;
       if (hasError) {
-        Toast.fail('Recover Failed')
+        Toast.fail('Confirm Recover Failed')
       } else {
         this.$emit('signChild')
         if (totalSignMessage) {
+          let currentWalletAdress = this.signRow.wallet_address
+          if (!this.securityModuleContract) {
+            this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+          }
+          let res = await this.securityModuleContract.isInRecovery(currentWalletAdress)
+          console.log("isInRecovery" + res)
+          if (res) {
+            Toast('Confirm Recover success')
+            return
+          }
           Dialog.confirm({
             message: 'Half of the signers have signed,Trigger recovery now?',
             confirmButtonText: 'Confirm',
@@ -435,7 +458,7 @@ export default {
             console.log(error)
           });
         } else {
-          Toast('Recover success')
+          Toast('Confirm Recover success')
         }
       }
     },
@@ -491,11 +514,16 @@ export default {
     async dealDataBeforeTriggerRecover() {
       let currentWalletAddress = this.signRow.wallet_address
       const walletContract = await getContractAt({ tokenAddress: currentWalletAddress, abi: WalletJson.abi }, this)
+      console.log(walletContract)
       let sequenceId = await walletContract.getNextSequenceId()
+      console.log(sequenceId)
       let replaceOwnerData = this.getNewOwnerInfo()
+      console.log(replaceOwnerData)
 
       let expireTime = Math.floor((new Date().getTime()) / 1000) + 600;
       let signatures = this.signMsg;
+      
+      this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       
       this.securityModuleContract.multicall(
           this.signRow.wallet_address,
@@ -509,6 +537,8 @@ export default {
         
           tx.wait().then(async res => {
             console.log('Trigger Recover:', res)
+          }).catch(error => {
+            console.log(error)
           })
       }).catch(error => {
         this.showLoading = false
@@ -585,12 +615,17 @@ export default {
       let dataSource = this.dataList
       for(var i=0; i<dataSource.length; i++) {
         console.log(dataSource[i])
+        if (!this.securityModuleContract) {
+          this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+        }
         let isLocked = await this.securityModuleContract.isLocked(dataSource[i].wallet_address)
-        dataSource[i].isLocked = isLocked ? isLocked : false
+        this.$set(dataSource[i], 'isLocked', isLocked)
+        // dataSource[i].isLocked = isLocked ? isLocked : false
         let isInRecovery = await this.securityModuleContract.isInRecovery(dataSource[i].wallet_address)
-        dataSource[i].isInRecovery = isInRecovery ? isInRecovery : false
+        this.$set(dataSource[i], 'isInRecovery', isInRecovery)
       }
       this.walletListAsSigner = dataSource
+      this.isShowData = true
       console.log(dataSource)
     }
   },
