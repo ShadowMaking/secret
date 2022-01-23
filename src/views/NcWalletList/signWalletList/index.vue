@@ -1,7 +1,7 @@
 <template>
-  <div class="datalist-wrapper" v-if="walletListAsSigner.length">
+  <div class="datalist-wrapper" v-if="dataList.length">
     <el-table
-      :data="walletListAsSigner"
+      :data="dataList"
       style="width: 100%"
       empty-text="no data"
       :header-cell-style="{background:'#eff1f8'}" >
@@ -33,7 +33,7 @@
             prop="status"
             label="State"
             >
-            <template slot-scope="scope" v-if="isShowData">
+            <template slot-scope="scope">
               <div v-if="scope.row.wallet_status == walletStatus['Creating']">
                 <el-tag>Creating</el-tag>
               </div>
@@ -64,7 +64,7 @@
         <el-table-column
           prop="status"
           label="Operation">
-            <template slot-scope="scope" v-if="isShowData">
+            <template slot-scope="scope">
               <div v-if="scope.row.wallet_status == walletStatus['Creating']">
                 <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
               </div>
@@ -208,9 +208,7 @@ export default {
       signMessageMetadata: null,
       signMsgHash: '',
 
-      walletListAsSigner: [],
-      isShowData: false,
-
+      
       currentOptType:'', // singerSignMessage||triggerRecover
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -615,29 +613,11 @@ export default {
       }
       
     },
-    async dealDataList() {
-      let dataSource = this.dataList
-      for(var i=0; i<dataSource.length; i++) {
-        console.log(dataSource[i])
-        if (!this.securityModuleContract) {
-          this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-        }
-        let isLocked = await this.securityModuleContract.isLocked(dataSource[i].wallet_address)
-        this.$set(dataSource[i], 'isLocked', isLocked)
-        // dataSource[i].isLocked = isLocked ? isLocked : false
-        let isInRecovery = await this.securityModuleContract.isInRecovery(dataSource[i].wallet_address)
-        this.$set(dataSource[i], 'isInRecovery', isInRecovery)
-      }
-      this.walletListAsSigner = dataSource
-      this.isShowData = true
-      console.log(dataSource)
-    }
   },
 
   async created() {
     this.defaultNetWork = this.getDefaultNetWork()
-    this.walletListAsSigner = this.dataList
-    console.log(this.defaultNetWork)
+    
     const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
     if (netInfo) {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
@@ -645,8 +625,6 @@ export default {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
     this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-
-    this.dealDataList()
   },
 }
 </script>

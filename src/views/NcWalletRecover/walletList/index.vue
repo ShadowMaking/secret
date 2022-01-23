@@ -111,15 +111,22 @@ export default {
       }
       const { hasError, list } = await this.$store.dispatch('getWalletList', data)
       for(let i=0; i<list.length;i+=1) {
-        let itemBalance = await this.getBalance(list[i].wallet_address)
-        list[i]['balance'] = itemBalance
+        this.$set(list[i], 'balance', '0.0')
       }
       this.walletList = list
+      this.resetBalance(list)
       if (hasError) {
-        this.showLoading = true
+        Toast('Get Error')
       } else {
         this.showLoading = false
       }
+    },
+    async resetBalance(list) {
+      for(let i=0; i<list.length;i+=1) {
+        let itemBalance = await this.getBalance(list[i].wallet_address)
+        this.$set(list[i], 'balance', itemBalance)
+      }
+      this.walletList = list
     },
     async getBalance(address) {
       const balanceString = await getBalanceByAddress(address)

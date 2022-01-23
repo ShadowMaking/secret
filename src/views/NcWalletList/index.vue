@@ -40,8 +40,9 @@ import signWalletList from './signWalletList/index'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
 import { getFromStorage } from '@/utils/storage'
-import {  isLogin, getBalanceByAddress, getConnectedAddress } from '@/utils/dashBoardTools';
-import { signerStatus } from '@/utils/global';
+import {  isLogin, getBalanceByAddress, getConnectedAddress, getContractAt  } from '@/utils/dashBoardTools';
+import { signerStatus, securityModuleRouter } from '@/utils/global';
+import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 
 Vue.use(Tab);
 Vue.use(Tabs);
@@ -60,6 +61,8 @@ export default {
       signShowLoading: true,
       
       userId: getFromStorage('gUID'),
+      securityModuleRouter,
+      securityModuleContract: null,
     }
   },
   components: {
@@ -77,17 +80,23 @@ export default {
         ownerAddress: getConnectedAddress(),
       }
       const { hasError, list } = await this.$store.dispatch('getWalletListAsOwner', data)
-      
       for(let i=0; i<list.length;i+=1) {
-        let itemBalance = await this.getBalance(list[i].wallet_address)
-        list[i]['balance'] = itemBalance
+        this.$set(list[i], 'balance', '0.0')
       }
       this.ownWalletList = list
+      this.resetBalance(list)
       if (hasError) {
-        this.ownShowLoading = true
+        Toast('Get Error')
       } else {
         this.ownShowLoading = false
       }
+    },
+    async resetBalance(list) {
+      for(let i=0; i<list.length;i+=1) {
+        let itemBalance = await this.getBalance(list[i].wallet_address)
+        this.$set(list[i], 'balance', itemBalance)
+      }
+      this.ownWalletList = list
     },
     async getWalletAsSigner() {
       let data = {
@@ -95,12 +104,22 @@ export default {
         address: getConnectedAddress()
       }
       const { hasError, list } = await this.$store.dispatch('getWalletListAsSign', data)
-      let newList = list.filter((item, index)=>{
-          return item.status !== this.signerStatus['rejected']
-      });
-      this.signWalletList = newList
+      // let newList = list.filter((item, index)=>{
+      //     return item.status !== this.signerStatus['rejected']
+      // });
+      this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      for(var i=0; i<list.length; i++) {
+        
+        let isLocked = await this.securityModuleContract.isLocked(list[i].wallet_address)
+        // this.$set(dataSource[i], 'isLocked', isLocked)
+        list[i].isLocked = isLocked ? isLocked : false
+        let isInRecovery = await this.securityModuleContract.isInRecovery(list[i].wallet_address)
+        list[i].isInRecovery = isInRecovery ? isInRecovery : false
+      }
+      this.signWalletList = list
+      console.log(this.signWalletList)
       if (hasError) {
-        this.signShowLoading = true
+        Toast('Get Error')
       } else {
         this.signShowLoading = false
       }

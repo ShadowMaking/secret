@@ -221,7 +221,7 @@ export default {
       
       // let user1 = ethers.Wallet.createRandom().connect(providertest)
       // let user2 = ethers.Wallet.createRandom().connect(providertest)
-      
+      console.log(saletnew)
       let walletAddress = await proxyContract.getAddress(saletnew);
       // const tx = await proxyContract.create(saletnew,this.overrides).catch(error => {
       //   console.log(error)
