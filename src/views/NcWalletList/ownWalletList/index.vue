@@ -60,6 +60,12 @@
               <el-button @click="handleClick(scope.row)" type="text" size="small">Details</el-button>
             </template>
         </el-table-column>
+        <!-- <el-table-column
+          label="Operation">
+            <template slot-scope="scope">
+              <el-button @click="handleClick(scope.row)" type="text" size="small" class="sign-operate setting-btn">Setting</el-button>
+            </template>
+        </el-table-column> -->
     </el-table>
   </div>
 </template>
@@ -69,7 +75,7 @@ import { Toast } from 'vant';
 import { saveToStorage } from '@/utils/storage'
 import { copyTxt } from '@/utils/index';
 import { walletStatus } from '@/utils/global';
-import { timeFormat } from '@/utils/str';
+import { timeSericeFormat } from '@/utils/str';
 
 Vue.use(Toast)
 
@@ -84,7 +90,7 @@ export default {
   
   methods: {
     formatterTime(row) {
-      return timeFormat(row.createdAt, 'yyyy-MM-dd hh:mm:ss')
+      return timeSericeFormat(row.createdAt)
     },
     copyAddress(str) {
       if (copyTxt(str)) {

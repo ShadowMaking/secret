@@ -51,7 +51,7 @@ import None from '@/components/None/index'
 import Loading from '@/components/Loading'
 import { walletStatus, securityModuleRouter } from '@/utils/global';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
-import { timeFormat } from '@/utils/str';
+import { timeSericeFormat } from '@/utils/str';
 
 Vue.use(Toast);
 
@@ -75,7 +75,7 @@ export default {
   },
   methods: {
     formatterTime(row) {
-      return timeFormat(row.createdAt, 'yyyy-MM-dd hh:mm:ss')
+      return timeSericeFormat(row.createdAt, 'yyyy-MM-dd hh:mm:ss')
     },
     signClick(row) {
       saveToStorage({ 'currentWallet': row.wallet_address });
