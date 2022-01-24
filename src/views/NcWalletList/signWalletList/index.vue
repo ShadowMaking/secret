@@ -167,7 +167,7 @@ import { CHAINMAP } from '@/utils/netWorkForToken';
 import web3 from 'web3'
 import { copyTxt, formatErrorContarct } from '@/utils/index';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
-import { timeFormat } from '@/utils/str';
+import { timeSericeFormat } from '@/utils/str';
 
 Vue.use(Toast);
 Vue.use(Loading);
@@ -231,7 +231,7 @@ export default {
   },
   methods: {
     formatterTime(row) {
-      return timeFormat(row.createdAt, 'yyyy-MM-dd hh:mm:ss')
+      return timeSericeFormat(row.createdAt, 'yyyy-MM-dd hh:mm:ss')
     },
     copyAddress(str) {
       if (copyTxt(str)) {

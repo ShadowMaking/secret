@@ -1,6 +1,6 @@
 .datalist-wrapper {
-  margin-top: 20px;
-  .setting-modal-popUp {
+    margin-top: 20px;
+    .setting-modal-popUp {
 	  border-radius: 5px;
 	  width: 400px;
 	  font-size: 0.9rem;
@@ -47,6 +47,15 @@
 		  background-color: rgb(67, 117, 241);
 		}
 	  }
-	  
+	} 
+
+  .sign-operate {
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+  }
+  .setting-btn {
+    background-color: rgb(67, 117, 241);
   }
 }

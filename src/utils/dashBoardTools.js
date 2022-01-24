@@ -4,7 +4,6 @@ import { BigNumber } from "bignumber.js";
 import { defaultNetWorkForMetamask, CHAINMAP } from '@/utils/netWorkForToken';
 import { CHAINIDMAP } from '@/utils/netWorkForToken'
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
-import { getCurrentProvider } from '@/utils/web3';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 /**
  * @description: 
@@ -247,7 +246,9 @@ export const getDATACode = (abi, functionName, params) => {
 //get ENS or address
 export async function getEns(address) {
   return new Promise((resolve, reject) => {
-    const currentProvider = getCurrentProvider()
+    const network = getConnectedNet()
+    const rpcUrl = network['rpcUrls'][0]
+    const currentProvider = initRPCProvider(rpcUrl)
     if (currentProvider) {
       currentProvider.lookupAddress(address)
       .then(res=>{
@@ -270,7 +271,9 @@ export async function getEns(address) {
 //get address banlance
 export function getBalanceByAddress(address) {
   return new Promise((resolve, reject) => {
-    const currentProvider = getCurrentProvider()
+    const network = getConnectedNet()
+    const rpcUrl = network['rpcUrls'][0]
+    const currentProvider = initRPCProvider(rpcUrl)
     if (currentProvider) {
       currentProvider.getBalance(address)
       .then(res=>{
