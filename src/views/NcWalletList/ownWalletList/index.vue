@@ -147,19 +147,19 @@ export default {
       showSettingPopup: false,
       showLoading: false,
 
-      maxPerDay: 15,
-      maxPerTransaction: 10,
+      maxPerDay: '15',
+      maxPerTransaction: '10',
 
-      lockExpiry: 48,
-      recoveryExpiry: 48,
+      lockExpiry: '48',
+      recoveryExpiry: '48',
 
       settingWallet: '',
       settingType: 'paymentLimit',
 
-      oldmaxPerDay: 15,
-      oldmaxPerTransaction:10,
-      oldlockExpiry: 48,
-      oldrecoveryExpiry: 48,
+      oldmaxPerDay: '15',
+      oldmaxPerTransaction:'10',
+      oldlockExpiry: '48',
+      oldrecoveryExpiry: '48',
       // ***************** inputPsw start ***************** //
       userPsw: '',
       publicKey: '',
@@ -279,7 +279,7 @@ export default {
       this.showInputPswModal = false
       if (this.settingType == 'paymentLimit') {
         await this.paymentLimitSubmit()
-      } else if (type == 'securitySet') {
+      } else if (this.settingType == 'securitySet') {
         await this.securitySetSubmit()
       }
     },
@@ -293,7 +293,7 @@ export default {
       }
       if (this.settingType == 'paymentLimit') {
         await this.paymentLimitSubmit()
-      } else if (type == 'securitySet') {
+      } else if (this.settingType == 'securitySet') {
         await this.securitySetSubmit()
       }
     },
@@ -309,8 +309,12 @@ export default {
       this.showLoading = true
       let transactionModuleContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: TransactionModule.abi }, this)
       console.log(transactionModuleContract)
+      console.log(this.maxPerDay)
       let dailyWei = web3.utils.toWei(this.maxPerDay, 'ether')
+      console.log(dailyWei)
+      console.log(web3.utils.toHex(dailyWei))
       let perTransWei = web3.utils.toWei(this.maxPerTransaction, 'ether')
+      console.log(perTransWei)
       transactionModuleContract.setTMParametar(this.settingWallet, web3.utils.toHex(dailyWei), web3.utils.toHex(perTransWei)).then(tx => {
         this.showLoading = false
         Toast('Submitted Success')
