@@ -76,11 +76,11 @@
               <div class="setting-item-left">
                 <div class="setting-left-row">
                   <p>Max per day</p>
-                  <p><input type="text" v-model="maxPerDay"><label>ETH</label></p>
+                  <p><input type="number" v-model="maxPerDay"><label>ETH</label></p>
                 </div>
                 <div class="setting-left-row">
                   <p>Max per transaction</p>
-                  <p><input type="text" v-model="maxPerTransaction"><label>ETH</label></p>
+                  <p><input type="number" v-model="maxPerTransaction"><label>ETH</label></p>
                 </div>
               </div>
               <div class="setting-item-right">
@@ -89,16 +89,16 @@
             </div>
           </div>
           <div class="setting-wallet-item">
-            <div class="setting-title">Security setting</div>
+            <div class="setting-title">Security Setting</div>
             <div class="setting-item-contet">
               <div class="setting-item-left">
                 <div class="setting-left-row">
                   <p>Lock expiry</p>
-                  <p><input type="text" v-model="lockExpiry"><label>H</label></p>
+                  <p><input type="number" v-model="lockExpiry"><label>H</label></p>
                 </div>
                 <div class="setting-left-row">
                   <p>Recovery expiry</p>
-                  <p><input type="text" v-model="recoveryExpiry"><label>H</label></p>
+                  <p><input type="number" v-model="recoveryExpiry"><label>H</label></p>
                 </div>
               </div>
               <div class="setting-item-right">
@@ -109,15 +109,23 @@
         </div>
       </div>
     </van-popup>
+    <v-loadingPopup :show="showLoading" :showSpinner="false" />
   </div>
 </template>
 <script>
 import Vue from 'vue';
 import { Toast, Popup } from 'vant';
 import { saveToStorage } from '@/utils/storage'
-import { copyTxt } from '@/utils/index';
-import { walletStatus } from '@/utils/global';
+import { copyTxt, formatErrorContarct } from '@/utils/index';
+import { walletStatus, securityModuleRouter, walletTransactionRouter } from '@/utils/global';
 import { timeFormat } from '@/utils/str';
+import web3 from 'web3'
+import LoadingPopup from '@/components/LoadingPopup';
+import { BigNumber } from "bignumber.js";
+
+import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
+import TransactionModule from "@/assets/contractJSON/TransactionModule.json";
+import { getContractAt, addTransHistory } from '@/utils/dashBoardTools'
 
 Vue.use(Toast)
 Vue.use(Popup)
@@ -128,16 +136,24 @@ export default {
   data() {
     return {
       walletStatus,
+      securityModuleRouter,
+      walletTransactionRouter,
 
       showSettingPopup: false,
-      maxPerDay: 5,
-      maxPerTransaction: 5,
+      showLoading: false,
+
+      maxPerDay: 15,
+      maxPerTransaction: 10,
+
       lockExpiry: 48,
       recoveryExpiry: 48,
+
       settingWallet: '',
     }
   },
-  
+  components: {
+    'v-loadingPopup': LoadingPopup,
+  },
   methods: {
     formatterTime(row) {
       return timeFormat(row.createdAt, 'yyyy-MM-dd hh:mm:ss')
@@ -153,15 +169,103 @@ export default {
         path: `/signManage/${row.wallet_id}`,
       })
     },
-    openSetting(row) {
-      this.showSettingPopup = true
+    async openSetting(row) {
+      
       this.settingWallet = row.wallet_address
-    },
-    paymentLimitSubmit() {
+      let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      if (!securityModuleContract) {
+        this.showSettingPopup = true
+        return
+      }
+      securityModuleContract.getLockedSecurityPeriod(this.settingWallet).then(res => {
+        console.log(res)
+        this.lockExpiry = web3.utils.hexToNumber(res)/3600
+      }).catch(error => {
+        console.log(error)
+        Toast('Invalid wallet')
+      })
+      
+      securityModuleContract.getLockedSecurityPeriod(this.settingWallet).then(res => {
+        console.log(res)
+        this.recoveryExpiry = web3.utils.hexToNumber(res)/3600
+      }).catch(error => {
+        console.log(error)
+      })
+
+      let transactionModuleContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: TransactionModule.abi }, this)
+      if (!transactionModuleContract) {
+        this.showSettingPopup = true
+        return
+      }
+      transactionModuleContract.getDailyUpbound(this.settingWallet).then(res => {
+        let dailyWei = web3.utils.toBN(res).toString()
+        this.maxPerDay = web3.utils.fromWei(dailyWei, 'ether')
+      }).catch(error => {
+        console.log(error)
+        Toast('Invalid wallet')
+      })
+      
+      transactionModuleContract.getLargeAmountPayment(this.settingWallet).then(res => {
+        let perTransWei =  web3.utils.toBN(res).toString()
+        this.maxPerTransaction = web3.utils.fromWei(perTransWei, 'ether')
+        this.showSettingPopup = true
+      }).catch(error => {
+        console.log(error)
+      })
       
     },
-    securitySetSubmit() {
-
+    async paymentLimitSubmit() {
+      if (!this.maxPerDay || !this.maxPerTransaction) {
+        Toast('Invalid Value')
+        return
+      }
+      this.showLoading = true
+      let transactionModuleContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: TransactionModule.abi }, this)
+      let dailyWei = web3.utils.toWei(this.maxPerDay, 'ether')
+      let perTransWei = web3.utils.toWei(this.maxPerTransaction, 'ether')
+      transactionModuleContract.setTMParametar(this.settingWallet, web3.utils.toHex(dailyWei), web3.utils.toHex(perTransWei)).then(tx => {
+        this.showLoading = false
+        Toast('Submitted Success')
+        console.log(tx)
+        addTransHistory(tx, 'Payment Limit', this)
+        tx.wait().then(async res=>{
+          console.log(res)
+        }).catch(error => {
+          console.log(error)
+        })
+      }).catch(error => {
+        console.log(error)
+        this.showLoading = false
+        let errorValue = formatErrorContarct(error)
+        if(errorValue == 'failed') {errorValue = 'must change at least one parametar'}
+        Toast(errorValue)
+      })
+    },
+    async securitySetSubmit() {
+      if (!this.lockExpiry || !this.recoveryExpiry) {
+        Toast('Invalid Value')
+        return
+      }
+      this.showLoading = true
+      let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      console.log(web3.utils.toHex(this.lockExpiry))
+      securityModuleContract.setSecurityPeriod(this.settingWallet, web3.utils.toHex(this.lockExpiry * 3600), web3.utils.toHex(this.recoveryExpiry * 3600)).then(tx => {
+        this.showLoading = false
+        Toast('Submitted Success')
+        console.log(tx)
+        addTransHistory(tx, 'Security Setting', this)
+        tx.wait().then(async res=>{
+          console.log(res)
+        }).catch(error => {
+          console.log(error)
+        })
+      }).catch(error => {
+        console.log(error)
+        this.showLoading = false
+        let errorValue = formatErrorContarct(error)
+        if(!errorValue) {errorValue = 'failed'}
+        Toast(errorValue)
+      })
     },
   },
 }

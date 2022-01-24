@@ -148,9 +148,9 @@ export const promiseValue = (promise) => {
 }
 
 export const formatErrorContarct = (error) => {
-  let errorValue = error
+  let errorValue = 'failed'
   let errorThrow = error.body || (error.error && error.error.body)
-  if ( errorThrow) {
+  if (errorThrow) {
     let errorData = JSON.parse(errorThrow).error
     errorValue = errorData.message
   }

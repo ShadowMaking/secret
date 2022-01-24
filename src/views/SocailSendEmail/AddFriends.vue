@@ -1,6 +1,6 @@
 <template>
   <div class="add-friends-page">
-    <v-navTitle title="Co-Workers"></v-navTitle >
+    <v-navTitle title="Co-workers"></v-navTitle >
     <h4 style="display: none">
       <span>Friends</span>
       <!-- <a class="button button-with-radius button-update" @click="refresh">

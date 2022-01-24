@@ -108,12 +108,20 @@ export default {
       //     return item.status !== this.signerStatus['rejected']
       // });
       this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      if (!this.securityModuleContract) {
+        console.log('privateKey: null')
+        this.signShowLoading = false
+        this.signWalletList = list
+        return
+      }
       for(var i=0; i<list.length; i++) {
         
         let isLocked = await this.securityModuleContract.isLocked(list[i].wallet_address)
+        console.log("isLocked:" + isLocked)
         // this.$set(dataSource[i], 'isLocked', isLocked)
         list[i].isLocked = isLocked ? isLocked : false
         let isInRecovery = await this.securityModuleContract.isInRecovery(list[i].wallet_address)
+        console.log("isInRecovery:" + isInRecovery)
         list[i].isInRecovery = isInRecovery ? isInRecovery : false
       }
       this.signWalletList = list
@@ -126,7 +134,6 @@ export default {
     },
     async getBalance(address) {
       const balanceString = await getBalanceByAddress(address)
-      console.log(balanceString)
       return balanceString
     },
   },
