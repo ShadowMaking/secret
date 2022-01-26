@@ -1,11 +1,12 @@
 <template>
     <div class="send-from">
-      <h3 class="send-from-title">From</h3>
+      <!-- <h3 class="send-from-title">From</h3> -->
       <div class="send-from-list">
+        <p class="wallt-trans-title">From</p>
         <el-select 
           v-model="fromVal" 
           placeholder="Choose" 
-          style="width: 100%"
+          class="select-box"
           @change="selectChange">
           <el-option-group
             v-for="group in fromOptions"
@@ -25,8 +26,10 @@
 
 <script>
 import Vue from 'vue';
-import { getConnectedAddress } from '@/utils/dashBoardTools';
+import { getConnectedAddress, getContractAt } from '@/utils/dashBoardTools';
 import { getFromStorage } from '@/utils/storage'
+import SecurityModule from "@/assets/contractJSON/SecurityModule.json"
+import { securityModuleRouter, walletStatus } from '@/utils/global';
 
 export default {
   name: 'selectItem',
@@ -58,6 +61,8 @@ export default {
       fromVal: '', 
 
       userId: getFromStorage('gUID'),
+      securityModuleRouter,
+      walletStatus,
     }
   },
   methods: {
@@ -81,7 +86,15 @@ export default {
       }
       this.fromOptions[1].options = []
       const { hasError, list } = await this.$store.dispatch('getWalletListAsOwner', data)
-      list.map(item => {
+      if (hasError) {return}
+      this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      let isLocked = false, isInRecovery = false;
+      list.map(async item =>{
+        if (this.securityModuleContract) {
+          isLocked = await this.securityModuleContract.isLocked(item.wallet_address)
+          isInRecovery = await this.securityModuleContract.isInRecovery(item.wallet_address)
+        }
+        if (isLocked || isInRecovery || item.wallet_status !== walletStatus['Active']) {return}
         this.fromOptions[1].options.push({
           value: '2-' + item.wallet_address,
           label: item.name + '-' + item.wallet_address,
@@ -91,6 +104,7 @@ export default {
   },
   created() {
     this.getFromOrigin()
+    this.fromVal = getConnectedAddress()
   },
 };
 </script>

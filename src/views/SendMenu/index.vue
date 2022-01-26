@@ -1,9 +1,6 @@
 <template>
   <div class="send-menu-page content-box">
     <v-navTitle title="Send"></v-navTitle >
-    <div class="send-from-box content-page">
-      <v-transFrom @transFromChange="transFromChange"></v-transFrom>
-    </div>
     <div class="send-menu content-page">
       <!-- <v-formSelect 
         label="Recipient" 
@@ -18,6 +15,9 @@
         :dataSource="netWorkList"
         placeholder="chose network"
         @change="handleNetworkChange" />
+      <div class="send-from-box">
+        <v-transFrom @transFromChange="transFromChange"></v-transFrom>
+      </div>
       <v-formInput label="Recipient" placeholder="Address" @inputChange="handleAddressInputChange" />
       <v-formSelect 
         label="Token"
@@ -496,6 +496,22 @@ export default {
       })
     },
     async walletTrans(data) {
+      let thisWalletAddress = this.transFromAddress
+      let inputValue = data.type1Value
+      const walletTransactionContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: WalletTransaction.abi }, this)
+      walletTransactionContract.getLargeAmountPayment(thisWalletAddress).then(res => {
+        let perTransWei =  web3.utils.toBN(res).toString()
+        let maxPerTransaction = web3.utils.fromWei(perTransWei, 'ether')
+        if (inputValue < maxPerTransaction) {//litte transaction
+          this.walletSamllTrans(data)
+        } else {//large transaction need multicall
+          this.walletLargeTrans(data)
+        }
+      }).catch(error => {
+        console.log(error)
+      }) 
+    },
+    async walletSamllTrans(data) {
       console.log(data)
       const expireTime = Math.floor((new Date().getTime()) / 1000) + 600; // 60 seconds
       
@@ -537,6 +553,9 @@ export default {
         this.sendFailed(error)
         this.showLoading = false
       })
+    },
+    async walletLargeTrans(data) {
+      console.log(data)
     },
     async sendSuccess(res, info, address, isWallet) {
       const { selectedConnectAddress, toAddress } = address;
