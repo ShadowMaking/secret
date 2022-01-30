@@ -84,7 +84,7 @@ import { copyTxt, formatErrorContarct } from '@/utils/index';
 import InputPswModal from '@/components/InputPswModal'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import _ from 'lodash'
-import { timeFormat } from '@/utils/str';
+import { timeSericeFormat } from '@/utils/str';
 
 Vue.use(Toast);
 Vue.use(Loading);
@@ -135,7 +135,7 @@ export default {
   
   methods: {
     formatterTime(row) {
-      return timeFormat(row.createdAt, 'yyyy-MM-dd hh:mm:ss')
+      return timeSericeFormat(row.createdAt, 'yyyy-MM-dd hh:mm:ss')
     },
     copyAddress(str) {
       if (copyTxt(str)) {

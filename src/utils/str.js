@@ -8,6 +8,7 @@ export const objHasOwnProperty = (obj, value) => {
 
 export const timeFormat = (date, format) => {
   date = new Date(date);
+  console.log(date)
   var map = {
     "M": date.getMonth() + 1,
     "d": date.getDate(),
@@ -31,4 +32,10 @@ export const timeFormat = (date, format) => {
     return all;
   });
   return format;
+}
+
+export const timeSericeFormat = (date) => {
+  let format = date.split('.')
+
+  return format[0];
 }

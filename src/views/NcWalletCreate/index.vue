@@ -215,13 +215,14 @@ export default {
       const proxyContract = await getContractAt({ tokenAddress: this.proxyRouter, abi: ProxyJson.abi }, this)
       const transactionContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: WalletTransaction.abi }, this)
       const saletnew = ethers.utils.randomBytes(32);
+      console.log(saletnew)
       
       let createSignList = this.createSignerSubmit
       // let providertest = new ethers.providers.JsonRpcProvider('https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161')
       
       // let user1 = ethers.Wallet.createRandom().connect(providertest)
       // let user2 = ethers.Wallet.createRandom().connect(providertest)
-      console.log(saletnew)
+      
       let walletAddress = await proxyContract.getAddress(saletnew);
       // const tx = await proxyContract.create(saletnew,this.overrides).catch(error => {
       //   console.log(error)
