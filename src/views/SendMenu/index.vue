@@ -98,7 +98,7 @@ import { walletTransactionRouter } from '@/utils/global';
 import { BigNumber } from "bignumber.js";
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
-import { getInfoFromStorageByKey } from '@/utils/storage';
+import { getInfoFromStorageByKey, getFromStorage } from '@/utils/storage';
 import {
   generateTokenList, getDefaultETHAssets, getConnectedAddress,
   getContractWallet, isLogin, getDATACode, getContractAt, 
@@ -156,6 +156,7 @@ export default {
       transFromType: 1, //1-account address ,2-wallet address
       transFromAddress: getConnectedAddress(),
       walletTransactionRouter,
+      modelData: '',
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -345,6 +346,7 @@ export default {
       console.log('datacode', datacode)
       console.log('tempgasfixlimit', tempgasfixlimit)
       
+      this.modelData = datacode
       this.sendMetadata = {
         from: this.transFromAddress,
         to: this.addressForRecipient,
@@ -502,10 +504,10 @@ export default {
       walletTransactionContract.getLargeAmountPayment(thisWalletAddress).then(res => {
         let perTransWei =  web3.utils.toBN(res).toString()
         let maxPerTransaction = web3.utils.fromWei(perTransWei, 'ether')
-        if (inputValue < maxPerTransaction) {//litte transaction
-          this.walletSamllTrans(data)
-        } else {//large transaction need multicall
+        if (inputValue >= maxPerTransaction && this.sendType == 'eth') {//large transaction need multicall
           this.walletLargeTrans(data)
+        } else {//litte transaction
+          this.walletSamllTrans(data)
         }
       }).catch(error => {
         console.log(error)
@@ -555,7 +557,30 @@ export default {
       })
     },
     async walletLargeTrans(data) {
-      console.log(data)
+      // let tx ={
+      //   hash: null
+      // }
+      // await this.sendSuccess(tx, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress: this.transFromAddress, toAddress: data.toAddress}, true)
+      const submitData = {
+        user_id: getFromStorage('gUID'),
+        wallet_address: this.transFromAddress,
+        to: data.toAddress,
+        value: data.type1Value,
+        network_id: web3.utils.hexToNumber(window.ethereum.chainId),
+        data: this.modelData,
+      }
+      const res = await this.$store.dispatch('addMultTx', submitData);
+      if (res.hasError) {
+        this.showStatusPop = false;
+        console.log('Transaction success，but error when add history')
+      } else  {
+        this.showLoading = false
+
+        this.showStatusPop = true;
+        this.statusPopTitle = 'Please waiting for another signer to confirm the transaction in "Overview-History-Multisig Wallt"'
+        this.popStatus = 'success';
+        this.$eventBus.$emit('addTransactionHistory')
+      }
     },
     async sendSuccess(res, info, address, isWallet) {
       const { selectedConnectAddress, toAddress } = address;
@@ -575,6 +600,7 @@ export default {
         from_type: isWallet ? 1 : 0,
       }
       this.addHistoryData = _.cloneDeep(submitData);
+      console.log(submitData)
       await this.addHistory(submitData);
     },
     sendFailed(error) {
@@ -606,7 +632,6 @@ export default {
         this.showStatusPop = true;
         this.statusPopTitle = 'Submitted'
         this.popStatus = 'success';
-        console.log('add')
         this.$eventBus.$emit('addTransactionHistory')
       }
       return { hasError: res.hasError };

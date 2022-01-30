@@ -291,7 +291,7 @@ export function getBalanceByAddress(address) {
   })
 }
 
-export const addTransHistory = async (txInfo, taransType, self, value, name) => {
+export const addTransHistory = async (txInfo, taransType, self, value, name, isWallet) => {
   const currentChainInfo = getConnectedNet()
   const chainId = currentChainInfo && currentChainInfo['id']
   const submitData = {
@@ -303,7 +303,8 @@ export const addTransHistory = async (txInfo, taransType, self, value, name) => 
     value: value ? value : 0,
     operation: taransType,
     network_id: chainId,
-    name: name ? name: null
+    name: name ? name: null,
+    from_type: isWallet ? 1 : 0,
   }
   const res = await self.$store.dispatch('AddTransactionHistory', {...submitData});
   if (res.hasError) {

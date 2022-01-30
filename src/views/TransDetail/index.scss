@@ -43,6 +43,9 @@
       font-size: 1rem;
       font-weight: bold;
     }
+    .path-item-status.info {
+      color: #999
+    }
     .path-item-status.success {
       color: #1F7D3C
     }
@@ -58,7 +61,7 @@
       margin-bottom: 5px;
       display: flex;
       align-items: center;
-      .path-item-bottom-img {
+      .path-item-bottom-img img{
         width: 1.8rem;
         height: 1.8rem;
         border-radius: 50%;

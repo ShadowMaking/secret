@@ -32,6 +32,8 @@ const signerStatus = {
 	'agreeRecover': 6,
 	'ignoreRecover': 7,
 	'triggerRecover': 8,
+  'agreeSend': 9,
+  'ignoreSend': 10,
 }
 
 const walletStatus = {

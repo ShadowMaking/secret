@@ -12,6 +12,11 @@ import {
   updateOwnerAddress,
   getSignMessage,
   updateWalletStatus,
+  addMultTx,
+  getMultTxInfo,
+  getSigerMessages,
+  addSigerTransMessages,
+  updateTransTx,
 } from '@/api/ncwallet'
 
 
@@ -183,6 +188,71 @@ const ncWallet = {
     updateWalletStatus({ commit }, params) {
       return new Promise((resolve, reject) => {
         updateWalletStatus(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
+    addMultTx({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        addMultTx(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
+    getMultTxInfo({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        getMultTxInfo(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false, list: data })
+          }
+          resolve({ hasError: true, list: [], error: message });
+        }).catch(error => {
+          resolve({ hasError: true, list: [], error });
+        })
+      })
+    },
+    getSigerMessages({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        getSigerMessages(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false, list: data })
+          }
+          resolve({ hasError: true, list: [], error: message });
+        }).catch(error => {
+          resolve({ hasError: true, list: [], error });
+        })
+      })
+    },
+    addSigerTransMessages({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        addSigerTransMessages(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
+    updateTransTx({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        updateTransTx(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0) {
             resolve({ hasError: false })

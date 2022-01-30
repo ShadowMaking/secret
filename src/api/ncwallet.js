@@ -245,3 +245,66 @@ import request from '@/utils/request';
     params: _data,
   })
 }
+
+/**
+ * @description: add multi sig tx
+ * @param {"user_id": 3, "wallet_address": "0x12", "to": "0x23", "value": "0x1", "data": encodeFunction(dai, (to, value, data))}data先不传
+ * @return 
+ */
+ export const addMultTx = (data) => {
+  return request({
+    url: `/api/mtx/meta`,
+    method: 'post',
+    data: data,
+  })
+}
+
+/**
+ * @description: query multi sig tx
+ * @param 
+ * @return 
+ */
+ export const getMultTxInfo = (mtxid) => {
+  return request({
+    url: `/api/mtx/meta/${mtxid}`,
+    method: 'get',
+  })
+}
+
+/**
+ * @description: query siger messages
+ * @param 
+ * @return 
+ */
+ export const getSigerMessages = (mtxid) => {
+  return request({
+    url: `/api/mtx/sign/${mtxid}`,
+    method: 'get',
+  })
+}
+
+/**
+ * @description: add signer message   transaction sign confirm
+ * @param {"mtxid": 2, "signer_address": "0x12", "signer_address": "0x121", "status": 2}
+ * @return 
+ */
+ export const addSigerTransMessages = (data) => {
+  return request({
+    url: `/api/mtx/sign`,
+    method: 'post',
+    data: data,
+  })
+}
+
+/**
+ * @description: update txid of multi sig tx
+ * @param {"id":2, "txid": "0x221"}
+ * @return 
+ */
+ export const updateTransTx = (data) => {
+  return request({
+    url: `/api/mtx/meta`,
+    method: 'put',
+    data: data,
+  })
+}
