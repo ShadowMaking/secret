@@ -1,6 +1,6 @@
 <template>
   <div class="trans-detail-page">
-    <v-navTitle title="Transactions Detail" :backIcon="true" :backEvent="backHistory"></v-navTitle >
+    <v-navTitle title="Details" :backIcon="true" :backEvent="backHistory"></v-navTitle >
     <div class="trans-detail-box">
       <div class="trans-detail-info">
         <div class="trans-item">
@@ -20,7 +20,7 @@
           <span class="trans-item-value">{{executedTime}}</span>
         </div>
       </div>
-      <div class="trans-path-title">Details</div>
+      <div class="trans-path-title">Steps</div>
       <div class="trans-path-list">
         <div class="trans-path-item active">
           <div class="path-item-top">
