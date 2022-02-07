@@ -24,7 +24,7 @@ switch(process.env.NODE_ENV){
 	break;
 	case 'production':
 		WEBSITE_BASEURL = protocol + '//rpc.ieigen.com'
-    LOCATION_HREF = '//secret.ieigen.com'
+    LOCATION_HREF = protocol + '//secret.ieigen.com'
 	break;
 }
 
