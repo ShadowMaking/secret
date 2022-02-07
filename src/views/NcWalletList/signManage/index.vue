@@ -147,6 +147,11 @@ export default {
       this.$router.go(-1)
     },
     deleteSigner(row) {
+      let totalSigner = this.signList.length
+      if (totalSigner < 2) {
+        Toast('Please keep at least one signer')
+        return
+      }
       Dialog.confirm({
         message: 'Are you sure to delete this address?',
         confirmButtonText: 'Confirm',
