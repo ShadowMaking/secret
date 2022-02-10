@@ -125,7 +125,7 @@ import InputPswModal from '@/components/InputPswModal'
 import { isLogin, getContractAt, getConnectedAddress, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory } from '@/utils/dashBoardTools';
 import walletList from './walletList/index'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
-import { signerStatus, securityModuleRouter } from '@/utils/global';
+import { signerStatus, securityModuleRouter, multOperation } from '@/utils/global';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
@@ -160,6 +160,8 @@ export default {
 
       confirmTxt: 'Confirm',
       securityModuleRouter,
+
+      multOperation,
 
       showLoading: false,
       showTradeConfirm: false,
@@ -219,7 +221,7 @@ export default {
             from: getConnectedAddress(),
             to: this.securityModuleRouter,
             gas: this.overrides.gasLimit,
-            gasPrice: this.overrides.gasPrice,
+            gasPrice: gasPrice,
             value: 0,
             symbolName: 'ETH',
             netInfo: this.currentChainInfo,
@@ -265,6 +267,7 @@ export default {
       if (hasError) {
         console.log('Update Signer Failed')
       } else {
+        this.addMultTx()
         console.log('Update Signer success')
       }
     },
@@ -281,6 +284,23 @@ export default {
         console.log('Update Owner success')
         this.activeStep = this.activeStep + 1
         this.confirmTxt = 'Execute'
+      }
+    },
+    async addMultTx() {
+      const submitData = {
+        user_id: getFromStorage('gUID'),
+        wallet_address: this.currentWalletAddress,
+        to: this.securityModuleRouter,
+        value: 0,
+        network_id: this.currentChainInfo.id,
+        data: '',
+        operation: multOperation['Recovery']
+      }
+      const res = await this.$store.dispatch('addMultTx', submitData);
+      if (res.hasError) {
+        console.log('addMultTx Failed')
+      } else {
+        console.log('addMultTx success')
       }
     },
     async recoverRefresh() {
@@ -381,6 +401,7 @@ export default {
         userId: this.userId,
         walletId: this.currentWalletId
       }
+      this.isStartRecover = false
       const { hasError, list } = await this.$store.dispatch('getSignerList', {...data})
       for (var i=0; i<list.length; i++) {
         if (list[i].status >= 5) {
@@ -391,6 +412,7 @@ export default {
       console.log(this.isStartRecover)
       let newList = list.filter((item, index)=>{
         if (!this.isStartRecover) {
+          console.log(item.status == this.signerStatus['active'])
           return item.status == this.signerStatus['active']
         } else {
           item.status == this.signerStatus['agreeRecover'] && (this.agreeRecoverNum = this.agreeRecoverNum + 1)
@@ -398,6 +420,7 @@ export default {
         }
       });
       // let newList = list
+      console.log(newList)
       this.signerList = newList
       this.signerTotal = newList.length
       this.signerPercent = Math.ceil(this.signerTotal/2)

@@ -15,7 +15,7 @@ import {
   addMultTx,
   getMultTxInfo,
   getSigerMessages,
-  addSigerTransMessages,
+  addSignerMultMessages,
   updateTransTx,
 } from '@/api/ncwallet'
 
@@ -237,9 +237,9 @@ const ncWallet = {
         })
       })
     },
-    addSigerTransMessages({ commit }, params) {
+    addSignerMultMessages({ commit }, params) {
       return new Promise((resolve, reject) => {
-        addSigerTransMessages(params).then(response => {
+        addSignerMultMessages(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0) {
             resolve({ hasError: false })

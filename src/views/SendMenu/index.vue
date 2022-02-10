@@ -94,7 +94,7 @@ import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
-import { walletTransactionRouter } from '@/utils/global';
+import { walletTransactionRouter, multOperation } from '@/utils/global';
 import { BigNumber } from "bignumber.js";
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
@@ -157,6 +157,8 @@ export default {
       transFromAddress: getConnectedAddress(),
       walletTransactionRouter,
       modelData: '',
+
+      multOperation,
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -568,6 +570,7 @@ export default {
         value: data.type1Value,
         network_id: web3.utils.hexToNumber(window.ethereum.chainId),
         data: this.modelData,
+        operation: multOperation['LargeTransaction']
       }
       const res = await this.$store.dispatch('addMultTx', submitData);
       if (res.hasError) {

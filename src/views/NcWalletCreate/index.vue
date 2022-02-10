@@ -212,8 +212,11 @@ export default {
       this.showLoading = true; 
 
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      console.log(securityModuleContract)
       const proxyContract = await getContractAt({ tokenAddress: this.proxyRouter, abi: ProxyJson.abi }, this)
+      console.log(proxyContract)
       const transactionContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: WalletTransaction.abi }, this)
+      console.log(transactionContract)
       const saletnew = ethers.utils.randomBytes(32);
       console.log(saletnew)
       
@@ -232,7 +235,7 @@ export default {
       // console.log(tswait)
 
       proxyContract.create(saletnew,this.overrides).then(async tx=> {
-          console.log(tx)
+          console.log('proxyContract:' + tx)
           tx.wait().then(async res => {
             console.log(res)
             const walletContract = await getContractAt({ tokenAddress: walletAddress, abi: WalletJson.abi }, this)
@@ -248,7 +251,7 @@ export default {
               data, 
               this.overrides
             ).then(async tx=> {
-                console.log(tx)
+                console.log('walletContract:' + tx)
                 this.createWallet(walletAddress, tx.hash)
                 addTransHistory(tx, 'Create Wallet', this)
                 tx.wait().then(async res => {

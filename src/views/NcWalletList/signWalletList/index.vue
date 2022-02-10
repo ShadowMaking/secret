@@ -138,8 +138,8 @@
       type="Recover Wallet"
       :metadata="sendMetadata"
       @close="showTradeConfirm=false"
-      @reject="cancelCreate"
-      @confirm="confirmCreate" />
+      @reject="cancelTriggerRecover"
+      @confirm="confirmTriggerRecover" />
     <v-signMessageModal
       :show="showSignMessageModal"
       :metadata="signMessageMetadata"
@@ -157,7 +157,7 @@ import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { getContractAt, getConnectedAddress, getContractWallet, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory } from '@/utils/dashBoardTools'
 import WalletJson from "@/assets/contractJSON/Wallet.json";
-import { signerStatus, securityModuleRouter, walletStatus } from '@/utils/global';
+import { signerStatus, securityModuleRouter, walletStatus, multOperation } from '@/utils/global';
 import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
 import SignMessageModal from '@/components/SignMessageModal';
@@ -187,6 +187,7 @@ export default {
       
       signerStatus,
       walletStatus,
+      multOperation,
       signAmount: 0,
       signRow: null,
       signMsg: '',
@@ -287,7 +288,7 @@ export default {
         if (status == this.signerStatus['agreeRecover']) {
           this.singerSignMessage(status)
         } else if (status == this.signerStatus['triggerRecover']) {
-          this.getSignMessage()
+          this.isCanTriggerRecover()
         } else if (status == this.signerStatus['freeze']) {
           this.freezeWallet()
         } else if(status == 'Unlock') {
@@ -310,9 +311,9 @@ export default {
       if (hasError) {
         isToast && Toast.fail('Update Failed')
       } else {
+        this.$emit('signChild');
         if (isToast) {
           Toast('Update success')
-          this.$emit('signChild');
         }
       }
     },
@@ -356,6 +357,7 @@ export default {
     },
     changeWalletSuccess(res, status, operateType, isToast) {
       this.showLoading = false
+      this.$emit('signChild');
       console.log(isToast)
       !isToast && Toast(`${operateType} Submit Success`)
       // this.updateWalletStatusSubmit(this.walletStatus[status], res.hash)
@@ -417,21 +419,32 @@ export default {
       await this.dealDataBeforeSingerSignMessage()
     },
     async signMessageSubmit(msg) {
+      // let data = {
+      //   userId: this.userId,
+      //   walletId: this.signRow.wallet_id,
+      //   signerAddress: this.signRow.address,
+      //   signMessage: msg,
+      //   status: this.signerStatus['agreeRecover']
+      // }
       let data = {
-        userId: this.userId,
-        walletId: this.signRow.wallet_id,
-        signerAddress: this.signRow.address,//0x4339ec4c9b7f68a5ffaa9628c6625a02cea26cd0
-        signMessage: msg,//0x53457c545dce7a83aa9f5e10cba31f31b51227a40f45d88f91186266efc9593c3eba3f11220e21f9ac11e8e955ecd9d3e40b73a444b82cf394c2e5a080cb96121b
-        status: this.signerStatus['agreeRecover']
+        mtxid: this.signRow.mtxid,
+        signer_address: this.signRow.address,
+        signer_message: msg,
+        status: this.signerStatus['agreeRecover'],
+        operation: multOperation['Recovery']
       }
-      const { hasError, totalSignMessage } = await this.$store.dispatch('uploadSignmessage', {...data});
-      console.log(totalSignMessage)
+      const { hasError, totalSignMessage } = await this.$store.dispatch('addSignerMultMessages', {...data});
       this.showLoading = false;
       if (hasError) {
         Toast.fail('Confirm Recover Failed')
       } else {
-        this.$emit('signChild')
-        if (totalSignMessage) {
+        this.updateSignerStatus(this.signerStatus['agreeRecover'], false)
+        this.getIsCanRecovery()
+      }
+    },
+    async getIsCanRecovery() {
+      let totalSignMessage = this.getSignMessage()
+      if (totalSignMessage) {
           let currentWalletAdress = this.signRow.wallet_address
           if (!this.securityModuleContract) {
             this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
@@ -455,9 +468,17 @@ export default {
           .catch((error) => {
             console.log(error)
           });
-        } else {
-          Toast('Confirm Recover success')
-        }
+      } else {
+        Toast('Confirm Recover success')
+      }
+    },
+    isCanTriggerRecover() {
+      let totalSignMessage = this.getSignMessage()
+      if (totalSignMessage) {
+        this.signMsg = totalSignMessage
+        this.showRecocerModal()
+      } else {
+        Toast(`Any transaction requires the confirmation of half signers`)
       }
     },
     async getSignMessage() {
@@ -465,15 +486,11 @@ export default {
         userId: this.userId,
         walletId: this.signRow.wallet_id,
         signerAddress: this.signRow.address,
+        mtxid: this.signRow.mtxid
       }
       const { hasError, data } = await this.$store.dispatch('getSignMessage', {...dataParams});
       this.showLoading = false
-      if (data) {
-        this.signMsg = data
-        this.showRecocerModal()
-      } else {
-        Toast(`Any transaction requires the confirmation of half signers`)
-      }
+      return data
     },
     getNewOwnerInfo() {
       let currentWalletAddress = this.signRow.wallet_address
@@ -503,11 +520,11 @@ export default {
       }
       this.showTradeConfirm = true
     },
-    cancelCreate() {
+    cancelTriggerRecover() {
       this.showTradeConfirm = false
-      Toast('Cancel create')
+      Toast('Cancel Recover')
     },
-    confirmCreate({ overrides }) {
+    confirmTriggerRecover({ overrides }) {
       this.overrides.gasLimit = overrides.gasLimit
       this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
       this.showLoading = true

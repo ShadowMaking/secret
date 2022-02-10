@@ -238,6 +238,7 @@ import request from '@/utils/request';
   const walletId = data['walletId']
   let _data = {
     address: data['signerAddress'],
+    mtxid: data['mtxid'],
   }
   return request({
     url: `/api/user/${userId}/wallet/${walletId}/sign_message`,
@@ -248,7 +249,7 @@ import request from '@/utils/request';
 
 /**
  * @description: add multi sig tx
- * @param {"user_id": 3, "wallet_address": "0x12", "to": "0x23", "value": "0x1", "data": encodeFunction(dai, (to, value, data))}data先不传
+ * @param {"network_id": "1", "user_id": 3, "wallet_address": "0x12", "to": "0x23", "value": "0x1", "data": encodeFunction(dai, (to, value, data)),"operation": 1}
  * @return 
  */
  export const addMultTx = (data) => {
@@ -285,10 +286,10 @@ import request from '@/utils/request';
 
 /**
  * @description: add signer message   transaction sign confirm
- * @param {"mtxid": 2, "signer_address": "0x12", "signer_address": "0x121", "status": 2}
+ * @param {"mtxid": 2, "signer_address": "0x12", "signer_address": "0x121", "status": 2,"operation": 1}
  * @return 
  */
- export const addSigerTransMessages = (data) => {
+ export const addSignerMultMessages = (data) => {
   return request({
     url: `/api/mtx/sign`,
     method: 'post',

@@ -47,6 +47,12 @@ const walletStatus = {
   'Unlocking': 7,
 }
 
+const multOperation = {
+  'None': 0,
+  'Recovery': 1,
+  'LargeTransaction': 2,
+}
+
 export {
   DEFAULTIMG,
   RECHAERGE_TIP,
@@ -62,4 +68,5 @@ export {
   proxyRouter,
   walletTransactionRouter,
   walletStatus,
+  multOperation,
 }

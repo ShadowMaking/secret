@@ -45,12 +45,13 @@
 <script>
 import Vue from 'vue'
 import { Toast } from 'vant'
-import { isLogin, getBalanceByAddress, getContractAt,getConnectedAddress} from '@/utils/dashBoardTools';
+import { isLogin, getBalanceByAddress, getContractAt,getConnectedAddress, getDecryptPrivateKeyFromStore} from '@/utils/dashBoardTools';
 import { getFromStorage, saveToStorage } from '@/utils/storage'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
 import { walletStatus, securityModuleRouter } from '@/utils/global';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
+import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { timeSericeFormat } from '@/utils/str';
 
 Vue.use(Toast);
@@ -91,10 +92,21 @@ export default {
         row.wallet_status == walletStatus['Recovering'] ||
         row.wallet_status == walletStatus['Frozen']) {
         
+        let currentWallet = row.wallet_address
+        let currentUserAddress = getConnectedAddress()
+
         if (!this.securityModuleContract) {
-          this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+          this.$emit('recoverChild', row);
+          return
         }
-        let isSigner = await this.securityModuleContract.isSigner(row.wallet_address, getConnectedAddress())
+        let isSigner = await this.securityModuleContract.isSigner(currentWallet, currentUserAddress)
+
+        const walletContract = await getContractAt({ tokenAddress: currentWallet, abi: WalletJson.abi }, this)
+        const ownerAddress = await walletContract.owner()
+        if (ownerAddress.toLocaleLowerCase() == currentUserAddress) {
+          Toast('Owner Cannot Recover Wallet')
+          return
+        }
         if (isSigner) {
           Toast('Signer Cannot Recover Wallet')
         } else {

@@ -109,7 +109,7 @@ import { ethers } from 'ethers'
 import {  isLogin, getConnectedAddress, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore, getContractWallet, getContractAt, addTransHistory, initRPCProvider, getConnectedNet} from '@/utils/dashBoardTools'
 import { timeFormat } from '@/utils/str'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
-import { signerStatus, walletTransactionRouter, securityModuleRouter } from '@/utils/global'
+import { signerStatus, walletTransactionRouter, securityModuleRouter, multOperation } from '@/utils/global'
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 
@@ -154,6 +154,7 @@ export default {
       allSignMessageHash: '',
       transData: '',
       transValue: '',
+      multOperation,
 
       currentOptType: 'singerSignMessage',
       overrides: {
@@ -447,9 +448,10 @@ export default {
         mtxid: this.mtxid,
         signer_address: this.currentUserAddress,
         signer_message: sig,
-        status: status
+        status: status,
+        operation: multOperation['LargeTransaction']
       }
-      const { hasError, totalSignMessage } = await this.$store.dispatch('addSigerTransMessages', {...data});
+      const { hasError, totalSignMessage } = await this.$store.dispatch('addSignerMultMessages', {...data});
       this.showLoading = false;
       if (hasError) {
         Toast.fail(`${optreateType} Failed`)
