@@ -107,7 +107,7 @@ import navTitle from '@/components/NavTitle/index'
 import { Toast, Dialog } from 'vant'
 import { ethers } from 'ethers'
 import {  isLogin, getConnectedAddress, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore, getContractWallet, getContractAt, addTransHistory, initRPCProvider, getConnectedNet} from '@/utils/dashBoardTools'
-import { timeFormat } from '@/utils/str'
+import { timeSericeFormat } from '@/utils/str'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import { signerStatus, walletTransactionRouter, securityModuleRouter, multOperation } from '@/utils/global'
 import WalletJson from "@/assets/contractJSON/Wallet.json";
@@ -205,7 +205,7 @@ export default {
       const { hasError, list } = await this.$store.dispatch('getMultTxInfo', this.mtxid)
       if (hasError) {return}
       this.txHash = list.txid
-      this.txCreated = timeFormat(list.createdAt, 'yyyy-MM-dd hh:mm:ss')
+      this.txCreated = timeSericeFormat(list.createdAt)
       this.currentWalltAddress = list.wallet_address
       this.transAmount = list.value
       this.currenntOwnerAddress = list.owner_address
@@ -223,7 +223,7 @@ export default {
         if (txReceipt.blockNumber) {
           const txBlock = await provider.getBlock(txReceipt.blockNumber);
           console.log(txBlock)
-          this.executedTime = timeFormat(txBlock.timestamp, 'yyyy-MM-dd hh:mm:ss')
+          this.executedTime = timeSericeFormat(txBlock.timestamp)
         }
       }
     },

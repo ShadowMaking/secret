@@ -186,7 +186,7 @@ export default {
       }).catch(error => {
         console.log(error)
         this.showLoading = false
-        let errorValue = formatErrorContarct(err)
+        let errorValue = formatErrorContarct(error)
         Toast.fail(errorValue)
       })
       
@@ -241,7 +241,7 @@ export default {
         })
       }).catch(error => {
         this.showLoading = false
-        let errorValue = formatErrorContarct(err)
+        let errorValue = formatErrorContarct(error)
         Toast.fail(errorValue)
         console.log(error)
       })

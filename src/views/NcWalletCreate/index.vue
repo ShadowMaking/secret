@@ -235,7 +235,7 @@ export default {
       // console.log(tswait)
 
       proxyContract.create(saletnew,this.overrides).then(async tx=> {
-          console.log('proxyContract:' + tx)
+          console.log(tx)
           tx.wait().then(async res => {
             console.log(res)
             const walletContract = await getContractAt({ tokenAddress: walletAddress, abi: WalletJson.abi }, this)

@@ -3,6 +3,7 @@ import moment from 'moment'
 import { etherscanAPIKeyToken } from '@/utils/global';
 import { getEtherscanAPIBaseUrl } from '@/utils/dashBoardTools';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
+import { timeSericeFormat } from '@/utils/str'
 
 export const wait = (ms) => {
   return new Promise(res => setTimeout(res, ms || 1000))
@@ -85,7 +86,8 @@ export const generateTransactionList = (list=[]) => {
     from: item['from'],
     to: item['to'],
     blockNumber: item['block_num'] === -1 ? 'N/A' : item['block_num']||'N/A',
-    time: moment(item['createdAt']).format('DD/MM/YYYY HH:mm:ss'),
+    time: timeSericeFormat(item['createdAt']),
+    // time: moment(item['createdAt']).format('DD/MM/YYYY HH:mm:ss'),
   }))
 }
 

@@ -652,6 +652,7 @@ export default {
     },
     async getGasPrice() {
       const { hasError, data } = await this.$store.dispatch('GetGasPriceByEtherscan');
+      console.log(data)
       if (data) { this.gasPriceInfo = data }
     },
     async handleNetworkChange(data, emitEvent) {

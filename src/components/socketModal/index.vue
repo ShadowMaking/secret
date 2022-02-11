@@ -35,7 +35,6 @@
         });
         this.socket.on("confirming", async(msg) => {
           console.log(msg)
-          console.log(this.oneSuccess)
           if (msg.unconfirmed_txlist.length == 0 || this.oneSuccess) return
           this.confirmingList = msg.unconfirmed_txlist
           const confrimData = await this.getTransactionStatus()
@@ -67,7 +66,7 @@
         const provider = initRPCProvider(rpcUrl)
         for( var i=0; i<this.confirmingList.length; i++) {
           let confirmingItemHash = this.confirmingList[i]
-          const txReceipt = await provider.getTransactionReceipt(confirmingItemHash);
+          const txReceipt = (confirmingItemHash.indexOf('-') < 0 && await provider.getTransactionReceipt(confirmingItemHash));
           if (txReceipt && txReceipt.blockNumber) {
             //0-success 1-send 2-confirming -1-failed
             let transHistoryStatus = 1;
