@@ -630,6 +630,10 @@ export default {
       }
       
     },
+    _handleNetworkChange({ chainInfo, from }) {
+      if (from === 'sendMenu') { return }
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(chainInfo.id)]
+    },
   },
 
   async created() {
@@ -642,6 +646,9 @@ export default {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
     this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+  },
+  async mounted() {
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
   },
 }
 </script>

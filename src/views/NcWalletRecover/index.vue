@@ -471,6 +471,10 @@ export default {
       }
       
     },
+    _handleNetworkChange({ chainInfo, from }) {
+      if (from === 'sendMenu') { return }
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(chainInfo.id)]
+    },
   },
   async created() {
     if (!isLogin()) {
@@ -483,6 +487,9 @@ export default {
     } else {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
+  },
+  async mounted() {
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
   },
 };
 </script>

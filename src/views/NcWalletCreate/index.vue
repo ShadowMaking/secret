@@ -61,7 +61,7 @@ import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
-import { getContractAt, getConnectedAddress, getEns, isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory } from '@/utils/dashBoardTools';
+import { getContractAt, getConnectedAddress, getEns, isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getBalanceByAddress } from '@/utils/dashBoardTools';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import ProxyJson from "@/assets/contractJSON/Proxy.json";
@@ -208,32 +208,28 @@ export default {
       await this.dealDataBeforeCreate()
     },
     async createNcWallet() {
+      const selectedConnectAddress = getConnectedAddress()
+      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      if (connectBalance == 0) {
+        Toast('Not Enough ETH')
+        return
+      }
       // if (!this.checkData()) { return }
       this.showLoading = true; 
 
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      console.log(securityModuleContract)
       const proxyContract = await getContractAt({ tokenAddress: this.proxyRouter, abi: ProxyJson.abi }, this)
-      console.log(proxyContract)
       const transactionContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: WalletTransaction.abi }, this)
       console.log(transactionContract)
       const saletnew = ethers.utils.randomBytes(32);
-      console.log(saletnew)
       
       let createSignList = this.createSignerSubmit
       // let providertest = new ethers.providers.JsonRpcProvider('https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161')
       
       // let user1 = ethers.Wallet.createRandom().connect(providertest)
       // let user2 = ethers.Wallet.createRandom().connect(providertest)
-      
       let walletAddress = await proxyContract.getAddress(saletnew);
-      // const tx = await proxyContract.create(saletnew,this.overrides).catch(error => {
-      //   console.log(error)
-      // });
-      // console.log(tx)
-      // const tswait = await tx.wait()
-      // console.log(tswait)
-
+      
       proxyContract.create(saletnew,this.overrides).then(async tx=> {
           console.log(tx)
           tx.wait().then(async res => {
@@ -361,6 +357,10 @@ export default {
       this.showInputPswModal = false
       await this.dealDataBeforeCreate()
     },
+    _handleNetworkChange({ chainInfo, from }) {
+      if (from === 'sendMenu') { return }
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(chainInfo.id)]
+    },
   },
   async created() {
     this.defaultNetWork = this.getDefaultNetWork()
@@ -375,6 +375,9 @@ export default {
     } else {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
+  },
+  async mounted() {
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
   },
 };
 </script>

@@ -43,20 +43,20 @@ const CHAINMAP  = {
                                 blockExplorerUrls: ["https://arbiscan.io"],
                                 icon: 'https://zapper.fi/images/networks/arbitrum-icon.png',
                               },
-  [web3.utils.numberToHex(44010)]: {
-                                id: 44010,
-                                name: 'SecretL1',
-                                rpcUrls: ['https://rpc.ieigen.com/eth/'],
-                                blockExplorerUrls: [],
-                                icon: require('@/assets/network/defaultNetwork.png'),
-                              },
-  [web3.utils.numberToHex(189250287905350)]: {
-                                id: 189250287905350,
-                                name: 'SecretL2',
-                                rpcUrls: ['https://rpc.ieigen.com/eig/'],
-                                blockExplorerUrls: ['https://explorer.ieigen.com/'],
-                                icon: require('@/assets/network/defaultNetwork.png'),
-                              },
+  // [web3.utils.numberToHex(44010)]: {
+  //                               id: 44010,
+  //                               name: 'SecretL1',
+  //                               rpcUrls: ['https://rpc.ieigen.com/eth/'],
+  //                               blockExplorerUrls: [],
+  //                               icon: require('@/assets/network/defaultNetwork.png'),
+  //                             },
+  // [web3.utils.numberToHex(189250287905350)]: {
+  //                               id: 189250287905350,
+  //                               name: 'SecretL2',
+  //                               rpcUrls: ['https://rpc.ieigen.com/eig/'],
+  //                               blockExplorerUrls: ['https://explorer.ieigen.com/'],
+  //                               icon: require('@/assets/network/defaultNetwork.png'),
+  //                             },
   // https://docs.metis.io/building-on-metis/connection-details                    
   [web3.utils.numberToHex(588)]: {
                                 id: 588,
