@@ -193,6 +193,8 @@ import { initTokenTime, updateLoginTime, removeTokens, tokenIsExpires, logout } 
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
+import { getConnectedAddress } from '@/utils/dashBoardTools';
+
 Vue.use(Popup);
 Vue.use(VanButton);
 Vue.use(Toast);
@@ -344,7 +346,7 @@ export default {
           })
         }
         const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
-        const selectedAccountAddress = window.ethereum.selectedAddress;
+        const selectedAccountAddress = getConnectedAddress();
         await this.$store.dispatch("WalletAccountsAddress", {accounts})
         console.log('currentSelectedAccountAddress', selectedAccountAddress)
 

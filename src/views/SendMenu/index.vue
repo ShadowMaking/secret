@@ -568,7 +568,7 @@ export default {
         wallet_address: this.transFromAddress,
         to: data.toAddress,
         value: data.type1Value,
-        network_id: web3.utils.hexToNumber(window.ethereum.chainId),
+        network_id: web3.utils.hexToNumber(this.currentChainInfo['id']),
         data: this.modelData,
         operation: multOperation['LargeTransaction']
       }
@@ -599,7 +599,7 @@ export default {
         value: info.amount,
         name: symbolName,
         operation: symbolName === 'ETH' ? 'Send' : 'Transfer', // send、transfer、approve、swap ……
-        network_id: web3.utils.hexToNumber(window.ethereum.chainId),
+        network_id: web3.utils.hexToNumber(this.currentChainInfo['id']),
         from_type: isWallet ? 1 : 0,
       }
       this.addHistoryData = _.cloneDeep(submitData);
@@ -694,6 +694,7 @@ export default {
       }
     })
     const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
+    console.log(netInfo)
     if (netInfo) {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
     } else {

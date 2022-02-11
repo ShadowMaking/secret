@@ -17,6 +17,7 @@ import WalletStatus from '@/components/WalletStatus';
 import NetTipModal from '@/components/NetTipModal';
 import { getSelectedChainID, getNetMode, metamaskIsConnect, installWeb3Wallet, installWeb3WalletMetamask } from '@/utils/web3'
 import { initTokenTime, updateLoginTime, tokenIsExpires } from '@/utils/auth'
+import { getConnectedAddress } from '@/utils/dashBoardTools';
 
 Vue.component(Button.name, Button)
 
@@ -78,7 +79,7 @@ export default {
           })
         }
         const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
-        const selectedAccountAddress = window.ethereum.selectedAddress;
+        const selectedAccountAddress = getConnectedAddress();
         await this.$store.dispatch("WalletAccountsAddress", {accounts})
         let signRes;
         let _isLock = true;

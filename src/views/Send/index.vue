@@ -78,6 +78,8 @@ import web3, { utils as web3utils } from 'web3';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { BigNumber } from "bignumber.js";
 
+import { getConnectedAddress } from '@/utils/dashBoardTools';
+
 Vue.use(Popup);
 Vue.use(Field);
 
@@ -108,6 +110,7 @@ export default {
       refreshing: false,
       tokenAmountButtonTxtCode: 1,
       tokenAmountButtonTxt: 'Enter The Amount',
+
     }
   },
   computed: {
@@ -132,7 +135,7 @@ export default {
       const toAddress = this.sendAddress;
       // const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
       // const selectedAccountAddress = accounts[0];
-      const selectedConnectAddress = window.ethereum.selectedAddress;
+      const selectedConnectAddress = getConnectedAddress();
       if (!utils.isAddress(toAddress)) {
         Toast('Wrong Address')
         return
@@ -154,6 +157,9 @@ export default {
       }
     },
     async sendSuccess(res, info, address) {
+      const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
+      let currentChainId = netInfo && netInfo.id
+
       const { selectedConnectAddress, toAddress } = address;
       const symbolName = info.tokenInfo.symbol || 'ETH'
       this.tipTxt = 'In progress,waitting';
@@ -167,7 +173,7 @@ export default {
         value: info.amount,
         name: symbolName,
         operation: 'Send',
-        network_id: web3.utils.hexToNumber(window.ethereum.chainId)
+        network_id: web3.utils.hexToNumber(currentChainId)
       }
       this.addHistoryData = _.cloneDeep(submitData);
       await this.addHistory(submitData);

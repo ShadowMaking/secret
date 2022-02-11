@@ -135,6 +135,7 @@ import { initBrideByNetType, getNetMode } from '@/utils/web3';
 import { copyTxt, isPc } from '@/utils/index';
 import { compareDate } from '@/utils/number';
 import NetTipModal from '@/components/NetTipModal';
+import { getConnectedAddress } from '@/utils/dashBoardTools';
 
 Vue.use(Popup);
 Vue.use(Popover);
@@ -452,7 +453,7 @@ export default {
     async handleSearchTransactionHistoryList() {
       if (this.walletIsLock) { return }
       const tx_type = this.type === 'all' ? '' : TRANSACTION_TYPE[this.type];
-      const fromAddress = window.ethereum.selectedAddress;
+      const fromAddress = getConnectedAddress();
       Toast.loading({
         duration: 0,
         message: 'loading...',

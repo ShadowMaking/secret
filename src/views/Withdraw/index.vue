@@ -69,6 +69,7 @@ import { getTokenAddress, L2TokenABIJSON } from '@/utils/token';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { utils, ethers } from 'ethers'
 import { BigNumber } from "bignumber.js";
+import { getConnectedAddress } from '@/utils/dashBoardTools';
 
 Vue.use(Popup);
 Vue.use(CountDown);
@@ -191,7 +192,7 @@ export default {
       const { l2Signer } = initBrideByNetType('l2');
       const myContract = new ethers.Contract(tokenAddress, abi, l2Signer)
       console.log('myContract', myContract)
-      const connectAddress = window.ethereum.selectedAddress;
+      const connectAddress = getConnectedAddress();
       const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(info.amount*1000000000000000000)).toFixed())
       console.log('tokenWithdrawAmount', tokenWithdrawAmount)
       myContract.withdraw(
@@ -210,7 +211,7 @@ export default {
       this.tipTxt = 'Confirm On The Wallet';
       this.show = true;
 
-      const connectAddress = window.ethereum.selectedAddress;
+      const connectAddress = getConnectedAddress();
       if (!utils.isAddress(connectAddress)) {
         Toast.fail(`Wrong Address`);
         return;

@@ -97,7 +97,7 @@ export const ajaxGetRequestByEtherscan = (params) => new Promise((resolve, rejec
   for(let k in params.data) {
     paramStr += `&${k}=${params.data[k]}`
   }
-  const etherscanAPIBaseUrl = getEtherscanAPIBaseUrl()
+  const etherscanAPIBaseUrl = params.baseUrl ? params.baseUrl : getEtherscanAPIBaseUrl()
   const url = `${etherscanAPIBaseUrl}/api?${paramStr}&apikey=${etherscanAPIKeyToken}`
   ajaxObj.open(params.method || 'get', url);
   ajaxObj.send();
