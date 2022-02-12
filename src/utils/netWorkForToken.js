@@ -72,7 +72,21 @@ const CHAINMAP  = {
                                 rpcUrls: ['https://andromeda.metis.io/?owner=1088'],
                                 blockExplorerUrls: ['https://andromeda-explorer.metis.io/'],
                                 icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
-                              },                
+                              }, 
+  [web3.utils.numberToHex(137)]: {//Polygon mainnet https://docs.polygon.technology/docs/develop/network-details/network/
+                                id: 137,
+                                name: 'Polygon',
+                                rpcUrls: ['https://polygon-rpc.com/'],
+                                blockExplorerUrls: ['https://polygonscan.com/'],
+                                icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
+                              },   
+  [web3.utils.numberToHex(80001)]: {
+                                id: 80001,
+                                name: 'Mumbai',
+                                rpcUrls: ['https://matic-mumbai.chainstacklabs.com/'],
+                                blockExplorerUrls: ['https://mumbai.polygonscan.com/'],
+                                icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
+                              },                   
   
 }
 const CHAINIDMAP  = {
@@ -88,6 +102,8 @@ const CHAINIDMAP  = {
 
   STARDUST: web3.utils.numberToHex(588),
   ANDRROMEDA: web3.utils.numberToHex(1088),
+  POLYGON: web3.utils.numberToHex(137),
+  MUMBAI: web3.utils.numberToHex(80001),
 }
 
 const NETWORKSFORTOKEN = Object.keys(CHAINMAP).map(chainId => {

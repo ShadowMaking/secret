@@ -43,6 +43,28 @@ export const TOKENMAP_NETWORK = {
       "decimals": 18,
       "abiTokenAddress": '0x9e32b13ce7f2e80a01932b42553652e053d6ed8e' // use this address to get abi
     },
+  },
+  // Polygon MATIC
+  [CHAINIDMAP['POLYGON']]: {
+    "0x0000000000000000000000000000000000001010": {
+      "name": "Polygon",
+      "logo": "DAI.svg",
+      "erc20": true,
+      "symbol": "Polygon",
+      "decimals": 18,
+      // "abiTokenAddress": '0x9e32b13ce7f2e80a01932b42553652e053d6ed8e' // use this address to get abi
+    },
+  },
+  // Mumbai
+  [CHAINIDMAP['MUMBAI']]: {
+    "0x0000000000000000000000000000000000001010": {
+      "name": "Polygon",
+      "logo": "DAI.svg",
+      "erc20": true,
+      "symbol": "Polygon",
+      "decimals": 18,
+      // "abiTokenAddress": '0x9e32b13ce7f2e80a01932b42553652e053d6ed8e' // use this address to get abi
+    },
   }
 }
 
