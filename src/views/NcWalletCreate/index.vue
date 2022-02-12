@@ -61,7 +61,7 @@ import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
-import { getContractAt, getConnectedAddress, getEns, isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getBalanceByAddress } from '@/utils/dashBoardTools';
+import { getContractAt, getConnectedAddress, getEns, isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getBalanceByAddress, getSupportNet } from '@/utils/dashBoardTools';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import ProxyJson from "@/assets/contractJSON/Proxy.json";
@@ -182,6 +182,9 @@ export default {
       this.createNcWallet()
     },
     async dealDataBeforeCreate() {
+      if (!getSupportNet()) {
+        return
+      }
       let thisGasPrice = this.overrides.gasPrice.toString()
       let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
       this.sendMetadata = {

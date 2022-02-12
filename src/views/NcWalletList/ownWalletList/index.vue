@@ -126,7 +126,7 @@ import LoadingPopup from '@/components/LoadingPopup';
 import { BigNumber } from "bignumber.js";
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import TransactionModule from "@/assets/contractJSON/TransactionModule.json";
-import { getContractAt, addTransHistory, getDecryptPrivateKeyFromStore, getConnectedAddress, getEncryptKeyByAddressFromStore } from '@/utils/dashBoardTools'
+import { getContractAt, addTransHistory, getDecryptPrivateKeyFromStore, getConnectedAddress, getEncryptKeyByAddressFromStore, getSupportNet } from '@/utils/dashBoardTools'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import InputPswModal from '@/components/InputPswModal'
 
@@ -186,13 +186,18 @@ export default {
       }
     },
     handleClick(row) {
+      if (!getSupportNet()) {
+        return
+      }
       saveToStorage({ 'currentWallet': row.wallet_address });
       this.$router.push({
         path: `/signManage/${row.wallet_id}`,
       })
     },
     async openSetting(row) {
-      
+      if (!getSupportNet()) {
+        return
+      }
       this.settingWallet = row.wallet_address
       let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       if (!securityModuleContract) {

@@ -2,9 +2,13 @@ import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
 import { defaultNetWorkForMetamask, CHAINMAP } from '@/utils/netWorkForToken';
-import { CHAINIDMAP } from '@/utils/netWorkForToken'
+import { CHAINIDMAP, supportNetWorkForContract } from '@/utils/netWorkForToken'
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import { TRANSACTION_TYPE } from '@/api/transaction';
+
+import Vue from 'vue';
+import { Toast } from 'vant';
+Vue.use(Toast);
 /**
  * @description: 
  * @param {*} list
@@ -315,5 +319,15 @@ export const addTransHistory = async (txInfo, taransType, self, value, name, isW
   } else  {
     self.$eventBus.$emit('addTransactionHistory')
     console.log('add history success')
+  }
+}
+
+export const getSupportNet = () => {
+  const currentChainInfo = getConnectedNet()
+  if (supportNetWorkForContract.indexOf(currentChainInfo.id) > -1) {
+    return true
+  } else {
+    Toast(`Ropsten only presently, the ${currentChainInfo.name} will be available soon`)
+    return false
   }
 }

@@ -45,7 +45,7 @@
 <script>
 import Vue from 'vue'
 import { Toast } from 'vant'
-import { isLogin, getBalanceByAddress, getContractAt,getConnectedAddress, getDecryptPrivateKeyFromStore} from '@/utils/dashBoardTools';
+import { isLogin, getBalanceByAddress, getContractAt,getConnectedAddress, getDecryptPrivateKeyFromStore, getSupportNet} from '@/utils/dashBoardTools';
 import { getFromStorage, saveToStorage } from '@/utils/storage'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
@@ -88,6 +88,9 @@ export default {
       })
     },
     async recoveryClick(row) {
+      if (!getSupportNet()) {
+        return
+      }
       if (row.wallet_status == walletStatus['Active'] ||
         row.wallet_status == walletStatus['Recovering'] ||
         row.wallet_status == walletStatus['Frozen']) {

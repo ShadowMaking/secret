@@ -1,5 +1,6 @@
 import web3 from 'web3';
 const defaultNetWorkForMetamask = [1, 3, 4, 5, 42]
+const supportNetWorkForContract = [3]
 const CHAINMAP  = {
   [web3.utils.numberToHex(1)]: {
                                 id: 1,
@@ -82,8 +83,8 @@ const CHAINIDMAP  = {
   KOVAN: web3.utils.numberToHex(42),
 
   ARBITRUM: web3.utils.numberToHex(42161),
-  SECRETL1: web3.utils.numberToHex(44010),
-  SECRETL2: web3.utils.numberToHex(189250287905350),
+  // SECRETL1: web3.utils.numberToHex(44010),
+  // SECRETL2: web3.utils.numberToHex(189250287905350),
 
   STARDUST: web3.utils.numberToHex(588),
   ANDRROMEDA: web3.utils.numberToHex(1088),
@@ -99,4 +100,4 @@ const NETWORKSFORTOKEN = Object.keys(CHAINMAP).map(chainId => {
   return data
 })
 
-export { CHAINMAP, NETWORKSFORTOKEN, defaultNetWorkForMetamask, CHAINIDMAP }
+export { CHAINMAP, NETWORKSFORTOKEN, defaultNetWorkForMetamask, CHAINIDMAP, supportNetWorkForContract }

@@ -40,9 +40,10 @@ import signWalletList from './signWalletList/index'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
 import { getFromStorage } from '@/utils/storage'
-import {  isLogin, getBalanceByAddress, getConnectedAddress, getContractAt  } from '@/utils/dashBoardTools';
+import {  isLogin, getBalanceByAddress, getConnectedAddress, getContractAt, getConnectedNet  } from '@/utils/dashBoardTools';
 import { signerStatus, securityModuleRouter } from '@/utils/global';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
+import { supportNetWorkForContract } from '@/utils/netWorkForToken'
 
 Vue.use(Tab);
 Vue.use(Tabs);
@@ -115,7 +116,10 @@ export default {
         return
       }
       for(var i=0; i<list.length; i++) {
-        
+        const currentChainInfo = getConnectedNet()
+        if (supportNetWorkForContract.indexOf(currentChainInfo.id) < 0) {
+          return false
+        }
         let isLocked = await this.securityModuleContract.isLocked(list[i].wallet_address)
         console.log("isLocked:" + isLocked)
         // this.$set(dataSource[i], 'isLocked', isLocked)
