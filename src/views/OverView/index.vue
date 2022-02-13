@@ -54,6 +54,7 @@ import None from '@/components/None/index'
 import Loading from '@/components/Loading'
 import Approval from './Approval/index'
 
+
 Vue.use(Toast)
 Vue.use(Icon);
 Vue.use(Popup);
@@ -162,6 +163,7 @@ export default {
   created() {
     // this.timer();
     this.initGthers()
+    this.$eventBus.$on('disconnect', this.handleAccountChange);
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
     this.$eventBus.$on('networkChange', this.handleAccountChange)
   },

@@ -3,6 +3,7 @@ import moment from 'moment'
 import { etherscanAPIKeyToken } from '@/utils/global';
 import { getEtherscanAPIBaseUrl } from '@/utils/dashBoardTools';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
+import { timeSericeFormat } from '@/utils/str'
 
 export const wait = (ms) => {
   return new Promise(res => setTimeout(res, ms || 1000))
@@ -52,7 +53,7 @@ export const getStatusTxt = (record) => {
   let statusTxt = 'pending';
   switch(record.status) {
     case 0:
-      statusTxt = 'fail'
+      statusTxt = 'pending'
       break;
     case 1:
       if (record.type === TRANSACTION_TYPE['L2ToL1']) {
@@ -62,7 +63,10 @@ export const getStatusTxt = (record) => {
       }
       break;
     case 2:
-      statusTxt = 'success'
+      statusTxt = 'creating'
+      break;
+    case -1:
+      statusTxt = 'fail'
       break;
     default:
       statusTxt = 'pending';
@@ -82,7 +86,8 @@ export const generateTransactionList = (list=[]) => {
     from: item['from'],
     to: item['to'],
     blockNumber: item['block_num'] === -1 ? 'N/A' : item['block_num']||'N/A',
-    time: moment(item['createdAt']).format('DD/MM/YYYY HH:mm:ss'),
+    time: timeSericeFormat(item['createdAt']),
+    // time: moment(item['createdAt']).format('DD/MM/YYYY HH:mm:ss'),
   }))
 }
 
@@ -92,7 +97,7 @@ export const ajaxGetRequestByEtherscan = (params) => new Promise((resolve, rejec
   for(let k in params.data) {
     paramStr += `&${k}=${params.data[k]}`
   }
-  const etherscanAPIBaseUrl = getEtherscanAPIBaseUrl()
+  const etherscanAPIBaseUrl = params.baseUrl ? params.baseUrl : getEtherscanAPIBaseUrl()
   const url = `${etherscanAPIBaseUrl}/api?${paramStr}&apikey=${etherscanAPIKeyToken}`
   ajaxObj.open(params.method || 'get', url);
   ajaxObj.send();
@@ -142,4 +147,14 @@ export const getRouteNameAndQuery = (record, type) => {
 
 export const promiseValue = (promise) => {
   return promise.then((data) => ({hasError: false, res: data})).catch((err) => ({hasError: true, res: err}));
+}
+
+export const formatErrorContarct = (error) => {
+  let errorValue = 'failed'
+  let errorThrow = error.body || (error.error && error.error.body)
+  if (errorThrow) {
+    let errorData = JSON.parse(errorThrow).error
+    errorValue = errorData.message
+  }
+  return errorValue
 }

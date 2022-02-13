@@ -44,6 +44,7 @@ import request from '@/utils/request';
     address: data['address'],
     signers: data['signers'],
     wallet_address: data['walletAddress'],
+    txid: data['txid'],
   }
   return request({
     url: `/api/user/${userId}/wallet`,
@@ -110,6 +111,7 @@ import request from '@/utils/request';
   let _data = {
     name: data['name'],
     address: data['address'],
+    txid: data['txid']
   }
   return request({
     url: `/api/user/${userId}/wallet/${walletId}/signer`,
@@ -161,6 +163,7 @@ import request from '@/utils/request';
   const walletId = data['walletId'] 
   let _data = {
     address: data['signerAddress'],
+    txid: data['txid'],
   }
   return request({
     url: `/api/user/${userId}/wallet/${walletId}/signer`,
@@ -208,6 +211,24 @@ import request from '@/utils/request';
 }
 
 /**
+ * @description: Update status for a wallet 
+ * @param {"status": "0", txid: ''}
+ * @return 
+ */
+ export const updateWalletStatus = (data) => {
+  const userId = data['userId'] 
+  const walletId = data['walletId']
+  let _data = {
+    status: data['status'],
+    txid: data['txid']
+  }
+  return request({
+    url: `/api/user/${userId}/wallet/${walletId}`,
+    method: 'post',
+    data: _data,
+  })
+}
+/**
  * @description: Get sign_message if available (The signer address should be given to assure that it can get sign_message)
  * @param {"address": "0x123"}
  * @return 
@@ -217,10 +238,74 @@ import request from '@/utils/request';
   const walletId = data['walletId']
   let _data = {
     address: data['signerAddress'],
+    mtxid: data['mtxid'],
   }
   return request({
     url: `/api/user/${userId}/wallet/${walletId}/sign_message`,
     method: 'get',
     params: _data,
+  })
+}
+
+/**
+ * @description: add multi sig tx
+ * @param {"network_id": "1", "user_id": 3, "wallet_address": "0x12", "to": "0x23", "value": "0x1", "data": encodeFunction(dai, (to, value, data)),"operation": 1}
+ * @return 
+ */
+ export const addMultTx = (data) => {
+  return request({
+    url: `/api/mtx/meta`,
+    method: 'post',
+    data: data,
+  })
+}
+
+/**
+ * @description: query multi sig tx
+ * @param 
+ * @return 
+ */
+ export const getMultTxInfo = (mtxid) => {
+  return request({
+    url: `/api/mtx/meta/${mtxid}`,
+    method: 'get',
+  })
+}
+
+/**
+ * @description: query siger messages
+ * @param 
+ * @return 
+ */
+ export const getSigerMessages = (mtxid) => {
+  return request({
+    url: `/api/mtx/sign/${mtxid}`,
+    method: 'get',
+  })
+}
+
+/**
+ * @description: add signer message   transaction sign confirm
+ * @param {"mtxid": 2, "signer_address": "0x12", "signer_address": "0x121", "status": 2,"operation": 1}
+ * @return 
+ */
+ export const addSignerMultMessages = (data) => {
+  return request({
+    url: `/api/mtx/sign`,
+    method: 'post',
+    data: data,
+  })
+}
+
+/**
+ * @description: update txid of multi sig tx
+ * @param {"id":2, "txid": "0x221"}
+ * @return 
+ */
+ export const updateTransTx = (data) => {
+  return request({
+    url: `/api/mtx/meta`,
+    method: 'put',
+    data: data,
   })
 }

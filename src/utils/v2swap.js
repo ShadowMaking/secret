@@ -1,5 +1,5 @@
 import * as ethers from 'ethers'
-import { getContractAt } from '@/utils/dashBoardTools';
+import { getContractAt, getConnectedAddress } from '@/utils/dashBoardTools';
 import IUniswapV2Router02 from "@uniswap/v2-periphery/build/IUniswapV2Router02.json";
 import IERC20 from "@uniswap/v2-periphery/build/IERC20.json";
 import IWETH from "@uniswap/v2-periphery/build/WETH9.json";
@@ -49,7 +49,7 @@ export const IUniswapV2Router = (type, data) => {//type = single and multiple
       CurrencyAmount.fromRawAmount(daiToken, JSBI.BigInt(10000000))
     );
 
-    const recipient = window.ethereum.selectedAddress
+    const recipient = getConnectedAddress()
     const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum)
     const metamasksigner = metamaskProvider.getSigner(0)
 

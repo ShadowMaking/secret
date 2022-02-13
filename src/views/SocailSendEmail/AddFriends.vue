@@ -1,6 +1,7 @@
 <template>
   <div class="add-friends-page">
-    <h4>
+    <v-navTitle title="Co-workers"></v-navTitle >
+    <h4 style="display: none">
       <span>Friends</span>
       <!-- <a class="button button-with-radius button-update" @click="refresh">
         <i :class="['icon','ico-ipdate', {'spin': refreshLoading}]"></i>
@@ -88,10 +89,7 @@
         </div>
       </van-list>
       <!-- no-friends -->
-      <div class="no-friends" v-else>
-        <van-icon name="closed-eye" color="#eee" size="40"/>
-        <span>no friends</span>
-      </div>
+      <div class="no-friends" v-else><v-none /></div>
     </div>
     <v-thirdlogintip
       key="thirdlogintip"
@@ -115,6 +113,8 @@ import Vue from 'vue';
 import { Toast, Popup, Button, List, Cell, Icon, Search, Field, Dialog} from 'vant';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import ThirdLoginTip from '@/components/ThirdLoginTip';
+import navTitle from '@/components/NavTitle/index'
+import None from '@/components/None/index'
 import { copyTxt } from '@/utils/index';
 
 Vue.use(Toast)
@@ -147,6 +147,8 @@ export default {
   },
   components: {
     'v-thirdlogintip': ThirdLoginTip,
+    "v-navTitle": navTitle,
+    'v-none': None,
   },
   computed: {
     thirdUserId() {

@@ -5,19 +5,23 @@
         <el-col
           class="list-header-item"
           v-for="(item,index) in headerList" :key="index"
-          :span="(index==2 || index==3|| index==4) ? 4 : 3">
+          :span="(index==1 || index==3|| index==4) ? 4 : 3">
           {{ item }}
         </el-col>
       </el-row>
       <div class="transaction-list-wrapper" v-if="newtransactionList.length">
         <el-row class="transaction-list" v-for="(item,index) in newtransactionList" :key="index">
           <el-col :span="3" :class="['transaction-list-item', `status-${item.status}`]">
+            <span class="mult-span" v-if="item.from_type == 1">Multisig Wallet</span>
             <i></i>{{ item.status }}
           </el-col>
-          <el-col :span="3" class="transaction-list-item">
-            <a>{{ item.operation }}</a>
+          <el-col :span="4" class="transaction-list-item">
+            <div>
+              <a>{{ item.operation }}</a>
+              <p><a class="trans-detail-btn" v-if="item.mtxid" @click="goTransDetail(item)">View transaction details</a></p>
+            </div>
           </el-col>
-          <el-col :span="4" :class="['transaction-list-item', `address`]">
+          <el-col :span="3" :class="['transaction-list-item', `address`]">
             <el-tooltip  effect="dark" placement="top-start">
               <div slot="content" class="table-item-tip-tooltip" @click="copyAddress(item.hash)">{{ item.hash }}</div>
               <a @click="toPageDetail(item, 'hash')">{{ showAddress(item.hash) }}</a>
@@ -179,6 +183,12 @@ export default {
         let toens = await currentProvider.lookupAddress(item.to)
         this.newtransactionList[index].from = (fromens ? fromens : item.from)
         this.newtransactionList[index].to = (toens ? toens : item.to)
+      })
+    },
+    goTransDetail(row) {
+      console.log(row)
+      this.$router.push({
+        path: `/transDetail/${row.mtxid}`
       })
     },
   },

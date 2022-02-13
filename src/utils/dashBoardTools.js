@@ -2,9 +2,13 @@ import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
 import { defaultNetWorkForMetamask, CHAINMAP } from '@/utils/netWorkForToken';
-import { CHAINIDMAP } from '@/utils/netWorkForToken'
+import { CHAINIDMAP, supportNetWorkForContract } from '@/utils/netWorkForToken'
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
-import { getCurrentProvider } from '@/utils/web3';
+import { TRANSACTION_TYPE } from '@/api/transaction';
+
+import Vue from 'vue';
+import { Toast } from 'vant';
+
 /**
  * @description: 
  * @param {*} list
@@ -246,7 +250,9 @@ export const getDATACode = (abi, functionName, params) => {
 //get ENS or address
 export async function getEns(address) {
   return new Promise((resolve, reject) => {
-    const currentProvider = getCurrentProvider()
+    const network = getConnectedNet()
+    const rpcUrl = network['rpcUrls'][0]
+    const currentProvider = initRPCProvider(rpcUrl)
     if (currentProvider) {
       currentProvider.lookupAddress(address)
       .then(res=>{
@@ -267,15 +273,15 @@ export async function getEns(address) {
 }
 
 //get address banlance
-export async function getBalanceByAddress(address) {
+export function getBalanceByAddress(address) {
   return new Promise((resolve, reject) => {
-    const currentProvider = getCurrentProvider()
-    console.log(currentProvider)
+    const network = getConnectedNet()
+    const rpcUrl = network['rpcUrls'][0]
+    const currentProvider = initRPCProvider(rpcUrl)
     if (currentProvider) {
       currentProvider.getBalance(address)
       .then(res=>{
         if (res) {
-          console.log(res)
           let etherString = ethers.utils.formatEther(res);
           resolve(etherString)
         } else {
@@ -290,4 +296,38 @@ export async function getBalanceByAddress(address) {
       resolve(null)
     }
   })
+}
+
+export const addTransHistory = async (txInfo, taransType, self, value, name, isWallet) => {
+  const currentChainInfo = getConnectedNet()
+  const chainId = currentChainInfo && currentChainInfo['id']
+  const submitData = {
+    txid: txInfo.hash,
+    from: txInfo.from,
+    to: (txInfo.to).toLocaleLowerCase(),
+    type: TRANSACTION_TYPE['L2ToL2'],
+    status: 0,//0-tobeconfirm 1-success 2-confirming -1-fail
+    value: value ? value : 0,
+    operation: taransType,
+    network_id: chainId,
+    name: name ? name: null,
+    from_type: isWallet ? 1 : 0,
+  }
+  const res = await self.$store.dispatch('AddTransactionHistory', {...submitData});
+  if (res.hasError) {
+    console.log('Transaction success，but error when add history')
+  } else  {
+    self.$eventBus.$emit('addTransactionHistory')
+    console.log('add history success')
+  }
+}
+
+export const getSupportNet = () => {
+  const currentChainInfo = getConnectedNet()
+  if (supportNetWorkForContract.indexOf(currentChainInfo.id) > -1) {
+    return true
+  } else {
+    Toast(`Ropsten only presently, the ${currentChainInfo.name} will be available soon`)
+    return false
+  }
 }

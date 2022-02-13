@@ -131,6 +131,7 @@ import { initBrideByNetType } from '@/utils/web3'
 import { isPc } from '@/utils/index';
 import { checkIsTokenBySymbol } from '@/utils/token';
 import { initTokenTime, updateLoginTime, tokenIsExpires } from '@/utils/auth'
+import { getConnectedAddress } from '@/utils/dashBoardTools';
 const { parseEther, formatEther } = utils;
 
 Vue.use(Button);
@@ -328,7 +329,7 @@ export default {
       eventInfo.submit && (this.signToMetamask())
     },
     async signToMetamask() {
-      const selectedAccountAddress = window.ethereum.selectedAddress;
+      const selectedAccountAddress = getConnectedAddress();
       const message = `
         Access Eigen account.
         Only sign this message for a trusted client!
@@ -433,7 +434,7 @@ export default {
     },
     async getTokenBalance(token) {
       const netType = this.expectNetType
-      const selectedAccountAddress = window.ethereum.selectedAddress
+      const selectedAccountAddress = getConnectedAddress()
       const { bridge, ethProvider, arbProvider, l1Signer, l2Signer } = initBrideByNetType(netType);
       const { tokenType, tokenAddress, symbol, decimals, image, json } = token;
       const abi = json.abi;

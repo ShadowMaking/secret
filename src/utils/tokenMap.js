@@ -43,7 +43,51 @@ export const TOKENMAP_NETWORK = {
       "decimals": 18,
       "abiTokenAddress": '0x9e32b13ce7f2e80a01932b42553652e053d6ed8e' // use this address to get abi
     },
-  }
+  },
+  // Polygon MATIC
+  [CHAINIDMAP['POLYGON']]: {
+    "0x8cc8538d60901d19692F5ba22684732Bc28F54A3": {
+      "name": "WETH",
+      "logo": "DAI.svg",
+      "erc20": true,
+      "symbol": "WETH",
+      "decimals": 18,
+      "abiTokenAddress": '0xa45b966996374E9e65ab991C6FE4Bfce3a56DDe8' // use this address to get abi
+    },
+  },
+  // Mumbai
+  [CHAINIDMAP['MUMBAI']]: {
+    "0x4DfAe612aaCB5b448C12A591cD0879bFa2e51d62": {
+      "name": "WETH",
+      "logo": "DAI.svg",
+      "erc20": true,
+      "symbol": "WETH",
+      "decimals": 18,
+      "abiTokenAddress": '0xa45b966996374E9e65ab991C6FE4Bfce3a56DDe8' // use this address to get abi
+    },
+  },
+  // Binance Smart Chain MATIC
+  [CHAINIDMAP['BSC']]: {
+    "0x6cd2Bf22B3CeaDfF6B8C226487265d81164396C5": {
+      "name": "USDT",
+      "logo": "DAI.svg",
+      "erc20": true,
+      "symbol": "USDT",
+      "decimals": 18,
+      "abiTokenAddress": '0xdAC17F958D2ee523a2206206994597C13D831ec7' // use this address to get abi
+    },
+  },
+  // BSC Testnet
+  [CHAINIDMAP['BSCTEST']]: {
+    "0x6cd2Bf22B3CeaDfF6B8C226487265d81164396C5": {
+      "name": "USDT",
+      "logo": "DAI.svg",
+      "erc20": true,
+      "symbol": "USDT",
+      "decimals": 18,
+      "abiTokenAddress": '0xdAC17F958D2ee523a2206206994597C13D831ec7' // use this address to get abi
+    },
+  },
 }
 
 

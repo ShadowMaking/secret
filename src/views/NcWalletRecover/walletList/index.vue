@@ -4,13 +4,14 @@
     <div v-if="walletList.length">
     <el-table
       :data="walletList"
-      border
       style="width: 100%"
-      empty-text="no data">
+      empty-text="no data"
+      :header-cell-style="{background:'#eff1f8'}" >
         <el-table-column
           fixed
           prop="createdAt"
-          label="Create Time">
+          label="Create Time"
+          :formatter="formatterTime">
         </el-table-column>
         <el-table-column
           prop="name"
@@ -23,18 +24,20 @@
         <el-table-column
           label="Signer">
             <template slot-scope="scope">
-              <el-button @click="signClick(scope.row)" type="text" size="small">Signer</el-button>
+              <a @click="signClick(scope.row)" style="color: #409EFF">{{scope.row.signer_count}}</a>
             </template>
         </el-table-column>
         <el-table-column
-          label="Operate">
+          label="Operation">
             <template slot-scope="scope">
-              <el-button @click="recoveryClick(scope.row)" type="text" size="small">Recovery</el-button>
+              <a @click="recoveryClick(scope.row)" style="color: #409EFF">Recovery</a>
             </template>
         </el-table-column>
     </el-table>
     </div>
-    <v-none v-if="!showLoading && walletList.length==0" />
+    <div v-if="!showLoading && walletList.length==0" class="no-data-container">
+      <v-none />
+    </div>
     <v-loading v-show="showLoading" />
   </div>
 </template>
@@ -42,10 +45,14 @@
 <script>
 import Vue from 'vue'
 import { Toast } from 'vant'
-import { isLogin, getBalanceByAddress} from '@/utils/dashBoardTools';
+import { isLogin, getBalanceByAddress, getContractAt,getConnectedAddress, getDecryptPrivateKeyFromStore, getSupportNet} from '@/utils/dashBoardTools';
 import { getFromStorage, saveToStorage } from '@/utils/storage'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
+import { walletStatus, securityModuleRouter } from '@/utils/global';
+import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
+import WalletJson from "@/assets/contractJSON/Wallet.json";
+import { timeSericeFormat } from '@/utils/str';
 
 Vue.use(Toast);
 
@@ -57,6 +64,10 @@ export default {
       userId: getFromStorage('gUID'),
 
       showLoading: true,
+      walletStatus,
+
+      securityModuleRouter,
+      securityModuleContract: null,
     }
   },
   components: {
@@ -64,6 +75,9 @@ export default {
     'v-loading': Loading,
   },
   methods: {
+    formatterTime(row) {
+      return timeSericeFormat(row.createdAt, 'yyyy-MM-dd hh:mm:ss')
+    },
     signClick(row) {
       saveToStorage({ 'currentWallet': row.wallet_address });
       this.$router.push({
@@ -73,8 +87,38 @@ export default {
         }
       })
     },
-    recoveryClick(row) {
-      this.$emit('recoverChild', row);
+    async recoveryClick(row) {
+      if (!getSupportNet()) {
+        return
+      }
+      if (row.wallet_status == walletStatus['Active'] ||
+        row.wallet_status == walletStatus['Recovering'] ||
+        row.wallet_status == walletStatus['Frozen']) {
+        
+        let currentWallet = row.wallet_address
+        let currentUserAddress = getConnectedAddress()
+
+        if (!this.securityModuleContract) {
+          this.$emit('recoverChild', row);
+          return
+        }
+        let isSigner = await this.securityModuleContract.isSigner(currentWallet, currentUserAddress)
+
+        const walletContract = await getContractAt({ tokenAddress: currentWallet, abi: WalletJson.abi }, this)
+        const ownerAddress = await walletContract.owner()
+        if (ownerAddress.toLocaleLowerCase() == currentUserAddress) {
+          Toast('Owner Cannot Recover Wallet')
+          return
+        }
+        if (isSigner) {
+          Toast('Signer Cannot Recover Wallet')
+        } else {
+          this.$emit('recoverChild', row);
+        }
+      } else {
+        Toast('Wallet is Unavailable')
+      }
+      
     },
     async getWalletList() {
       let data = {
@@ -82,26 +126,34 @@ export default {
       }
       const { hasError, list } = await this.$store.dispatch('getWalletList', data)
       for(let i=0; i<list.length;i+=1) {
-        let itemBalance = await this.getBalance(list[i].wallet_address)
-        list[i]['balance'] = itemBalance
+        this.$set(list[i], 'balance', '0.0')
       }
       this.walletList = list
+      this.resetBalance(list)
       if (hasError) {
-        this.showLoading = true
+        Toast('Get Error')
       } else {
         this.showLoading = false
       }
+    },
+    async resetBalance(list) {
+      for(let i=0; i<list.length;i+=1) {
+        let itemBalance = await this.getBalance(list[i].wallet_address)
+        this.$set(list[i], 'balance', itemBalance)
+      }
+      this.walletList = list
     },
     async getBalance(address) {
       const balanceString = await getBalanceByAddress(address)
       return balanceString
     },
   },
-  created() {
+  async created() {
     if (!isLogin()) {
       Toast('Need Login')
       return
     }
+    this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
     this.getWalletList()
   },
 };

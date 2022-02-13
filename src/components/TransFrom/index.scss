@@ -3,4 +3,27 @@
     font-size: 1.2rem;
     margin-bottom: 10px;
   }
+  .send-from-list {
+    position: relative;
+    background-color: #f0f0f2;
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 15px;
+  }
+  .wallt-trans-title {
+    position: absolute;
+    left: 10px;
+    top:10px;
+  }
+  .select-box {
+    width: 100%;
+    height: 56px;
+  }
+  ::v-deep .el-input__inner {
+    background-color: #f0f0f2;
+    color: #606266;
+    border: none;
+    height:30px;
+    margin-top:25px;
+  }
 }

@@ -88,6 +88,7 @@ import { getTokenAddress } from '@/utils/token';
 import QRCode from 'qrcodejs2'
 import { BigNumber } from "bignumber.js";
 import web3, { utils as web3utils } from 'web3';
+import { getConnectedAddress } from '@/utils/dashBoardTools';
 
 const { parseEther } = utils;
 
@@ -183,6 +184,9 @@ export default {
       this.popStatus = 'fail';
     },
     async depositSuccess(depositRes, info) {
+      const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
+      let currentChainId = netInfo && netInfo.id
+      
       this.tipTxt = 'In progress, waitting';
       const txHash = depositRes.hash;
       const transactionWaitRes = await depositRes.wait();
@@ -198,7 +202,7 @@ export default {
         block_num: transactionWaitRes.blockNumber,
         name: info.tokenInfo.symbol,
         operation: 'Deposit',
-        network_id: web3.utils.hexToNumber(window.ethereum.chainId)
+        network_id: web3.utils.hexToNumber(currentChainId)
       }
       this.addHistoryData = _.cloneDeep(submitData);
       await this.addHistory(submitData);
@@ -215,7 +219,7 @@ export default {
       })
     },
     async tokenDeposit(info) {
-      const connectAddress = window.ethereum.selectedAddress;
+      const connectAddress = getConnectedAddress();
       const bridge = initBrideByNetType('l1')['bridge'];
       const { symbol } = info.tokenInfo
       const tokenAddress = getTokenAddress(symbol)
@@ -245,7 +249,7 @@ export default {
       this.tipTxt = 'Confirm On The Wallet';
       this.show = true;
 
-      const connectAddress = window.ethereum.selectedAddress;
+      const connectAddress = getConnectedAddress();
       if (!utils.isAddress(connectAddress)) {
         Toast.fail(`Wrong Address`);
         return;

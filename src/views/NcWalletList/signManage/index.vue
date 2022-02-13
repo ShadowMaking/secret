@@ -2,16 +2,17 @@
   <div class="signManage-page">
     <v-navTitle title="Signer" :backIcon="true" :backEvent="backEvent"></v-navTitle >
     <div class="sign-manage-des">Non-custodial Wallet is the most reliable asset management method. It confirms each transaction by setting up one or more signers to make asset transactions more secure.</div>
-    <div class="signlist-wrapper" v-if="signList.length">
+    <div class="signlist-wrapper" >
       <el-table
         :data="signList"
-        border
         style="width: 100%"
-        empty-text="no data">
+        empty-text="no data"
+        :header-cell-style="{background:'#eff1f8'}" >
           <el-table-column
             fixed
             prop="createdAt"
-            label="Add Time">
+            label="Add Time"
+            :formatter="formatterTime">
           </el-table-column>
           <el-table-column
             prop="name"
@@ -44,7 +45,7 @@
             </template>
           </el-table-column>
           <el-table-column
-            label="Operate"
+            label="Operation"
             v-if="!isRecover">
               <template slot-scope="scope">
                 <el-button @click="deleteSigner(scope.row)" type="text" size="small">Delete</el-button>
@@ -75,14 +76,15 @@ import { Toast, Loading, Dialog } from 'vant'
 import navTitle from '@/components/NavTitle/index'
 import searchSignerModal from '@/components/SearchSignerModal/index'
 import LoadingPopup from '@/components/LoadingPopup';
-import {  isLogin, getContractAt, getConnectedAddress, getEncryptKeyByAddressFromStore } from '@/utils/dashBoardTools'
+import {  isLogin, getContractAt, getConnectedAddress, getEncryptKeyByAddressFromStore, addTransHistory } from '@/utils/dashBoardTools'
 import { getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { signerStatus, securityModuleRouter } from '@/utils/global';
-import { copyTxt } from '@/utils/index';
+import { copyTxt, formatErrorContarct } from '@/utils/index';
 import InputPswModal from '@/components/InputPswModal'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import _ from 'lodash'
+import { timeSericeFormat } from '@/utils/str';
 
 Vue.use(Toast);
 Vue.use(Loading);
@@ -111,6 +113,7 @@ export default {
 
       currentOptType:'', // deleteSigner||addSigner
       currentRecord: null,
+
       // ***************** inputPsw start ***************** //
       userPsw: '',
       publicKey: '',
@@ -131,6 +134,9 @@ export default {
   },
   
   methods: {
+    formatterTime(row) {
+      return timeSericeFormat(row.createdAt, 'yyyy-MM-dd hh:mm:ss')
+    },
     copyAddress(str) {
       if (copyTxt(str)) {
         Toast.success('Copied');
@@ -141,6 +147,11 @@ export default {
       this.$router.go(-1)
     },
     deleteSigner(row) {
+      let totalSigner = this.signList.length
+      if (totalSigner < 2) {
+        Toast('Please keep at least one signer')
+        return
+      }
       Dialog.confirm({
         message: 'Are you sure to delete this address?',
         confirmButtonText: 'Confirm',
@@ -158,12 +169,27 @@ export default {
       const row = this.currentRecord
       console.log(row)
       this.showLoading = true
-      let tx = await this.securityModuleContract.removeSigner(
-      this.walletAddress, row.address)
-      console.log(tx)
-      const txwait = await tx.wait()
-      console.log(txwait)
-      this.deleteSignerSubmit(row);
+
+      if (!this.securityModuleContract) {
+        this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      }
+      
+      this.securityModuleContract.removeSigner(
+        this.walletAddress, row.address).then(async tx=> {
+         this.deleteSignerSubmit(row, tx.hash);
+         addTransHistory(tx, 'Delete Signer', this)
+         
+         tx.wait().then(async res => {
+          console.log('Delete Signer:', res)
+          this.showLoading = false
+        })
+      }).catch(error => {
+        console.log(error)
+        this.showLoading = false
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
+      })
+      
     },
     async confirmDeleteSigner(row) {
       this.currentOptType = 'deleteSigner'
@@ -176,19 +202,18 @@ export default {
       }
       await this.dealDataDeleteSigner()
     },
-    async deleteSignerSubmit(row) {//todo
+    async deleteSignerSubmit(row, txHash) {
       let deleteData = {
         userId: this.userId,
         walletId: this.$route.params.id,
         signerAddress: row.address,
+        txid: txHash
       }
       const { hasError, list } = await this.$store.dispatch('deleteSigner', {...deleteData});
-      this.showLoading = false
       if (hasError) {
-        Toast.fail('Delete Failed')
+        this.submitFailed('Submit')
       } else {
-        Toast('Delete success')
-        this.getSignerListByid()
+        this.submitSuccess('Submit')
       }
     },
     async confirmSearchSigner(value) {
@@ -202,11 +227,24 @@ export default {
     async dealDataAddSigner() {
       const address = this.currentRecord
       this.showLoading = true
-      let tx = await this.securityModuleContract.addSigner(
-      this.walletAddress, address)
-      console.log(tx)
-      const txwait = await tx.wait()
-      this.addSignerSubmit(address);
+      if (!this.securityModuleContract) {
+        this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      }
+      this.securityModuleContract.addSigner(
+        this.walletAddress, address).then(async tx=> {
+         this.addSignerSubmit(address, tx.hash);
+         addTransHistory(tx, 'Add Signer', this)
+         
+         tx.wait().then(async res => {
+          console.log('Add Signer:', res)
+          this.showLoading = false
+        })
+      }).catch(error => {
+        this.showLoading = false
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
+        console.log(error)
+      })
     },
     async confirmAddSigner(address) {
       this.currentOptType = 'addSigner'
@@ -223,21 +261,30 @@ export default {
       }
       await this.dealDataAddSigner()
     }, 
-    async addSignerSubmit(address) {
+    async addSignerSubmit(address, txHash) {
       let addData = {
         userId: this.userId,
         walletId: this.$route.params.id,
         address: address.toLocaleLowerCase(),
-        name: 'signer'
+        name: 'signer',
+        txid: txHash
       }
+      console.log(addData)
       const { hasError, list } = await this.$store.dispatch('addSigner', {...addData});
-      this.showLoading = false
       if (hasError) {
-        Toast.fail('Create Failed')
+        this.submitFailed('Submit')
       } else {
-        Toast('Create success')
-        this.getSignerListByid()
+        this.submitSuccess('Submit')
       }
+    },
+    submitFailed(type) {
+      Toast.fail(`${type} Failed`)
+      this.showLoading = false
+    },
+    submitSuccess(type) {
+      this.showLoading = false
+      Toast(`${type} success`)
+      this.getSignerListByid()
     },
     async getSignerListByid() {
       let data = {
@@ -322,10 +369,6 @@ export default {
     this.getSignerListByid()
 
     this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-    if (this.securityModuleContract) {
-      const signerin = await this.securityModuleContract.getSigners(this.walletAddress)
-      console.log(signerin)
-    }
   },
 }
 </script>

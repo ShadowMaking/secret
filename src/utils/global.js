@@ -19,9 +19,9 @@ const etherscanAPIKeyToken = 'JKUUBYKV6BFS2J4BIV41IKF1QFZRN758TK';
 
 const SWAPADDRESS = '0x243B775Ec2dbDD7AC8982bDFa56c2d7316dD089d';
 
-const securityModuleRouter = '0xd7b8790EdB2de8A00906cc22086951601958E20B';
-const proxyRouter = '0xFe392b0150d1014df430D17EE3E09f500454bB0B';
-const walletTransactionRouter = '0x1587Cc57910A40058785cd5C198741dA74e808a2';
+const securityModuleRouter = '0x8Bc077bc51018A7c1fCc587B8B0245cC2d58Ce4D';
+const proxyRouter = '0x5323e93a4daf116dCDE437583c6806360CB9cfed';
+const walletTransactionRouter = '0xb191d9A4baA491A18e61A3B413c1658deA11fB2a';
 
 const signerStatus = {
 	'confirmed': 1,
@@ -32,6 +32,25 @@ const signerStatus = {
 	'agreeRecover': 6,
 	'ignoreRecover': 7,
 	'triggerRecover': 8,
+  'agreeSend': 9,
+  'ignoreSend': 10,
+}
+
+const walletStatus = {
+  'init': 0,
+  'Creating': 1,
+  'Active': 2,
+  'Recovering': 3,
+  'Fail': 4,
+  'Freezing': 5,
+  'Frozen': 6,
+  'Unlocking': 7,
+}
+
+const multOperation = {
+  'None': 0,
+  'Recovery': 1,
+  'LargeTransaction': 2,
 }
 
 export {
@@ -48,4 +67,6 @@ export {
   securityModuleRouter,
   proxyRouter,
   walletTransactionRouter,
+  walletStatus,
+  multOperation,
 }

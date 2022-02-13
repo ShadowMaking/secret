@@ -48,7 +48,7 @@ export default {
       showLoading: false,
       totalPage: 1,
       currentPage: 1,
-      pageSize: 10,
+      pageSize: 100,
       showNoMore: false,
       searchValue: '',
       isSearch: false,
@@ -68,6 +68,7 @@ export default {
     selectNC() {
       this.isNc = !(this.isNc)
       this.fromType = (this.isNc ? 1 : 0)
+      this.currentPage = 1
       this.searchAllTrasanctionList()
       this.transactionList = []
     },
@@ -78,13 +79,13 @@ export default {
       const selectedConnectAddress = getConnectedAddress()
 
       let searchParam = {
-        action: 'search_both_sides',//search_l2
+        action: 'search_both_sides',//search_l2  search_both_sides
         page: this.currentPage,
         page_size: this.pageSize,
         address: selectedConnectAddress,
         txid: this.searchValue,
         network_id: this.defaultNetWork,
-        from_type: this.fromType
+        from_type: this.fromType,
       }
       this.getTrasanctionList(searchParam)
     },
@@ -107,6 +108,8 @@ export default {
           return
         }
         this.currentPage += 1;
+        console.log(this.currentPage)
+        this.searchAllTrasanctionList();
         window.setTimeout(()=>{
           this.searchAllTrasanctionList();
         },800)
@@ -131,6 +134,12 @@ export default {
     },
     async handleAccountChange(addressInfo) {
       this.transactionList = []
+      this.currentPage = 1
+      this.searchAllTrasanctionList()
+    },
+    transactionStatusChange() {
+      this.transactionList = []
+      this.currentPage = 1
       this.searchAllTrasanctionList()
     },
   },
@@ -152,6 +161,7 @@ export default {
     }
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
     this.$eventBus.$on('networkChange', this.handleAccountChange)
+    this.$eventBus.$on('transactionStatusChange', this.transactionStatusChange)
   },
   beforeDestroy() {
     window.removeEventListener("scroll", this.onScroll, true);

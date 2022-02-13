@@ -5,4 +5,14 @@
 	  margin-bottom: 15px;
 	  font-size: 0.96rem;
 	}
+  .no-data-container {
+    color: #eee;
+    border: 1px solid #e6e7e9;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 200px;
+  }
 }

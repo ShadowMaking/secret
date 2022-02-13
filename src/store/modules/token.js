@@ -270,7 +270,6 @@ const token = {
         /* if (tokenAddress === '0xad6d458402f60fd3bd25163575031acdce07538d') {
         } */
         const myContract = new ethers.Contract(tokenAddress, abi, signer)
-        
         if(!myContract.balanceOf) {
           resolve({ hasError: true, data: 0, balanceFormatString: '0.0000' })
           return
@@ -349,7 +348,7 @@ const token = {
         gasprice,
       }
       return new Promise((resolve, reject) => {
-        ajaxGetRequestByEtherscan({ method: 'get', data })
+        ajaxGetRequestByEtherscan({ method: 'get', data, baseUrl: 'https://api.etherscan.io'})
         .then(res=>{
           resolve({ hasError: false, data: res.data })
         })
@@ -364,7 +363,7 @@ const token = {
         action: 'gasoracle',
       }
       return new Promise((resolve, reject) => {
-        ajaxGetRequestByEtherscan({ method: 'get', data })
+        ajaxGetRequestByEtherscan({ method: 'get', data, baseUrl: 'https://api.etherscan.io' })
         .then(async res=>{
           const list  = {}
           if (res.data) {

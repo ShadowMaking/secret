@@ -1,5 +1,6 @@
 import web3 from 'web3';
 const defaultNetWorkForMetamask = [1, 3, 4, 5, 42]
+const supportNetWorkForContract = [3]
 const CHAINMAP  = {
   [web3.utils.numberToHex(1)]: {
                                 id: 1,
@@ -43,20 +44,20 @@ const CHAINMAP  = {
                                 blockExplorerUrls: ["https://arbiscan.io"],
                                 icon: 'https://zapper.fi/images/networks/arbitrum-icon.png',
                               },
-  [web3.utils.numberToHex(44010)]: {
-                                id: 44010,
-                                name: 'SecretL1',
-                                rpcUrls: ['https://rpc.ieigen.com/eth/'],
-                                blockExplorerUrls: [],
-                                icon: require('@/assets/network/defaultNetwork.png'),
-                              },
-  [web3.utils.numberToHex(189250287905350)]: {
-                                id: 189250287905350,
-                                name: 'SecretL2',
-                                rpcUrls: ['https://rpc.ieigen.com/eig/'],
-                                blockExplorerUrls: ['https://explorer.ieigen.com/'],
-                                icon: require('@/assets/network/defaultNetwork.png'),
-                              },
+  // [web3.utils.numberToHex(44010)]: {
+  //                               id: 44010,
+  //                               name: 'SecretL1',
+  //                               rpcUrls: ['https://rpc.ieigen.com/eth/'],
+  //                               blockExplorerUrls: [],
+  //                               icon: require('@/assets/network/defaultNetwork.png'),
+  //                             },
+  // [web3.utils.numberToHex(189250287905350)]: {
+  //                               id: 189250287905350,
+  //                               name: 'SecretL2',
+  //                               rpcUrls: ['https://rpc.ieigen.com/eig/'],
+  //                               blockExplorerUrls: ['https://explorer.ieigen.com/'],
+  //                               icon: require('@/assets/network/defaultNetwork.png'),
+  //                             },
   // https://docs.metis.io/building-on-metis/connection-details                    
   [web3.utils.numberToHex(588)]: {
                                 id: 588,
@@ -71,8 +72,35 @@ const CHAINMAP  = {
                                 rpcUrls: ['https://andromeda.metis.io/?owner=1088'],
                                 blockExplorerUrls: ['https://andromeda-explorer.metis.io/'],
                                 icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
-                              },                
-  
+                              }, 
+  [web3.utils.numberToHex(137)]: {//Polygon mainnet https://docs.polygon.technology/docs/develop/network-details/network/
+                                id: 137,
+                                name: 'Polygon',
+                                rpcUrls: ['https://polygon-rpc.com/'],
+                                blockExplorerUrls: ['https://polygonscan.com/'],
+                                icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
+                              },   
+  [web3.utils.numberToHex(80001)]: {
+                                id: 80001,
+                                name: 'Mumbai',
+                                rpcUrls: ['https://matic-mumbai.chainstacklabs.com/'],
+                                blockExplorerUrls: ['https://mumbai.polygonscan.com/'],
+                                icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
+                              },                   
+  [web3.utils.numberToHex(56)]: {//bsc binance smartcontrat mainnet https://docs.binance.org/smart-chain/wallet/trezor.html#unlock-your-metamask
+                                id: 56,
+                                name: 'Binance Smart Chain',
+                                rpcUrls: ['https://bsc-dataseed.binance.org'],
+                                blockExplorerUrls: ['https://bscscan.com/'],
+                                icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
+                              },
+  [web3.utils.numberToHex(97)]: {
+                                id: 97,
+                                name: 'BSC Testnet',
+                                rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545/'],
+                                blockExplorerUrls: ['https://testnet.bscscan.com/'],
+                                icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
+                              },                            
 }
 const CHAINIDMAP  = {
   ETHEREUM: web3.utils.numberToHex(1),
@@ -82,11 +110,15 @@ const CHAINIDMAP  = {
   KOVAN: web3.utils.numberToHex(42),
 
   ARBITRUM: web3.utils.numberToHex(42161),
-  SECRETL1: web3.utils.numberToHex(44010),
-  SECRETL2: web3.utils.numberToHex(189250287905350),
+  // SECRETL1: web3.utils.numberToHex(44010),
+  // SECRETL2: web3.utils.numberToHex(189250287905350),
 
   STARDUST: web3.utils.numberToHex(588),
   ANDRROMEDA: web3.utils.numberToHex(1088),
+  POLYGON: web3.utils.numberToHex(137),
+  MUMBAI: web3.utils.numberToHex(80001),
+  BSC: web3.utils.numberToHex(56),
+  BSCTEST: web3.utils.numberToHex(97),
 }
 
 const NETWORKSFORTOKEN = Object.keys(CHAINMAP).map(chainId => {
@@ -99,4 +131,4 @@ const NETWORKSFORTOKEN = Object.keys(CHAINMAP).map(chainId => {
   return data
 })
 
-export { CHAINMAP, NETWORKSFORTOKEN, defaultNetWorkForMetamask, CHAINIDMAP }
+export { CHAINMAP, NETWORKSFORTOKEN, defaultNetWorkForMetamask, CHAINIDMAP, supportNetWorkForContract }

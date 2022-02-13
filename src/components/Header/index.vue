@@ -12,7 +12,7 @@
         <div v-show="showConnectWallet">
           <div v-if="address!==''" >
             <van-popover
-              key="accountSetpopover8"
+              key="accountSetpopover"
               close-on-click-outside
               :overlay="true"
               :get-container="getContainer"
@@ -42,12 +42,38 @@
             </van-popover>
           </div>
           <div slot="right" v-else >
-            <a @click="chooseWallet" class="linkWallet">
+            <!-- <a @click="chooseWallet" class="linkWallet">
               <span>Connect Wallet</span>
               <i class="link-icon"></i>
             </a>
             <i class="icon night" style="display:none"></i>
-            <i class="icon language" style="display:none"></i>
+            <i class="icon language" style="display:none"></i> -->
+            <van-popover
+              key="loginPopover"
+              close-on-click-outside
+              :overlay="true"
+              :get-container="getContainer"
+              v-model="showLoginPopover"
+              trigger="click"
+              placement="bottom-end">
+              <div class="login-popover">
+                <div class="van-hairline--bottom account-header">
+                  <span>Choose</span>
+                </div>
+                <div class="account-setting-wrapper van-hairline--top">
+                  <div class="opt-item van-hairline--bottom" @click="login('google')">
+                    <i class="login-icon logo-google"></i>
+                    <span>Continue with Google</span>
+                  </div>
+                </div>
+              </div>
+              <template #reference>
+                <a class="linkWallet">
+                  <span>Connect Wallet</span>
+                  <i class="link-icon"></i>
+                </a>
+              </template>
+            </van-popover>
           </div>
         </div>
         <van-popover
@@ -167,6 +193,8 @@ import { initTokenTime, updateLoginTime, removeTokens, tokenIsExpires, logout } 
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
+import { getConnectedAddress } from '@/utils/dashBoardTools';
+
 Vue.use(Popup);
 Vue.use(VanButton);
 Vue.use(Toast);
@@ -203,6 +231,8 @@ export default {
 
       copyAddressTxt: 'Copy Address',
       showAccountInfo: false,
+
+      showLoginPopover: false,
     }
   },
   components: {
@@ -316,7 +346,7 @@ export default {
           })
         }
         const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
-        const selectedAccountAddress = window.ethereum.selectedAddress;
+        const selectedAccountAddress = getConnectedAddress();
         await this.$store.dispatch("WalletAccountsAddress", {accounts})
         console.log('currentSelectedAccountAddress', selectedAccountAddress)
 
@@ -364,7 +394,7 @@ export default {
       this.walletIsLock = true;
       this.showAccountSetPopover = false
       logout();
-      this.$router.push({ name: 'tlogin' })
+      this.$router.push({ name: 'overview' })
     },
     handleAccountsChanged(data) {
       this.address = data.accounts.length&&data.accounts[0] || ''
@@ -471,6 +501,24 @@ export default {
       }
       return { hasError: false, privateKey}
     },
+    async login(type) {
+      if (type === 'google') {
+        Toast.loading({
+          duration: 0,
+          message: 'loading...',
+          forbidClick: true,
+          loadingType: 'spinner',
+        });
+        const loginRes = await this.$store.dispatch('GoogleLogin');
+        Toast.clear()
+        const { hasError, url } = loginRes;
+        if (hasError) {
+          this.showError = true
+          return
+        }
+        window.location.href = url
+      }
+    }
   },
   async mounted() {
     /* this.$nextTick(() => { })

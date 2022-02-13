@@ -15,10 +15,10 @@
     text-align: center;
   }
   .tip{
-    font-size: 1rem;
+    font-size: 0.96rem;
+	  line-height: 30px;
     color: #9E9E9E;
     display: block;
-    line-height: 23px;
     margin-bottom: 20px;
     word-break: break-word;
   }
@@ -29,8 +29,8 @@
         display: flex;
         align-items: center;
         background: #EFF1F8;
-        padding: 10px 0;
-        border-bottom: 1px solid #ccc;
+        padding: 20px 0;
+        color: #5d5f65;
         li { padding: 0 10px;}
         .ID { width: 15%;}
         .name { width: 30%;}
@@ -41,8 +41,11 @@
       .list-item {
         display: flex;
         align-items: center;
-        padding: 10px 0;
-        border-bottom: 1px solid #ccc;
+        padding: 20px 0;
+        font-size: .9rem;
+        border-bottom: 1px solid #eaeaf4;
+        position: relative;
+        color: #000000;
         .ID { width: 15%; padding: 0 10px; }
         .name { width: 30%; padding: 0 10px; }
         .desc { width: 30%; padding: 0 10px; }
@@ -134,7 +137,8 @@
   }
   .no-friends {
     color: #eee;
-    border: 1px solid #eee;
+    border: 1px solid #e6e7e9;
+    border-radius: 10px;
     display: flex;
     justify-content: center;
     align-items: center;

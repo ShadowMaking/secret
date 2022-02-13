@@ -4,7 +4,7 @@
     <div class="create-wallet-container content-page">
       <p class="create-title">Multisig Wallet</p>
       <p class="create-des">Create one right now!   Add at least one signer,  who can help you to recover your wallet, co-send large amount money, and lock the wallet when you need.</p>
-      <p class="create-des" style="margin-top: 15px;">Quickly create a Multisig Wallet:</p>
+      <p class="create-des" style="margin-top: 15px; color: #2C3E50">Quickly create a Multisig Wallet:</p>
       <div class="create-wallet-form">
         <el-form label-position="left">
           <el-form-item label="Set Wallet Name" label-width="135px">
@@ -61,7 +61,7 @@ import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
-import { getContractAt, getConnectedAddress, getEns, isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore } from '@/utils/dashBoardTools';
+import { getContractAt, getConnectedAddress, getEns, isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getBalanceByAddress, getSupportNet } from '@/utils/dashBoardTools';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import ProxyJson from "@/assets/contractJSON/Proxy.json";
@@ -73,6 +73,7 @@ import { securityModuleRouter, proxyRouter, walletTransactionRouter } from '@/ut
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import web3 from 'web3'
+import { formatErrorContarct } from '@/utils/index'
 
 Vue.use(Toast);
 Vue.use(Dialog);
@@ -93,7 +94,7 @@ export default {
 
       showStatusPop: false,
       popStatus: "success",
-      statusPopTitle: 'Created Successfully!',
+      statusPopTitle: 'Submited Successfully!',
       timeTxt: '',
       userId: getFromStorage('gUID'),
 
@@ -106,7 +107,7 @@ export default {
 
       overrides: {
         gasLimit: 8000000,
-        gasPrice: 5000000000,
+        gasPrice: 20000000000,//wei
       },
       currentChainInfo: null,
       sendMetadata: null,
@@ -175,15 +176,22 @@ export default {
       this.showTradeConfirm = false
       Toast('Cancel create')
     },
-    confirmCreate() {
+    confirmCreate({ overrides }) {
+      this.overrides.gasLimit = overrides.gasLimit
+      this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
       this.createNcWallet()
     },
     async dealDataBeforeCreate() {
+      if (!getSupportNet()) {
+        return
+      }
+      let thisGasPrice = this.overrides.gasPrice.toString()
+      let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
       this.sendMetadata = {
         from: getConnectedAddress(),
         to: this.securityModuleRouter,
         gas: this.overrides.gasLimit,
-        gasPrice: this.overrides.gasPrice,
+        gasPrice: gasPrice,
         value: 0,
         symbolName: 'ETH',
         netInfo: this.currentChainInfo,
@@ -203,12 +211,19 @@ export default {
       await this.dealDataBeforeCreate()
     },
     async createNcWallet() {
+      const selectedConnectAddress = getConnectedAddress()
+      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      if (connectBalance == 0) {
+        Toast('Not Enough ETH')
+        return
+      }
       // if (!this.checkData()) { return }
       this.showLoading = true; 
 
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       const proxyContract = await getContractAt({ tokenAddress: this.proxyRouter, abi: ProxyJson.abi }, this)
       const transactionContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: WalletTransaction.abi }, this)
+      console.log(transactionContract)
       const saletnew = ethers.utils.randomBytes(32);
       
       let createSignList = this.createSignerSubmit
@@ -216,36 +231,57 @@ export default {
       
       // let user1 = ethers.Wallet.createRandom().connect(providertest)
       // let user2 = ethers.Wallet.createRandom().connect(providertest)
-      
       let walletAddress = await proxyContract.getAddress(saletnew);
-      console.log('walletAddress:' + walletAddress)
       
-      const tx = await proxyContract.create(saletnew,this.overrides);
-      console.log(tx)
-      const tswait = await tx.wait()
-      console.log(tswait)
-      
-      const walletContract = await getContractAt({ tokenAddress: walletAddress, abi: WalletJson.abi }, this)
+      proxyContract.create(saletnew,this.overrides).then(async tx=> {
+          console.log(tx)
+          tx.wait().then(async res => {
+            console.log(res)
+            const walletContract = await getContractAt({ tokenAddress: walletAddress, abi: WalletJson.abi }, this)
     
-      let modules = [ transactionContract.address, securityModuleContract.address ]
-      let encoder = ethers.utils.defaultAbiCoder
-      let du = ethers.utils.parseEther("15")//one day
-      let lap = ethers.utils.parseEther("10")//one 
-      let data = [encoder.encode(["uint", "uint"], [du, lap]), encoder.encode(["address[]"], [createSignList])]
-      let initTx = await walletContract.initialize(modules, data, this.overrides);
-      console.log(initTx)
-      const initTxwait = await initTx.wait()
-      console.log(initTxwait)
-      this.createWallet(walletAddress)
+            let modules = [ transactionContract.address, securityModuleContract.address ]
+            let encoder = ethers.utils.defaultAbiCoder
+            let du = ethers.utils.parseEther("15")//one day
+            let lap = ethers.utils.parseEther("10")//one 
+            let data = [encoder.encode(["uint", "uint"], [du, lap]), encoder.encode(["address[]"], [createSignList])]
+            
+            walletContract.initialize(
+              modules, 
+              data, 
+              this.overrides
+            ).then(async tx=> {
+                console.log('walletContract:' + tx)
+                this.createWallet(walletAddress, tx.hash)
+                addTransHistory(tx, 'Create Wallet', this)
+                tx.wait().then(async res => {
+                  console.log('Create:', res)
+                })
+            }).catch(error => {
+              console.log(error)
+              this.showLoading = false
+              let errorValue = formatErrorContarct(error)
+              Toast.fail(errorValue)
+            })
+          })
+      }).catch(error => {
+        console.log(error)
+        this.showLoading = false
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
+        return
+      })
+      
     },
-    async createWallet(walletAddress) {
+    async createWallet(walletAddress, txhash) {
       const selectedConnectAddress = getConnectedAddress()
+      console.log(txhash)
       let data = {
         name: this.createWalletName,
         address: selectedConnectAddress,
         walletAddress: walletAddress.toLocaleLowerCase(),//0xe744919008dd978dfAF9771E5623fDfbEd4C29D3
         signers: this.createSignerSubmit,
         userId: this.userId,
+        txid: txhash
       }
       // let data = {
       //   name: 'wallet271',
@@ -324,6 +360,10 @@ export default {
       this.showInputPswModal = false
       await this.dealDataBeforeCreate()
     },
+    _handleNetworkChange({ chainInfo, from }) {
+      if (from === 'sendMenu') { return }
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(chainInfo.id)]
+    },
   },
   async created() {
     this.defaultNetWork = this.getDefaultNetWork()
@@ -338,6 +378,9 @@ export default {
     } else {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
+  },
+  async mounted() {
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
   },
 };
 </script>

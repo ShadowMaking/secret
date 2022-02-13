@@ -15,6 +15,20 @@
     font-size: 0.9rem;
     border-bottom: 1px solid #EAEAF4;
     position: relative;
+    .mult-span {
+      background: #4375f1;
+      color: #fff;
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      padding: 2px;
+      border-radius: 5px;
+      font-size: 0.72rem;
+    }
+    .trans-detail-btn {
+      color: #4375f1;
+      font-size: 0.84rem;
+    }
     .transaction-list-item {
       padding: 0 15px;
       display: flex;
@@ -115,6 +129,13 @@
     }
   }
   .status-pending{
+    color: #F8B824;
+    i{
+      background: url('~@/assets/icon_submitted.png') center center;
+      background-size: 100% 100%;
+    }
+  }
+  .status-confirming{
     color: #F8B824;
     i{
       background: url('~@/assets/icon_submitted.png') center center;

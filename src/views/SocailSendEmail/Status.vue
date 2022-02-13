@@ -44,7 +44,7 @@ export default {
   },
   methods: {
     confirm() {
-      this.$router.push({ name: 'home' })
+      this.$router.push({ name: 'overview' })
     },
   },
   mounted() {

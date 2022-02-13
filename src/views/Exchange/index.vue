@@ -135,7 +135,7 @@ import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import {
   generateTokenList, getDefaultETHAssets, getConnectedAddress,
   getContractWallet, isLogin, getDATACode, getContractAt, 
-  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, } from '@/utils/dashBoardTools';
+  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory} from '@/utils/dashBoardTools';
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
@@ -147,7 +147,7 @@ import LoadingPopup from '@/components/LoadingPopup';
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import IUniswapV2Router02 from "./JSON/IUniswapV2Router02.json";
 import { IUniswapV3Router, approveV3Router } from '@/utils/v3swap.js'
-import { promiseValue } from '@/utils/index'
+import { promiseValue, formatErrorContarct } from '@/utils/index'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
 
@@ -243,7 +243,10 @@ export default {
     },
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
-      this.$router.push({ name: 'overview' })
+      this.$router.push({
+        path: `/overview`,
+        query: {tabActive: 1},
+      })
     },
     gasPriceValue(type) {
       return this.gasPriceInfo && this.gasPriceInfo[type].gasPrice;
@@ -401,24 +404,26 @@ export default {
       )
       .then(async tx=>{
         console.log('WETH2Token tx:', tx)
+        await this.exchangeSuccess(tx, data)
         tx.wait()
         .then(async res=>{
           console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", res);
           console.log('success')
-          await this.exchangeSuccess(res, data)
           this.showLoading = false
-          Toast(`Exchange Suucess`)
+          // Toast(`Exchange success`)
         })
         .catch(error => {
           this.showLoading = false
-          Toast(`Exchange Failed`)
+          // Toast(`Exchange Failed`)
           console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", error);
           console.log('error')
         })
       })
       .catch(error=>{
         this.showLoading = false
-        Toast(`Exchange Failed`)
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
+        console.log(error)
       })
     },
     // Token exchange for WETH
@@ -453,24 +458,26 @@ export default {
       )
       .then(async tx=>{
         console.log('Token2WETH tx:', tx)
+        await this.exchangeSuccess(tx, data)
         tx.wait()
         .then(async res=>{
           console.log("swapExactTokensForETHSupportingFeeOnTransferTokens: ", res);
           console.log('success')
-          await this.exchangeSuccess(res, data)
           this.showLoading = false
-          Toast(`Exchange Success`)
+          // Toast(`Exchange Success`)
         })
         .catch(error => {
           this.showLoading = false
-          Toast(`Exchange Failed`)
+          // Toast(`Exchange Failed`)
           console.log("swapExactTokensForETHSupportingFeeOnTransferTokens: ", error);
           console.log('error')
         })
       })
       .catch(error=>{
         this.showLoading = false
-        Toast(`Exchange Failed`)
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
+        console.log(error)
       })
     },
     async exchangeSuccess(res, data) {
@@ -478,12 +485,12 @@ export default {
       const currentChainId = this.currentChainInfo && this.currentChainInfo['id']
       // this.tipTxt = 'In progress, waitting';
       const submitData = {
-        txid: res.transactionHash,
-        block_num: res.blockNumber,
+        txid: res.hash,
+        // block_num: res.blockNumber,
         from: selectedConnectAddress,
         to: selectedConnectAddress,
         type: TRANSACTION_TYPE['L2ToL2'],
-        status: 1,
+        status: 0,
         value: data.amountin,
         name: this.exchangeFromToken['tokenName'],
         operation: 'Swap',  // send、transfer、approve、swap ……
@@ -506,6 +513,7 @@ export default {
         this.showStatusPop = true;
         this.statusPopTitle = 'Exchange Submitted'
         this.popStatus = 'success';
+        this.$eventBus.$emit('addTransactionHistory')
       }
       return { hasError: res.hasError };
     },
@@ -560,23 +568,26 @@ export default {
         )
         .then(async tx=>{
           console.log('Token2Token tx:', tx)
+          await this.exchangeSuccess(tx, data)
           tx.wait()
           .then(async res=>{
             console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", res);
             console.log('success')
-            await this.exchangeSuccess(res, data)
+            
             this.showLoading = false
-            Toast(`Exchange Suucess`)
+            // Toast(`Exchange Suucess`)
           })
           .catch(error => {
             this.showLoading = false
-            Toast(`Exchange Failed`)
+            // Toast(`Exchange Failed`)
             console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", error);
             console.log('error')
           })
         })
         .catch(error=>{
           this.showLoading = false
+          let errorValue = formatErrorContarct(error)
+          Toast.fail(errorValue)
           console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", error);
         })
       } else {
@@ -596,23 +607,25 @@ export default {
           }
         )
         .then(async tx=>{
+          await this.exchangeSuccess(tx, data)
           tx.wait()
           .then(async res=>{
             console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", res);
             console.log('success')
-            await this.exchangeSuccess(res, data)
             this.showLoading = false
-            Toast(`Exchange Suucess`)
+            // Toast(`Exchange Suucess`)
           })
           .catch(error => {
             this.showLoading = false
-            Toast(`Exchange Failed`)
+            // Toast(`Exchange Failed`)
             console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", error);
             console.log('error')
           })
         })
         .catch(error=>{
           this.showLoading = false
+          let errorValue = formatErrorContarct(error)
+          Toast.fail(errorValue)
           console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", error);
         })
         
@@ -922,11 +935,18 @@ export default {
       IUniswapV3Router(type, data, this.currentChainInfo, this, contractWallet).then(async res => {
         if (res) {
           console.log("swapv3success: ", res);
-          await this.exchangeSuccess(res, data)
+          await this.exchangeSuccess(res, data)//TODO
           this.showLoading = false
+
+          tx.wait().then(async res=>{
+            console.log(res)
+          })
+          .catch(error => {
+            console.log(error)
+          })
         } else {
           this.showLoading = false
-          Toast(`Exchange Failed`)
+          Toast(`Exchange Submitted Failed`)
           console.log("swapv3error: ");
         }
       })
@@ -1090,10 +1110,8 @@ export default {
       console.log('approveData', logData)
       TokenContract.approve(this.routerAddress, approveTokenAmount, overrides)
       .then(async res=>{
-        console.log(`Approve Token-${token.tokenName} tx: `, res);
-        res.wait()
-        .then(async txRes => { // approve success
-          console.log(`Approve Token-${token.tokenName} res: `, txRes);
+          console.log(`Approve Token-${token.tokenName} tx: `, res);
+          addTransHistory(res, 'Approve', this, 'Infinite')
           const { allowanceTokenData } = await this.getUserAllowanceForToken(true)
           const saveTokenData = {
             ...allowanceTokenData,
@@ -1101,23 +1119,30 @@ export default {
             allowance: "Infinite"
           }
           const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
+          this.showLoading = false
           if (!hasError) {
+            Toast(`Submitted ${token.tokenName} Success`)
             console.log(`SaveUserAllowanceForToken ${token.tokenName} Suucess`)
           } else {
+            Toast(`Approve ${token.tokenName} Failed`)
             console.log('SaveUserAllowanceForToken Error', error)
           }
-          this.showLoading = false
-          Toast(`Approve ${token.tokenName} Success`)
+          
+          
+        res.wait()
+        .then(async txRes => { // approve success
+          console.log(`Approve Token-${token.tokenName} res: `, txRes);
         })
         .catch(error=>{
           this.showLoading = false
-          Toast(`Approve ${token.tokenName} Failed`)
+          // Toast(`Approve ${token.tokenName} Failed`)
           console.log(`Approve Token-${token.tokenName} error: `, err);
         })
       })
       .catch(err => {
         this.showLoading = false
-        Toast(`Approve ${token.tokenName} Failed`)
+        let errorValue = formatErrorContarct(err)
+        Toast.fail(errorValue)
         console.log(`Approve Token-${token.tokenName} error: `, err);
       })
 
@@ -1126,7 +1151,8 @@ export default {
       approveV3Router(this.exchangeFromToken, this).then(async res => {
         console.log(res)
         if (res) {
-          Toast('Approve success')
+          
+          addTransHistory(res, 'Approve', this, 'Infinite')
           const { allowanceTokenData } = await this.getUserAllowanceForToken(true)
           const saveTokenData = {
             ...allowanceTokenData,
@@ -1134,11 +1160,22 @@ export default {
           }
           saveTokenData.swap_address = this.v3routerAddress
           const { hasError, data, error } = await this.$store.dispatch('SaveUserAllowanceForToken', {...saveTokenData})
+          this.showLoading = false
           if (!hasError) {
+            Toast('Submitted success')
             console.log(`SaveUserAllowanceForToken  Success`)
           } else {
+            Toast('Approve Failed')
             console.log('SaveUserAllowanceForToken Error', error)
           }
+
+
+          res.wait().then(async txRes => {
+            console.log(txRes)
+          }).catch(error => {
+            console.log(error)
+          })
+          
         } else {
           Toast('Approve Failed')
         }

@@ -290,7 +290,7 @@ a{
 }
 .content-box {
   max-width: 512px;
-  margin: 0 auto;
+  /* margin: 0 auto; */
   .content-page {
     border: 1px solid #e6e7e9; 
     border-radius: 10px;
@@ -307,7 +307,8 @@ a{
   text-align: center;
   line-height: 44px;
   color: #fff;
-  background-color: #4375f1;
+  // background-color: #4375f1;
+  background-color: #495ABE;
   border-radius: 10px;
   display: inline-block;
 }
