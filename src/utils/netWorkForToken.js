@@ -87,7 +87,20 @@ const CHAINMAP  = {
                                 blockExplorerUrls: ['https://mumbai.polygonscan.com/'],
                                 icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
                               },                   
-  
+  [web3.utils.numberToHex(56)]: {//bsc binance smartcontrat mainnet https://docs.binance.org/smart-chain/wallet/trezor.html#unlock-your-metamask
+                                id: 56,
+                                name: 'Binance Smart Chain',
+                                rpcUrls: ['https://bsc-dataseed.binance.org'],
+                                blockExplorerUrls: ['https://bscscan.com/'],
+                                icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
+                              },
+  [web3.utils.numberToHex(97)]: {
+                                id: 97,
+                                name: 'BSC Testnet',
+                                rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545/'],
+                                blockExplorerUrls: ['https://testnet.bscscan.com/'],
+                                icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
+                              },                            
 }
 const CHAINIDMAP  = {
   ETHEREUM: web3.utils.numberToHex(1),
@@ -104,6 +117,8 @@ const CHAINIDMAP  = {
   ANDRROMEDA: web3.utils.numberToHex(1088),
   POLYGON: web3.utils.numberToHex(137),
   MUMBAI: web3.utils.numberToHex(80001),
+  BSC: web3.utils.numberToHex(56),
+  BSCTEST: web3.utils.numberToHex(97),
 }
 
 const NETWORKSFORTOKEN = Object.keys(CHAINMAP).map(chainId => {

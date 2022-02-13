@@ -270,7 +270,6 @@ const token = {
         /* if (tokenAddress === '0xad6d458402f60fd3bd25163575031acdce07538d') {
         } */
         const myContract = new ethers.Contract(tokenAddress, abi, signer)
-        
         if(!myContract.balanceOf) {
           resolve({ hasError: true, data: 0, balanceFormatString: '0.0000' })
           return

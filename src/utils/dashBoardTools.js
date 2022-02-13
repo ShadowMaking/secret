@@ -8,7 +8,7 @@ import { TRANSACTION_TYPE } from '@/api/transaction';
 
 import Vue from 'vue';
 import { Toast } from 'vant';
-Vue.use(Toast);
+
 /**
  * @description: 
  * @param {*} list
