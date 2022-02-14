@@ -1,6 +1,6 @@
 import web3 from 'web3';
 const defaultNetWorkForMetamask = [1, 3, 4, 5, 42]
-const supportNetWorkForContract = [3]
+const supportNetWorkForContract = [3, 588, 80001]
 const CHAINMAP  = {
   [web3.utils.numberToHex(1)]: {
                                 id: 1,
