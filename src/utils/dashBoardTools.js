@@ -327,7 +327,7 @@ export const getSupportNet = () => {
   if (supportNetWorkForContract.indexOf(currentChainInfo.id) > -1) {
     return true
   } else {
-    Toast(`Ropsten,Stardust,Mumbai presently, the ${currentChainInfo.name} will be available soon`)
+    Toast(`Ropsten,Stardust,Mumbai,BSC Testnet presently, the ${currentChainInfo.name} will be available soon`)
     return false
   }
 }
