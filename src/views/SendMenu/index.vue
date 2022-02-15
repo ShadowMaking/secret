@@ -102,7 +102,7 @@ import { getInfoFromStorageByKey, getFromStorage } from '@/utils/storage';
 import {
   generateTokenList, getDefaultETHAssets, getConnectedAddress,
   getContractWallet, isLogin, getDATACode, getContractAt, 
-  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, } from '@/utils/dashBoardTools';
+  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas } from '@/utils/dashBoardTools';
 import WalletTransaction from "@/assets/contractJSON/TransactionModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
@@ -321,6 +321,9 @@ export default {
       let gasPrice = '20' // 20 Gwei
       if (this.selectedGasType) {
         gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.selectedGasType].gasPrice
+      } else {
+        let gasPriceWei = await getEstimateGas('gasPrice')
+        gasPrice = web3.utils.fromWei(gasPriceWei.toString(), 'gwei')
       }
 
       const tokenName = this.selectedToken.tokenName

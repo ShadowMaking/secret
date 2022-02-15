@@ -135,7 +135,7 @@ import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import {
   generateTokenList, getDefaultETHAssets, getConnectedAddress,
   getContractWallet, isLogin, getDATACode, getContractAt, 
-  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory} from '@/utils/dashBoardTools';
+  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory, getEstimateGas} from '@/utils/dashBoardTools';
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
 import { BigNumber } from "bignumber.js";
@@ -632,10 +632,13 @@ export default {
       }
     },
     // *********************************************************** uniswap2 test ropsten *********************************************************** /
-    getSubmitData() {
+    async getSubmitData() {
       let gasPrice = '20' // 20 Gwei
       if (this.gasPriceType !== '~~') {
         gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.gasPriceType].gasPrice
+      } else {
+        let gasPriceWei = await getEstimateGas('gasPrice')
+        gasPrice = web3.utils.fromWei(gasPriceWei.toString(), 'gwei')
       }
       // gasPrice = web3.utils.toWei(gasPrice, 'gwei')
       const data = {
@@ -684,7 +687,7 @@ export default {
     },
     async dealDataBeforeApprove() {
       const token = this.exchangeFromToken
-      const submitData = this.getSubmitData()
+      const submitData = await this.getSubmitData()
       console.log('submitData', submitData)
 
       const selectedConnectAddress = getConnectedAddress()
@@ -772,7 +775,7 @@ export default {
         return { datacode, tempgasfixlimit }
       }
       const abi = IUniswapV2Router02.abi;
-      const data = this.getSubmitData()
+      const data = await this.getSubmitData()
       const overrides = { ...data.gasInfo }
       const gasPrice = overrides['gasPrice']
       overrides['gasPrice'] = web3.utils.toWei(gasPrice, 'gwei')
@@ -857,7 +860,7 @@ export default {
     },
     async dealDataBeforeExchange() {
       const token = this.exchangeFromToken
-      const data = this.getSubmitData()
+      const data = await this.getSubmitData()
 
       this.showLoading = true
       
@@ -917,7 +920,7 @@ export default {
         return
       }
 
-      const data = this.getSubmitData()
+      const data = await this.getSubmitData()
       if (!this.checkData(data)) { this.showLoading = false; return }
 
       this.currentOptType = 'exchangeSubmit'

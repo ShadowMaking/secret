@@ -209,6 +209,12 @@ export default {
       this.showTradeConfirm = true
     },
     async createSubmit() {
+      const selectedConnectAddress = getConnectedAddress()
+      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      if (connectBalance < 0) {
+        Toast('Not Enough ETH')
+        return
+      }
       if (!this.checkData()) { return }
       // check privateKey whether is existed
       const privateKey = await getDecryptPrivateKeyFromStore(this)
@@ -225,7 +231,8 @@ export default {
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       const proxyContract = await getContractAt({ tokenAddress: this.proxyRouter, abi: ProxyJson.abi }, this)
       const transactionContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: WalletTransaction.abi }, this)
-      console.log(transactionContract)
+      console.log(proxyContract)
+      console.log(proxyRouter)
       const saletnew = ethers.utils.randomBytes(32);
       
       let createSignList = this.createSignerSubmit

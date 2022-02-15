@@ -155,7 +155,7 @@ import { ethers } from 'ethers'
 import { Toast, Loading, Popup, Dialog } from 'vant'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
-import { getContractAt, getConnectedAddress, getContractWallet, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory } from '@/utils/dashBoardTools'
+import { getContractAt, getConnectedAddress, getContractWallet, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory, getEstimateGas, getBalanceByAddress } from '@/utils/dashBoardTools'
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { signerStatus, securityModuleRouter, walletStatus, multOperation } from '@/utils/global';
 import StatusPop from '@/components/StatusPop';
@@ -504,9 +504,16 @@ export default {
       let replaceOwnerData = iface.encodeFunctionData("triggerRecovery", [currentWalletAddress, newOwnAddress])
       return replaceOwnerData
     },
-    showRecocerModal() {
+    async showRecocerModal() {
       let thisGasPrice = this.overrides.gasPrice.toString()
       let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
+      let estimatedGasFee = await getEstimateGas('gasUsed', 5000000000)
+      const selectedConnectAddress = getConnectedAddress()
+      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      if (connectBalance < estimatedGasFee) {
+        Toast('Not Enough ETH')
+        return
+      }
       this.sendMetadata = {
         from: getConnectedAddress(),
         to: this.securityModuleRouter,
@@ -516,7 +523,7 @@ export default {
         symbolName: 'ETH',
         netInfo: this.currentChainInfo,
         DATA: '',
-        estimatedGasFee: '0' // todo
+        estimatedGasFee: estimatedGasFee
       }
       this.showTradeConfirm = true
     },
@@ -646,6 +653,7 @@ export default {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
     this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+    this.overrides.gasPrice = await getEstimateGas('gasPrice', 5000000000)
   },
   async mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)
