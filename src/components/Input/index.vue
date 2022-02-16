@@ -23,15 +23,26 @@
 <script>
 import Vue from 'vue';
 import { Field } from 'vant';
+import { getInfoFromStorageByKey } from '@/utils/storage';
 
 Vue.use(Field);
 
 export default {
   name: 'Input',
-  props: ['label', 'leftIcon', 'rightIcon', 'placeholder', 'value', 'limitInput'],
+  props: ['label', 'leftIcon', 'rightIcon', 'placeholder', 'value', 'limitInput', 'isSearch'],
+  data() {
+    return {
+      searchUserList: [],
+    }
+  },
   methods: {
     inputChange(e) {
       const value = e.target.value
+      if (this.isSearch && value.indexOf("@gmail.com") > -1) {
+        this.searchUserByEmail(value)
+      } else {
+        this.searchUserList = []
+      }
       this.$emit('inputChange',{ value });
     },
     hanldeValue(e) {
@@ -41,6 +52,15 @@ export default {
         this.value = value
         this.$emit('inputChange',{ value });
       }
+    },
+    async searchUserByEmail(value) {
+      var searchData = {
+        userId: getInfoFromStorageByKey('gUID'),
+        value: value
+      }
+      const { hasError, list } = await this.$store.dispatch('searchSigner', searchData);
+      this.searchUserList = list
+      console.log(this.searchUserList)
     },
   },
 };
