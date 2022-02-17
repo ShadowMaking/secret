@@ -692,6 +692,7 @@ export default {
 
       const selectedConnectAddress = getConnectedAddress()
       const gasPrice = submitData.gasInfo['gasPrice']
+      let estimatedGasFee = await getEstimateGas('gasUsed')
       this.approveMetadata = {
         userAddress: selectedConnectAddress,
         tokenName: token.tokenName,
@@ -699,6 +700,7 @@ export default {
         gas: 21000,
         gasPrice,
         netInfo: this.currentChainInfo,
+        estimatedGasFee: estimatedGasFee,
       }
       
       submitData.gasInfo['gasPrice'] = web3.utils.toWei(gasPrice, 'gwei')

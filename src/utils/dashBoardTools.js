@@ -348,3 +348,18 @@ export const getEstimateGas = async (type, addPrice) => {//type-gasPrice, gasUse
     return currentGasUsed
   }
 }
+
+export const getIsCanTransaction = async (transactionValue, transactionAddPrice) => {//type-gasPrice, gasUsed
+  if (!getSupportNet()) {
+    return false
+  }
+  const selectedConnectAddress = getConnectedAddress()
+  const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+  let estimatedGasFee = await getEstimateGas('gasUsed', transactionAddPrice)
+  let needTotal = transactionValue + estimatedGasFee
+  if (connectBalance < needTotal) {
+    Toast('Not Enough ETH')
+    return false
+  }
+  return true
+}

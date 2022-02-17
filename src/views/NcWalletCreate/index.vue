@@ -162,7 +162,8 @@ export default {
       }
       var nowDate = new Date()
       var nowTime = timeFormat(nowDate, 'yyyy-MM-dd hh:mm:ss')
-      const signAddress = await getEns(value)
+      // const signAddress = await getEns(value)
+      const signAddress = value
       console.log(this.createSignerList)
       this.createSignerList.push({
         signAddress: signAddress,
