@@ -2,8 +2,8 @@
   <div class="first-wallet-page content-box">
     <v-navTitle title="Create Account"></v-navTitle >
     <div class="create-wallet-type">
-      <van-tabs @click="oncheckCreateType" v-model="activeCreateWalletType" animated color="#4375f1">
-        <van-tab name="create" title="Create" class="inner-type-wrapper" title-style="font-weight: bold">
+      <!-- <van-tabs @click="oncheckCreateType" v-model="activeCreateWalletType" animated color="#4375f1"> -->
+        <div class="inner-type-wrapper">
           <h4>For your eyes only</h4>
           <span class="tip">Your secret recovery phrase or private key can help you backup and recover the secret. Don’t expose your private key or secret recovery phase in the public network.</span>
           <!-- backup-setting -->
@@ -39,36 +39,8 @@
               :settingData="settingDataForCreate"
               @createComplete="hanldeCreateComplete"/>
           </div>
-        </van-tab>
-        <van-tab name="import" title="Import" class="inner-type-wrapper" title-style="font-weight: bold">
-          <span class="tip">Add an existing account by secret recovery phrase or private key.</span>
-          <!-- backup-setting -->
-          <div class="backup-setting-wrapper">
-            <van-cell-group>
-              <van-field v-model="importType" label="Type" readonly class="createType-select" :disabled="importTypeDisabled" @click="showSelectType('import')"/>
-              <van-field v-model="backupNameForImport" :formatter="formatterTrim" label="Name" placeholder="name(Only alphanumeric)" :disabled="importTypeDisabled" :error-message="nameErrorMsg" />
-              <van-field
-                v-model="backupCommentForImport"
-                rows="1"
-                :disabled="importTypeDisabled"
-                autosize
-                label="Descridption"
-                type="textarea"
-                maxlength="150"
-                show-word-limit
-                placeholder="enter description" />
-            </van-cell-group>
-          </div>
-          <!-- import mnemonic -->
-          <div class="type-create" v-if="importType==='mnemonic'">
-            <v-mnemonicType type="import" @notLogin="handleNotLogin" :settingData="settingDataForImport" @createComplete="hanldeCreateComplete" />
-          </div>
-          <!-- import privateKey -->
-          <div class="type-privatekey" v-if="importType==='privateKey'">
-            <v-privatekeyType type="import" @notLogin="handleNotLogin" :settingData="settingDataForImport" @createComplete="hanldeCreateComplete" />
-          </div>
-        </van-tab>
-      </van-tabs>
+        </div>
+      <!-- </van-tabs> -->
     </div>
     <van-popup v-model="showCreateTypePopup" round position="bottom">
       <van-picker
@@ -87,7 +59,7 @@
 <script>
 import Vue from 'vue';
 import _ from 'lodash'
-import { Field, Popup, Tab, Tabs, Toast, CellGroup } from 'vant';
+import { Field, Popup, Toast, CellGroup} from 'vant';
 import { saveToStorage, getFromStorage } from '@/utils/storage';
 import MnemonicForAccount from './Components/MnemonicForAccount'
 import PrivatekeyForAccount from './Components/PrivatekeyForAccount'
@@ -97,13 +69,11 @@ import { formatTrim, objHasOwnProperty } from '@/utils/str';
 
 Vue.use(Field)
 Vue.use(Popup)
-Vue.use(Tab)
-Vue.use(Tabs)
 Vue.use(Toast)
 Vue.use(CellGroup)
 
 export default {
-  name: 'Backup',
+  name: 'CreateAccount',
   components: {
     'v-mnemonicType': MnemonicForAccount,
     'v-privatekeyType': PrivatekeyForAccount,
@@ -227,10 +197,6 @@ export default {
   created() {
   },
   mounted() {
-    const query = this.$route.query
-    if (query) {
-      this.activeCreateWalletType = query.type
-    }
     this.handlesInputFocus()
   },
 }
