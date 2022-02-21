@@ -120,10 +120,10 @@
                   <span>Import Account</span>
                 </router-link>
               </div>
-              <div class="opt-item van-hairline--bottom" @click="toPage('importAccount')">
+              <div class="opt-item van-hairline--bottom" @click="toPage('exportAccount')">
                 <!-- <van-icon name="down" class="opt-icon" />
                 <span>Import Account</span> -->
-                <router-link to="/importAccount">
+                <router-link to="/exportAccount">
                   <van-icon name="peer-pay" class="opt-icon" />
                   <span>Export Account</span>
                 </router-link>

@@ -1,6 +1,6 @@
 <template>
   <div class="type-mnemonic-compo">
-    <div v-if="type==='import' && showImport" class="import-opt-area">
+    <!-- <div v-if="type==='import' && showImport" class="import-opt-area">
       <div class="flex flex-center import-mnemonic-wrapper">
         <div class="import-wrapper-inner" @click="copyMnemonic">
           <van-field
@@ -19,12 +19,12 @@
       <div class="opt-wrapper">
         <van-button block color="#495ABE" @click="confirmImportMnemonic" :disabled="!importMnemonic">Next</van-button>
       </div>
-    </div>
-    <div v-else>
+    </div> -->
+    <div>
     <van-steps :active="activeStepForMnemonic">
       <van-step>Generate</van-step>
       <!-- <van-step>Confirm</van-step> -->
-      <van-step>2FA</van-step>
+      <!-- <van-step>2FA</van-step> -->
       <van-step>Send Email</van-step>
     </van-steps>
     <div>
@@ -44,10 +44,14 @@
         @childEvent="menonicConfirmCallback" /> -->
       
       <!-- complete -->
-      <v-complete
+      <v-createResult
+      v-show="activeStepForMnemonic===1"
+      @childEvent="completeCallback">
+      </v-createResult>
+      <!-- <v-complete
         key="menonic-confirm-complete"
-        v-show="activeStepForMnemonic===2"
-        @childEvent="completeCallback" />
+        v-show="activeStepForMnemonic===0"
+        @childEvent="completeCallback" /> -->
     </div>
     </div>
     <v-loadingPopup :show="showLoading" :showSpinner="false" />
@@ -65,6 +69,7 @@ import MenonicGenerate from '@/components/SocialRecovery/MenonicGenerate'
 import MenonicConfirmComplete from '@/components/SocialRecovery/MenonicConfirmComplete'
 import InputPswModal from '@/components/InputPswModal'
 import LoadingPopup from '@/components/LoadingPopup'
+import CreateResult from './CreateResult'
 import { SecLevelEnum, generate_mnemonic, generate_key, split, isValidMenmonic } from '@/utils/secretshare'
 import { copyTxt } from '@/utils/index';
 import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey } from '@/utils/relayUtils'
@@ -92,9 +97,10 @@ export default {
   components: {
     'v-menonicGenerate': MenonicGenerate,
     // 'v-menonicConfirm': MenonicBackup,
-    'v-complete': MenonicConfirmComplete,
+    // 'v-complete': MenonicConfirmComplete,
     'v-inputPsw': InputPswModal,
     'v-loadingPopup': LoadingPopup,
+    'v-createResult': CreateResult,
   },
   data() {
     return{
@@ -302,7 +308,7 @@ export default {
       await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey, address })
       this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
       this.showLoading = false
-      Toast('Create Account Successfully', 5)
+      // Toast('Create Account Successfully', 5)
       this.userPsw = '';
       this.activeStepForMnemonic = 1;
     },
