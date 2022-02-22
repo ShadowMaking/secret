@@ -25,6 +25,7 @@ const TransDetail = () => import('../views/TransDetail/index')
 const NcWalletRecover = () => import('../views/NcWalletRecover/index')
 const CreateAccount = () => import('../views/CreateAccount/index')
 const ExportAccount = () => import('../views/ExportAccount/index')
+const ChooseFriends = () => import('../views/SocailSendEmail/ChooseFriends')
 // cache origin push method
 const originalPush = VueRouter.prototype.push
 const originalReplace = VueRouter.prototype.replace
@@ -262,6 +263,14 @@ const routes = [
       title: "exportAccount",
     },
     component: ExportAccount,
+  },
+  {
+    path: '/chooseFriends',
+    name: 'chooseFriends',
+    meta: {
+      title: "chooseFriends",
+    },
+    component: ChooseFriends,
   },
 ];
 

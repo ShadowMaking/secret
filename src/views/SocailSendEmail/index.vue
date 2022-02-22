@@ -18,6 +18,7 @@
     <div v-show="showChooseFriend">
       <v-chooseFriends
         key="choose-friends"
+        :recoveryType="recoveryType"
         @childEvent="selectedFriendsCallback" />
     </div>
     <div v-show="confirmChooseFriend">
