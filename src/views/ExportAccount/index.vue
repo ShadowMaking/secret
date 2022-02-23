@@ -138,7 +138,17 @@ export default {
       await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, address })
       await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey: encryptPrivateKey, privateKey })
       this.$eventBus.$emit('changeAccout', addressInfo)
-      this.$router.push({ name: 'chooseFriends', query: {type: 'pk'} })
+
+      console.log(privateKey)
+      await this.$store.dispatch('UpdatePrivateKeyForStorage', {
+        privateKey: privateKey,
+        updateType: 'store'
+      })
+      await this.$store.dispatch('addViewNum', { 
+        userId: getInfoFromStorageByKey('gUID'), 
+        kind: 'sendemail' 
+      })
+      this.$router.push({ name: 'ssendemail', query: {type: 'pk', opt: 'export'} })
     },
     cancel() {
       Toast('cancel')

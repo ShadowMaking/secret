@@ -9,7 +9,7 @@
       <span>You can backup your key by email or skip</span>
     </div>
     <div class="opt-wrapper">
-      <van-button color="#909399" @click="backStep">Back</van-button>
+      <van-button color="#909399" @click="backStep">Skip</van-button>
       <van-button color="#495ABE" @click="nextStep">Backup by email</van-button>
     </div>
 

@@ -1,11 +1,11 @@
 <template>
   <div class="social-recovery-page">
-    <v-navTitle title="Recover Secret"></v-navTitle >
+    <v-navTitle title="Recover Account"></v-navTitle >
     <van-steps :active="activeStepForSrecovery">
       <!-- <van-step>Type</van-step> -->
       <van-step>Choose</van-step>
       <van-step>2FA</van-step>
-      <van-step>SecretShare</van-step>
+      <van-step>AccountShare</van-step>
       <van-step>Complete</van-step>
     </van-steps>
     <div>

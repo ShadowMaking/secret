@@ -11,8 +11,8 @@
         </van-grid>
       </div>
       <ul class="tip-info-ul">
-        <li>Don’t expose your secret recovery phrase or private key to anyone else. Once any person acquires your secret recovery phrase or private key, he/she could control your account.</li>
-        <li>Don’t share or save your secret recovery phase in the public network, including e-mail, album, social applications.</li>
+        <li>Don’t expose your account recovery phrase or private key to anyone else. Once any person acquires your account recovery phrase or private key, he/she could control your account.</li>
+        <li>Don’t share or save your account recovery phase in the public network, including e-mail, album, social applications.</li>
       </ul>
       <div class="opt-wrapper">
         <van-button block color="#495ABE" class="mb10" @click="confirmBackUp">Next</van-button>

@@ -16,7 +16,7 @@
             :formatter="formatterTrim"
             class="split-input"
             :value="friendsInputValsMap[`${[item.id]}-inputVal`]"
-            placeholder="Please enter the secret share"
+            placeholder="Please enter the account share"
             @input="(val)=>{changeInputVal(val, item)}" />
         </div>
       </div>
@@ -31,14 +31,14 @@
             size="small"
             class="add-button"
             style="display:none"
-            @click="toPage('backup')">Create Secret</van-button>
+            @click="toPage('backup')">Create Account</van-button>
           <van-button
             icon=""
             plain
             color="#495ABE"
             size="small"
             class="add-button"
-            @click="toPage('ssendemail')"><van-icon name="comment-o" ></van-icon>Backup Secret</van-button>
+            @click="toPage('ssendemail')"><van-icon name="comment-o" ></van-icon>Backup Account</van-button>
         </div>
       </div>
     </div>

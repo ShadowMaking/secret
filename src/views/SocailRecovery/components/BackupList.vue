@@ -1,7 +1,7 @@
 <template>
   <div class="recovery-backup-list">
     <!-- <h4>Recover Secret</h4> -->
-    <span class="tip">Click the secret that has been backed up to recover</span>
+    <span class="tip">Click the account that has been backed up to recover</span>
     <div class="backup-list-wrapper">
       <!-- table-header -->
       <div class="header">

@@ -114,7 +114,7 @@ export default {
       multiMenuData: [
         {icon: 'el-icon-suitcase-1', name: 'Tools', subMenu: [
           // {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
-          {icon: 'el-icon-document', name: 'Recover Secret', route: '/srecovery'},
+          {icon: 'el-icon-document', name: 'Recover Account', route: '/srecovery'},
           {icon: 'el-icon-s-custom', name: 'Co-workers', route: '/addfriends'},
         ]},
         {

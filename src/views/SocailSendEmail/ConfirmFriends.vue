@@ -1,7 +1,7 @@
 <template>
   <div class="confirm-friends-component">
     <h4>Choose Friends</h4>
-    <span class="tip">We will send the secret share to your friend's email. Please choose your trusted friends.</span>
+    <span class="tip">We will send the account share to your friend's email. Please choose your trusted friends.</span>
     <div class="friend-list-wrapper">
       <div v-if="selectedFriendsList.length" class="friend-list" >
         <div v-for="(item, index) in selectedFriendsList" :key="index" class="friend-item van-hairline--bottom">
@@ -27,7 +27,7 @@
           <van-stepper v-model="number" :min="minNum" :max="maxNum" />
         </template>
       </van-field>
-      <span class="tip">Tips: Reviewer number indicates the amount of secret shares sent to your friends to recover secret.</span>
+      <span class="tip">Tips: Reviewer number indicates the amount of account shares sent to your friends to recover account.</span>
     </div>
     <div class="opt-wrapper">
       <van-button block color="#495ABE" @click="confirm">Confirm</van-button>

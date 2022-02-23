@@ -5,7 +5,7 @@
       <!-- <van-tabs @click="oncheckCreateType" v-model="activeCreateWalletType" animated color="#4375f1"> -->
         <div class="inner-type-wrapper">
           <h4>For your eyes only</h4>
-          <span class="tip">Your secret recovery phrase or private key can help you backup and recover the secret. Don’t expose your private key or secret recovery phase in the public network.</span>
+          <span class="tip">Your account recovery phrase or private key can help you backup and recover the account. Don’t expose your private key or account recovery phase in the public network.</span>
           <!-- backup-setting -->
           <div class="backup-setting-wrapper">
             <van-cell-group>
@@ -66,6 +66,7 @@ import PrivatekeyForAccount from './Components/PrivatekeyForAccount'
 import ThirdLoginTip from '@/components/ThirdLoginTip';
 import navTitle from '@/components/NavTitle/index'
 import { formatTrim, objHasOwnProperty } from '@/utils/str';
+import {  isLogin } from '@/utils/dashBoardTools'
 
 Vue.use(Field)
 Vue.use(Popup)
@@ -165,8 +166,8 @@ export default {
       this.showThirdLoginTip = info.show
     },
     hanldeCreateComplete() {
-      this.activeCreateWalletType==='create'&&(this.createTypeDisabled = true)
-      this.activeCreateWalletType==='import'&&(this.importTypeDisabled = true)
+      this.activeCreateWalletType==='create'&&(this.createTypeDisabled = false)
+      this.activeCreateWalletType==='import'&&(this.importTypeDisabled = false)
     },
     formatterTrim(value) {
       return formatTrim(value)
@@ -175,9 +176,9 @@ export default {
       var settingdata = JSON.parse(getFromStorage('settingdata'));
       if (settingdata) {
         if (objHasOwnProperty(settingdata, 'id')) {
-          this.createTypeDisabled = true
-          this.importTypeDisabled = true
-          this.nameErrorMsg = 'Click `Recover Secret` and continue the previous backup'
+          // this.createTypeDisabled = true
+          // this.importTypeDisabled = true
+          // this.nameErrorMsg = 'Click `Recover Secret` and continue the previous backup'
         } else {
           if (getFromStorage('mnemonic')) {
             this.backView(settingdata, 'name', 'backupName')
@@ -195,9 +196,13 @@ export default {
     },
   },
   created() {
+    if (!isLogin()) {
+      Toast('Need Login')
+      return
+    }
   },
   mounted() {
-    this.handlesInputFocus()
+    // this.handlesInputFocus()
   },
 }
 </script>

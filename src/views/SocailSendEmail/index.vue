@@ -2,7 +2,7 @@
   <div class="social-recovery-page">
     <div class="recovery-setting-tip" v-show="showTip">
       <h4>Social Recovery</h4>
-      <span class="tip">Social Recovery is a secret recovery mechanism,  in which you can ask your friends to save and recover your secret or private data with the cryptography of Threshold Secret Share.</span>
+      <span class="tip">Social Recovery is a account recovery mechanism,  in which you can ask your friends to save and recover your account or private data with the cryptography of Threshold Account Share.</span>
       <van-field name="recoveryType" label="recoveryType" class="recovery-type">
         <template #input>
           <van-radio-group v-model="recoveryType" direction="horizontal" :disabled="recoveryTypeDisabled">
@@ -150,11 +150,13 @@ export default {
       if (this.recoveryType === 'privateKey') {
         secretWords = getFromStorage('privateKey')
       }
+      console.log(secretWords)
       if (secretWords) {
         setCustom([this.selectedFriendsList.length, number])
         this.recoveryNumber = number;
         this.showGoogleAuthDialog = true;
         this.secretWords = secretWords;
+        if (this.$route.query.opt == 'export') { return}
         // this.confirmChooseFriend = false
         // this.showStatus = true
         const curretSettingData = await this.$store.dispatch('UpdateBackupSettingDataForStorage', { updateType: 'get' });
@@ -184,7 +186,11 @@ export default {
         }
         return
       }
-      Toast('No Data For Recovery')
+      if (this.$route.query.opt == 'export') {
+        Toast('No Data For Export')
+      } else {
+        Toast('No Data For Recovery')
+      }
     },
     handleClientLoad() {
       gapi.load('client:auth2', this.initAPIClient);
@@ -340,6 +346,10 @@ export default {
       this.recoveryTypeDisabled = true
       this.step1ButtonTxt = 'Next'
       this.recoveryType = this.$route.query.type === 'pk' ? 'privateKey' : 'mnemonic'
+    }
+    if (this.$route.query && this.$route.query.opt == 'export') {
+      this.showTip = false
+      this.showChooseFriend = true
     }
     this.handleClientLoad()
   },
