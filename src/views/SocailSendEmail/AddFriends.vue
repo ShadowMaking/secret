@@ -8,7 +8,7 @@
         Refresh
       </a> -->
     </h4>
-    <span class="tip">We will split the secret key and send it through your Google Friends' Email</span>
+    <span class="tip">We will split the account key and send it through your Google Friends' Email</span>
     <span class="tip">Attention: The email of your friend must logined in Secret. You can click<i @click="copyUrl">https://secret.ieigen.com</i>to copy this link address for your friend</span>
     <div class="friend-list-wrapper">
       <!-- search -->
