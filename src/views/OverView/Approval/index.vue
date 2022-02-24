@@ -61,7 +61,7 @@ import VLoading from '@/components/Loading'
 import InputPswModal from '@/components/InputPswModal'
 import { Popup, Toast, Loading } from 'vant';
 import { TRANSACTION_TYPE } from '@/api/transaction'
-import { generateTokenList, getConnectedAddress, getContractAt, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory } from '@/utils/dashBoardTools';
+import { generateTokenList, getConnectedAddress, getContractAt, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getIsCanTransaction, getEstimateGas } from '@/utils/dashBoardTools';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import ApproveModal from '@/components/ApproveModal';
 import { formatErrorContarct } from '@/utils/index'
@@ -89,6 +89,10 @@ export default {
 
       declinetokenAddress: '',
       declineSwapAddress: '',
+      overrides: {
+        gasLimit: 8000000,
+        gasPrice: 20000000000,//wei
+      },
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -129,15 +133,24 @@ export default {
 
     },
     async dealDataBeforeDecline() {
+      let isCanTrans = await getIsCanTransaction(0, 3000000000)
+      if (!isCanTrans) {
+        return
+      }
+      let estimatedGasFee = await getEstimateGas('gasUsed', 3000000000)
       const userAddress = getConnectedAddress()
       const tokenAddress = this.declinetokenAddress
+      let thisGasPrice = this.overrides.gasPrice.toString()
+      let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
+
       this.approveMetadata = {
         userAddress: userAddress,
         tokenName: this.getTokenName(tokenAddress),
         tokenAddress: tokenAddress,
-        gas: 21000,
-        gasPrice: 20,
+        gas: this.overrides.gasLimit,
+        gasPrice: gasPrice,
         netInfo: this.currentChainInfo,
+        estimatedGasFee: estimatedGasFee
       }
       console.log(this.approveMetadata)
       this.showApproveModal = true
@@ -190,7 +203,7 @@ export default {
       Toast('Cancel Approve')
     },
     async confirmApprove() {
-      const gasInfo = { gasLimit: 1000000, gasPrice: 20000000000 }
+      const gasInfo = this.overrides
       const swapAddress = this.declineSwapAddress
       const tokenAddress = this.declinetokenAddress
       const tokenabiJson = this.getTokenAbi(tokenAddress)
@@ -242,7 +255,7 @@ export default {
         Toast('Failed')
         console.log('SaveUserAllowanceForToken Error', error)
       } else {
-        Toast('success')
+        Toast('Submited Success')
         await this.getApprovalList()
       }
     },
@@ -362,6 +375,7 @@ export default {
     this.defaultNetWork = this.currentChainInfo['id']
 
     if(!this.connectedWallet()) { return }
+    this.overrides.gasPrice = await getEstimateGas('gasPrice', 3000000000)
 
     await this.getTokenList()
     await this.getApprovalList()

@@ -104,6 +104,14 @@
               </li>
             </ul>
             <div class="account-setting-wrapper van-hairline--top">
+              <div class="opt-item van-hairline--bottom" @click="toPage('createAccount', 'create')">
+               <!--  <van-icon name="plus" class="opt-icon" />
+                <span>Create Account</span> -->
+                <router-link to="/backup?type=create">
+                  <van-icon name="plus" class="opt-icon" />
+                  <span>Create Account</span>
+                </router-link>
+              </div>
               <div class="opt-item van-hairline--bottom" @click="toPage('importAccount')">
                 <!-- <van-icon name="down" class="opt-icon" />
                 <span>Import Account</span> -->
@@ -112,12 +120,12 @@
                   <span>Import Account</span>
                 </router-link>
               </div>
-              <div class="opt-item van-hairline--bottom" @click="toPage('backup', 'create')" style="display: none">
-               <!--  <van-icon name="plus" class="opt-icon" />
-                <span>Create Account</span> -->
-                <router-link to="/backup?type=create">
-                  <van-icon name="plus" class="opt-icon" />
-                  <span>Create Secret</span>
+              <div class="opt-item van-hairline--bottom" @click="toPage('exportAccount')">
+                <!-- <van-icon name="down" class="opt-icon" />
+                <span>Import Account</span> -->
+                <router-link to="/exportAccount">
+                  <van-icon name="peer-pay" class="opt-icon" />
+                  <span>Export Account</span>
                 </router-link>
               </div>
               <div class="opt-item van-hairline--bottom" @click="toPage('backup', 'import')" style="display: none">

@@ -61,7 +61,7 @@ import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
-import { getContractAt, getConnectedAddress, getEns, isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getBalanceByAddress, getSupportNet } from '@/utils/dashBoardTools';
+import { getContractAt, getConnectedAddress, getEns, isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getBalanceByAddress, getSupportNet, getConnectedNet, initRPCProvider, getEstimateGas} from '@/utils/dashBoardTools';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import ProxyJson from "@/assets/contractJSON/Proxy.json";
@@ -162,7 +162,8 @@ export default {
       }
       var nowDate = new Date()
       var nowTime = timeFormat(nowDate, 'yyyy-MM-dd hh:mm:ss')
-      const signAddress = await getEns(value)
+      // const signAddress = await getEns(value)
+      const signAddress = value
       console.log(this.createSignerList)
       this.createSignerList.push({
         signAddress: signAddress,
@@ -185,6 +186,14 @@ export default {
       if (!getSupportNet()) {
         return
       }
+      const selectedConnectAddress = getConnectedAddress()
+      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      let estimatedGasFee = await getEstimateGas('gasUsed', 20000000000) * 10
+      console.log(connectBalance)
+      if (connectBalance < estimatedGasFee) {
+        Toast('Not Enough ETH')
+        return
+      }
       let thisGasPrice = this.overrides.gasPrice.toString()
       let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
       this.sendMetadata = {
@@ -195,12 +204,18 @@ export default {
         value: 0,
         symbolName: 'ETH',
         netInfo: this.currentChainInfo,
-        DATA: '',
-        estimatedGasFee: '0' // todo
+        DATA: '0x',
+        estimatedGasFee: estimatedGasFee
       }
       this.showTradeConfirm = true
     },
     async createSubmit() {
+      const selectedConnectAddress = getConnectedAddress()
+      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      if (connectBalance < 0) {
+        Toast('Not Enough ETH')
+        return
+      }
       if (!this.checkData()) { return }
       // check privateKey whether is existed
       const privateKey = await getDecryptPrivateKeyFromStore(this)
@@ -211,19 +226,14 @@ export default {
       await this.dealDataBeforeCreate()
     },
     async createNcWallet() {
-      const selectedConnectAddress = getConnectedAddress()
-      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
-      if (connectBalance == 0) {
-        Toast('Not Enough ETH')
-        return
-      }
       // if (!this.checkData()) { return }
       this.showLoading = true; 
 
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       const proxyContract = await getContractAt({ tokenAddress: this.proxyRouter, abi: ProxyJson.abi }, this)
       const transactionContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: WalletTransaction.abi }, this)
-      console.log(transactionContract)
+      console.log(proxyContract)
+      console.log(proxyRouter)
       const saletnew = ethers.utils.randomBytes(32);
       
       let createSignList = this.createSignerSubmit
@@ -250,7 +260,7 @@ export default {
               data, 
               this.overrides
             ).then(async tx=> {
-                console.log('walletContract:' + tx)
+                console.log(tx)
                 this.createWallet(walletAddress, tx.hash)
                 addTransHistory(tx, 'Create Wallet', this)
                 tx.wait().then(async res => {
@@ -378,6 +388,7 @@ export default {
     } else {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
+    this.overrides.gasPrice = await getEstimateGas('gasPrice', 20000000000)
   },
   async mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)

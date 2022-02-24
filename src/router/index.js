@@ -23,7 +23,9 @@ const NcWalletCreate = () => import('../views/NcWalletCreate/index')
 const SignManage = () => import('../views/NcWalletList/signManage/index')
 const TransDetail = () => import('../views/TransDetail/index')
 const NcWalletRecover = () => import('../views/NcWalletRecover/index')
-
+const CreateAccount = () => import('../views/CreateAccount/index')
+const ExportAccount = () => import('../views/ExportAccount/index')
+const ChooseFriends = () => import('../views/SocailSendEmail/ChooseFriends')
 // cache origin push method
 const originalPush = VueRouter.prototype.push
 const originalReplace = VueRouter.prototype.replace
@@ -246,7 +248,30 @@ const routes = [
     },
     component: NcWalletRecover,
   },
-  
+  {
+    path: '/createAccount',
+    name: 'createAccount',
+    meta: {
+      title: "createAccount",
+    },
+    component: CreateAccount,
+  },
+  {
+    path: '/exportAccount',
+    name: 'exportAccount',
+    meta: {
+      title: "exportAccount",
+    },
+    component: ExportAccount,
+  },
+  {
+    path: '/chooseFriends',
+    name: 'chooseFriends',
+    meta: {
+      title: "chooseFriends",
+    },
+    component: ChooseFriends,
+  },
 ];
 
 const router = new VueRouter({

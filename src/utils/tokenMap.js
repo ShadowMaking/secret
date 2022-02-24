@@ -67,16 +67,16 @@ export const TOKENMAP_NETWORK = {
     },
   },
   // Binance Smart Chain MATIC
-  [CHAINIDMAP['BSC']]: {
-    "0x6cd2Bf22B3CeaDfF6B8C226487265d81164396C5": {
-      "name": "USDT",
-      "logo": "DAI.svg",
-      "erc20": true,
-      "symbol": "USDT",
-      "decimals": 18,
-      "abiTokenAddress": '0xdAC17F958D2ee523a2206206994597C13D831ec7' // use this address to get abi
-    },
-  },
+  // [CHAINIDMAP['BSC']]: {
+  //   "0x6cd2Bf22B3CeaDfF6B8C226487265d81164396C5": {
+  //     "name": "USDT",
+  //     "logo": "DAI.svg",
+  //     "erc20": true,
+  //     "symbol": "USDT",
+  //     "decimals": 18,
+  //     "abiTokenAddress": '0xdAC17F958D2ee523a2206206994597C13D831ec7' // use this address to get abi
+  //   },
+  // },
   // BSC Testnet
   [CHAINIDMAP['BSCTEST']]: {
     "0x6cd2Bf22B3CeaDfF6B8C226487265d81164396C5": {

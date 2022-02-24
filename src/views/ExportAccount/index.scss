@@ -1,0 +1,28 @@
+.export-page {
+  .export-des {
+    font-size: 0.96rem;
+    line-height: 30px;
+    color: #9E9E9E;
+  }
+  .export-select-box {
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+  }
+  .select-label {
+    font-size: 0.96rem;
+    margin-right: 20px;
+    width: 7rem;
+  }
+  .opt-wrapper {
+    margin-top: 60px;
+  }
+  .el-select {
+    width: 23rem;
+    max-width: 380px;
+  }
+  .el-textarea {
+    width: 23rem;
+    max-width: 380px;
+  }
+}

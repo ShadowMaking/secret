@@ -1,7 +1,8 @@
 <template>
+  <div class="social-recovery-page">
   <div class="choose-friends-component">
     <h4>Choose Friends</h4>
-    <span class="tip">We will send the secret share to your friends’ mailbox. Please choose your trusted friends.</span>
+    <span class="tip">We will send the account share to your friends’ mailbox. Please choose your trusted friends.</span>
     <span class="tip color">Attention: Two friends at least.</span>
     <div class="friend-list-wrapper">
       <div v-if="friendsList.length" class="friend-list" >
@@ -30,6 +31,7 @@
     <div class="opt-wrapper" v-if="friendsList.length">
       <van-button block color="#495ABE" :disabled="selectedFriends.length===0 || selectedFriends.length===1" @click="confirm">Confirm</van-button>
     </div>
+  </div>
   </div>
 </template>
 <script>
@@ -64,7 +66,8 @@ export default {
       }], */
       friendsList: [],
       friendsIdsMap: null, // { '1-checked': false, '2-checked': false, ...}
-      selectedFriends: []
+      selectedFriends: [],
+      pageOrigin: this.$route.query.type,//mn-sendemail
     }
   },
   filters: {
@@ -95,7 +98,7 @@ export default {
       this.friendsIdsMap[`${record.id}-checked`] = checked
     },
     toPage(routeNme) {
-      this.$router.push({ name: routeNme })
+      this.$router.push({ name: routeNme, query: {type: this.pageOrigin} })
     },
     generateFriendsList(list) {
       return list.map(item=>{

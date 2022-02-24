@@ -18,7 +18,8 @@
       <div class="send-from-box">
         <v-transFrom @transFromChange="transFromChange"></v-transFrom>
       </div>
-      <v-formInput label="Recipient" placeholder="Address" @inputChange="handleAddressInputChange" />
+      <!-- <v-formInput label="Recipient" placeholder="Address or Google account" :isSearch="true" @inputChange="handleAddressInputChange" /> -->
+      <v-InputSelect label="Recipient" placeholder="Address or Google account" :isSearch="true" @inputChange="handleAddressInputChange" />
       <v-formSelect 
         label="Token"
         :labelShow="false" 
@@ -87,6 +88,7 @@ import navTitle from '@/components/NavTitle/index';
 import formInput from '@/components/Input/index';
 import selectItem from '@/components/SelectItem/index';
 import formSelect from '@/components/Select/index';
+import InputSelect from '@/components/InputSelect/index';
 import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
 import TransFrom from '@/components/TransFrom';
@@ -102,7 +104,7 @@ import { getInfoFromStorageByKey, getFromStorage } from '@/utils/storage';
 import {
   generateTokenList, getDefaultETHAssets, getConnectedAddress,
   getContractWallet, isLogin, getDATACode, getContractAt, 
-  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, } from '@/utils/dashBoardTools';
+  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas } from '@/utils/dashBoardTools';
 import WalletTransaction from "@/assets/contractJSON/TransactionModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
@@ -182,6 +184,7 @@ export default {
     'v-transFrom': TransFrom,
     'v-loadingPopup': LoadingPopup,
     'v-inputPsw': InputPswModal,
+    'v-InputSelect': InputSelect,
   },
   computed: {
     exchangeUSForSelectedToken() {
@@ -321,6 +324,9 @@ export default {
       let gasPrice = '20' // 20 Gwei
       if (this.selectedGasType) {
         gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.selectedGasType].gasPrice
+      } else {
+        let gasPriceWei = await getEstimateGas('gasPrice')
+        gasPrice = web3.utils.fromWei(gasPriceWei.toString(), 'gwei')
       }
 
       const tokenName = this.selectedToken.tokenName

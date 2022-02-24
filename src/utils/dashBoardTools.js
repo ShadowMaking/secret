@@ -327,7 +327,39 @@ export const getSupportNet = () => {
   if (supportNetWorkForContract.indexOf(currentChainInfo.id) > -1) {
     return true
   } else {
-    Toast(`Ropsten only presently, the ${currentChainInfo.name} will be available soon`)
+    Toast(`Ropsten,Stardust,Mumbai,BSC Testnet presently, the ${currentChainInfo.name} will be available soon`)
     return false
   }
+}
+
+export const getEstimateGas = async (type, addPrice) => {//type-gasPrice, gasUsed
+  const network = getConnectedNet()
+  const rpcUrl = network['rpcUrls'][0]
+  const provider = initRPCProvider(rpcUrl)
+  const currentGasPriceHex = await provider.getGasPrice()
+  const currentGasPrice = addPrice ? (addPrice + web3.utils.hexToNumber(currentGasPriceHex)) : web3.utils.hexToNumber(currentGasPriceHex) //wei
+  if (type == 'gasPrice') {
+    return currentGasPrice
+  } else {
+    const currentGasHex = await provider.estimateGas({})
+    const currentGas = web3.utils.hexToNumber(currentGasHex)
+    const gasUsedByTx = currentGas * currentGasPrice
+    const currentGasUsed = web3.utils.fromWei(gasUsedByTx.toString(), 'ether')
+    return currentGasUsed
+  }
+}
+
+export const getIsCanTransaction = async (transactionValue, transactionAddPrice) => {//type-gasPrice, gasUsed
+  if (!getSupportNet()) {
+    return false
+  }
+  const selectedConnectAddress = getConnectedAddress()
+  const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+  let estimatedGasFee = await getEstimateGas('gasUsed', transactionAddPrice)
+  let needTotal = transactionValue + estimatedGasFee
+  if (connectBalance < needTotal) {
+    Toast('Not Enough ETH')
+    return false
+  }
+  return true
 }

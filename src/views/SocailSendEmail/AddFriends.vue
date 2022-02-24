@@ -8,7 +8,7 @@
         Refresh
       </a> -->
     </h4>
-    <span class="tip">We will split the secret key and send it through your Google Friends' Email</span>
+    <span class="tip">We will split the account key and send it through your Google Friends' Email</span>
     <span class="tip">Attention: The email of your friend must logined in Secret. You can click<i @click="copyUrl">https://secret.ieigen.com</i>to copy this link address for your friend</span>
     <div class="friend-list-wrapper">
       <!-- search -->
@@ -75,8 +75,8 @@
           <div class="status">
             <!-- 1:mutual  2:waiting 3:confirming -->
             <van-icon name="checked" size="25" color="#61D375" v-if="item.status===1" />
-            <van-icon name="clear" size="25" color="#61D375" v-else-if="item.status===2" />
-            <van-icon name="clock" size="25" color="#61D375" v-else-if="item.status===3" @click="OpenConfirmDialog(item)"/>
+            <van-icon name="clock" size="25" color="#61D375" v-else-if="item.status===2" />
+            <van-icon name="clear" size="25" color="#61D375" v-else-if="item.status===3" @click="OpenConfirmDialog(item)"/>
             <!-- <van-button
               v-else
               icon="plus"
@@ -233,7 +233,7 @@ export default {
       if (!hasError) {
         this.friendsList = this.generateFriendsList(list)
         this.total = list.length // TODO
-        if (this.pageOrigin == 'mn' && list.length >= 2) {
+        if (list.length >= 2 && this.pageOrigin) {
           this.getHasFriendsList();
         }
       }
