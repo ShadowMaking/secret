@@ -119,6 +119,7 @@ export default {
       showImport: this.type==='import',
 
       showLoading: false,
+      creatAccount: '',
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -172,6 +173,8 @@ export default {
       this.activeStepForMnemonic = 2;
     },
     async completeCallback() {
+      this.settingData = { ...this.settingData, name: this.creatAccount }
+      
       if (!this.thirdUserId) {
         console.log('can detect userID after third login') 
         return
@@ -283,6 +286,7 @@ export default {
       wallet = ethers.Wallet.fromMnemonic(this.mnemonic);
       privateKey = wallet.privateKey
       address = wallet.address
+      this.creatAccount = address
       const userId = getInfoFromStorageByKey('gUID')
       
       const encryptPrivateKeyPublicKey = generateEncryptPrivateKeyByPublicKey(this.publicKey, privateKey)

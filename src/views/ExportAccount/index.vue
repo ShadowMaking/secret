@@ -2,7 +2,7 @@
   <div class="export-page">
     <v-navTitle title="Export Account"></v-navTitle >
     <div class="export-box">
-      <div class="export-des">Export Account is a secret recovery mechanism,in which you can ask your friends to save and recover your secret or private data with the cryptography of Threshold Secret Share.</div>
+      <div class="export-des">Export Account is a account recovery mechanism,in which you can ask your friends to save and recover your account or private data with the cryptography of Threshold Account Share.</div>
       <div class="export-select-box">
         <label class="select-label">Select Address</label>
         <el-select v-model="selectAccountInfo" value-key="address">
@@ -14,6 +14,19 @@
           </el-option>
         </el-select>
       </div>
+      <div class="export-select-box export-form-item">
+        <label class="select-label">Description</label>
+        <el-input
+          type="textarea"
+          placeholder="enter description"
+          v-model="backDescription"
+          maxlength="150"
+          show-word-limit
+        >
+        </el-input>
+      </div>
+      
+      
       <div class="opt-wrapper">
         <van-button color="#909399" @click="cancel">Cancel</van-button>
         <van-button color="#495ABE" @click="confirm">Next</van-button>
@@ -42,7 +55,9 @@ export default {
     return {
       selectAccountInfo: null,
       accountList: [],
-
+      backDescription: '',
+      
+      
       // ***************** inputPsw start ***************** //
       userPsw: '',
       publicKey: '',
@@ -139,9 +154,18 @@ export default {
       await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey: encryptPrivateKey, privateKey })
       this.$eventBus.$emit('changeAccout', addressInfo)
 
+      let settingData = {
+        name: address,
+        desc: this.backDescription,
+      }
+
       console.log(privateKey)
       await this.$store.dispatch('UpdatePrivateKeyForStorage', {
         privateKey: privateKey,
+        updateType: 'store'
+      })
+      await this.$store.dispatch('UpdateBackupSettingDataForStorage', {
+        settingData: settingData,
         updateType: 'store'
       })
       await this.$store.dispatch('addViewNum', { 

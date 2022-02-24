@@ -8,7 +8,7 @@
       <span>Congratulations! Social Recovery Completed!</span>
     </div>
     <div class="success-tip">
-      <span>The secret share has been sent to the friend's email!</span>
+      <span>The account share has been sent to the friend's email!</span>
     </div>
     <div class="opt-wrapper">
       <van-button block color="#495ABE" @click="confirm">Confirm</van-button>

@@ -156,7 +156,6 @@ export default {
         this.recoveryNumber = number;
         this.showGoogleAuthDialog = true;
         this.secretWords = secretWords;
-        if (this.$route.query.opt == 'export') { return}
         // this.confirmChooseFriend = false
         // this.showStatus = true
         const curretSettingData = await this.$store.dispatch('UpdateBackupSettingDataForStorage', { updateType: 'get' });
