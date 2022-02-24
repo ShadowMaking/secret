@@ -77,7 +77,7 @@
               <div class="setting-item-left">
                 <div class="setting-left-row" style="color: #c0c4cc">
                   <p>Max per day</p>
-                  <p><input type="number" v-model="maxPerDay" disabled="true" style="cursor: not-allowed"><label>ETH</label></p>
+                  <p><input type="number" v-model="maxPerDay"><label>ETH</label></p>
                 </div>
                 <div class="setting-left-row">
                   <p>Max per transaction</p>
