@@ -160,10 +160,10 @@ export default {
         this.$emit('notLogin');
         return
       }
-      if (!this.hasBackupSettingData()) {
-        Toast('Name is Required!')
-        return
-      }
+      // if (!this.hasBackupSettingData()) {
+      //   Toast('Name is Required!')
+      //   return
+      // }
       this.showInputPswModal = true
       this.$emit('createComplete', {});
       // this.conformList = _.cloneDeep(this.mnemonic);

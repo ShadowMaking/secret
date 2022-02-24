@@ -11,7 +11,7 @@ let LOCATION_HREF;
 
 switch(process.env.NODE_ENV){
 	case 'dev':
-    WEBSITE_BASEURL =  protocol + '//test.ieigen.com'
+    WEBSITE_BASEURL = 'https://test.ieigen.com'
     LOCATION_HREF = protocol + '//dev-deliver-secret.eigen.com:8090'
   break;
   case 'preview':
