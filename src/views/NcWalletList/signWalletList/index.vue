@@ -39,7 +39,7 @@
               </div>
               <div v-else-if="scope.row.wallet_status == walletStatus['Active']">
                 <el-tag v-if="scope.row.isInRecovery">Recovering</el-tag>
-                <el-tag type="info" v-else-if="scope.row.isLocked">Frozen</el-tag>
+                <el-tag type="info" v-else-if="scope.row.isLocked">Locked</el-tag>
                 <el-tag type="success" v-else>Active</el-tag>
               </div>
               <div v-else-if="scope.row.wallet_status == walletStatus['Fail']">
@@ -50,7 +50,7 @@
                 <el-tag>Freezing</el-tag>
               </div>
               <div v-else-if="scope.row.wallet_status == walletStatus['Frozen']">
-                <el-tag type="info">Frozen</el-tag>
+                <el-tag type="info">Locked</el-tag>
               </div>
               <div v-else-if="scope.row.wallet_status == walletStatus['Recovering']">
                 <el-tag>Recovering</el-tag>
@@ -99,7 +99,7 @@
                 <el-tag>Freezing</el-tag>
               </div>
               <div v-else-if="scope.row.wallet_status == walletStatus['Frozen']">
-                <el-tag type="info">Frozen</el-tag>
+                <el-tag type="info">Locked</el-tag>
               </div>
               <div v-else-if="scope.row.wallet_status == walletStatus['Recovering']">
                 <el-tag>Recovering</el-tag>

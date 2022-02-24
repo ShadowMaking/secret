@@ -93,7 +93,7 @@
       @confirm="confirmSignMessage" />
     <v-confirmModal
       :show="showTradeConfirm"
-      type="Executed"
+      type="Execute"
       :metadata="sendMetadata"
       @close="showTradeConfirm=false"
       @reject="cancelExecuted"

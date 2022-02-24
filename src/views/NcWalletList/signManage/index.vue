@@ -37,7 +37,7 @@
                 <el-tag type="danger">Rejected</el-tag>
               </div>
               <div v-else-if="scope.row.status == signerStatus['freeze']">
-                <el-tag type="info">Freeze</el-tag>
+                <el-tag type="info">Locked</el-tag>
               </div>
               <div v-else>
                 <el-tag type="success">Active</el-tag>
