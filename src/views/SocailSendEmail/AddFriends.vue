@@ -233,7 +233,7 @@ export default {
       if (!hasError) {
         this.friendsList = this.generateFriendsList(list)
         this.total = list.length // TODO
-        if (list.length >= 2) {
+        if (list.length >= 2 && this.pageOrigin) {
           this.getHasFriendsList();
         }
       }

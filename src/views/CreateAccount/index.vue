@@ -10,7 +10,7 @@
           <div class="backup-setting-wrapper">
             <van-cell-group>
               <van-field v-model="createType" label="Type" readonly class="createType-select" :disabled="createTypeDisabled" @click="showSelectType('create')"/>
-              <van-field v-model="backupName" label="Name" :formatter="formatterTrim"  placeholder="name(Only alphanumeric)" :disabled="createTypeDisabled" :error-message="nameErrorMsg"/>
+              <!-- <van-field v-model="backupName" label="Name" :formatter="formatterTrim"  placeholder="name(Only alphanumeric)" :disabled="createTypeDisabled" :error-message="nameErrorMsg"/> -->
               <van-field
                 v-model="backupComment"
                 rows="1"
