@@ -91,9 +91,7 @@ export default {
       if (!getSupportNet()) {
         return
       }
-      if (row.wallet_status == walletStatus['Active'] ||
-        row.wallet_status == walletStatus['Recovering'] ||
-        row.wallet_status == walletStatus['Frozen']) {
+      if (row.wallet_status == walletStatus['Active']) {
         
         let currentWallet = row.wallet_address
         let currentUserAddress = getConnectedAddress()
@@ -103,6 +101,10 @@ export default {
           return
         }
         let isSigner = await this.securityModuleContract.isSigner(currentWallet, currentUserAddress)
+        if (isSigner) {
+          Toast('Signer Cannot Recover Wallet')
+          return
+        }
 
         const walletContract = await getContractAt({ tokenAddress: currentWallet, abi: WalletJson.abi }, this)
         const ownerAddress = await walletContract.owner()
@@ -110,11 +112,14 @@ export default {
           Toast('Owner Cannot Recover Wallet')
           return
         }
-        if (isSigner) {
-          Toast('Signer Cannot Recover Wallet')
-        } else {
-          this.$emit('recoverChild', row);
+        
+        let isInRecovery = await this.securityModuleContract.isInRecovery(currentWallet)
+        if (isInRecovery && currentUserAddress !== row.address) {
+          Toast('Wallet is Recovering ')
+          return
         }
+        
+        this.$emit('recoverChild', row);
       } else {
         Toast('Wallet is Unavailable')
       }

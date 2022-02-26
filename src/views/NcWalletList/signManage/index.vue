@@ -85,6 +85,7 @@ import InputPswModal from '@/components/InputPswModal'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import _ from 'lodash'
 import { timeSericeFormat } from '@/utils/str';
+import getRevertReason from 'eth-revert-reason';
 
 Vue.use(Toast);
 Vue.use(Loading);
@@ -173,7 +174,12 @@ export default {
       if (!this.securityModuleContract) {
         this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       }
-      
+      let isLocked = await this.securityModuleContract.isLocked(this.walletAddress)
+      if (isLocked) {
+        this.showLoading = false
+        Toast('Wallet is locked')
+        return
+      }
       this.securityModuleContract.removeSigner(
         this.walletAddress, row.address).then(async tx=> {
          this.deleteSignerSubmit(row, tx.hash);
@@ -230,8 +236,16 @@ export default {
       if (!this.securityModuleContract) {
         this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       }
+      let isLocked = await this.securityModuleContract.isLocked(this.walletAddress)
+      if (isLocked) {
+        this.showLoading = false
+        Toast('Wallet is locked')
+        return
+      }
+
       this.securityModuleContract.addSigner(
         this.walletAddress, address).then(async tx=> {
+          console.log(tx)
          this.addSignerSubmit(address, tx.hash);
          addTransHistory(tx, 'Add Signer', this)
          
@@ -239,7 +253,7 @@ export default {
           console.log('Add Signer:', res)
           this.showLoading = false
         })
-      }).catch(error => {
+      }).catch(async error => {
         this.showLoading = false
         let errorValue = formatErrorContarct(error)
         Toast.fail(errorValue)
@@ -249,7 +263,7 @@ export default {
     async confirmAddSigner(address) {
       this.currentOptType = 'addSigner'
       this.currentRecord = _.cloneDeep(address)
-     if (!address) {
+      if (!address) {
         Toast('Need Choose Signer')
         return
       }
@@ -266,7 +280,7 @@ export default {
         userId: this.userId,
         walletId: this.$route.params.id,
         address: address.toLocaleLowerCase(),
-        name: 'signer',
+        name: this.signList[0].wallet_name,
         txid: txHash
       }
       console.log(addData)
@@ -365,6 +379,8 @@ export default {
       Toast('Need Login')
       return
     }
+    // let sdfsd = await getRevertReason('0x6ea1798a2d0d21db18d6e45ca00f230160b05f172f6022aa138a0b605831d740')
+    // console.log(sdfsd)
     this.isRecover = this.$route.query.isRecover
     this.getSignerListByid()
 

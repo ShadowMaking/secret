@@ -85,11 +85,13 @@ export default {
         this.$set(list[i], 'balance', '0.0')
       }
       this.ownWalletList = list
+      this.ownShowLoading = false
+      this.ownWalletList = await this.generateWalletStatus(list)
+      console.log(this.ownWalletList)
+      
       this.resetBalance(list)
       if (hasError) {
         Toast('Get Error')
-      } else {
-        this.ownShowLoading = false
       }
     },
     async resetBalance(list) {
@@ -108,27 +110,9 @@ export default {
       // let newList = list.filter((item, index)=>{
       //     return item.status !== this.signerStatus['rejected']
       // });
-      this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      if (!this.securityModuleContract) {
-        console.log('privateKey: null')
-        this.signShowLoading = false
-        this.signWalletList = list
-        return
-      }
-      for(var i=0; i<list.length; i++) {
-        const currentChainInfo = getConnectedNet()
-        if (supportNetWorkForContract.indexOf(currentChainInfo.id) < 0) {
-          return false
-        }
-        let isLocked = await this.securityModuleContract.isLocked(list[i].wallet_address)
-        console.log("isLocked:" + isLocked)
-        // this.$set(dataSource[i], 'isLocked', isLocked)
-        list[i].isLocked = isLocked ? isLocked : false
-        let isInRecovery = await this.securityModuleContract.isInRecovery(list[i].wallet_address)
-        console.log("isInRecovery:" + isInRecovery)
-        list[i].isInRecovery = isInRecovery ? isInRecovery : false
-      }
       this.signWalletList = list
+      this.signShowLoading = false
+      this.signWalletList = await this.generateWalletStatus(list)
       console.log(this.signWalletList)
       if (hasError) {
         Toast('Get Error')
@@ -139,6 +123,30 @@ export default {
     async getBalance(address) {
       const balanceString = await getBalanceByAddress(address)
       return balanceString
+    },
+    async generateWalletStatus(list) {
+      this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      if (!this.securityModuleContract) {
+        console.log('privateKey: null')
+        return list
+      }
+      for(var i=0; i<list.length; i++) {
+        const currentChainInfo = getConnectedNet()
+        if (supportNetWorkForContract.indexOf(currentChainInfo.id) < 0) {
+          return false
+        }
+        let isLocked = await this.securityModuleContract.isLocked(list[i].wallet_address)
+        console.log("isLocked:" + isLocked)
+        // this.$set(dataSource[i], 'isLocked', isLocked)
+        
+        let thisIsLocked = isLocked ? isLocked : false
+        this.$set(list[i], 'isLocked', thisIsLocked)
+        let isInRecovery = await this.securityModuleContract.isInRecovery(list[i].wallet_address)
+        console.log("isInRecovery:" + isInRecovery)
+        let thisIsInRecovery = isInRecovery ? isInRecovery : false
+        this.$set(list[i], 'isInRecovery', thisIsInRecovery)
+      }
+      return list
     },
   },
   created() {

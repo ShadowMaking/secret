@@ -96,7 +96,7 @@ import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
-import { walletTransactionRouter, multOperation } from '@/utils/global';
+import { walletTransactionRouter, multOperation, securityModuleRouter } from '@/utils/global';
 import { BigNumber } from "bignumber.js";
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
@@ -107,6 +107,7 @@ import {
   getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas } from '@/utils/dashBoardTools';
 import WalletTransaction from "@/assets/contractJSON/TransactionModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
+import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import { promiseValue, formatErrorContarct } from '@/utils/index'
 
@@ -161,6 +162,7 @@ export default {
       modelData: '',
 
       multOperation,
+      securityModuleRouter,
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -305,6 +307,14 @@ export default {
       return true
     },
     async dealDataBeforeSend() {
+      if (this.transFromType == 2) {
+        let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+        let isLocked = await securityModuleContract.isLocked(this.transFromAddress)
+        if (isLocked) {
+          Toast('Wallet is locked')
+          return
+        }
+      }
       const sendData = {
         toAddress: this.addressForRecipient,
         selectedToken: this.selectedToken,

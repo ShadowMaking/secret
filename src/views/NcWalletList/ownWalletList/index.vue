@@ -35,22 +35,15 @@
                 <el-tag>Creating</el-tag>
               </div>
               <div v-else-if="scope.row.wallet_status == walletStatus['Active']">
-                <el-tag type="success">Active</el-tag>
+                <el-tag v-if="scope.row.isInRecovery">Recovering</el-tag>
+                <el-tag type="info" v-else-if="scope.row.isLocked">Locked</el-tag>
+                <el-tag type="success" v-else>Active</el-tag>
               </div>
               <div v-else-if="scope.row.wallet_status == walletStatus['Fail']">
                 <el-tag type="danger">Fail</el-tag>
               </div>
-              <div v-else-if="scope.row.wallet_status == walletStatus['Freezing']">
-                <el-tag>Freezing</el-tag>
-              </div>
-              <div v-else-if="scope.row.wallet_status == walletStatus['Frozen']">
-                <el-tag type="info">Frozen</el-tag>
-              </div>
-              <div v-else-if="scope.row.wallet_status == walletStatus['Recovering']">
-                <el-tag>Recovering</el-tag>
-              </div>
-              <div v-else-if="scope.row.wallet_status == walletStatus['Unlocking']">
-                <el-tag>Unlocking</el-tag>
+              <div v-else>
+                <el-tag type="success">Active</el-tag>
               </div>
             </template>
         </el-table-column>
@@ -75,6 +68,7 @@
             <div class="setting-title">Payment Limit</div>
             <div class="setting-item-contet">
               <div class="setting-item-left">
+                <!-- <div class="setting-left-row" style="color: #c0c4cc"> -->
                 <div class="setting-left-row" style="color: #c0c4cc">
                   <p>Max per day</p>
                   <p><input type="number" v-model="maxPerDay"><label>ETH</label></p>
@@ -146,6 +140,7 @@ export default {
 
       showSettingPopup: false,
       showLoading: false,
+      currentRow: null,
 
       maxPerDay: '15',
       maxPerTransaction: '10',
@@ -195,13 +190,24 @@ export default {
       })
     },
     async openSetting(row) {
+      this.currentRow = row
       if (!getSupportNet()) {
         return
       }
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      this.getWalletInfo()
+    },
+    async getWalletInfo() {
+      let row = this.currentRow
       this.settingWallet = row.wallet_address
       let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      if (!securityModuleContract) {
-        this.showSettingPopup = true
+      let isLocked = await securityModuleContract.isLocked(this.settingWallet)
+      if (isLocked) {
+        Toast('Wallet is locked')
         return
       }
       securityModuleContract.getLockedSecurityPeriod(this.settingWallet).then(res => {
@@ -213,7 +219,7 @@ export default {
         Toast('Invalid wallet')
       })
       
-      securityModuleContract.getLockedSecurityPeriod(this.settingWallet).then(res => {
+      securityModuleContract.getRecoverySecurityPeriod(this.settingWallet).then(res => {
         console.log(res)
         this.recoveryExpiry = web3.utils.hexToNumber(res)/3600
         this.oldrecoveryExpiry = this.recoveryExpiry
@@ -243,7 +249,6 @@ export default {
       }).catch(error => {
         console.log(error)
       })
-      
     },
     async confirmPswOk({ show, psw }) {
       this.userPsw = psw; // password of user input for encrypt privateKey
@@ -282,20 +287,11 @@ export default {
 
       this.confirmPswBtnLoading = false
       this.showInputPswModal = false
-      if (this.settingType == 'paymentLimit') {
-        await this.paymentLimitSubmit()
-      } else if (this.settingType == 'securitySet') {
-        await this.securitySetSubmit()
-      }
+      this.getWalletInfo()
     },
     async settingSumbmit(type) {
       this.settingType = type
       // check privateKey whether is existed
-      const privateKey = await getDecryptPrivateKeyFromStore(this)
-      if (!privateKey) {
-        this.showInputPswModal = true;
-        return
-      }
       if (this.settingType == 'paymentLimit') {
         await this.paymentLimitSubmit()
       } else if (this.settingType == 'securitySet') {

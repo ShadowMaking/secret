@@ -74,7 +74,8 @@
                       </template>
                     </el-table-column>
                   </el-table>
-                  <div class="add-signer-tip">Any transaction requires the confirmation of: {{signerPercent}} out of {{signerTotal}} signer(s)</div>
+                  <div class="add-signer-tip" v-if="this.agreeRecoverNum >= this.signerPercent && !isInRecovery">{{agreeRecoverNum}} Signers have signed, please ask anyone of signers to trigger the recovery</div>
+                  <div class="add-signer-tip" v-else>Any transaction requires the confirmation of: {{signerPercent}} out of {{signerTotal}} signer(s)</div>
                 </div>
               </div>
               <div class="complete-box" v-show="activeStep==2"><!-- setp2 -->
@@ -415,10 +416,11 @@ export default {
           console.log(item.status == this.signerStatus['active'])
           return item.status == this.signerStatus['active']
         } else {
-          item.status == this.signerStatus['agreeRecover'] && (this.agreeRecoverNum = this.agreeRecoverNum + 1)
+          (item.status == this.signerStatus['agreeRecover']) && (this.agreeRecoverNum = this.agreeRecoverNum + 1)
           return (item.status == this.signerStatus['startRecover'] || item.status == this.signerStatus['agreeRecover'] || item.status == this.signerStatus['ignoreRecover'] || item.status == this.signerStatus['freezeRecover'])
         }
       });
+      console.log(this.agreeRecoverNum)
       // let newList = list
       console.log(newList)
       this.signerList = newList
