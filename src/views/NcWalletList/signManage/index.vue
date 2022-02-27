@@ -85,7 +85,6 @@ import InputPswModal from '@/components/InputPswModal'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import _ from 'lodash'
 import { timeSericeFormat } from '@/utils/str';
-import getRevertReason from 'eth-revert-reason';
 
 Vue.use(Toast);
 Vue.use(Loading);
@@ -175,11 +174,11 @@ export default {
         this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       }
       let isLocked = await this.securityModuleContract.isLocked(this.walletAddress)
-      if (isLocked) {
-        this.showLoading = false
-        Toast('Wallet is locked')
-        return
-      }
+      // if (isLocked) {
+      //   this.showLoading = false
+      //   Toast('Wallet is locked')
+      //   return
+      // }
       this.securityModuleContract.removeSigner(
         this.walletAddress, row.address).then(async tx=> {
          this.deleteSignerSubmit(row, tx.hash);
@@ -379,8 +378,6 @@ export default {
       Toast('Need Login')
       return
     }
-    // let sdfsd = await getRevertReason('0x6ea1798a2d0d21db18d6e45ca00f230160b05f172f6022aa138a0b605831d740')
-    // console.log(sdfsd)
     this.isRecover = this.$route.query.isRecover
     this.getSignerListByid()
 
