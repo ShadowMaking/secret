@@ -65,6 +65,10 @@
                     <i class="login-icon logo-google"></i>
                     <span>Continue with Google</span>
                   </div>
+                   <div class="opt-item van-hairline--bottom" @click="login('metamask')">
+                    <i class="login-icon logo-metamsk"></i>
+                    <span>Continue with Metamask</span>
+                  </div>
                 </div>
               </div>
               <template #reference>
@@ -189,15 +193,16 @@
 <script>
 import Vue from 'vue';
 import _ from 'lodash'
+import { ethers } from 'ethers'
 import { Header, Button } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
-import { Popup, Button as VanButton, Toast, Icon, Popover } from 'vant';
+import { Popup, Button as VanButton, Toast, Icon, Popover, Dialog } from 'vant';
 import WalletStatus from '@/components/WalletStatus';
 import NetTipModal from '@/components/NetTipModal';
 import InputPswModal from '@/components/InputPswModal'
 import { getSelectedChainID, getNetMode, getExpectNetTypeByRouteName, metamaskIsConnect, installWeb3Wallet, installWeb3WalletMetamask } from '@/utils/web3'
 import { copyTxt, isPc } from '@/utils/index';
-import { initTokenTime, updateLoginTime, removeTokens, tokenIsExpires, logout } from '@/utils/auth'
+import { initTokenTime, updateLoginTime, removeTokens, tokenIsExpires, logout, connectMetamask } from '@/utils/auth'
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
@@ -208,6 +213,7 @@ Vue.use(VanButton);
 Vue.use(Toast);
 Vue.use(Icon);
 Vue.use(Popover);
+Vue.use(Dialog);
 Vue.component(Header.name, Header)
 Vue.component(Button.name, Button)
 
@@ -510,23 +516,88 @@ export default {
       return { hasError: false, privateKey}
     },
     async login(type) {
+      Toast.loading({
+        duration: 0,
+        message: 'loading...',
+        forbidClick: true,
+        loadingType: 'spinner',
+      });
       if (type === 'google') {
-        Toast.loading({
-          duration: 0,
-          message: 'loading...',
-          forbidClick: true,
-          loadingType: 'spinner',
-        });
-        const loginRes = await this.$store.dispatch('GoogleLogin');
-        Toast.clear()
-        const { hasError, url } = loginRes;
-        if (hasError) {
-          this.showError = true
-          return
-        }
-        window.location.href = url
+        this.googleLogin()
+      } else if (type === 'metamask') {
+        this.metamaskLogin()
       }
-    }
+      
+      
+    },
+    async googleLogin() {
+      const loginRes = await this.$store.dispatch('GoogleLogin');
+      Toast.clear()
+      const { hasError, url } = loginRes;
+      if (hasError) {
+        this.showError = true
+        return
+      }
+      window.location.href = url
+    },
+    async metamaskLogin() {
+      if (!installWeb3WalletMetamask) {
+        this.openDialogInstallMetamask()
+        return
+      }
+      await ethereum.request({
+        method: 'wallet_requestPermissions',
+        params:  [{ "eth_accounts": {} }]
+      })
+      const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
+      const thisAccount = accounts[0]
+      let data = { address: thisAccount }
+      const metamaskRes = await this.$store.dispatch('metamaskLogin', data)
+      const metaMaskData = metamaskRes.data
+      if (metamaskRes.hasError) {
+        let toastMsg = metaMaskData && metaMaskData.message
+        Toast(toastMsg) 
+        return
+      }
+      const provider = new ethers.providers.Web3Provider(
+          window.ethereum,
+      )
+      const thisSigner = provider.getSigner()
+      const signNonce = metaMaskData && metaMaskData.data
+      const signature = await thisSigner.signMessage(signNonce)
+
+      const storageEmail = getFromStorage('metamaskFakeEmail')
+      const nowTime = new Date()
+      const fakeEmail = nowTime.getTime() + '@gmail.com.test'
+      let thisEmail = storageEmail ? storageEmail : fakeEmail
+      console.log(signature)
+      
+      const metamaskVerifyRes = await this.$store.dispatch('metamaskVerify', {
+        signature: signature,
+        address: thisAccount,
+        email: thisEmail
+      });
+      if (metamaskVerifyRes.hasError) {
+        return
+      }
+      saveToStorage('metamaskFakeEmail', fakeEmail)
+      console.log(metamaskVerifyRes)
+    },
+    openDialogInstallMetamask() {
+      Dialog.confirm({
+        message: 'Install Metamask?',
+        confirmButtonText: 'Confirm',
+        confirmButtonColor: '#4375f1',
+        cancelButtonText: 'Cancel'
+      })
+      .then(() => {
+        let url = 'https://metamask.io/'
+        window.open(url, '_blank');
+      })
+      .catch((error) => {
+        console.log(error)
+      });
+    },
   },
   async mounted() {
     /* this.$nextTick(() => { })
