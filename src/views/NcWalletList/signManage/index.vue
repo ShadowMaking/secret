@@ -37,7 +37,7 @@
                 <el-tag type="danger">Rejected</el-tag>
               </div>
               <div v-else-if="scope.row.status == signerStatus['freeze']">
-                <el-tag type="info">Freeze</el-tag>
+                <el-tag type="info">Locked</el-tag>
               </div>
               <div v-else>
                 <el-tag type="success">Active</el-tag>
@@ -173,7 +173,12 @@ export default {
       if (!this.securityModuleContract) {
         this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       }
-      
+      let isLocked = await this.securityModuleContract.isLocked(this.walletAddress)
+      // if (isLocked) {
+      //   this.showLoading = false
+      //   Toast('Wallet is locked')
+      //   return
+      // }
       this.securityModuleContract.removeSigner(
         this.walletAddress, row.address).then(async tx=> {
          this.deleteSignerSubmit(row, tx.hash);
@@ -230,8 +235,16 @@ export default {
       if (!this.securityModuleContract) {
         this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       }
+      let isLocked = await this.securityModuleContract.isLocked(this.walletAddress)
+      if (isLocked) {
+        this.showLoading = false
+        Toast('Wallet is locked')
+        return
+      }
+
       this.securityModuleContract.addSigner(
         this.walletAddress, address).then(async tx=> {
+          console.log(tx)
          this.addSignerSubmit(address, tx.hash);
          addTransHistory(tx, 'Add Signer', this)
          
@@ -239,7 +252,7 @@ export default {
           console.log('Add Signer:', res)
           this.showLoading = false
         })
-      }).catch(error => {
+      }).catch(async error => {
         this.showLoading = false
         let errorValue = formatErrorContarct(error)
         Toast.fail(errorValue)
@@ -249,7 +262,7 @@ export default {
     async confirmAddSigner(address) {
       this.currentOptType = 'addSigner'
       this.currentRecord = _.cloneDeep(address)
-     if (!address) {
+      if (!address) {
         Toast('Need Choose Signer')
         return
       }
@@ -266,7 +279,7 @@ export default {
         userId: this.userId,
         walletId: this.$route.params.id,
         address: address.toLocaleLowerCase(),
-        name: 'signer',
+        name: this.signList[0].wallet_name,
         txid: txHash
       }
       console.log(addData)

@@ -39,25 +39,29 @@
               </div>
               <div v-else-if="scope.row.wallet_status == walletStatus['Active']">
                 <el-tag v-if="scope.row.isInRecovery">Recovering</el-tag>
-                <el-tag type="info" v-else-if="scope.row.isLocked">Frozen</el-tag>
+                <el-tag type="info" v-else-if="scope.row.isLocked">Locked</el-tag>
                 <el-tag type="success" v-else>Active</el-tag>
               </div>
               <div v-else-if="scope.row.wallet_status == walletStatus['Fail']">
                 <el-tag type="danger">Fail</el-tag>
               </div>
+              <div v-else>
+                <el-tag type="success">Active</el-tag>
+              </div>
               <!-- old data -->
-              <div v-else-if="scope.row.wallet_status == walletStatus['Freezing']">
+              <!-- <div v-else-if="scope.row.wallet_status == walletStatus['Freezing']">
                 <el-tag>Freezing</el-tag>
               </div>
-              <div v-else-if="scope.row.wallet_status == walletStatus['Frozen']">
-                <el-tag type="info">Frozen</el-tag>
+              <div v-else-if="scope.row.wallet_status == walletStatus['Locked']">
+                <el-tag type="info">Locked</el-tag>
               </div>
               <div v-else-if="scope.row.wallet_status == walletStatus['Recovering']">
                 <el-tag>Recovering</el-tag>
               </div>
               <div v-else-if="scope.row.wallet_status == walletStatus['Unlocking']">
                 <el-tag>Unlocking</el-tag>
-              </div>
+              </div> -->
+
 
             </template>
         </el-table-column>
@@ -91,15 +95,18 @@
                   </div>
                 </div>
               </div>
-                <!-- old data -->
               <div v-else-if="scope.row.wallet_status == walletStatus['Fail']">
                 <el-tag type="danger">Fail</el-tag>
               </div>
-              <div v-else-if="scope.row.wallet_status == walletStatus['Freezing']">
+              <div v-else>
+                <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
+              </div>
+              <!-- old data -->
+              <!-- <div v-else-if="scope.row.wallet_status == walletStatus['Freezing']">
                 <el-tag>Freezing</el-tag>
               </div>
-              <div v-else-if="scope.row.wallet_status == walletStatus['Frozen']">
-                <el-tag type="info">Frozen</el-tag>
+              <div v-else-if="scope.row.wallet_status == walletStatus['Locked']">
+                <el-tag type="info">Locked</el-tag>
               </div>
               <div v-else-if="scope.row.wallet_status == walletStatus['Recovering']">
                 <el-tag>Recovering</el-tag>
@@ -107,7 +114,7 @@
               <div v-else-if="scope.row.wallet_status == walletStatus['Unlocking']">
                 <el-tag>Unlocking</el-tag>
               </div>
-
+ -->
               
 
               <!-- <div v-if="scope.row.status == signerStatus['confirmed']">
@@ -318,42 +325,22 @@ export default {
       }
     },
     async freezeWallet() {
-      if (!this.securityModuleContract) {
-        this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      this.currentOptType = 'freezeWalletSubmit'
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
       }
-      this.securityModuleContract.lock(
-          this.signRow.wallet_address,
-          this.overrides
-        ).then(async tx=> {
-          this.changeWalletSuccess(tx, 'Freezing', 'Freeze')
-          tx.wait().then(async res => {
-            console.log('Freeze:', res)
-          })
-      }).catch(error => {
-        console.log(error)
-        this.showLoading = false
-        let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
-      })
+      await this.dealDataBeforeFreezeWalletSubmit()
     },
     async unlockWallet() {
-      if (!this.securityModuleContract) {
-        this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      this.currentOptType = 'unlockWalletSubmit'
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
       }
-      this.securityModuleContract.unlock(
-          this.signRow.wallet_address,
-          this.overrides
-        ).then(async tx=> {
-          this.changeWalletSuccess(tx, 'Unlocking', 'Unlock')
-          tx.wait().then(async res => {
-            console.log('Unlock:', res)
-          })
-      }).catch(error => {
-        console.log(error)
-        this.showLoading = false
-        let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
-      })
+      await this.dealDataBeforeUnlockWalletSubmit()
     },
     changeWalletSuccess(res, status, operateType, isToast) {
       this.showLoading = false
@@ -583,6 +570,44 @@ export default {
       }
       await this.dealDataBeforeTriggerRecover()
     },
+    async dealDataBeforeFreezeWalletSubmit() {
+      let isLocked = await this.securityModuleContract.isLocked(this.signRow.wallet_address)
+      if (isLocked) {
+        this.showLoading = false
+        Toast('Wallet is already locked')
+        return
+      }
+      this.securityModuleContract.lock(
+          this.signRow.wallet_address,
+          this.overrides
+        ).then(async tx=> {
+          this.changeWalletSuccess(tx, 'Freezing', 'Freeze')
+          tx.wait().then(async res => {
+            console.log('Freeze:', res)
+          })
+      }).catch(error => {
+        console.log(error)
+        this.showLoading = false
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
+      })
+    },
+    async dealDataBeforeUnlockWalletSubmit() {
+      this.securityModuleContract.unlock(
+          this.signRow.wallet_address,
+          this.overrides
+        ).then(async tx=> {
+          this.changeWalletSuccess(tx, 'Unlocking', 'Unlock')
+          tx.wait().then(async res => {
+            console.log('Unlock:', res)
+          })
+      }).catch(error => {
+        console.log(error)
+        this.showLoading = false
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
+      })
+    },
     changeVisible() {
       this.showStatusPop = false;
     },
@@ -629,13 +654,20 @@ export default {
       this.confirmPswBtnLoading = false
       this.showInputPswModal = false
 
+      this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+
       if (this.currentOptType === 'singerSignMessage') {
         await this.dealDataBeforeSingerSignMessage()
       }
       if (this.currentOptType === 'triggerRecover') {
         await this.dealDataBeforeTriggerRecover()
       }
-      
+      if (this.currentOptType === 'FreezeWalletSubmit') {
+        await this.dealDataBeforeFreezeWalletSubmit()
+      }
+      if (this.currentOptType === 'unlockWalletSubmit') {
+        await this.dealDataBeforeUnlockWalletSubmit()
+      }
     },
     _handleNetworkChange({ chainInfo, from }) {
       if (from === 'sendMenu') { return }

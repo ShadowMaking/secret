@@ -5,7 +5,7 @@
       <div class="trans-detail-info">
         <div class="trans-item">
           <span class="trans-item-name">Transaction hash:</span>
-          <span class="trans-item-value">{{txHash}}</span>
+          <span class="trans-item-value" @click="copyAddress(txHash)">{{txHash}}</span>
         </div>
         <div class="trans-item">
           <span class="trans-item-name">Nonce:</span>
@@ -93,7 +93,7 @@
       @confirm="confirmSignMessage" />
     <v-confirmModal
       :show="showTradeConfirm"
-      type="Executed"
+      type="Execute"
       :metadata="sendMetadata"
       @close="showTradeConfirm=false"
       @reject="cancelExecuted"
@@ -122,7 +122,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import web3 from 'web3'
 
-import { formatErrorContarct } from '@/utils/index';
+import { copyTxt, formatErrorContarct } from '@/utils/index';
 
 Vue.use(Toast);
 Vue.use(Dialog);
@@ -195,6 +195,11 @@ export default {
   },
   
   methods: {
+    copyAddress(str) {
+      if (copyTxt(str)) {
+        Toast.success('Copied');
+      }
+    },
     backHistory() {
       this.$router.push({
         path: `/overview`,

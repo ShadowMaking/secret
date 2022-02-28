@@ -81,11 +81,11 @@ const walletStatus = {
   'init': 0,
   'Creating': 1,
   'Active': 2,
-  'Recovering': 3,
+  // 'Recovering': 3,
   'Fail': 4,
-  'Freezing': 5,
-  'Frozen': 6,
-  'Unlocking': 7,
+  // 'Freezing': 5,
+  // 'Locked': 6,
+  // 'Unlocking': 7,
 }
 
 const multOperation = {

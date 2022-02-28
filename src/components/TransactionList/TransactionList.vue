@@ -105,6 +105,7 @@ import Loading from '@/components/Loading';
 import Empty from '@/components/Empty/index';
 import { getCurrentProvider } from '@/utils/web3';
 import { copyTxt } from '@/utils/index';
+import {  getConnectedNet } from '@/utils/dashBoardTools'
 
 Vue.use(Toast)
 
@@ -165,15 +166,18 @@ export default {
     },
     showAddress(txt) { return subStrAddress(txt)},
     toPageDetail(record, type) {
+      let currentNetInfo = getConnectedNet()
+      let blockExplorerUrls = currentNetInfo.blockExplorerUrls[0]
       const { routeName, query } = getRouteNameAndQuery(record, type);
       let routerInfo = { name: routeName };
       query && (routerInfo['query'] = query);
-      console.log(routerInfo)
       let paramsStr = ''
       for(let k in routerInfo.query) {
         paramsStr += `&${k}=${routerInfo.query[k]}`
       }
-      const url = `https://explorer.ieigen.com/#/${routerInfo.name}?${paramsStr}`
+
+      const url = `${blockExplorerUrls}/tx/${routerInfo.query.tstr}`
+      // const url = `https://explorer.ieigen.com/#/${routerInfo.name}?${paramsStr}`
       window.open(url, '_blank')
     },
     async dealTransactionList() {
@@ -192,9 +196,9 @@ export default {
       })
     },
   },
-  // created(){
-  //   this.dealTransactionList()
-  // },
+  created(){
+    console.log(getConnectedNet())
+  },
 }
 </script>
 <style lang="scss" scoped>
