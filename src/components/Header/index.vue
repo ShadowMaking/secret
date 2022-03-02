@@ -419,7 +419,10 @@ export default {
       this.showAccountSetPopover = false
     },
     handleThirdLoginCallback(info) {
-      info.success && (this.gUName = info['userInfo'].name)
+      if (info.success) {
+        this.gUName = info['userInfo'].name
+        saveToStorage({ 'metamaskFakeEmail': info['userInfo'].email })
+      }
     },
     async handleBindingUserInfoAferThirdLogin(thirdloginInfo) {
       const userId  = thirdloginInfo.thirdUserId

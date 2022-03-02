@@ -67,11 +67,27 @@ export default {
       this.bindLoading = false;
       if (!hasError) {
         this.thirdLogindialogVisible = false
-        Toast('Bind Success')
-        saveToStorage({ 'metamaskFakeEmail': bindData.email })
+        Toast.loading({
+          duration: 0,
+          message: 'loading...',
+          forbidClick: true,
+          loadingType: 'spinner',
+        });
+        this.googleLogin()
+        // saveToStorage({ 'metamaskFakeEmail': bindData.email })
       } else {
         Toast(error)
       }
+    },
+    async googleLogin() {
+      const loginRes = await this.$store.dispatch('GoogleLogin');
+      Toast.clear()
+      const { hasError, url } = loginRes;
+      if (hasError) {
+        this.showError = true
+        return
+      }
+      window.location.href = url
     },
   },
   created() {
