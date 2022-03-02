@@ -3,6 +3,7 @@ import {
   getUserBindingInfoForThirdLogin,
   metamaskLogin,
   metamaskVerify,
+  metamaskGoogleBind,
 } from '@/api/thirdLogin'
 import {
   saveToStorage,
@@ -48,6 +49,16 @@ const thirdLogin = {
         metamaskVerify(params).then(response => {
           const vrifydata = response.data;
            resolve({ hasError: false, data: vrifydata })
+        }).catch(error => {
+          resolve({ hasError: true,  error });
+        })
+      })
+    },
+    metamaskGoogleBind({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        metamaskGoogleBind(params).then(response => {
+          const binddata = response.data;
+           resolve({ hasError: false, data: binddata })
         }).catch(error => {
           resolve({ hasError: true,  error });
         })

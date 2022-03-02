@@ -174,11 +174,11 @@ export default {
         this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       }
       let isLocked = await this.securityModuleContract.isLocked(this.walletAddress)
-      // if (isLocked) {
-      //   this.showLoading = false
-      //   Toast('Wallet is locked')
-      //   return
-      // }
+      if (isLocked) {
+        this.showLoading = false
+        Toast('Wallet is locked')
+        return
+      }
       this.securityModuleContract.removeSigner(
         this.walletAddress, row.address).then(async tx=> {
          this.deleteSignerSubmit(row, tx.hash);
@@ -236,11 +236,11 @@ export default {
         this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       }
       let isLocked = await this.securityModuleContract.isLocked(this.walletAddress)
-      if (isLocked) {
-        this.showLoading = false
-        Toast('Wallet is locked')
-        return
-      }
+      // if (isLocked) {
+      //   this.showLoading = false
+      //   Toast('Wallet is locked')
+      //   return
+      // }
 
       this.securityModuleContract.addSigner(
         this.walletAddress, address).then(async tx=> {

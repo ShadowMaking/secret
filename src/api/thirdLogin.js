@@ -34,3 +34,16 @@ export const metamaskVerify = (data) => {//{signature、email}
     data: data,
   })
 }
+
+export const metamaskGoogleBind = (data) => {//{fake_email、email}
+  const _data = {
+    fake_email: data.fake_email,
+    email: data.email,
+  }
+  const userId = data['userId']
+  return request({
+    url: `/api/user/${userId}/association`,
+    method: 'post',
+    data: _data,
+  })
+}

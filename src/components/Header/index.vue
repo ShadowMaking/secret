@@ -551,8 +551,8 @@ export default {
       })
       const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
       const thisAccount = accounts[0]
-      let data = { address: thisAccount }
-      const metamaskRes = await this.$store.dispatch('metamaskLogin', data)
+      let Logindata = { address: thisAccount }
+      const metamaskRes = await this.$store.dispatch('metamaskLogin', Logindata)
       const metaMaskData = metamaskRes.data
       if (metamaskRes.hasError) {
         let toastMsg = metaMaskData && metaMaskData.message
@@ -570,18 +570,19 @@ export default {
       const nowTime = new Date()
       const fakeEmail = nowTime.getTime() + '@gmail.com.test'
       let thisEmail = storageEmail ? storageEmail : fakeEmail
-      console.log(signature)
       
-      const metamaskVerifyRes = await this.$store.dispatch('metamaskVerify', {
+      const { hasError, data } = await this.$store.dispatch('metamaskVerify', {
         signature: signature,
         address: thisAccount,
         email: thisEmail
       });
-      if (metamaskVerifyRes.hasError) {
+      if (hasError) {
+        Toast('login failed')
         return
       }
-      saveToStorage('metamaskFakeEmail', fakeEmail)
-      console.log(metamaskVerifyRes)
+      let backUrl = data.data
+      saveToStorage({ 'metamaskFakeEmail': thisEmail })
+      window.location.href = backUrl
     },
     openDialogInstallMetamask() {
       Dialog.confirm({
