@@ -5,7 +5,7 @@
       width="360px"
       center
       :before-close="cancelBindLogin">
-      <div style="text-align:center">this module need to bind google email</div>
+      <div style="text-align:center">The google email should be bound to enable this feature</div>
       <span slot="footer" class="dialog-footer">
         <el-input 
           v-model="bindGoogleEmail" 
