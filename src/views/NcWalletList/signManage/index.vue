@@ -79,7 +79,7 @@ import LoadingPopup from '@/components/LoadingPopup';
 import {  isLogin, getContractAt, getConnectedAddress, getEncryptKeyByAddressFromStore, addTransHistory } from '@/utils/dashBoardTools'
 import { getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
-import { signerStatus, securityModuleRouter } from '@/utils/global';
+import { signerStatus, securityModuleRouter, lockType } from '@/utils/global';
 import { copyTxt, formatErrorContarct } from '@/utils/index';
 import InputPswModal from '@/components/InputPswModal'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
@@ -168,17 +168,18 @@ export default {
     async dealDataDeleteSigner() {
       const row = this.currentRecord
       console.log(row)
-      this.showLoading = true
-
       if (!this.securityModuleContract) {
         this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       }
-      let isLocked = await this.securityModuleContract.isLocked(this.walletAddress)
-      if (isLocked) {
-        this.showLoading = false
+      let lockStatus = await this.securityModuleContract.isLocked(this.walletAddress)
+      if (lockStatus == lockType['GlobalLock']) {
         Toast('Wallet is locked')
         return
+      } else if (lockStatus == lockType['signerChangeLock']) {
+        Toast('The signer cannot be changed frequently')
+        return
       }
+      this.showLoading = true
       this.securityModuleContract.removeSigner(
         this.walletAddress, row.address).then(async tx=> {
          this.deleteSignerSubmit(row, tx.hash);
@@ -231,17 +232,19 @@ export default {
     },
     async dealDataAddSigner() {
       const address = this.currentRecord
-      this.showLoading = true
+      
       if (!this.securityModuleContract) {
         this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       }
-      let isLocked = await this.securityModuleContract.isLocked(this.walletAddress)
-      // if (isLocked) {
-      //   this.showLoading = false
-      //   Toast('Wallet is locked')
-      //   return
-      // }
-
+      let lockStatus = await this.securityModuleContract.isLocked(this.walletAddress)
+      if (lockStatus == lockType['GlobalLock']) {
+        Toast('Wallet is locked')
+        return
+      } else if (lockStatus == lockType['signerChangeLock']) {
+        Toast('The signer cannot be changed frequently')
+        return
+      }
+      this.showLoading = true
       this.securityModuleContract.addSigner(
         this.walletAddress, address).then(async tx=> {
           console.log(tx)
