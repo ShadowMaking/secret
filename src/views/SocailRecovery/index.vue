@@ -40,6 +40,7 @@
         v-show="activeStepForSrecovery===3"
         @childEvent="completeCallback" />
     </div>
+    <v-bindGoogleModal/>
   </div>
 </template>
 <script>
@@ -51,6 +52,7 @@ import SecretKey from './components/SecretKey'
 import RecoveryType from './components/RecoveryType'
 import BackupList from './components/BackupList'
 import navTitle from '@/components/NavTitle/index'
+import BindGoogleModal from '@/components/BindGoogleModal/index'
 import _ from 'lodash'
 import { SecLevelEnum, generate_mnemonic, generate_key, split } from '@/utils/secretshare'
 
@@ -65,12 +67,14 @@ export default {
     'v-resultview': ResultView,
     'v-secretkey': SecretKey,
     "v-navTitle": navTitle,
+    "v-bindGoogleModal": BindGoogleModal,
     // 'v-recoverytype': RecoveryType,
   },
   data() {
     return {
       recoveryStr: '',
       activeStepForSrecovery: 0, // 0-Type 1-2FA 2-SecretKey 3-complete
+
     }
   },
   computed: {

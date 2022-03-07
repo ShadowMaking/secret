@@ -33,7 +33,7 @@
       </div>
       <v-inputPsw :show="showInputPswModal" :canCloseByBtn="true" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
     </div>
-    
+    <v-bindGoogleModal/>
   </div>
 </template>
 <script>
@@ -45,6 +45,7 @@ import InputPswModal from '@/components/InputPswModal'
 import {  isLogin, getDecryptPrivateKeyFromStore, getDecryptPrivateKeyFromStoreByAccount } from '@/utils/dashBoardTools'
 import { getInfoFromStorageByKey } from '@/utils/storage';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
+import BindGoogleModal from '@/components/BindGoogleModal/index'
 
 
 Vue.use(Toast);
@@ -73,6 +74,7 @@ export default {
   components: {
     "v-navTitle": navTitle,
     'v-inputPsw': InputPswModal,
+    "v-bindGoogleModal": BindGoogleModal,
   },
   
   methods: {

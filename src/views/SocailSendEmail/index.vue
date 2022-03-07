@@ -46,6 +46,7 @@
       key="thirdlogintip"
       :show="showThirdLoginTip"
       @childEvent="closeThirdLoginTip" />
+    <v-bindGoogleModal/>
   </div>
 </template>
 <script>
@@ -59,6 +60,7 @@ import StatusView from './Status'
 import '@/utils/gapi.js';
 import { SecLevelEnum, generate_mnemonic, generate_key, split, combine, setCustom } from '@/utils/secretshare'
 import ThirdLoginTip from '@/components/ThirdLoginTip';
+import BindGoogleModal from '@/components/BindGoogleModal/index'
 
 Vue.use(Toast)
 Vue.use(Popup)
@@ -75,6 +77,7 @@ export default {
     'v-confirmFriends': ConfirmFriends,
     'v-statusView': StatusView,
     'v-thirdlogintip': ThirdLoginTip,
+    "v-bindGoogleModal": BindGoogleModal,
   },
   data() {
     return {
