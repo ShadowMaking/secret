@@ -41,7 +41,7 @@ import None from '@/components/None/index'
 import Loading from '@/components/Loading'
 import { getFromStorage } from '@/utils/storage'
 import {  isLogin, getBalanceByAddress, getConnectedAddress, getContractAt, getConnectedNet  } from '@/utils/dashBoardTools';
-import { signerStatus, securityModuleRouter } from '@/utils/global';
+import { signerStatus, securityModuleRouter, lockType } from '@/utils/global';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { supportNetWorkForContract } from '@/utils/netWorkForToken'
 
@@ -135,11 +135,10 @@ export default {
         if (supportNetWorkForContract.indexOf(currentChainInfo.id) < 0) {
           return false
         }
-        let isLocked = await this.securityModuleContract.isLocked(list[i].wallet_address)
-        console.log("isLocked:" + isLocked)
+        let lockStatus = await this.securityModuleContract.isLocked(list[i].wallet_address)
+        console.log("lockStatus:" + lockStatus)
         // this.$set(dataSource[i], 'isLocked', isLocked)
-        
-        let thisIsLocked = isLocked ? isLocked : false
+        let thisIsLocked = (lockStatus == lockType['GlobalLock']) ? true : false
         this.$set(list[i], 'isLocked', thisIsLocked)
         let isInRecovery = await this.securityModuleContract.isInRecovery(list[i].wallet_address)
         console.log("isInRecovery:" + isInRecovery)

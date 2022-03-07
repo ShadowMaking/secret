@@ -175,9 +175,9 @@ export default {
       for(let k in routerInfo.query) {
         paramsStr += `&${k}=${routerInfo.query[k]}`
       }
-
-      const url = `${blockExplorerUrls}/tx/${routerInfo.query.tstr}`
       // const url = `https://explorer.ieigen.com/#/${routerInfo.name}?${paramsStr}`
+      let paramsValue = this.getRouteValue(type, record)
+      const url = `${blockExplorerUrls}/${routerInfo.name}/${paramsValue}`
       window.open(url, '_blank')
     },
     async dealTransactionList() {
@@ -188,6 +188,27 @@ export default {
         this.newtransactionList[index].from = (fromens ? fromens : item.from)
         this.newtransactionList[index].to = (toens ? toens : item.to)
       })
+    },
+    getRouteValue(type, record) {
+      let paramsValue;
+      switch(type) {
+        case 'hash':
+          paramsValue = record['hash']
+          break;
+        case 'block':
+          paramsValue = record['blockNumber']
+          break;
+        case 'from':
+          paramsValue = record['from']
+          break;
+        case 'to':
+          paramsValue = record['to']
+          break;
+        default:
+          paramsValue = record['hash']
+          break;
+      }
+      return paramsValue
     },
     goTransDetail(row) {
       console.log(row)

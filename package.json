@@ -29,7 +29,6 @@
     "ecies-utils": "^1.0.1",
     "element-ui": "^2.6.1",
     "elliptic": "^6.5.4",
-    "eth-revert-reason": "^1.0.3",
     "ethers": "^5.0.24",
     "js-cookie": "^2.2.0",
     "lodash": "^4.17.21",

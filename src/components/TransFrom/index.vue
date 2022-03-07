@@ -29,7 +29,7 @@ import Vue from 'vue';
 import { getConnectedAddress, getContractAt } from '@/utils/dashBoardTools';
 import { getFromStorage } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json"
-import { securityModuleRouter, walletStatus } from '@/utils/global';
+import { securityModuleRouter, walletStatus, lockType } from '@/utils/global';
 
 export default {
   name: 'selectItem',
@@ -91,7 +91,8 @@ export default {
       let isLocked = false, isInRecovery = false;
       list.map(async item =>{
         if (this.securityModuleContract) {
-          isLocked = await this.securityModuleContract.isLocked(item.wallet_address)
+          let lockStatus = await this.securityModuleContract.isLocked(item.wallet_address)
+          isLocked = (lockStatus == lockType['GlobalLock']) ? true : false
           isInRecovery = await this.securityModuleContract.isInRecovery(item.wallet_address)
         }
         if (isLocked || isInRecovery || item.wallet_status !== walletStatus['Active']) {return}

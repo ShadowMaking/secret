@@ -363,3 +363,17 @@ export const getIsCanTransaction = async (transactionValue, transactionAddPrice)
   }
   return true
 }
+
+// multicall get signmessage
+// params is Array or Object
+export const getMultSignMessage = async (destinationAddr, value, data, nonce) => {
+  const input = `0x${[
+      "0x19",
+      "0x00",
+      destinationAddr,
+      ethers.utils.hexZeroPad(ethers.utils.hexlify(value), 32),
+      data,
+      ethers.utils.hexZeroPad(ethers.utils.hexlify(nonce), 32),
+  ].map((hex) => hex.slice(2)).join("")}`;
+  return ethers.utils.keccak256(input)
+}

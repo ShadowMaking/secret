@@ -34,7 +34,7 @@ export default {
   },
   data() {
     return {
-      showPopup: false
+      showPopup: this.show
     }
   },
   watch: {

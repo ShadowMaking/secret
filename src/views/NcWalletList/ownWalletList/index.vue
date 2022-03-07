@@ -69,7 +69,7 @@
             <div class="setting-item-contet">
               <div class="setting-item-left">
                 <!-- <div class="setting-left-row" style="color: #c0c4cc"> -->
-                <div class="setting-left-row" style="color: #c0c4cc">
+                <div class="setting-left-row">
                   <p>Max per day</p>
                   <p><input type="number" v-model="maxPerDay"><label>ETH</label></p>
                 </div>
@@ -106,23 +106,32 @@
     </van-popup>
     <v-loadingPopup :show="showLoading" :showSpinner="false" />
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
+    <v-statusPop
+      :status="popStatus"
+      :title="statusPopTitle"
+      :timeTxt="timeTxt"
+      tip=""
+      :show="showStatusPop"
+      @childEvent="changeVisible" />
   </div>
 </template>
 <script>
 import Vue from 'vue';
 import { Toast, Popup } from 'vant';
-import { saveToStorage, getInfoFromStorageByKey } from '@/utils/storage'
+import { saveToStorage, getInfoFromStorageByKey, getFromStorage } from '@/utils/storage'
 import { copyTxt, formatErrorContarct } from '@/utils/index';
-import { walletStatus, securityModuleRouter, walletTransactionRouter } from '@/utils/global';
+import { walletStatus, securityModuleRouter, walletTransactionRouter, multOperation, lockType } from '@/utils/global';
 import { timeSericeFormat } from '@/utils/str';
 import web3 from 'web3'
 import LoadingPopup from '@/components/LoadingPopup';
 import { BigNumber } from "bignumber.js";
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import TransactionModule from "@/assets/contractJSON/TransactionModule.json";
-import { getContractAt, addTransHistory, getDecryptPrivateKeyFromStore, getConnectedAddress, getEncryptKeyByAddressFromStore, getSupportNet } from '@/utils/dashBoardTools'
+import { getContractAt, addTransHistory, getDecryptPrivateKeyFromStore, getConnectedAddress, getEncryptKeyByAddressFromStore, getSupportNet, getConnectedNet, getDATACode } from '@/utils/dashBoardTools'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import InputPswModal from '@/components/InputPswModal'
+
+import StatusPop from '@/components/StatusPop';
 
 
 
@@ -165,11 +174,17 @@ export default {
       confirmPswBtnLoading: false,
       showInputPswModal: false,
       // ***************** inputPsw end ***************** //
+
+      popStatus: "success",
+      statusPopTitle: 'Submitted Success',
+      timeTxt: '',
+      showStatusPop: false,
     }
   },
   components: {
     'v-loadingPopup': LoadingPopup,
     'v-inputPsw': InputPswModal,
+    'v-statusPop': StatusPop,
   },
   methods: {
     formatterTime(row) {
@@ -205,8 +220,9 @@ export default {
       let row = this.currentRow
       this.settingWallet = row.wallet_address
       let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      let isLocked = await securityModuleContract.isLocked(this.settingWallet)
-      if (isLocked) {
+      let lockStatusHex = await securityModuleContract.isLocked(this.settingWallet)
+      let lockStatus = web3.utils.hexToNumber(lockStatusHex)
+      if (lockStatus == lockType['GlobalLock']) {
         Toast('Wallet is locked')
         return
       }
@@ -308,30 +324,44 @@ export default {
         return
       }
       this.showLoading = true
-      let transactionModuleContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: TransactionModule.abi }, this)
-      console.log(transactionModuleContract)
-      console.log(this.maxPerDay)
+      
       let dailyWei = web3.utils.toWei(this.maxPerDay, 'ether')
-      console.log(dailyWei)
-      console.log(web3.utils.toHex(dailyWei))
       let perTransWei = web3.utils.toWei(this.maxPerTransaction, 'ether')
-      console.log(perTransWei)
-      transactionModuleContract.setTMParametar(this.settingWallet, web3.utils.toHex(dailyWei), web3.utils.toHex(perTransWei)).then(tx => {
-        this.showLoading = false
-        Toast('Submitted Success')
-        console.log(tx)
-        addTransHistory(tx, 'Payment Limit', this)
-        tx.wait().then(async res=>{
-          console.log(res)
-        }).catch(error => {
-          console.log(error)
-        })
-      }).catch(error => {
-        console.log(error)
-        this.showLoading = false
-        let errorValue = formatErrorContarct(error)
-        Toast(errorValue)
-      })
+      let datacode = getDATACode(TransactionModule.abi, 'setTMParameter', [this.settingWallet, web3.utils.toHex(dailyWei), web3.utils.toHex(perTransWei)])
+      const submitData = {
+        user_id: getFromStorage('gUID'),
+        wallet_address: this.settingWallet,
+        to: this.walletTransactionRouter,
+        value: 0,
+        network_id: getConnectedNet().id,
+        data: datacode,
+        operation: multOperation['setMaxPerParametar']
+      }
+      this.addMultOperation(submitData)
+      // let transactionModuleContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: TransactionModule.abi }, this)
+      // console.log(transactionModuleContract)
+      // console.log(this.maxPerDay)
+      // let dailyWei = web3.utils.toWei(this.maxPerDay, 'ether')
+      // console.log(dailyWei)
+      // console.log(web3.utils.toHex(dailyWei))
+      // let perTransWei = web3.utils.toWei(this.maxPerTransaction, 'ether')
+      // console.log(perTransWei)
+      // transactionModuleContract.setTMParametar(this.settingWallet, web3.utils.toHex(dailyWei), web3.utils.toHex(perTransWei)).then(tx => {
+      //   this.showLoading = false
+      //   Toast('Submitted Success')
+      //   console.log(tx)
+      //   addTransHistory(tx, 'Payment Limit', this)
+      //   tx.wait().then(async res=>{
+      //     console.log(res)
+      //   }).catch(error => {
+      //     console.log(error)
+      //   })
+      // }).catch(error => {
+      //   console.log(error)
+      //   this.showLoading = false
+      //   let errorValue = formatErrorContarct(error)
+      //   Toast(errorValue)
+      // })
     },
     async securitySetSubmit() {
       if (!this.lockExpiry || !this.recoveryExpiry) {
@@ -343,24 +373,61 @@ export default {
         return
       }
       this.showLoading = true
-      let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      console.log(web3.utils.toHex(this.lockExpiry))
-      securityModuleContract.setSecurityPeriod(this.settingWallet, web3.utils.toHex(this.lockExpiry * 3600), web3.utils.toHex(this.recoveryExpiry * 3600)).then(tx => {
-        this.showLoading = false
-        Toast('Submitted Success')
-        console.log(tx)
-        addTransHistory(tx, 'Security Setting', this)
-        tx.wait().then(async res=>{
-          console.log(res)
-        }).catch(error => {
-          console.log(error)
-        })
-      }).catch(error => {
-        console.log(error)
-        this.showLoading = false
-        let errorValue = formatErrorContarct(error)
-        if(!errorValue) {errorValue = 'failed'}
-        Toast(errorValue)
+
+      let lockExpiryHex = web3.utils.toHex(this.lockExpiry * 3600)
+      let recoveryExpiryHex = web3.utils.toHex(this.recoveryExpiry * 3600)
+      let datacode = getDATACode(SecurityModule.abi, 'setSecurityPeriod', [this.settingWallet, lockExpiryHex, recoveryExpiryHex])
+
+      const submitData = {
+        user_id: getFromStorage('gUID'),
+        wallet_address: this.settingWallet,
+        to: this.securityModuleRouter,
+        value: 0,
+        network_id: getConnectedNet().id,
+        data: datacode,
+        operation: multOperation['setSecurityPeriod']
+      }
+      this.addMultOperation(submitData)
+      // let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      // console.log(web3.utils.toHex(this.lockExpiry))
+      // securityModuleContract.setSecurityPeriod(this.settingWallet, web3.utils.toHex(this.lockExpiry * 3600), web3.utils.toHex(this.recoveryExpiry * 3600)).then(tx => {
+      //   this.showLoading = false
+      //   Toast('Submitted Success')
+      //   console.log(tx)
+      //   addTransHistory(tx, 'Security Setting', this)
+      //   tx.wait().then(async res=>{
+      //     console.log(res)
+      //   }).catch(error => {
+      //     console.log(error)
+      //   })
+      // }).catch(error => {
+      //   console.log(error)
+      //   this.showLoading = false
+      //   let errorValue = formatErrorContarct(error)
+      //   if(!errorValue) {errorValue = 'failed'}
+      //   Toast(errorValue)
+      // })
+    },
+    async addMultOperation(data) {
+      const res = await this.$store.dispatch('addMultTx', data);
+      this.showLoading = false
+      if (res.hasError) {
+        this.showStatusPop = true;
+        this.statusPopTitle = 'Submitted Failed"'
+        this.popStatus = 'fail';
+        console.log('Transaction success，but error when add history')
+      } else  {
+        this.showStatusPop = true;
+        this.statusPopTitle = 'Please waiting for another signer to confirm the transaction in "Overview-History-Multisig Wallt"'
+        this.popStatus = 'success';
+        this.$eventBus.$emit('addTransactionHistory')
+      }
+    },
+    changeVisible(eventInfo) {
+      this.showStatusPop = eventInfo.show;
+      this.$router.push({
+          path: `/overview`,
+          query: {tabActive: 1},
       })
     },
   },

@@ -164,7 +164,7 @@ import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { getContractAt, getConnectedAddress, getContractWallet, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory, getEstimateGas, getBalanceByAddress } from '@/utils/dashBoardTools'
 import WalletJson from "@/assets/contractJSON/Wallet.json";
-import { signerStatus, securityModuleRouter, walletStatus, multOperation } from '@/utils/global';
+import { signerStatus, securityModuleRouter, walletStatus, multOperation, lockType } from '@/utils/global';
 import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
 import SignMessageModal from '@/components/SignMessageModal';
@@ -571,8 +571,8 @@ export default {
       await this.dealDataBeforeTriggerRecover()
     },
     async dealDataBeforeFreezeWalletSubmit() {
-      let isLocked = await this.securityModuleContract.isLocked(this.signRow.wallet_address)
-      if (isLocked) {
+      let lockStatus = await this.securityModuleContract.isLocked(this.signRow.wallet_address)
+      if (lockStatus == lockType['GlobalLock']) {
         this.showLoading = false
         Toast('Wallet is already locked')
         return
