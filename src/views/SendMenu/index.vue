@@ -586,6 +586,10 @@ export default {
         Toast('Cannot execute large transactions frequently')
         return
       }
+      if (lockStatus !== lockType['noLock']) {
+        Toast('Wallet is locked')
+        return
+      }
       const submitData = {
         user_id: getFromStorage('gUID'),
         wallet_address: this.transFromAddress,
