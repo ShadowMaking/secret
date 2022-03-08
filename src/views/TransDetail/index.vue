@@ -238,8 +238,9 @@ export default {
       
       let hasSignLength = 0
       this.allSignMessageHash = "0x";
+      console.log(list)
       list.sort(function(a, b){ 
-          return a.address - b.address 
+        return a.signer_address.toLocaleLowerCase() - b.signer_address.toLocaleLowerCase() 
       })
       for (var i = 0; i<list.length; i++) {
         if (list[i].signer_address == this.currenntOwnerAddress) {
@@ -253,7 +254,10 @@ export default {
       }
       this.signerList = list
       this.signerLength = this.signerList.length
-      if (hasSignLength/this.signerLength >= 1/2) {
+      // console.log(this.signerLength)
+      // console.log(hasSignLength)
+      // console.log(hasSignLength/this.signerLength)
+      if (hasSignLength/this.signerLength > 1/2) {
         this.isCanExcute = true
       }
     },
