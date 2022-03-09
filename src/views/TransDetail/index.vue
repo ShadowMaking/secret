@@ -235,29 +235,26 @@ export default {
     },
     async getSigerMessages() {
       const { hasError, list } = await this.$store.dispatch('getSigerMessages', this.mtxid)
-      
       let hasSignLength = 0
       this.allSignMessageHash = "0x";
-      console.log(list)
       list.sort(function(a, b){ 
         return a.signer_address.toLocaleLowerCase() - b.signer_address.toLocaleLowerCase() 
       })
-      for (var i = 0; i<list.length; i++) {
-        if (list[i].signer_address == this.currenntOwnerAddress) {
-          list.splice(i, 1)
-        } else {
-          if (list[i].sign_message) {
-            hasSignLength = hasSignLength + 1
-            this.allSignMessageHash = this.allSignMessageHash + list[i].sign_message.slice(2)
-          }
+      let thisSignerList = list
+      for (var i = 0; i<thisSignerList.length; i++) {
+        if (thisSignerList[i].signer_address == this.currenntOwnerAddress) {
+          thisSignerList.splice(i, 1)
+        }
+      }
+      for (var i = 0; i<thisSignerList.length; i++) {
+        if (thisSignerList[i].sign_message) {
+          hasSignLength = hasSignLength + 1
+          this.allSignMessageHash = this.allSignMessageHash + thisSignerList[i].sign_message.slice(2)
         }
       }
       this.signerList = list
       this.signerLength = this.signerList.length
-      // console.log(this.signerLength)
-      // console.log(hasSignLength)
-      // console.log(hasSignLength/this.signerLength)
-      if (hasSignLength/this.signerLength > 1/2) {
+      if (hasSignLength/this.signerLength >= 1/2) {
         this.isCanExcute = true
       }
     },
