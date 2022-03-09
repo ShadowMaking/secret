@@ -62,6 +62,7 @@ import InputPswModal from '@/components/InputPswModal'
 import LoadingPopup from '@/components/LoadingPopup';
 import { formatTrim, objHasOwnProperty } from '@/utils/str';
 import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey } from '@/utils/relayUtils'
+import web3 from 'web3'
 
 Vue.use(Field)
 Vue.use(Popup)
@@ -207,10 +208,15 @@ export default {
       const encryptPrivateKeyPublicKey = generateEncryptPrivateKeyByPublicKey(this.publicKey, privateKey)
       this.encryptPrivateKeyPublicKey = encryptPrivateKeyPublicKey;
       console.log('encryptPrivateKeyPublicKey', encryptPrivateKeyPublicKey)
-      
-      const { hasError: encryptError, data: encryptPrivateKey } = await this.$store.dispatch('EncryptPrivateKeyByEcies', { userId, c1: this.encryptPrivateKeyPublicKey, cc1: this.encryptPsw }) 
+      let userpswHex = web3.utils.toHex(this.userPsw)
+      const { hasError: encryptError, data: encryptPrivateKey, error: errorMsg } = await this.$store.dispatch('EncryptPrivateKeyByEcies', { userId, c1: this.encryptPrivateKeyPublicKey, cc1: this.encryptPsw, hash: ethers.utils.sha256(userpswHex) }) 
       if (encryptError) {
-        Toast('EncrpytKey Failed', 5)
+        this.showLoading = false
+        if (errorMsg) {
+          Toast(errorMsg, 5)
+        } else {
+          Toast('EncrpytKey Failed', 5)
+        }
         return
       }
       const { hasError } = await this.$store.dispatch('UploadEncrpytKeyByAddress', { userId, address, encryptKey: encryptPrivateKey })

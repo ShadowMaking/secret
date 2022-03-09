@@ -44,6 +44,7 @@ import { getQueryString, getLocationParam } from '@/utils/index'
 import InputPswModal from '@/components/InputPswModal'
 import { getInfoFromStorageByKey } from '@/utils/storage'
 import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
+import web3 from 'web3'
 
 Vue.use(Button);
 
@@ -93,12 +94,18 @@ export default {
       const encryptPrivateKeyPublicKey = generateEncryptPrivateKeyByPublicKey(this.publicKey, privateKey)
       this.encryptPrivateKeyPublicKey = encryptPrivateKeyPublicKey;
       console.log('encryptPrivateKeyPublicKey', encryptPrivateKeyPublicKey)
-
-      const { hasError: encryptError, data: encryptPrivateKey } = await this.$store.dispatch('EncryptPrivateKeyByEcies', { userId, c1: this.encryptPrivateKeyPublicKey, cc1: this.encryptPsw }) 
+      
+      let userpswHex = web3.utils.toHex(this.userPsw)
+      const { hasError: encryptError, data: encryptPrivateKey, error: errorMsg } = await this.$store.dispatch('EncryptPrivateKeyByEcies', { userId, c1: this.encryptPrivateKeyPublicKey, cc1: this.encryptPsw, hash: ethers.utils.sha256(userpswHex) }) 
+      
       if (encryptError) {
         this.clearLoading()
         this.showInputPswModal = true;
-        return { hasError: true, msg:  'EncrpytKey Failed! Retry!'}
+        if (errorMsg) {
+          return { hasError: true, msg:  errorMsg}
+        } else {
+          return { hasError: true, msg:  'EncrpytKey Failed! Retry!'}
+        }
       }
 
       const { hasError } = await this.$store.dispatch('UploadEncrpytKeyByAddress', { userId, address, encryptKey: encryptPrivateKey })
