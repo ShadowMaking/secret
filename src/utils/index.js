@@ -162,5 +162,8 @@ export const formatErrorContarct = (error) => {
     let errParse2 = errorBodyParse.error
     errorValue = errParse2.message
   }
+  if (errorValue.indexOf('insufficient funds') > -1) {
+    errorValue = 'Insufficient Funds'
+  }
   return errorValue
 }

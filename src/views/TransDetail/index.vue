@@ -111,7 +111,7 @@ import _ from 'lodash';
 import navTitle from '@/components/NavTitle/index'
 import { Toast, Dialog } from 'vant'
 import { ethers } from 'ethers'
-import {  isLogin, getConnectedAddress, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore, getContractWallet, getContractAt, addTransHistory, initRPCProvider, getConnectedNet, getDATACode, getMultSignMessage, getEstimateGas} from '@/utils/dashBoardTools'
+import {  isLogin, getConnectedAddress, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore, getContractWallet, getContractAt, addTransHistory, initRPCProvider, getConnectedNet, getDATACode, getMultSignMessage, getEstimateGas,getBalanceByAddress} from '@/utils/dashBoardTools'
 import { timeFormat, timeSericeFormat } from '@/utils/str'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import { signerStatus, walletTransactionRouter, securityModuleRouter, multOperation } from '@/utils/global'
@@ -337,6 +337,12 @@ export default {
     },
     async ownerExecutedSubmit() {
       let estimatedGasFee = await getEstimateGas('gasUsed', 5000000000)
+      const selectedConnectAddress = getConnectedAddress()
+      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      if (connectBalance < estimatedGasFee) {
+        Toast('Insufficient Funds')
+        return
+      }
       let thisGasPrice = this.overrides.gasPrice.toString()
       let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
       this.sendMetadata = {

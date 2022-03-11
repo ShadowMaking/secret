@@ -194,7 +194,7 @@ export default {
       let estimatedGasFee = await getEstimateGas('gasUsed', 20000000000) * 10
       console.log(connectBalance)
       if (connectBalance < estimatedGasFee) {
-        Toast('Not Enough ETH')
+        Toast('Insufficient Funds')
         this.isHasClick = false
         return
       }
@@ -219,7 +219,7 @@ export default {
       const selectedConnectAddress = getConnectedAddress()
       const connectBalance = await getBalanceByAddress(selectedConnectAddress)
       if (connectBalance < 0) {
-        Toast('Not Enough ETH')
+        Toast('Insufficient Funds')
         this.isHasClick = false
         return
       }
