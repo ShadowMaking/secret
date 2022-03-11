@@ -19,4 +19,15 @@
       color: #999;
     }
   }
+  .wallet-info-item {
+    line-height: 25px;
+    color: #9E9E9E;
+    .wallet-info-label {
+      font-size: 0.96rem;
+      margin-right: 10px;
+    }
+    .wallet-info-value {
+      font-size: 0.96rem;
+    }
+  }
 }

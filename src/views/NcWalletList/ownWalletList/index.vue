@@ -50,7 +50,7 @@
         <el-table-column
           label="Signer">
             <template slot-scope="scope">
-              <el-button @click="handleClick(scope.row)" type="text" size="small">Details</el-button>
+              <el-button @click="handleClick(scope.row)" type="text" size="small">{{scope.row.signer_count}}</el-button>
             </template>
         </el-table-column>
 

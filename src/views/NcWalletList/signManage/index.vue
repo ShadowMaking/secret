@@ -2,6 +2,24 @@
   <div class="signManage-page">
     <v-navTitle title="Signer" :backIcon="true" :backEvent="backEvent"></v-navTitle >
     <div class="sign-manage-des">Non-custodial Wallet is the most reliable asset management method. It confirms each transaction by setting up one or more signers to make asset transactions more secure.</div>
+    <div class="wallet-info">
+        <div class="wallet-info-item">
+          <span class="wallet-info-label">Wallet Name:</span>
+          <span class="wallet-info-value">{{signList.length>0 && signList[0].wallet_name || '--'}}</span>
+        </div>
+        <div class="wallet-info-item">
+          <span class="wallet-info-label">Wallet Address:</span>
+          <span class="wallet-info-value" @click="copyAddress(signList[0].wallet_address)">{{signList.length>0 && signList[0].wallet_address  || '--'}}</span>
+        </div>
+        <div class="wallet-info-item">
+          <span class="wallet-info-label">Create Time:</span>
+          <span class="wallet-info-value">{{signList.length>0 && signList[0].createdAt  || '--'}}</span>
+        </div>
+        <div class="wallet-info-item">
+          <span class="wallet-info-label">Balance:</span>
+          <span class="wallet-info-value">{{walletBalance}}</span>
+        </div>
+    </div>
     <div class="signlist-wrapper" >
       <el-table
         :data="signList"
@@ -143,6 +161,8 @@ export default {
       },
       currentChainInfo: null,
       defaultNetWork: '',
+
+      walletBalance: 0,
     }
   },
   components: {
@@ -372,7 +392,11 @@ export default {
       this.signList = list
       this.signerTotal = list.length
       this.signerPercent = Math.ceil(this.signerTotal/2)
+      this.getWalletBalance()
       // this.getIsFreeze(list)
+    },
+    async getWalletBalance() {
+      this.walletBalance = await getBalanceByAddress(this.signList[0].wallet_address)
     },
     async getIsFreeze(list) {//todo判断是否isHasFreeze
       
