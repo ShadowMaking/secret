@@ -254,7 +254,7 @@ export default {
       }
       
       var walletTime = new Date(this.walletCreatTime).getTime()
-      var canTime = new Date('2022-03-12 07:50:40.092 +00:00').getTime()
+      var canTime = new Date('2022-03-12 07:50:40').getTime()
       if (walletTime < canTime) {
         this.showLoading = false
         Toast('Invalid wallet')
