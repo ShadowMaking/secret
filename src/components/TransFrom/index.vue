@@ -91,8 +91,15 @@ export default {
       let isLocked = false, isInRecovery = false;
       list.map(async item =>{
         if (this.securityModuleContract) {
-          let lockStatus = await this.securityModuleContract.isLocked(item.wallet_address)
-          isLocked = (lockStatus == lockType['GlobalLock']) ? true : false
+
+          var walletTime = new Date(item.createdAt).getTime()
+          var canTime = new Date('2022-03-12 07:50:40.092 +00:00').getTime()
+          let lockStatus = 0
+          if (walletTime >= canTime) {
+            lockStatus = await this.securityModuleContract.isLocked(item.wallet_address)
+          }
+
+          isLocked = (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) ? true : false
           isInRecovery = await this.securityModuleContract.isInRecovery(item.wallet_address)
         }
         if (isLocked || isInRecovery || item.wallet_status !== walletStatus['Active']) {return}

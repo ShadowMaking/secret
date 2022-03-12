@@ -13,7 +13,7 @@
         </div>
         <div class="wallet-info-item">
           <span class="wallet-info-label">Create Time:</span>
-          <span class="wallet-info-value">{{signList.length>0 && signList[0].createdAt  || '--'}}</span>
+          <span class="wallet-info-value">{{walletCreatTime}}</span>
         </div>
         <div class="wallet-info-item">
           <span class="wallet-info-label">Balance:</span>
@@ -163,6 +163,7 @@ export default {
       defaultNetWork: '',
 
       walletBalance: 0,
+      walletCreatTime: '--',
     }
   },
   components: {
@@ -251,8 +252,17 @@ export default {
       if (!this.securityModuleContract) {
         this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       }
+      
+      var walletTime = new Date(this.walletCreatTime).getTime()
+      var canTime = new Date('2022-03-12 07:50:40.092 +00:00').getTime()
+      if (walletTime < canTime) {
+        this.showLoading = false
+        Toast('Invalid wallet')
+        return
+      }
+
       let lockStatus = await this.securityModuleContract.isLocked(this.walletAddress)
-      if (lockStatus == lockType['GlobalLock']) {
+      if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
         Toast('Wallet is locked')
         return
       } else if (lockStatus == lockType['signerChangeLock']) {
@@ -317,8 +327,17 @@ export default {
       if (!this.securityModuleContract) {
         this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       }
+
+      var walletTime = new Date(this.walletCreatTime).getTime()
+      var canTime = new Date('2022-03-12 07:50:40.092 +00:00').getTime()
+      if (walletTime < canTime) {
+        this.showLoading = false
+        Toast('Invalid wallet')
+        return
+      }
+      
       let lockStatus = await this.securityModuleContract.isLocked(this.walletAddress)
-      if (lockStatus == lockType['GlobalLock']) {
+      if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner'] ) {
         Toast('Wallet is locked')
         return
       } else if (lockStatus == lockType['signerChangeLock']) {
@@ -397,6 +416,7 @@ export default {
     },
     async getWalletBalance() {
       this.walletBalance = await getBalanceByAddress(this.signList[0].wallet_address)
+      this.walletCreatTime = timeSericeFormat(this.signList[0].createdAt, 'yyyy-MM-dd hh:mm:ss')
     },
     async getIsFreeze(list) {//todo判断是否isHasFreeze
       

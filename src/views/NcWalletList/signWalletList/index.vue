@@ -145,8 +145,8 @@
       type="Recover Wallet"
       :metadata="sendMetadata"
       @close="showTradeConfirm=false"
-      @reject="cancelTriggerRecover"
-      @confirm="confirmTriggerRecover" />
+      @reject="cancelConfirmModal"
+      @confirm="okConfirmModal" />
     <v-signMessageModal
       :show="showSignMessageModal"
       :metadata="signMessageMetadata"
@@ -293,14 +293,15 @@ export default {
     async dialogConfirm(status, isContaract) {
       if (isContaract) {
         if (status == this.signerStatus['agreeRecover']) {
-          this.singerSignMessage(status)
+          this.currentOptType = 'singerSignMessage'
         } else if (status == this.signerStatus['triggerRecover']) {
-          this.isCanTriggerRecover()
+          this.currentOptType = 'triggerRecover'
         } else if (status == this.signerStatus['freeze']) {
-          this.freezeWallet()
+          this.currentOptType = 'freezeWalletSubmit'
         } else if(status == 'Unlock') {
-          this.unlockWallet()
+          this.currentOptType = 'unlockWalletSubmit'
         }
+        this.isShowInputPswModal()
       } else {
         this.updateSignerStatus(status, true)
       }
@@ -324,23 +325,20 @@ export default {
         }
       }
     },
-    async freezeWallet() {
-      this.currentOptType = 'freezeWalletSubmit'
+    async isShowInputPswModal() {
       const privateKey = await getDecryptPrivateKeyFromStore(this)
       if (!privateKey) {
+        this.showLoading = false
         this.showInputPswModal = true;
         return
       }
-      await this.dealDataBeforeFreezeWalletSubmit()
-    },
-    async unlockWallet() {
-      this.currentOptType = 'unlockWalletSubmit'
-      const privateKey = await getDecryptPrivateKeyFromStore(this)
-      if (!privateKey) {
-        this.showInputPswModal = true;
-        return
+      if (this.currentOptType === 'singerSignMessage') {
+        this.dealDataBeforeSingerSignMessage()
+      } else if (this.currentOptType === 'triggerRecover'){
+        this.isCanTriggerRecover()
+      } else {
+        this.showConfirmModal()
       }
-      await this.dealDataBeforeUnlockWalletSubmit()
     },
     changeWalletSuccess(res, status, operateType, isToast) {
       this.showLoading = false
@@ -392,18 +390,8 @@ export default {
         signMessage: hash,
         netInfo: this.currentChainInfo,
       }
-      this.showSignMessageModal = true
       this.showLoading = false
-    },
-    async singerSignMessage(status) {
-      this.currentOptType = 'singerSignMessage'
-      // check privateKey whether is existed
-      const privateKey = await getDecryptPrivateKeyFromStore(this)
-      if (!privateKey) {
-        this.showInputPswModal = true;
-        return
-      }
-      await this.dealDataBeforeSingerSignMessage()
+      this.showSignMessageModal = true
     },
     async signMessageSubmit(msg) {
       // let data = {
@@ -450,7 +438,7 @@ export default {
           })
           .then(() => {
             this.signMsg = totalSignMessage
-            this.showRecocerModal()
+            this.showConfirmModal()
           })
           .catch((error) => {
             console.log(error)
@@ -463,8 +451,9 @@ export default {
       let totalSignMessage = this.getSignMessage()
       if (totalSignMessage) {
         this.signMsg = totalSignMessage
-        this.showRecocerModal()
+        this.showConfirmModal()
       } else {
+        this.showLoading = false
         Toast(`Any transaction requires the confirmation of half signers`)
       }
     },
@@ -491,14 +480,15 @@ export default {
       let replaceOwnerData = iface.encodeFunctionData("triggerRecovery", [currentWalletAddress, newOwnAddress])
       return replaceOwnerData
     },
-    async showRecocerModal() {
+    async showConfirmModal() {
       let thisGasPrice = this.overrides.gasPrice.toString()
       let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
       let estimatedGasFee = await getEstimateGas('gasUsed', 5000000000)
       const selectedConnectAddress = getConnectedAddress()
       const connectBalance = await getBalanceByAddress(selectedConnectAddress)
       if (connectBalance < estimatedGasFee) {
-        Toast('Not Enough ETH')
+        Toast('Insufficient Funds')
+        this.showLoading = false
         return
       }
       this.sendMetadata = {
@@ -512,17 +502,26 @@ export default {
         DATA: '',
         estimatedGasFee: estimatedGasFee
       }
+      this.showLoading = false
       this.showTradeConfirm = true
     },
-    cancelTriggerRecover() {
+    cancelConfirmModal() {
       this.showTradeConfirm = false
-      Toast('Cancel Recover')
+      Toast('Cancel')
     },
-    confirmTriggerRecover({ overrides }) {
+    okConfirmModal({ overrides }) {
       this.overrides.gasLimit = overrides.gasLimit
       this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
       this.showLoading = true
-      this.triggerRecover()
+      if (this.currentOptType === 'triggerRecover') {
+        this.dealDataBeforeTriggerRecover()
+      }
+      if (this.currentOptType === 'freezeWalletSubmit') {
+        this.dealDataBeforeFreezeWalletSubmit()
+      }
+      if (this.currentOptType === 'unlockWalletSubmit') {
+        this.dealDataBeforeUnlockWalletSubmit()
+      }
     },
     async dealDataBeforeTriggerRecover() {
       let currentWalletAddress = this.signRow.wallet_address
@@ -537,6 +536,22 @@ export default {
       let signatures = this.signMsg;
       
       this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      
+      var walletTime = new Date(this.signRow.createdAt).getTime()
+      var canTime = new Date('2022-03-12 07:50:40.092 +00:00').getTime()
+      if (walletTime < canTime) {
+        this.showLoading = false
+        Toast('Invalid wallet')
+        return
+      }
+
+      let lockStatus = await this.securityModuleContract.isLocked(this.signRow.wallet_address)
+      console.log(lockStatus)
+      if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
+        this.showLoading = false
+        Toast('Wallet is already locked')
+        return
+      }
       
       this.securityModuleContract.multicall(
           this.signRow.wallet_address,
@@ -560,19 +575,19 @@ export default {
         Toast.fail(errorValue)
       })
     },
-    async triggerRecover() {
-      this.currentOptType = 'triggerRecover'
-      // check privateKey whether is existed
-      const privateKey = await getDecryptPrivateKeyFromStore(this)
-      if (!privateKey) {
-        this.showInputPswModal = true;
+    async dealDataBeforeFreezeWalletSubmit() {
+      console.log(this.securityModuleContract)
+      var walletTime = new Date(this.signRow.createdAt).getTime()
+      var canTime = new Date('2022-03-12 07:50:40.092 +00:00').getTime()
+      if (walletTime < canTime) {
+        this.showLoading = false
+        Toast('Invalid wallet')
         return
       }
-      await this.dealDataBeforeTriggerRecover()
-    },
-    async dealDataBeforeFreezeWalletSubmit() {
+
       let lockStatus = await this.securityModuleContract.isLocked(this.signRow.wallet_address)
-      if (lockStatus == lockType['GlobalLock']) {
+      console.log(lockStatus)
+      if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
         this.showLoading = false
         Toast('Wallet is already locked')
         return
@@ -658,15 +673,10 @@ export default {
 
       if (this.currentOptType === 'singerSignMessage') {
         await this.dealDataBeforeSingerSignMessage()
-      }
-      if (this.currentOptType === 'triggerRecover') {
-        await this.dealDataBeforeTriggerRecover()
-      }
-      if (this.currentOptType === 'FreezeWalletSubmit') {
-        await this.dealDataBeforeFreezeWalletSubmit()
-      }
-      if (this.currentOptType === 'unlockWalletSubmit') {
-        await this.dealDataBeforeUnlockWalletSubmit()
+      } else if (this.currentOptType === 'triggerRecover'){
+        this.isCanTriggerRecover()
+      } else {
+        this.showConfirmModal()
       }
     },
     _handleNetworkChange({ chainInfo, from }) {
