@@ -135,10 +135,14 @@ export default {
         if (supportNetWorkForContract.indexOf(currentChainInfo.id) < 0) {
           return false
         }
-        let lockStatus = await this.securityModuleContract.isLocked(list[i].wallet_address)
+        var walletTime = new Date(list[i].createdAt).getTime()
+        var canTime = new Date('2022-03-12 07:50:40.092 +00:00').getTime()
+        let lockStatus = 0
+        if (walletTime >= canTime) {
+          lockStatus = await this.securityModuleContract.isLocked(list[i].wallet_address)
+        }
         console.log("lockStatus:" + lockStatus)
-        // this.$set(dataSource[i], 'isLocked', isLocked)
-        let thisIsLocked = (lockStatus == lockType['GlobalLock']) ? true : false
+        let thisIsLocked = (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) ? true : false
         this.$set(list[i], 'isLocked', thisIsLocked)
         let isInRecovery = await this.securityModuleContract.isInRecovery(list[i].wallet_address)
         console.log("isInRecovery:" + isInRecovery)

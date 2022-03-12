@@ -25,9 +25,9 @@ const supportNetContractRouter = [
   {
     chainId: 3,
     name: 'Ropsten',
-    securityModuleRouter: '0x7a823A457a58378a9bC3C68A99F65B63bF5475BD',
-    proxyRouter: '0x9a2Ce1A8B3Fe63136513bcEDF374d0F853168441',
-    walletTransactionRouter: '0xc700Da368feFd1ee501737182d9c732E014C2F30',
+    securityModuleRouter: '0x2BEB112f770217D7DE38D3318F12A3Fd1029CB94',
+    proxyRouter: '0x92cf222caC805442a026E8A6bD7C5FAa0C60e468',
+    walletTransactionRouter: '0x97743DB5484830ac4E7b0be1cbAEBCbE059Dd2f8',
   },
   {
     chainId: 588,
@@ -98,9 +98,9 @@ const multOperation = {
 
 const lockType = {
   'noLock': 0,
-  'signerChangeLock': 1,
-  'LargeTransactionLock': 2,
-  'GlobalLock': 3, //can unlock
+  'GlobalLock': 1,//can unlock
+  'signerChangeLock': 2,
+  'GlobalAndSigner': 3, //can unlock
 }
 
 export {

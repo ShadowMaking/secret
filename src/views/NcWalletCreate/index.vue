@@ -23,7 +23,7 @@
           @addConfirm="confirmAddSigner" />
         <div class="add-signer-tip">Any transaction requires the confirmation of: {{signerPercent}} out of {{signerTotal}} signer(s)</div>
         <div class="create-btn-box">
-          <a class="common-form-btn" @click="createSubmit">Create</a>
+          <el-button type="primary" class="common-form-btn" :loading="isHasClick" @click="createSubmit">Create</el-button>
         </div>
         <v-statusPop
           :status="popStatus"
@@ -113,6 +113,8 @@ export default {
       sendMetadata: null,
       defaultNetWork: '',
 
+      isHasClick: false,
+
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -184,6 +186,7 @@ export default {
     },
     async dealDataBeforeCreate() {
       if (!getSupportNet()) {
+        this.isHasClick = false
         return
       }
       const selectedConnectAddress = getConnectedAddress()
@@ -191,7 +194,8 @@ export default {
       let estimatedGasFee = await getEstimateGas('gasUsed', 20000000000) * 10
       console.log(connectBalance)
       if (connectBalance < estimatedGasFee) {
-        Toast('Not Enough ETH')
+        Toast('Insufficient Funds')
+        this.isHasClick = false
         return
       }
       let thisGasPrice = this.overrides.gasPrice.toString()
@@ -208,18 +212,25 @@ export default {
         estimatedGasFee: estimatedGasFee
       }
       this.showTradeConfirm = true
+      this.isHasClick = false
     },
     async createSubmit() {
+      this.isHasClick = true
       const selectedConnectAddress = getConnectedAddress()
       const connectBalance = await getBalanceByAddress(selectedConnectAddress)
       if (connectBalance < 0) {
-        Toast('Not Enough ETH')
+        Toast('Insufficient Funds')
+        this.isHasClick = false
         return
       }
-      if (!this.checkData()) { return }
+      if (!this.checkData()) { 
+        this.isHasClick = false
+        return 
+      }
       // check privateKey whether is existed
       const privateKey = await getDecryptPrivateKeyFromStore(this)
       if (!privateKey) {
+        this.isHasClick = false
         this.showInputPswModal = true;
         return
       }

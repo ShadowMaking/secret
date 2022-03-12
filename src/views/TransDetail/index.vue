@@ -111,7 +111,7 @@ import _ from 'lodash';
 import navTitle from '@/components/NavTitle/index'
 import { Toast, Dialog } from 'vant'
 import { ethers } from 'ethers'
-import {  isLogin, getConnectedAddress, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore, getContractWallet, getContractAt, addTransHistory, initRPCProvider, getConnectedNet, getDATACode, getMultSignMessage, getEstimateGas} from '@/utils/dashBoardTools'
+import {  isLogin, getConnectedAddress, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore, getContractWallet, getContractAt, addTransHistory, initRPCProvider, getConnectedNet, getDATACode, getMultSignMessage, getEstimateGas,getBalanceByAddress} from '@/utils/dashBoardTools'
 import { timeFormat, timeSericeFormat } from '@/utils/str'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import { signerStatus, walletTransactionRouter, securityModuleRouter, multOperation } from '@/utils/global'
@@ -235,20 +235,21 @@ export default {
     },
     async getSigerMessages() {
       const { hasError, list } = await this.$store.dispatch('getSigerMessages', this.mtxid)
-      
       let hasSignLength = 0
       this.allSignMessageHash = "0x";
       list.sort(function(a, b){ 
-          return a.address - b.address 
+        return a.signer_address.toLocaleLowerCase() - b.signer_address.toLocaleLowerCase() 
       })
-      for (var i = 0; i<list.length; i++) {
-        if (list[i].signer_address == this.currenntOwnerAddress) {
-          list.splice(i, 1)
-        } else {
-          if (list[i].sign_message) {
-            hasSignLength = hasSignLength + 1
-            this.allSignMessageHash = this.allSignMessageHash + list[i].sign_message.slice(2)
-          }
+      let thisSignerList = list
+      for (var i = 0; i<thisSignerList.length; i++) {
+        if (thisSignerList[i].signer_address == this.currenntOwnerAddress) {
+          thisSignerList.splice(i, 1)
+        }
+      }
+      for (var i = 0; i<thisSignerList.length; i++) {
+        if (thisSignerList[i].sign_message) {
+          hasSignLength = hasSignLength + 1
+          this.allSignMessageHash = this.allSignMessageHash + thisSignerList[i].sign_message.slice(2)
         }
       }
       this.signerList = list
@@ -336,6 +337,12 @@ export default {
     },
     async ownerExecutedSubmit() {
       let estimatedGasFee = await getEstimateGas('gasUsed', 5000000000)
+      const selectedConnectAddress = getConnectedAddress()
+      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      if (connectBalance < estimatedGasFee) {
+        Toast('Insufficient Funds')
+        return
+      }
       let thisGasPrice = this.overrides.gasPrice.toString()
       let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
       this.sendMetadata = {

@@ -311,7 +311,7 @@ export default {
         let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
         let lockStatus = await securityModuleContract.isLocked(this.transFromAddress)
         console.log('lockstatus:' + lockStatus)
-        if (lockStatus == lockType['GlobalLock']) {
+        if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
           Toast('Wallet is locked')
           return
         }
@@ -581,15 +581,6 @@ export default {
       // }
       // await this.sendSuccess(tx, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress: this.transFromAddress, toAddress: data.toAddress}, true)
       let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      let lockStatus = await securityModuleContract.isLocked(this.transFromAddress)
-      if (lockStatus == lockType['LargeTransactionLock']) {
-        Toast('Cannot execute large transactions frequently')
-        return
-      }
-      if (lockStatus !== lockType['noLock']) {
-        Toast('Wallet is locked')
-        return
-      }
       const submitData = {
         user_id: getFromStorage('gUID'),
         wallet_address: this.transFromAddress,

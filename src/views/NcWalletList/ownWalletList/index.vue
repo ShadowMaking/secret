@@ -50,7 +50,7 @@
         <el-table-column
           label="Signer">
             <template slot-scope="scope">
-              <el-button @click="handleClick(scope.row)" type="text" size="small">Details</el-button>
+              <el-button @click="handleClick(scope.row)" type="text" size="small">{{scope.row.signer_count}}</el-button>
             </template>
         </el-table-column>
 
@@ -220,9 +220,18 @@ export default {
       let row = this.currentRow
       this.settingWallet = row.wallet_address
       let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+
+      var walletTime = new Date(row.createdAt).getTime()
+      var canTime = new Date('2022-03-12 07:50:40.092 +00:00').getTime()
+      if (walletTime < canTime) {
+        this.showLoading = false
+        Toast('Invalid wallet')
+        return
+      }
+
       let lockStatusHex = await securityModuleContract.isLocked(this.settingWallet)
       let lockStatus = web3.utils.hexToNumber(lockStatusHex)
-      if (lockStatus == lockType['GlobalLock']) {
+      if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
         Toast('Wallet is locked')
         return
       }
