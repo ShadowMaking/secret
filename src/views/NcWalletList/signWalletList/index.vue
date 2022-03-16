@@ -309,7 +309,6 @@ export default {
     },
     async updateSignerStatus(status, isToast) {
       let data = {
-        userId: this.userId,
         walletId: this.signRow.wallet_id,
         signerAddress: this.signRow.address,
         status: status,
@@ -351,7 +350,6 @@ export default {
     async updateWalletStatusSubmit(status, txhash) {
       console.log(status)
       let data = {
-        userId: this.userId,
         walletId: this.signRow.wallet_id,
         status: status,
         txid: txhash,
@@ -459,7 +457,6 @@ export default {
     },
     async getSignMessage() {
       let dataParams = {
-        userId: this.userId,
         walletId: this.signRow.wallet_id,
         signerAddress: this.signRow.address,
         mtxid: this.signRow.mtxid

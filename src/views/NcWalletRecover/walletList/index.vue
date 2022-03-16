@@ -45,7 +45,7 @@
 <script>
 import Vue from 'vue'
 import { Toast } from 'vant'
-import { isLogin, getBalanceByAddress, getContractAt,getConnectedAddress, getDecryptPrivateKeyFromStore, getSupportNet} from '@/utils/dashBoardTools';
+import { isLogin, getBalanceByAddress, getContractAt,getConnectedAddress, getDecryptPrivateKeyFromStore, getSupportNet, getConnectedNet} from '@/utils/dashBoardTools';
 import { getFromStorage, saveToStorage } from '@/utils/storage'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
@@ -127,7 +127,8 @@ export default {
     },
     async getWalletList() {
       let data = {
-        userId: this.userId
+        address: getConnectedAddress(),
+        network_id: getConnectedNet().id,
       }
       const { hasError, list } = await this.$store.dispatch('getWalletList', data)
       for(let i=0; i<list.length;i+=1) {

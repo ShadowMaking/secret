@@ -38,18 +38,10 @@ import request from '@/utils/request';
  * @return {*}
  */
  export const addWallet = (data) => {
-  const userId = data['userId'];
-  const _data = {
-    name: data['name'],
-    address: data['address'],
-    signers: data['signers'],
-    wallet_address: data['walletAddress'],
-    txid: data['txid'],
-  }
   return request({
-    url: `/api/user/${userId}/wallet`,
+    url: `/api/user/wallet`,
     method: 'post',
-    data: _data,
+    data: data,
   })
 }
 
@@ -59,10 +51,11 @@ import request from '@/utils/request';
  * @return {*}
  */
  export const getWalletList = (data) => {
-  const userId = data['userId'];
+  // const userId = data['userId'];
   return request({
-    url: `/api/user/${userId}/wallets`,
+    url: `/api/user/wallets`,
     method: 'get',
+    params: data,
   })
 }
 
@@ -72,14 +65,10 @@ import request from '@/utils/request';
  * @return {*}
  */
  export const getWalletListAsOwner = (data) => {
-  const userId = data['userId'];
-  const _data = {
-    address: data['ownerAddress'].toLocaleLowerCase()
-  }
   return request({
-    url: `/api/user/${userId}/wallets`,
+    url: `/api/user/wallets`,
     method: 'get',
-    params: _data
+    params: data
   })
 }
 
@@ -89,14 +78,10 @@ import request from '@/utils/request';
  * @return {*}
  */
  export const getWalletListAsSign = (data) => {
-  const userId = data['userId'];
-  let _data = {
-    address: data['address']
-  }
   return request({
-    url: `/api/user/${userId}/as_signers`,
+    url: `/api/user/as_signers`,
     method: 'get',
-    params: _data
+    params: data
   })
 }
 
@@ -106,7 +91,6 @@ import request from '@/utils/request';
  * @return {*}
  */
  export const addSigner = (data) => {
-  const userId = data['userId'] 
   const walletId = data['walletId']
   let _data = {
     name: data['name'],
@@ -114,7 +98,7 @@ import request from '@/utils/request';
     txid: data['txid']
   }
   return request({
-    url: `/api/user/${userId}/wallet/${walletId}/signer`,
+    url: `/api/user/wallet/${walletId}/signer`,
     method: 'post',
     data: _data,
   })
@@ -126,11 +110,14 @@ import request from '@/utils/request';
  * @return {*}Status:1 to be confirmed 2 rejected  3 active
  */
  export const getSignerList = (data) => {
-  const userId = data['userId'] 
-  const walletId = data['walletId'] 
+  const walletId = data['walletId']
+  const _data = {
+    network_id: data.network_id
+  } 
   return request({
-    url: `/api/user/${userId}/wallet/${walletId}/signers`,
+    url: `/api/user/wallet/${walletId}/signers`,
     method: 'get',
+    params: _data,
   })
 }
 
@@ -140,14 +127,13 @@ import request from '@/utils/request';
  * @return 
  */
  export const updateSigner = (data) => {
-  const userId = data['userId'] 
   const walletId = data['walletId']
   let _data = {
     address: data['signerAddress'],
     status: data['status'],
   }
   return request({
-    url: `/api/user/${userId}/wallet/${walletId}/signer`,
+    url: `/api/user/wallet/${walletId}/signer`,
     method: 'post',
     data: _data,
   })
@@ -159,14 +145,13 @@ import request from '@/utils/request';
  * @return 
  */
  export const deleteSigner = (data) => {
-  const userId = data['userId'] 
   const walletId = data['walletId'] 
   let _data = {
     address: data['signerAddress'],
     txid: data['txid'],
   }
   return request({
-    url: `/api/user/${userId}/wallet/${walletId}/signer`,
+    url: `/api/user/wallet/${walletId}/signer`,
     method: 'delete',
     data: _data,
   })
@@ -178,7 +163,6 @@ import request from '@/utils/request';
  * @return 
  */
  export const uploadSignmessage = (data) => {
-  const userId = data['userId'] 
   const walletId = data['walletId']
   let _data = {
     address: data['signerAddress'],
@@ -186,7 +170,7 @@ import request from '@/utils/request';
     status: data['status']
   }
   return request({
-    url: `/api/user/${userId}/wallet/${walletId}/signer`,
+    url: `/api/user/wallet/${walletId}/signer`,
     method: 'post',
     data: _data,
   })
@@ -198,13 +182,12 @@ import request from '@/utils/request';
  * @return 
  */
  export const updateOwnerAddress = (data) => {
-  const userId = data['userId'] 
   const walletId = data['walletId']
   let _data = {
     owner_address: data['ownerAddress'],
   }
   return request({
-    url: `/api/user/${userId}/wallet/${walletId}`,
+    url: `/api/user/wallet/${walletId}`,
     method: 'post',
     data: _data,
   })
@@ -216,14 +199,13 @@ import request from '@/utils/request';
  * @return 
  */
  export const updateWalletStatus = (data) => {
-  const userId = data['userId'] 
   const walletId = data['walletId']
   let _data = {
     status: data['status'],
     txid: data['txid']
   }
   return request({
-    url: `/api/user/${userId}/wallet/${walletId}`,
+    url: `/api/user/wallet/${walletId}`,
     method: 'post',
     data: _data,
   })
@@ -234,14 +216,13 @@ import request from '@/utils/request';
  * @return 
  */
  export const getSignMessage = (data) => {
-  const userId = data['userId'] 
   const walletId = data['walletId']
   let _data = {
     address: data['signerAddress'],
     mtxid: data['mtxid'],
   }
   return request({
-    url: `/api/user/${userId}/wallet/${walletId}/sign_message`,
+    url: `/api/user/wallet/${walletId}/sign_message`,
     method: 'get',
     params: _data,
   })

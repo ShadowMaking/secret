@@ -102,7 +102,7 @@ import navTitle from '@/components/NavTitle/index'
 import searchSignerModal from '@/components/SearchSignerModal/index'
 import LoadingPopup from '@/components/LoadingPopup';
 import ConfirmModal from '@/components/ConfirmModal';
-import {  isLogin, getContractAt, getConnectedAddress, getEncryptKeyByAddressFromStore, addTransHistory, getSupportNet, getBalanceByAddress,getEstimateGas } from '@/utils/dashBoardTools'
+import {  isLogin, getContractAt, getConnectedAddress, getEncryptKeyByAddressFromStore, addTransHistory, getSupportNet, getBalanceByAddress,getEstimateGas, getConnectedNet } from '@/utils/dashBoardTools'
 import { getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { signerStatus, securityModuleRouter, lockType } from '@/utils/global';
@@ -300,7 +300,6 @@ export default {
     },
     async deleteSignerSubmit(row, txHash) {
       let deleteData = {
-        userId: this.userId,
         walletId: this.$route.params.id,
         signerAddress: row.address,
         txid: txHash
@@ -379,7 +378,6 @@ export default {
     }, 
     async addSignerSubmit(address, txHash) {
       let addData = {
-        userId: this.userId,
         walletId: this.$route.params.id,
         address: address.toLocaleLowerCase(),
         name: this.signList[0].wallet_name,
@@ -404,7 +402,7 @@ export default {
     },
     async getSignerListByid() {
       let data = {
-        userId: this.userId,
+        network_id: getConnectedNet().id,
         walletId: this.$route.params.id
       }
       const { hasError, list } = await this.$store.dispatch('getSignerList', {...data})

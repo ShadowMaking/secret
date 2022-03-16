@@ -77,8 +77,8 @@ export default {
   methods: {
     async getWalletAsOwner() {
       let data = {
-        userId: this.userId,
-        ownerAddress: getConnectedAddress(),
+        network_id: getConnectedNet().id,
+        address: getConnectedAddress(),
       }
       const { hasError, list } = await this.$store.dispatch('getWalletListAsOwner', data)
       for(let i=0; i<list.length;i+=1) {
@@ -103,7 +103,7 @@ export default {
     },
     async getWalletAsSigner() {
       let data = {
-        userId: this.userId,
+        network_id: getConnectedNet().id,
         address: getConnectedAddress()
       }
       const { hasError, list } = await this.$store.dispatch('getWalletListAsSign', data)

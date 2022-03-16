@@ -26,7 +26,7 @@
 
 <script>
 import Vue from 'vue';
-import { getConnectedAddress, getContractAt } from '@/utils/dashBoardTools';
+import { getConnectedAddress, getContractAt, getConnectedNet } from '@/utils/dashBoardTools';
 import { getFromStorage } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json"
 import { securityModuleRouter, walletStatus, lockType } from '@/utils/global';
@@ -81,8 +81,8 @@ export default {
     },
     async getWalletAsOwner() {
       let data = {
-        userId: this.userId,
-        ownerAddress: getConnectedAddress(),
+        network_id: getConnectedNet().id,
+        address: getConnectedAddress(),
       }
       this.fromOptions[1].options = []
       const { hasError, list } = await this.$store.dispatch('getWalletListAsOwner', data)

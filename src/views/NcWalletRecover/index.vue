@@ -123,7 +123,7 @@ import navTitle from '@/components/NavTitle/index'
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
-import { isLogin, getContractAt, getConnectedAddress, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory } from '@/utils/dashBoardTools';
+import { isLogin, getContractAt, getConnectedAddress, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory, getConnectedNet } from '@/utils/dashBoardTools';
 import walletList from './walletList/index'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import { signerStatus, securityModuleRouter, multOperation } from '@/utils/global';
@@ -259,7 +259,6 @@ export default {
     },
     async updateSigner(signerAddress, status) {
       let data = {
-        userId: this.userId,
         walletId: this.currentWalletId,
         signerAddress: signerAddress,
         status: status,
@@ -274,7 +273,6 @@ export default {
     },
     async updateOwner() {
       let data = {
-        userId: this.userId,
         walletId: this.currentWalletId,
         ownerAddress: getConnectedAddress(),
       }
@@ -399,7 +397,7 @@ export default {
     },
     async getSignerListByid() {
       let data = {
-        userId: this.userId,
+        network_id: getConnectedNet().id,
         walletId: this.currentWalletId
       }
       this.isStartRecover = false
