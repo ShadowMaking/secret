@@ -95,7 +95,8 @@ import request from '@/utils/request';
   let _data = {
     name: data['name'],
     address: data['address'],
-    txid: data['txid']
+    txid: data['txid'],
+    network_id: data['network_id'],
   }
   return request({
     url: `/api/user/wallet/${walletId}/signer`,
@@ -149,6 +150,7 @@ import request from '@/utils/request';
   let _data = {
     address: data['signerAddress'],
     txid: data['txid'],
+    network_id: data['network_id'],
   }
   return request({
     url: `/api/user/wallet/${walletId}/signer`,
@@ -167,7 +169,7 @@ import request from '@/utils/request';
   let _data = {
     address: data['signerAddress'],
     sign_message: data['signMessage'],
-    status: data['status']
+    status: data['status'],
   }
   return request({
     url: `/api/user/wallet/${walletId}/signer`,
@@ -185,6 +187,7 @@ import request from '@/utils/request';
   const walletId = data['walletId']
   let _data = {
     owner_address: data['ownerAddress'],
+    network_id: data['network_id'],
   }
   return request({
     url: `/api/user/wallet/${walletId}`,
@@ -202,7 +205,8 @@ import request from '@/utils/request';
   const walletId = data['walletId']
   let _data = {
     status: data['status'],
-    txid: data['txid']
+    txid: data['txid'],
+    network_id: data['network_id'],
   }
   return request({
     url: `/api/user/wallet/${walletId}`,
@@ -220,6 +224,7 @@ import request from '@/utils/request';
   let _data = {
     address: data['signerAddress'],
     mtxid: data['mtxid'],
+    network_id: data['network_id'],
   }
   return request({
     url: `/api/user/wallet/${walletId}/sign_message`,

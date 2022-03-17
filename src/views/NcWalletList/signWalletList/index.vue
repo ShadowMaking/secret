@@ -162,7 +162,7 @@ import { ethers } from 'ethers'
 import { Toast, Loading, Popup, Dialog } from 'vant'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
-import { getContractAt, getConnectedAddress, getContractWallet, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory, getEstimateGas, getBalanceByAddress } from '@/utils/dashBoardTools'
+import { getContractAt, getConnectedAddress, getContractWallet, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory, getEstimateGas, getBalanceByAddress, getConnectedNet } from '@/utils/dashBoardTools'
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { signerStatus, securityModuleRouter, walletStatus, multOperation, lockType } from '@/utils/global';
 import StatusPop from '@/components/StatusPop';
@@ -353,6 +353,7 @@ export default {
         walletId: this.signRow.wallet_id,
         status: status,
         txid: txhash,
+        network_id: getConnectedNet().id,
       }
       const { hasError } = await this.$store.dispatch('updateWalletStatus', {...data});
       console.log(hasError)
@@ -459,7 +460,8 @@ export default {
       let dataParams = {
         walletId: this.signRow.wallet_id,
         signerAddress: this.signRow.address,
-        mtxid: this.signRow.mtxid
+        mtxid: this.signRow.mtxid,
+        network_id: getConnectedNet().id,
       }
       const { hasError, data } = await this.$store.dispatch('getSignMessage', {...dataParams});
       this.showLoading = false

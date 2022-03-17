@@ -302,7 +302,8 @@ export default {
       let deleteData = {
         walletId: this.$route.params.id,
         signerAddress: row.address,
-        txid: txHash
+        txid: txHash,
+        network_id: getConnectedNet().id,
       }
       const { hasError, list } = await this.$store.dispatch('deleteSigner', {...deleteData});
       if (hasError) {
@@ -381,7 +382,8 @@ export default {
         walletId: this.$route.params.id,
         address: address.toLocaleLowerCase(),
         name: this.signList[0].wallet_name,
-        txid: txHash
+        txid: txHash,
+        network_id: getConnectedNet().id,
       }
       console.log(addData)
       const { hasError, list } = await this.$store.dispatch('addSigner', {...addData});

@@ -275,6 +275,7 @@ export default {
       let data = {
         walletId: this.currentWalletId,
         ownerAddress: getConnectedAddress(),
+        network_id: getConnectedNet().id,
       }
       const { hasError } = await this.$store.dispatch('updateOwnerAddress', {...data});
       if (hasError) {
