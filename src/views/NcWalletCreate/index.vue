@@ -200,6 +200,12 @@ export default {
       }
       let thisGasPrice = this.overrides.gasPrice.toString()
       let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
+
+      let geeweiTtoal = estimatedGasFee * 1000000000
+      let gree = geeweiTtoal/gasPrice
+      let grNum = geeweiTtoal/gasPrice
+      console.log(grNum)
+
       this.sendMetadata = {
         from: getConnectedAddress(),
         to: this.securityModuleRouter,
@@ -230,7 +236,6 @@ export default {
       // check privateKey whether is existed
       const privateKey = await getDecryptPrivateKeyFromStore(this)
       if (!privateKey) {
-        this.isHasClick = false
         this.showInputPswModal = true;
         return
       }
@@ -253,7 +258,6 @@ export default {
       // let user1 = ethers.Wallet.createRandom().connect(providertest)
       // let user2 = ethers.Wallet.createRandom().connect(providertest)
       let walletAddress = await proxyContract.getAddress(saletnew);
-      
       proxyContract.create(saletnew,this.overrides).then(async tx=> {
           console.log(tx)
           tx.wait().then(async res => {
@@ -265,6 +269,7 @@ export default {
             let du = ethers.utils.parseEther("15")//one day
             let lap = ethers.utils.parseEther("10")//one 
             let data = [encoder.encode(["uint", "uint"], [du, lap]), encoder.encode(["address[]"], [createSignList])]
+            
             
             walletContract.initialize(
               modules, 
@@ -299,10 +304,10 @@ export default {
       let data = {
         name: this.createWalletName,
         address: selectedConnectAddress,
-        walletAddress: walletAddress.toLocaleLowerCase(),//0xe744919008dd978dfAF9771E5623fDfbEd4C29D3
+        wallet_address: walletAddress.toLocaleLowerCase(),//0xe744919008dd978dfAF9771E5623fDfbEd4C29D3
         signers: this.createSignerSubmit,
-        userId: this.userId,
-        txid: txhash
+        txid: txhash,
+        network_id: getConnectedNet().id,
       }
       // let data = {
       //   name: 'wallet271',
