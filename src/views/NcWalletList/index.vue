@@ -41,7 +41,7 @@ import None from '@/components/None/index'
 import Loading from '@/components/Loading'
 import { getFromStorage } from '@/utils/storage'
 import {  isLogin, getBalanceByAddress, getConnectedAddress, getContractAt, getConnectedNet  } from '@/utils/dashBoardTools';
-import { signerStatus, securityModuleRouter } from '@/utils/global';
+import { signerStatus, securityModuleRouter, lockType } from '@/utils/global';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { supportNetWorkForContract } from '@/utils/netWorkForToken'
 
@@ -135,11 +135,14 @@ export default {
         if (supportNetWorkForContract.indexOf(currentChainInfo.id) < 0) {
           return false
         }
-        let isLocked = await this.securityModuleContract.isLocked(list[i].wallet_address)
-        console.log("isLocked:" + isLocked)
-        // this.$set(dataSource[i], 'isLocked', isLocked)
-        
-        let thisIsLocked = isLocked ? isLocked : false
+        var walletTime = new Date(list[i].createdAt).getTime()
+        var canTime = new Date('2022-03-12 07:50:40.092 +00:00').getTime()
+        let lockStatus = 0
+        if (walletTime >= canTime) {
+          lockStatus = await this.securityModuleContract.isLocked(list[i].wallet_address)
+        }
+        console.log("lockStatus:" + lockStatus)
+        let thisIsLocked = (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) ? true : false
         this.$set(list[i], 'isLocked', thisIsLocked)
         let isInRecovery = await this.securityModuleContract.isInRecovery(list[i].wallet_address)
         console.log("isInRecovery:" + isInRecovery)

@@ -2,6 +2,24 @@
   <div class="signManage-page">
     <v-navTitle title="Signer" :backIcon="true" :backEvent="backEvent"></v-navTitle >
     <div class="sign-manage-des">Non-custodial Wallet is the most reliable asset management method. It confirms each transaction by setting up one or more signers to make asset transactions more secure.</div>
+    <div class="wallet-info">
+        <div class="wallet-info-item">
+          <span class="wallet-info-label">Wallet Name:</span>
+          <span class="wallet-info-value">{{signList.length>0 && signList[0].wallet_name || '--'}}</span>
+        </div>
+        <div class="wallet-info-item">
+          <span class="wallet-info-label">Wallet Address:</span>
+          <span class="wallet-info-value" @click="copyAddress(signList[0].wallet_address)">{{signList.length>0 && signList[0].wallet_address  || '--'}}</span>
+        </div>
+        <div class="wallet-info-item">
+          <span class="wallet-info-label">Create Time:</span>
+          <span class="wallet-info-value">{{walletCreatTime}}</span>
+        </div>
+        <div class="wallet-info-item">
+          <span class="wallet-info-label">Balance:</span>
+          <span class="wallet-info-value">{{walletBalance}}</span>
+        </div>
+    </div>
     <div class="signlist-wrapper" >
       <el-table
         :data="signList"
@@ -67,6 +85,13 @@
       </van-popup> -->
       <v-loadingPopup :show="showLoading" :showSpinner="false" />
     </div>
+    <v-confirmModal
+      :show="showTradeConfirm"
+      type="Create Wallet"
+      :metadata="sendMetadata"
+      @close="showTradeConfirm=false"
+      @reject="cancelConfirmModal"
+      @confirm="confirmConfirmModal" />
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
@@ -76,15 +101,18 @@ import { Toast, Loading, Dialog } from 'vant'
 import navTitle from '@/components/NavTitle/index'
 import searchSignerModal from '@/components/SearchSignerModal/index'
 import LoadingPopup from '@/components/LoadingPopup';
-import {  isLogin, getContractAt, getConnectedAddress, getEncryptKeyByAddressFromStore, addTransHistory } from '@/utils/dashBoardTools'
+import ConfirmModal from '@/components/ConfirmModal';
+import {  isLogin, getContractAt, getConnectedAddress, getEncryptKeyByAddressFromStore, addTransHistory, getSupportNet, getBalanceByAddress,getEstimateGas } from '@/utils/dashBoardTools'
 import { getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
-import { signerStatus, securityModuleRouter } from '@/utils/global';
+import { signerStatus, securityModuleRouter, lockType } from '@/utils/global';
 import { copyTxt, formatErrorContarct } from '@/utils/index';
 import InputPswModal from '@/components/InputPswModal'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import _ from 'lodash'
 import { timeSericeFormat } from '@/utils/str';
+import web3 from 'web3'
+import { CHAINMAP } from '@/utils/netWorkForToken';
 
 Vue.use(Toast);
 Vue.use(Loading);
@@ -124,6 +152,18 @@ export default {
       confirmPswBtnLoading: false,
       showInputPswModal: false,
       // ***************** inputPsw end ***************** //
+
+      showTradeConfirm: false,
+      sendMetadata: null,
+      overrides: {
+        gasLimit: 8000000,
+        gasPrice: 20000000000,//wei
+      },
+      currentChainInfo: null,
+      defaultNetWork: '',
+
+      walletBalance: 0,
+      walletCreatTime: '--',
     }
   },
   components: {
@@ -131,9 +171,50 @@ export default {
     "v-searchSignerModal": searchSignerModal,
     'v-loadingPopup': LoadingPopup,
     'v-inputPsw': InputPswModal,
+    'v-confirmModal': ConfirmModal,
   },
   
   methods: {
+    cancelConfirmModal() {
+      this.showTradeConfirm = false
+      Toast('Cancel')
+    },
+    confirmConfirmModal({ overrides }) {
+      this.overrides.gasLimit = overrides.gasLimit
+      this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
+      if (this.currentOptType === 'addSigner') {
+        this.dealDataAddSigner()
+      } else if (this.currentOptType === 'deleteSigner') {
+        this.dealDataDeleteSigner()
+      }
+    },
+    async getConfirmModalData() {
+      if (!getSupportNet()) {
+        return
+      }
+      const selectedConnectAddress = getConnectedAddress()
+      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      let estimatedGasFee = await getEstimateGas('gasUsed')
+      console.log(connectBalance)
+      if (connectBalance < estimatedGasFee) {
+        Toast('Not Enough ETH')
+        return
+      }
+      let thisGasPrice = this.overrides.gasPrice.toString()
+      let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
+      this.sendMetadata = {
+        from: getConnectedAddress(),
+        to: this.securityModuleRouter,
+        gas: this.overrides.gasLimit,
+        gasPrice: gasPrice,
+        value: 0,
+        symbolName: 'ETH',
+        netInfo: this.currentChainInfo,
+        DATA: '0x',
+        estimatedGasFee: estimatedGasFee
+      }
+      this.showTradeConfirm = true
+    },
     formatterTime(row) {
       return timeSericeFormat(row.createdAt, 'yyyy-MM-dd hh:mm:ss')
     },
@@ -153,7 +234,7 @@ export default {
         return
       }
       Dialog.confirm({
-        message: 'Are you sure to delete this address?',
+        message: 'Are you sure to delete this signer?',
         confirmButtonText: 'Confirm',
         confirmButtonColor: '#4375f1',
         cancelButtonText: 'Cancel'
@@ -168,19 +249,29 @@ export default {
     async dealDataDeleteSigner() {
       const row = this.currentRecord
       console.log(row)
-      this.showLoading = true
-
       if (!this.securityModuleContract) {
         this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       }
-      let isLocked = await this.securityModuleContract.isLocked(this.walletAddress)
-      if (isLocked) {
+      
+      var walletTime = new Date(this.walletCreatTime).getTime()
+      var canTime = new Date('2022-03-12 07:50:40').getTime()
+      if (walletTime < canTime) {
         this.showLoading = false
-        Toast('Wallet is locked')
+        Toast('Invalid wallet')
         return
       }
+
+      let lockStatus = await this.securityModuleContract.isLocked(this.walletAddress)
+      if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
+        Toast('Wallet is locked')
+        return
+      } else if (lockStatus == lockType['signerChangeLock']) {
+        Toast('The signer cannot be changed frequently')
+        return
+      }
+      this.showLoading = true
       this.securityModuleContract.removeSigner(
-        this.walletAddress, row.address).then(async tx=> {
+        this.walletAddress, row.address, this.overrides).then(async tx=> {
          this.deleteSignerSubmit(row, tx.hash);
          addTransHistory(tx, 'Delete Signer', this)
          
@@ -205,7 +296,7 @@ export default {
         this.showInputPswModal = true;
         return
       }
-      await this.dealDataDeleteSigner()
+      await this.getConfirmModalData()
     },
     async deleteSignerSubmit(row, txHash) {
       let deleteData = {
@@ -221,6 +312,7 @@ export default {
         this.submitSuccess('Submit')
       }
     },
+
     async confirmSearchSigner(value) {
       var searchData = {
         userId: this.userId,
@@ -231,19 +323,30 @@ export default {
     },
     async dealDataAddSigner() {
       const address = this.currentRecord
-      this.showLoading = true
+      
       if (!this.securityModuleContract) {
         this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       }
-      let isLocked = await this.securityModuleContract.isLocked(this.walletAddress)
-      // if (isLocked) {
-      //   this.showLoading = false
-      //   Toast('Wallet is locked')
-      //   return
-      // }
 
+      var walletTime = new Date(this.walletCreatTime).getTime()
+      var canTime = new Date('2022-03-12 07:50:40').getTime()
+      if (walletTime < canTime) {
+        this.showLoading = false
+        Toast('Invalid wallet')
+        return
+      }
+      
+      let lockStatus = await this.securityModuleContract.isLocked(this.walletAddress)
+      if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner'] ) {
+        Toast('Wallet is locked')
+        return
+      } else if (lockStatus == lockType['signerChangeLock']) {
+        Toast('The signer cannot be changed frequently')
+        return
+      }
+      this.showLoading = true
       this.securityModuleContract.addSigner(
-        this.walletAddress, address).then(async tx=> {
+        this.walletAddress, address, this.overrides).then(async tx=> {
           console.log(tx)
          this.addSignerSubmit(address, tx.hash);
          addTransHistory(tx, 'Add Signer', this)
@@ -272,7 +375,7 @@ export default {
         this.showInputPswModal = true;
         return
       }
-      await this.dealDataAddSigner()
+      await this.getConfirmModalData()
     }, 
     async addSignerSubmit(address, txHash) {
       let addData = {
@@ -308,7 +411,12 @@ export default {
       this.signList = list
       this.signerTotal = list.length
       this.signerPercent = Math.ceil(this.signerTotal/2)
+      this.getWalletBalance()
       // this.getIsFreeze(list)
+    },
+    async getWalletBalance() {
+      this.walletBalance = await getBalanceByAddress(this.signList[0].wallet_address)
+      this.walletCreatTime = timeSericeFormat(this.signList[0].createdAt, 'yyyy-MM-dd hh:mm:ss')
     },
     async getIsFreeze(list) {//todo判断是否isHasFreeze
       
@@ -364,13 +472,12 @@ export default {
       this.confirmPswBtnLoading = false
       this.showInputPswModal = false
 
-      if (this.currentOptType === 'addSigner') {
-        await this.dealDataAddSigner()
-      }
-      if (this.currentOptType === 'deleteSigner') {
-        await this.dealDataDeleteSigner()
-      }
+      await this.getConfirmModalData()
       
+    },
+    getDefaultNetWork() {
+      const info = getInfoFromStorageByKey('netInfo')
+      return info && info['id'] || 1
     },
   },
   async created() {
@@ -378,6 +485,15 @@ export default {
       Toast('Need Login')
       return
     }
+    this.defaultNetWork = this.getDefaultNetWork()
+    const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
+    console.log(netInfo)
+    if (netInfo) {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
+    } else {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
+    }
+    this.overrides.gasPrice = await getEstimateGas('gasPrice')
     this.isRecover = this.$route.query.isRecover
     this.getSignerListByid()
 

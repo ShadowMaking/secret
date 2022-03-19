@@ -96,7 +96,7 @@ import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
 import { ethers, utils } from 'ethers'
 import web3 from 'web3'
-import { walletTransactionRouter, multOperation, securityModuleRouter } from '@/utils/global';
+import { walletTransactionRouter, multOperation, securityModuleRouter, lockType } from '@/utils/global';
 import { BigNumber } from "bignumber.js";
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
@@ -309,8 +309,9 @@ export default {
     async dealDataBeforeSend() {
       if (this.transFromType == 2) {
         let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-        let isLocked = await securityModuleContract.isLocked(this.transFromAddress)
-        if (isLocked) {
+        let lockStatus = await securityModuleContract.isLocked(this.transFromAddress)
+        console.log('lockstatus:' + lockStatus)
+        if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
           Toast('Wallet is locked')
           return
         }
@@ -579,6 +580,7 @@ export default {
       //   hash: null
       // }
       // await this.sendSuccess(tx, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress: this.transFromAddress, toAddress: data.toAddress}, true)
+      let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       const submitData = {
         user_id: getFromStorage('gUID'),
         wallet_address: this.transFromAddress,

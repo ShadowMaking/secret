@@ -25,9 +25,9 @@ const supportNetContractRouter = [
   {
     chainId: 3,
     name: 'Ropsten',
-    securityModuleRouter: '0x8Bc077bc51018A7c1fCc587B8B0245cC2d58Ce4D',
-    proxyRouter: '0x5323e93a4daf116dCDE437583c6806360CB9cfed',
-    walletTransactionRouter: '0xb191d9A4baA491A18e61A3B413c1658deA11fB2a',
+    securityModuleRouter: '0x2BEB112f770217D7DE38D3318F12A3Fd1029CB94',
+    proxyRouter: '0x92cf222caC805442a026E8A6bD7C5FAa0C60e468',
+    walletTransactionRouter: '0x97743DB5484830ac4E7b0be1cbAEBCbE059Dd2f8',
   },
   {
     chainId: 588,
@@ -73,8 +73,8 @@ const signerStatus = {
 	'agreeRecover': 6,
 	'ignoreRecover': 7,
 	'triggerRecover': 8,
-  'agreeSend': 9,
-  'ignoreSend': 10,
+  'agreeMult': 9,
+  'ignoreMult': 10,
 }
 
 const walletStatus = {
@@ -92,6 +92,15 @@ const multOperation = {
   'None': 0,
   'Recovery': 1,
   'LargeTransaction': 2,
+  'setMaxPerParametar': 3,
+  'setSecurityPeriod': 4,
+}
+
+const lockType = {
+  'noLock': 0,
+  'GlobalLock': 1,//can unlock
+  'signerChangeLock': 2,
+  'GlobalAndSigner': 3, //can unlock
 }
 
 export {
@@ -110,4 +119,5 @@ export {
   walletTransactionRouter,
   walletStatus,
   multOperation,
+  lockType,
 }

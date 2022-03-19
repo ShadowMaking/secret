@@ -8,6 +8,10 @@
           <span class="trans-item-value" @click="copyAddress(txHash)">{{txHash}}</span>
         </div>
         <div class="trans-item">
+          <span class="trans-item-name">Operation:</span>
+          <span class="trans-item-value">{{operationType}}</span>
+        </div>
+        <div class="trans-item">
           <span class="trans-item-name">Nonce:</span>
           <span class="trans-item-value">{{txNonce}}</span>
         </div>
@@ -30,11 +34,11 @@
           <div class="path-item-bottom"></div>
         </div>
         <div v-for="(item, index) in signerList" :key="index">
-          <div class="trans-path-item active" v-if="item.status == (signerStatus.agreeSend || signerStatus.ignoreSend)">
+          <div class="trans-path-item active" v-if="item.status == (signerStatus.agreeMult || signerStatus.ignoreMult)">
             <div class="path-item-top">
               <span class="path-item-icon active">{{index+2}}</span>
-              <span class="path-item-status success" v-if="item.status == signerStatus.agreeSend">Confirmed</span>
-              <span class="path-item-status success" v-if="item.status == signerStatus.ignoreSend">Refused by</span>
+              <span class="path-item-status success" v-if="item.status == signerStatus.agreeMult">Confirmed</span>
+              <span class="path-item-status success" v-if="item.status == signerStatus.ignoreMult">Refused by</span>
             </div>
             <div class="path-item-bottom">
               <div class="path-item-bottom-img">
@@ -73,7 +77,7 @@
           
           <div class="path-item-top" v-if="(currentUserAddress == currenntOwnerAddress) && this.transStatus == 2">
              <span class="path-item-icon active">{{this.signerLength + 2}}</span>
-            <el-button type="primary" :disabled="!isCanExcute" @click="ownerExecutedTrans">Executed</el-button>
+            <el-button type="primary" :disabled="!isCanExcute" @click="ownerExecutedTrans">Execute</el-button>
           </div>
           <div class="path-item-top" v-else>
             <span class="path-item-icon active">{{this.signerLength + 2}}</span>
@@ -103,15 +107,17 @@
 </template>
 <script>
 import Vue from 'vue';
+import _ from 'lodash';
 import navTitle from '@/components/NavTitle/index'
 import { Toast, Dialog } from 'vant'
 import { ethers } from 'ethers'
-import {  isLogin, getConnectedAddress, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore, getContractWallet, getContractAt, addTransHistory, initRPCProvider, getConnectedNet} from '@/utils/dashBoardTools'
-import { timeSericeFormat } from '@/utils/str'
+import {  isLogin, getConnectedAddress, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore, getContractWallet, getContractAt, addTransHistory, initRPCProvider, getConnectedNet, getDATACode, getMultSignMessage, getEstimateGas,getBalanceByAddress} from '@/utils/dashBoardTools'
+import { timeFormat, timeSericeFormat } from '@/utils/str'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import { signerStatus, walletTransactionRouter, securityModuleRouter, multOperation } from '@/utils/global'
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
+import TransactionModule from "@/assets/contractJSON/TransactionModule.json";
 
 import InputPswModal from '@/components/InputPswModal'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
@@ -132,6 +138,7 @@ export default {
   data() {
     return {
       mtxid: this.$route.params.id,
+      mtxInfo: null,
       txHash: '',
       txCreated: '',
       txNonce: '--',
@@ -140,21 +147,17 @@ export default {
       showLoading: false,
       securityModuleRouter,
       transStatus: 2, //0-pending 1-success 2-creating -1-fail
-      toAddress: '',
-
+      
       signerList: [],
       signerStatus,
       signerLength: 0,
       isCanExcute: false,//more than 1/2 signer sign is true
       currentUserAddress: getConnectedAddress(),
-      currentWalltAddress: '',
       currenntOwnerAddress: '',
-      transAmount: '',
       amountMulti: 0,
       allSignMessageHash: '',
-      transData: '',
-      transValue: '',
       multOperation,
+      operationType: '',
 
       currentOptType: 'singerSignMessage',
       overrides: {
@@ -209,15 +212,13 @@ export default {
     async getMultTxInfo() {
       const { hasError, list } = await this.$store.dispatch('getMultTxInfo', this.mtxid)
       if (hasError) {return}
+      this.mtxInfo = _.cloneDeep(list)
+      
       this.txHash = list.txid
       this.txCreated = timeSericeFormat(list.createdAt)
-      this.currentWalltAddress = list.wallet_address
-      this.transAmount = list.value
       this.currenntOwnerAddress = list.owner_address
       this.transStatus = list.status
-      this.toAddress = list.to
-      this.transData = list.data
-      this.transValue = list.value
+      this.operationType = this.getOperationType()
       if (this.txHash.indexOf('-') == -1) {//hash is real
         const network = getConnectedNet()
         const rpcUrl = network['rpcUrls'][0]
@@ -228,31 +229,32 @@ export default {
         if (txReceipt.blockNumber) {
           const txBlock = await provider.getBlock(txReceipt.blockNumber);
           console.log(txBlock)
-          this.executedTime = timeSericeFormat(txBlock.timestamp)
+          this.executedTime = timeFormat(txBlock.timestamp * 1000, 'yyyy-MM-dd hh:mm:ss')
         }
       }
     },
     async getSigerMessages() {
       const { hasError, list } = await this.$store.dispatch('getSigerMessages', this.mtxid)
-      
       let hasSignLength = 0
       this.allSignMessageHash = "0x";
       list.sort(function(a, b){ 
-          return a.address - b.address 
+        return a.signer_address.toLocaleLowerCase() - b.signer_address.toLocaleLowerCase() 
       })
-      for (var i = 0; i<list.length; i++) {
-        if (list[i].signer_address == this.currenntOwnerAddress) {
-          list.splice(i, 1)
-        } else {
-          if (list[i].sign_message) {
-            hasSignLength = hasSignLength + 1
-            this.allSignMessageHash = this.allSignMessageHash + list[i].sign_message.slice(2)
-          }
+      let thisSignerList = list
+      for (var i = 0; i<thisSignerList.length; i++) {
+        if (thisSignerList[i].signer_address == this.currenntOwnerAddress) {
+          thisSignerList.splice(i, 1)
+        }
+      }
+      for (var i = 0; i<thisSignerList.length; i++) {
+        if (thisSignerList[i].sign_message) {
+          hasSignLength = hasSignLength + 1
+          this.allSignMessageHash = this.allSignMessageHash + thisSignerList[i].sign_message.slice(2)
         }
       }
       this.signerList = list
       this.signerLength = this.signerList.length
-      if (hasSignLength/this.signerLength > 1/2) {
+      if (hasSignLength/this.signerLength >= 1/2) {
         this.isCanExcute = true
       }
     },
@@ -275,7 +277,7 @@ export default {
       })
       .then(() => {
         this.showLoading = true;
-        this.signMessageSubmit(sig, this.signerStatus['ignoreSend'], 'Refuse')
+        this.signMessageSubmit(null, this.signerStatus['ignoreMult'], 'Refuse')
       })
       .catch((error) => {
         this.showLoading = false;
@@ -290,26 +292,42 @@ export default {
         this.showInputPswModal = true;
         return
       }
-      await this.ownerExecutedSubmit()
+      this.ownerExecutedSubmit()
     },
-    async signerConfirmSubmit() {
+    signerConfirmSubmit() {
+      switch(this.mtxInfo.operation) {
+          case multOperation['LargeTransaction']:
+              this.largeTransactionSign()
+              break;
+          case multOperation['setMaxPerParametar']:
+              this.setMaxPerParametarSign()
+              break;
+          case multOperation['setSecurityPeriod']:
+              this.setSecurityPeriodSign()
+              break;
+           default:
+             break;
+      } 
+    },
+    largeTransactionSign() {
       const TMABI = [
         "function executeTransaction(address)",
         "function executeLargeTransaction(address, address, uint, bytes)"
       ]
-      const walletContract = await getContractAt({ tokenAddress: this.currentWalltAddress, abi: WalletJson.abi }, this)
-      let sequenceId = await walletContract.getNextSequenceId()
       let iface = new ethers.utils.Interface(TMABI)
-      let largeTxData = iface.encodeFunctionData("executeLargeTransaction", [this.currentWalltAddress, this.toAddress, ethers.utils.parseEther(this.transAmount), "0x"])
-      const input = `0x${[
-          "0x19",
-          "0x00",
-          this.walletTransactionRouter,
-          ethers.utils.hexZeroPad(ethers.utils.hexlify(this.amountMulti), 32),
-          largeTxData,
-          ethers.utils.hexZeroPad(ethers.utils.hexlify(sequenceId), 32),
-      ].map((hex) => hex.slice(2)).join("")}`;
-      this.signMsgHash = ethers.utils.keccak256(input)
+      let largeTxData = iface.encodeFunctionData("executeLargeTransaction", [this.mtxInfo.wallet_address, this.mtxInfo.to, ethers.utils.parseEther(this.mtxInfo.value), "0x"])
+      this.getMultModalData(this.walletTransactionRouter, largeTxData)
+    },
+    setMaxPerParametarSign() {
+      this.getMultModalData(this.walletTransactionRouter, this.mtxInfo.data)
+    },
+    setSecurityPeriodSign() {
+      this.getMultModalData(this.securityModuleRouter, this.mtxInfo.data)
+    },
+    async getMultModalData(moduleRounter, data) {
+      const walletContract = await getContractAt({ tokenAddress: this.mtxInfo.wallet_address, abi: WalletJson.abi }, this)
+      let sequenceId = await walletContract.getNextSequenceId()
+      this.signMsgHash = await getMultSignMessage(moduleRounter, this.amountMulti, data, sequenceId)
       this.signMessageMetadata = {
         userAddress: getConnectedAddress(),
         signMessage: this.signMsgHash,
@@ -318,24 +336,31 @@ export default {
       this.showSignMessageModal = true
     },
     async ownerExecutedSubmit() {
+      let estimatedGasFee = await getEstimateGas('gasUsed', 5000000000)
+      const selectedConnectAddress = getConnectedAddress()
+      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      if (connectBalance < estimatedGasFee) {
+        Toast('Insufficient Funds')
+        return
+      }
       let thisGasPrice = this.overrides.gasPrice.toString()
       let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
       this.sendMetadata = {
-        from: this.currentWalltAddress,
-        to: this.toAddress,
+        from: this.mtxInfo.wallet_address,
+        to: this.mtxInfo.to,
         gas: this.overrides.gasLimit,
         gasPrice: gasPrice,
-        value: this.transValue,
+        value: this.mtxInfo.value,
         symbolName: 'ETH',
         netInfo: this.currentChainInfo,
-        DATA: this.transData,
-        estimatedGasFee: '0'
+        DATA: this.mtxInfo.data,
+        estimatedGasFee: estimatedGasFee
       }
       this.showTradeConfirm = true
     },
     async updateTransTx(tx) {
-      tx.from = this.currentWalltAddress
-      tx.to = this.toAddress
+      tx.from = this.mtxInfo.wallet_address
+      tx.to = this.mtxInfo.to
       let updateData = {
         id: this.mtxid,
         txid: tx.hash,
@@ -345,10 +370,23 @@ export default {
       if (hasError) {
         Toast.fail('fail')
       } else {
-        addTransHistory(tx, 'Execute Transaction', this, this.transValue, 'ETH', true)
+        this.addMultTransHistory(tx)
         Toast('Execute success')
         this.getMultTxInfo()
       }
+    },
+    addMultTransHistory(tx) {
+      let historyName = this.getOperationType()
+      addTransHistory(tx, historyName, this, this.mtxInfo.value, 'ETH', true)
+    },
+    getOperationType() {
+      let operationType = 'Large Transaction'
+      if (this.mtxInfo.operation == multOperation['setMaxPerParametar']) {
+        operationType = 'Payment Limit'
+      } else if (this.mtxInfo.operation == multOperation['setSecurityPeriod']) {
+        operationType = 'Security Setting'
+      }
+      return operationType
     },
     cancelExecuted() {
       this.showTradeConfirm = false
@@ -360,22 +398,74 @@ export default {
       this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
       this.ownerExecutedOk()
     },
-    async ownerExecutedOk() {
+    ownerExecutedOk() {
+      switch(this.mtxInfo.operation) {
+          case multOperation['LargeTransaction']:
+              this.largeTransactionExecute()
+              break;
+          case multOperation['setMaxPerParametar']:
+              this.setMaxPerParametarExecute()
+              break;
+          case multOperation['setSecurityPeriod']:
+              this.setSecurityPeriodExecute()
+              break;
+           default:
+             break;
+      } 
+    },
+    async largeTransactionExecute() {
       const TMABI = [
         "function executeTransaction(address)",
         "function executeLargeTransaction(address, address, uint, bytes)"
       ]
       let iface = new ethers.utils.Interface(TMABI)
-      let largeTxData = iface.encodeFunctionData("executeLargeTransaction", [this.currentWalltAddress, this.toAddress, ethers.utils.parseEther(this.transAmount), "0x"])
+      let largeTxData = iface.encodeFunctionData("executeLargeTransaction", [this.mtxInfo.wallet_address, this.mtxInfo.to, ethers.utils.parseEther(this.mtxInfo.value), "0x"])
+
+      this.multicallExcute(largeTxData, this.walletTransactionRouter)
+      // let expireTime = Math.floor((new Date().getTime()) / 1000) + 1800; // 60 seconds
+
+      // const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      // const walletContract = await getContractAt({ tokenAddress: this.mtxInfo.wallet_address, abi: WalletJson.abi }, this)
+      // let sequenceId = await walletContract.getNextSequenceId()
+      // console.log(this.allSignMessageHash)
+      // securityModuleContract.multicall(
+      //     this.mtxInfo.wallet_address,
+      //     [this.walletTransactionRouter, this.amountMulti, largeTxData, sequenceId, expireTime],
+      //     this.allSignMessageHash,
+      //     this.overrides
+      // ).then(tx => {
+      //   console.log(tx)
+      //   this.updateTransTx(tx);
+      //   tx.wait().then(async res => {
+      //     console.log('multicall:', res)
+      //   })
+      // }).catch(error => {
+      //   console.log(error)
+      //   this.showLoading = false
+      //   let errorValue = formatErrorContarct(error)
+      //   Toast.fail(errorValue)
+      // })
+    },
+    async setMaxPerParametarExecute() {
+      this.multicallExcute(this.mtxInfo.data, this.walletTransactionRouter)
+    },
+    async setSecurityPeriodExecute() {
+      this.multicallExcute(this.mtxInfo.data, this.securityModuleRouter)
+    },
+    async multicallExcute(data, moduleRouter) {
+      let largeTxData = data
+
       let expireTime = Math.floor((new Date().getTime()) / 1000) + 1800; // 60 seconds
+      
+      const walletContract = await getContractAt({ tokenAddress: this.mtxInfo.wallet_address, abi: WalletJson.abi }, this)
+      let sequenceId = await walletContract.getNextSequenceId()
 
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      const walletContract = await getContractAt({ tokenAddress: this.currentWalltAddress, abi: WalletJson.abi }, this)
-      let sequenceId = await walletContract.getNextSequenceId()
+      
       console.log(this.allSignMessageHash)
       securityModuleContract.multicall(
-          this.currentWalltAddress,
-          [this.walletTransactionRouter, this.amountMulti, largeTxData, sequenceId, expireTime],
+          this.mtxInfo.wallet_address,
+          [moduleRouter, this.amountMulti, largeTxData, sequenceId, expireTime],
           this.allSignMessageHash,
           this.overrides
       ).then(tx => {
@@ -445,7 +535,7 @@ export default {
       this.showLoading = true
       const currentSignerWallet = await getContractWallet(this)
       let sig = await currentSignerWallet.signMessage(ethers.utils.arrayify(this.signMsgHash));
-      this.signMessageSubmit(sig, this.signerStatus['agreeSend'], 'Confirm')
+      this.signMessageSubmit(sig, this.signerStatus['agreeMult'], 'Confirm')
       console.log(sig)
     },
     async signMessageSubmit(sig, status, optreateType) {
@@ -454,7 +544,7 @@ export default {
         signer_address: this.currentUserAddress,
         signer_message: sig,
         status: status,
-        operation: multOperation['LargeTransaction']
+        operation: this.mtxInfo.operation
       }
       const { hasError, totalSignMessage } = await this.$store.dispatch('addSignerMultMessages', {...data});
       this.showLoading = false;
@@ -484,7 +574,7 @@ export default {
     }
     this.getMultTxInfo()
     this.getSigerMessages()
-
+    this.overrides.gasPrice = await getEstimateGas('gasPrice', 5000000000)
    },
 }
 </script>

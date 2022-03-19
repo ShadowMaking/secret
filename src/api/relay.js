@@ -19,11 +19,11 @@ export const getAllPublicKey = (data) => {
 // c1: encrypted private key by relay public key
 // cc1: encrypted password by relay public key
 export const encryptPrivateKeyByEcies = (data) => {
-  const { userId, c1, cc1 } = data
+  const { userId, c1, cc1, hash } = data
   return request({
     url: `/api/kms/${userId}/enc`,
     method: 'post',
-    data: { c1, cc1 },
+    data: { c1, cc1, hash },
   })
 }
 
