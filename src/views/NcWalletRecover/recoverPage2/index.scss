@@ -1,0 +1,36 @@
+@import '@/app.scss';
+.recover-confirm-page {
+	.recover-confirm-title {
+      font-size: 0.86rem;
+      font-weight: bold;
+      line-height: 25px;
+      span {
+        color: #495ABE;
+        padding: 0 5px;
+      }
+    }
+    .confirm-signer-list {
+      margin-top: 40px;
+    }
+    .confrim-signer-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      .confirm-signer-item-left img {
+        width: 2rem;
+        height: 2rem;
+        margin-right: 10px;
+      }
+      .confirm-signer-item-middle {
+        line-height: 20px;
+        font-size: 0.8rem;
+        margin-right: 20px;
+      }
+      .confirm-signer-item-right {
+        .el-tag {
+          height: 25px;
+          line-height:22px;
+        }
+      }
+    }
+}
