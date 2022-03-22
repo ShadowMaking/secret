@@ -28,7 +28,7 @@
         <el-button :type="confirmBtn2Disabled ? 'primary' : 'info'" :disabled="!confirmBtn2Disabled" @click="ownerExcuteRecover" :loading="isHasExcuteClick">将此智能钱包导入到此账号下</el-button>
       </div>
       <div>
-        <el-button type="danger" plain @click="cancelExcuteRecover">取消此智能合约钱包的找回</el-button>
+        <el-button type="danger" plain @click="cancelExcuteRecover" v-show="confirmBtn3Visible">取消此智能合约钱包的找回</el-button>
       </div>
     </div>
     <v-confirmModal
@@ -71,7 +71,8 @@ export default {
       // currentWalletId: 195,
       // currentWalletAddress: '0x6d4143f1404bd78c15a22c7e02ad00317fd2d2bc',
       confirmBtn1Disabled: true,
-      confirmBtn2Disabled: true,
+      confirmBtn2Disabled: false,
+      confirmBtn3Visible: true,
 
       signerList: [],
       currentUserAddress: '',
@@ -122,7 +123,7 @@ export default {
     currentWalletAddress: {
       handler(newValue, oldValue) {
         if (newValue) {
-          this.getIsRecover()
+          this.getRecoverInfo()
         }
       }
     },
@@ -243,6 +244,7 @@ export default {
       securityModuleContract.executeRecovery(this.currentWalletAddress, this.overrides).then(async tx=> {
           addTransHistory(tx, 'Execute Recover', this)
           this.showLoading = false;
+          Toast('success')
           this.resetSignStatus()
           this.updateWalletStatusSubmit(walletStatus['Active'])
           tx.wait().then(async res => {
@@ -261,7 +263,9 @@ export default {
         this.updateSigner(item.address, signerStatus['active'])
       })
     },
-    cancelExcuteRecover() {},
+    cancelExcuteRecover() {
+      this.updateWalletStatusSubmit(walletStatus['Active'])
+    },
     async getSignerListByid() {
       let data = {
         network_id: getConnectedNet().id,
@@ -276,12 +280,14 @@ export default {
       this.signerList = list
       this.signerNeedTotal = Math.ceil(this.signerList.length/2)
     },
-    async getIsRecover() {
+    async getRecoverInfo() {
       const SecurityContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       console.log(this.currentWalletAddress)
       let res = await SecurityContract.isInRecovery(this.currentWalletAddress);
+      // let RecoveryExpiry = await SecurityContract.getRecoveryExpiryTime(this.currentWalletAddress);
       console.log(res)
       this.confirmBtn2Disabled = res
+      // console.log(RecoveryExpiry)
     },
     _handleNetworkChange({ chainInfo, from }) {
       if (from === 'sendMenu') { return }
@@ -327,6 +333,7 @@ export default {
     },
     async getIsShowInputPsw() {
       const privateKey = await getDecryptPrivateKeyFromStore(this)
+      console.log(privateKey)
       if (!privateKey) {
         this.showInputPswModal = true;
       }
@@ -364,6 +371,8 @@ export default {
     this.overrides.gasPrice = await getEstimateGas('gasPrice', 5000000000)
     this.currentUserAddress = getConnectedAddress()
     this.getIsShowInputPsw()
+    this.currentWalletId && this.getSignerListByid()
+    this.currentWalletAddress && this.getRecoverInfo()
   },
   async mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)

@@ -31,6 +31,14 @@
           <el-button type="primary" @click="recoverConfirm">Confirm</el-button>
         </div>
       </van-popup>
+      <van-popup v-model="showWarnPopup" class="confirm-modal-popUp flex flex-center flex-column" @close="closeWarnModal">
+        <div class="selcet-confirm-content">
+          <p>此Eigen智能合约钱包不可恢复，因为此钱包本身就存在于{{walletSelectAddress}}账户下，我们只能为您恢复不存在于此账号下的Eigen智能合约钱包</p>
+        </div>
+        <div class="select-confirm-btn">
+          <el-button type="primary" @click="closeWarnModal">Confirm</el-button>
+        </div>
+      </van-popup>
     </div>
     <div class="recover-page-2" v-show="recoverPage2Visible">
       <v-recoverPage2 :currentWalletId="walletSelectId" :currentWalletAddress="walletSelectAddress"></v-recoverPage2>
@@ -80,6 +88,7 @@ export default {
       securityModuleContract: null,
       walletStatus,
       securityModuleRouter,
+      showWarnPopup: false,
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -118,17 +127,17 @@ export default {
         this.getWalletList()
       }
     },
-    // async getWalletList() {
-    //   let data = {
-    //     network_id: getConnectedNet().id,
-    //     user_id: getFromStorage('gUID'),
-    //   }
-    //   const { hasError, list } = await this.$store.dispatch('getWalletList', data)
-    //   this.walletList = list
-    //   if (hasError) {
-    //     Toast('Get Error')
-    //   }
-    // },
+    async getWalletList() {
+      let data = {
+        network_id: getConnectedNet().id,
+        user_id: getFromStorage('gUID'),
+      }
+      const { hasError, list } = await this.$store.dispatch('getWalletList', data)
+      this.walletList = list
+      if (hasError) {
+        Toast('Get Error')
+      }
+    },
     async recoverNext() {
       const privateKey = await getDecryptPrivateKeyFromStore(this)
       if (!privateKey) {
@@ -158,7 +167,8 @@ export default {
         let isSigner = await this.securityModuleContract.isSigner(currentWallet, currentUserAddress)
         if (isSigner) {
           this.nextLoading = false
-          Toast('Signer Cannot Recover Wallet')
+          this.showWarnPopup = true
+          // Toast('Signer Cannot Recover Wallet')
           return
         }
 
@@ -166,7 +176,8 @@ export default {
         const ownerAddress = await walletContract.owner()
         if (ownerAddress.toLocaleLowerCase() == currentUserAddress) {
           this.nextLoading = false
-          Toast('Owner Cannot Recover Wallet')
+          this.showWarnPopup = true
+          // Toast('Owner Cannot Recover Wallet')
           return
         }
         
@@ -190,6 +201,9 @@ export default {
     closeModal() {
       this.nextLoading = false
       this.showConfirmPopup = false
+    },
+    closeWarnModal() {
+      this.showWarnPopup = false
     },
     recoverConfirm() {
       this.nextLoading = false
