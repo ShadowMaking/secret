@@ -37,7 +37,7 @@
               <div v-if="scope.row.wallet_status == walletStatus['Creating']">
                 <el-tag>Creating</el-tag>
               </div>
-              <div v-else-if="scope.row.wallet_status == walletStatus['Active']">
+              <div v-else-if="scope.row.wallet_status == walletStatus['Active'] || scope.row.wallet_status == walletStatus['Recovering']">
                 <el-tag v-if="scope.row.isInRecovery">Recovering</el-tag>
                 <el-tag type="info" v-else-if="scope.row.isLocked">Locked</el-tag>
                 <el-tag type="success" v-else>Active</el-tag>
@@ -72,7 +72,7 @@
               <div v-if="scope.row.wallet_status == walletStatus['Creating']">
                 <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
               </div>
-              <div v-else-if="scope.row.wallet_status == walletStatus['Active']">
+              <div v-else-if="scope.row.wallet_status == walletStatus['Active'] || scope.row.wallet_status == walletStatus['Recovering']">
                 <div v-if="scope.row.isLocked">
                   <el-button @click="handleClick(scope.row, 'Unlock')" type="text" size="small" class="sign-operate agree-btn">Unlock</el-button>
                 </div>
@@ -312,6 +312,7 @@ export default {
         walletId: this.signRow.wallet_id,
         signerAddress: this.signRow.address,
         status: status,
+        network_id: getConnectedNet().id,
       }
       const { hasError } = await this.$store.dispatch('updateSigner', {...data});
       this.showLoading = false;

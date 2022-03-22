@@ -34,7 +34,7 @@
               <div v-if="scope.row.wallet_status == walletStatus['Creating']">
                 <el-tag>Creating</el-tag>
               </div>
-              <div v-else-if="scope.row.wallet_status == walletStatus['Active']">
+              <div v-else-if="scope.row.wallet_status == walletStatus['Active'] || scope.row.wallet_status == walletStatus['Recovering']">
                 <el-tag v-if="scope.row.isInRecovery">Recovering</el-tag>
                 <el-tag type="info" v-else-if="scope.row.isLocked">Locked</el-tag>
                 <el-tag type="success" v-else>Active</el-tag>

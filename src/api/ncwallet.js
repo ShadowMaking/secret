@@ -51,7 +51,7 @@ import request from '@/utils/request';
  * @return {*}
  */
  export const getWalletList = (data) => {
-  const userId = data['userId'];
+  // const userId = data['userId'];
   return request({
     url: `/api/user/wallets`,
     method: 'get',
