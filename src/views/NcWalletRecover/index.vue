@@ -33,7 +33,7 @@
       </van-popup>
       <van-popup v-model="showWarnPopup" class="confirm-modal-popUp flex flex-center flex-column" @close="closeWarnModal">
         <div class="selcet-confirm-content">
-          <p>此Eigen智能合约钱包不可恢复，因为此钱包本身就存在于{{walletSelectAddress}}账户下，我们只能为您恢复不存在于此账号下的Eigen智能合约钱包</p>
+          <p>This eigen smart contract wallet cannot be recovered because the wallet itself exists in <span class="confirm-address">{{walletSelectAddress}}</span> Under <span class="confirm-address">{{currentUserAddress}}</span> account, we can only restore the eigen smart contract wallet that does not exist under this account</p>
         </div>
         <div class="select-confirm-btn">
           <el-button type="primary" @click="closeWarnModal">Confirm</el-button>

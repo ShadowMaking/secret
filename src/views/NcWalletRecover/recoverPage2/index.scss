@@ -1,12 +1,34 @@
 @import '@/app.scss';
 .recover-confirm-page {
-	.recover-confirm-title {
+	  .recover-confirm-title {
       font-size: 0.86rem;
       font-weight: bold;
       line-height: 25px;
-      span {
-        color: #495ABE;
-        padding: 0 5px;
+    }
+    .address-blue {
+      color: #495ABE;
+      padding: 0 5px;
+    }
+    .confirm-step-list {
+      margin-top: 50px;
+      .confrim-step-item {
+        display:flex;
+        align-items: center;
+        font-size: 0.86rem;
+        font-weight: bold;
+        line-height: 25px;
+        margin-top: 20px;
+        .confirm-step-right {
+          margin-left: 30px;
+        }
+        .el-icon-success {
+          font-size: 1.38rem;
+          color: #66b1ff;
+        }
+        .el-icon-loading {
+          color: #67c23a;
+          font-size: 1.38rem;
+        }
       }
     }
     .confirm-signer-list {
@@ -16,10 +38,12 @@
       display: flex;
       align-items: center;
       margin-bottom: 20px;
+      flex-wrap: wrap;
       .confirm-signer-item-left img {
         width: 2rem;
         height: 2rem;
         margin-right: 10px;
+        border-radius: 50%;
       }
       .confirm-signer-item-middle {
         line-height: 20px;
@@ -31,6 +55,24 @@
           height: 25px;
           line-height:22px;
         }
+      }
+    }
+    .confirm-modal-popUp {
+      border-radius: 5px;
+      padding: 20px 10px;
+      line-height: 20px;
+      width: 300px;
+      p {
+        font-weight: bold;
+        text-align: center;
+      }
+      .confirm-address {
+        color: #495ABE;
+        padding: 0 5px;
+        font-size: 0.86rem;
+      }
+      .select-confirm-btn {
+        margin-top: 20px;
       }
     }
 }

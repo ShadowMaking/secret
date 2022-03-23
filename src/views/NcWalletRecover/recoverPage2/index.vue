@@ -1,34 +1,53 @@
 <template>
   <div class="recover-confirm-page">
     <div class="recover-confirm-title">
-      <p>You are trying to recover Eigen Wallet <span @click="copyAddress(currentWalletAddress)">{{currentWalletAddress}}</span> to Account <span @click="copyAddress(currentUserAddress)">{{currentUserAddress}}</span></p>
-      <p>Please ask at least <span>{{signerNeedTotal}}</span> guardians below to help you recover wallet and ask them to login Eigen to confirm your request</p>
+      <p>You are trying to recover your Eigen Wallet <span @click="copyAddress(currentWalletAddress)" class="address-blue">{{currentWalletAddress}}</span> to Account <span @click="copyAddress(currentUserAddress)" class="address-blue">{{currentUserAddress}}</span></p>
+    </div>
+    <div class="confirm-step-list">
+      <div class="confrim-step-item">
+        <div class="confirm-step-left">
+          <div class="step-left-title">Step 1:</div>
+          <div class="step-left-content">
+            Please ask at least <span class="address-blue">{{signerNeedTotal}}</span> guardians below to help you recover wallet and ask them to login Eigen to confirm your request
+          </div>
+        </div>
+        <div class="confirm-step-right"><i :class="this.signerAgreeNum >= this.signerNeedTotal ? 'el-icon-success' : 'el-icon-loading'"></i></div>
+      </div>
+      <div class="confrim-step-item">
+        <div class="confirm-step-left">
+          <div class="step-left-title">Step 2:</div>
+          <div class="step-left-content">
+            Ask any of guardian who approve your recover request to sign your request
+          </div>
+        </div>
+        <div class="confirm-step-right"><i :class="confirmBtn2Disabled ? 'el-icon-success' : 'el-icon-loading'"></i></div>
+      </div>
     </div>
     <div class="confirm-signer-list">
       <div class="confrim-signer-item" v-for="(item,index) in signerList" :key="index">
         <div class="confirm-signer-item-left">
-          <img src="~@/assets/icon_logo.png">
+          <img :src="item.picture">
         </div>
         <div class="confirm-signer-item-middle">
-          <p>signer{{index}}</p>
+          <p>{{item.name}}</p>
           <p>{{item.address}}</p>
         </div>
         <div class="confirm-signer-item-right">
-          <el-tag type="success" effect="dark" v-if="item.status == signerStatus['agreeRecover']">Guardian已确认您的找回需求，24h36min36s将会过期</el-tag>
-          <el-tag type="info" effect="dark" v-if="item.status == signerStatus['ignoreRecover']">Guardian拒绝了您的找回需求，24h36min36s可重新申请</el-tag>
-          <el-tag type="info" effect="dark" v-if="item.status == signerStatus['startRecover']">等待Guardian确认，6小时候申请将自动过期</el-tag>
+          <el-tag type="success" effect="dark" v-if="item.status == signerStatus['agreeRecover']">Guardian has confirmed your retrieval request,Wait for him to sign the request(Expire after {{lasetTimes}})</el-tag>
+          <el-tag type="info" effect="dark" v-if="item.status == signerStatus['ignoreRecover']">Guardian rejected your recover request (Apply recover again after {{lasetTimes}})</el-tag>
+          <el-tag type="info" effect="dark" v-if="item.status == signerStatus['startRecover']">Wait for guardian to confirm</el-tag>
         </div>
       </div>
     </div>
     <div class="confirm-btn-box">
       <div>
-        <el-button type="primary" v-show="confirmBtn1Disabled" @click="ownerStartRecover">向所有Guardians发送找回申请</el-button>
+        <el-button type="primary" v-show="confirmBtn1Disabled" @click="ownerStartRecover">Send recovery request to all guardians</el-button>
       </div>
       <div>
-        <el-button :type="confirmBtn2Disabled ? 'primary' : 'info'" :disabled="!confirmBtn2Disabled" @click="ownerExcuteRecover" :loading="isHasExcuteClick">将此智能钱包导入到此账号下</el-button>
+        <el-button :type="confirmBtn2Disabled ? 'primary' : 'info'" :disabled="!confirmBtn2Disabled" @click="ownerExcuteRecover" :loading="isHasExcuteClick">Set this account as the owner of the contract Wallet</el-button>
       </div>
       <div>
-        <el-button type="danger" plain @click="cancelExcuteRecover" v-show="confirmBtn3Visible">取消此智能合约钱包的找回</el-button>
+        <el-button type="danger" plain @click="cancelExcuteRecover" v-show="confirmBtn3Visible">Cancel the request of this smart contract Wallet</el-button>
       </div>
     </div>
     <v-confirmModal
@@ -40,6 +59,22 @@
       @confirm="confirmRecover" />
     <v-loadingPopup :show="showLoading" :showSpinner="false" />
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
+    <van-popup v-model="showWarnPopup" class="confirm-modal-popUp flex flex-center flex-column" @close="closeWarnModal">
+        <div class="selcet-confirm-content">
+          <p>This eigen smart contract wallet has been retrieved successfully! Eigen smart contract wallet <span class="confirm-address">{{currentWalletAddress}}</span> has been automatically synced to you <span class="confirm-address">{{currentUserAddress}}</span> account</p>
+        </div>
+        <div class="select-confirm-btn">
+          <el-button type="primary" @click="confirmWarnModal">Confirm</el-button>
+        </div>
+      </van-popup>
+      <van-popup v-model="showCancelPopup" class="confirm-modal-popUp flex flex-center flex-column" @close="closeCancelModal">
+        <div class="selcet-confirm-content">
+          <p>Cancel successfully</p>
+        </div>
+        <div class="select-confirm-btn">
+          <el-button type="primary" @click="confirmCancelModal">Confirm</el-button>
+        </div>
+      </van-popup>
   </div>
 </template>
 
@@ -73,10 +108,13 @@ export default {
       confirmBtn1Disabled: true,
       confirmBtn2Disabled: false,
       confirmBtn3Visible: true,
+      showWarnPopup: false,
+      showCancelPopup: false,
 
       signerList: [],
       currentUserAddress: '',
       signerNeedTotal: 0,
+      signerAgreeNum: 0,
       signerStatus,
       multOperation,
       securityModuleRouter,
@@ -90,6 +128,7 @@ export default {
       
       showLoading: false,
       isHasExcuteClick:false,
+      lasetTimes: '48h',
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -243,8 +282,8 @@ export default {
       console.log(securityModuleContract)
       securityModuleContract.executeRecovery(this.currentWalletAddress, this.overrides).then(async tx=> {
           addTransHistory(tx, 'Execute Recover', this)
-          this.showLoading = false;
-          Toast('success')
+          this.showLoading = false
+          this.showWarnPopup = true
           this.resetSignStatus()
           this.updateWalletStatusSubmit(walletStatus['Active'])
           tx.wait().then(async res => {
@@ -265,6 +304,7 @@ export default {
     },
     cancelExcuteRecover() {
       this.updateWalletStatusSubmit(walletStatus['Active'])
+      this.showCancelPopup = true
     },
     async getSignerListByid() {
       let data = {
@@ -276,18 +316,38 @@ export default {
         if (list[i].status >= 5) {
           this.confirmBtn1Disabled = false
         }
+        if (list[i].status == this.signerStatus['agreeRecover']) {
+          this.signerAgreeNum = this.signerAgreeNum + 1
+        }
       }
       this.signerList = list
       this.signerNeedTotal = Math.ceil(this.signerList.length/2)
     },
     async getRecoverInfo() {
       const SecurityContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      console.log(this.currentWalletAddress)
       let res = await SecurityContract.isInRecovery(this.currentWalletAddress);
-      // let RecoveryExpiry = await SecurityContract.getRecoveryExpiryTime(this.currentWalletAddress);
-      console.log(res)
+      let RecoveryExpiryHash = await SecurityContract.getRecoveryExpiryTime(this.currentWalletAddress);
+      let recoveryExpiryNumber = web3.utils.hexToNumberString(RecoveryExpiryHash)
       this.confirmBtn2Disabled = res
-      // console.log(RecoveryExpiry)
+      console.log(recoveryExpiryNumber)
+      this.timer(recoveryExpiryNumber)
+    },
+    timer(seconds) {
+      setInterval(() => {
+          seconds -= 1
+          this.countDown(seconds)
+      }, 1000)
+    },
+    countDown(seconds) {
+      let d = parseInt(seconds / (24 * 60 * 60))
+      d = d <= 0 ? "": d + 'd'
+      let h = parseInt(seconds / (60 * 60));
+      h = h <= 0 ? "": h + 'h'
+      let m = parseInt(seconds / 60 % 60);
+      m = m <= 0 ? "": m + 'm'
+      let s = parseInt(seconds % 60);
+      s = s <= 0 ? "0s": s + 's'
+      this.lasetTimes = h + m + s
     },
     _handleNetworkChange({ chainInfo, from }) {
       if (from === 'sendMenu') { return }
@@ -355,6 +415,20 @@ export default {
       console.log(info)
       return info && info['id'] || 1
     },
+    closeWarnModal() {
+      this.showWarnPopup = false
+    },
+    confirmWarnModal() {
+      this.showWarnPopup = false
+      this.$router.push({ path: '/overview' })
+    },
+    closeCancelModal() {
+      this.showCancelPopup = false
+    },
+    confirmCancelModal() {
+      this.showCancelPopup = false
+      this.$router.push({ path: '/overview' })
+    },
   },
   async created() {
     if (!isLogin()) {
@@ -382,7 +456,7 @@ export default {
 <style lang="scss" scoped>
   @import "index";
   ::v-deep .confirm-btn-box .el-button {
-    width: 320px;
+    width: 350px;
     height: 40px;
     margin-bottom:20px;
   }
