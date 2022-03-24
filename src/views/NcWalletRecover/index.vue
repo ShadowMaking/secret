@@ -23,7 +23,7 @@
           <p>The Eigen Wallet</p>
           <p><span class="confirm-address">{{walletSelectAddress}}</span></p>
           <p>will recover to</p>
-          <p><span class="confirm-address">{{currentUserAddress}}</span></p>
+          <p><span class="confirm-address">{{newOwnerAddress}}</span></p>
           <p>would you confirm?</p>
         </div>
         <div class="select-confirm-btn">
@@ -41,7 +41,7 @@
       </van-popup>
     </div>
     <div class="recover-page-2" v-show="recoverPage2Visible">
-      <v-recoverPage2 :currentWalletId="walletSelectId" :currentWalletAddress="walletSelectAddress"></v-recoverPage2>
+      <v-recoverPage2 :currentWalletId="walletSelectId" :currentWalletAddress="walletSelectAddress" :newOwnerAddress="newOwnerAddress"></v-recoverPage2>
     </div>
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
@@ -77,6 +77,7 @@ export default {
       walletSelectId: '',
       walletSelectAddress: '',
       walletList: [],
+      newOwnerAddress: '',
 
       showConfirmPopup: false,
       currentUserAddress: '',
@@ -122,6 +123,7 @@ export default {
       if (list.length > 0) {//has a recovering wallet
         this.walletSelectId = list[0].wallet_id
         this.walletSelectAddress = list[0].wallet_address
+        this.newOwnerAddress = list[0].address
         this.recoverConfirm()//show recover detail
       } else {
         this.getWalletList()
@@ -196,6 +198,7 @@ export default {
     openSelectTipDialog() {
       this.walletSelectId = this.walletSelectInfo && this.walletSelectInfo.wallet_id
       this.walletSelectAddress = this.walletSelectInfo && this.walletSelectInfo.wallet_address
+      this.newOwnerAddress = getConnectedAddress()
       this.showConfirmPopup = true
     },
     closeModal() {

@@ -1,7 +1,7 @@
 <template>
   <div class="recover-confirm-page">
     <div class="recover-confirm-title">
-      <p>You are trying to recover your Eigen Wallet <span @click="copyAddress(currentWalletAddress)" class="address-blue">{{currentWalletAddress}}</span> to Account <span @click="copyAddress(currentUserAddress)" class="address-blue">{{currentUserAddress}}</span></p>
+      <p>You are trying to recover your Eigen Wallet <span @click="copyAddress(currentWalletAddress)" class="address-blue">{{currentWalletAddress}}</span> to Account <span @click="copyAddress(newOwnerAddress)" class="address-blue">{{newOwnerAddress}}</span></p>
     </div>
     <div class="confirm-step-list">
       <div class="confrim-step-item">
@@ -20,7 +20,7 @@
             Ask any of guardian who approve your recover request to sign your request
           </div>
         </div>
-        <div class="confirm-step-right"><i :class="confirmBtn2Disabled ? 'el-icon-success' : 'el-icon-loading'"></i></div>
+        <div class="confirm-step-right"><i :class="isTriggerRecover ? 'el-icon-success' : 'el-icon-loading'"></i></div>
       </div>
     </div>
     <div class="confirm-signer-list">
@@ -61,7 +61,7 @@
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
     <van-popup v-model="showWarnPopup" class="confirm-modal-popUp flex flex-center flex-column" @close="closeWarnModal">
         <div class="selcet-confirm-content">
-          <p>This eigen smart contract wallet has been retrieved successfully! Eigen smart contract wallet <span class="confirm-address">{{currentWalletAddress}}</span> has been automatically synced to you <span class="confirm-address">{{currentUserAddress}}</span> account</p>
+          <p>This eigen smart contract wallet has been retrieved successfully! Eigen smart contract wallet <span class="confirm-address">{{currentWalletAddress}}</span> has been automatically synced to you <span class="confirm-address">{{newOwnerAddress}}</span> account</p>
         </div>
         <div class="select-confirm-btn">
           <el-button type="primary" @click="confirmWarnModal">Confirm</el-button>
@@ -100,16 +100,18 @@ Vue.use(Toast);
 
 export default {
   name: 'recover-confirm',
-  props: ['currentWalletId', 'currentWalletAddress'],
+  props: ['currentWalletId', 'currentWalletAddress', 'newOwnerAddress'],
   data() {
     return {
       // currentWalletId: 195,
       // currentWalletAddress: '0x6d4143f1404bd78c15a22c7e02ad00317fd2d2bc',
       confirmBtn1Disabled: true,
       confirmBtn2Disabled: false,
-      confirmBtn3Visible: true,
+      confirmBtn3Visible: false,
       showWarnPopup: false,
       showCancelPopup: false,
+      userIsNewOwner: false,
+      isTriggerRecover: false,
 
       signerList: [],
       currentUserAddress: '',
@@ -166,6 +168,15 @@ export default {
         }
       }
     },
+    newOwnerAddress: {
+      handler(newValue, oldValue) {
+        console.log(newValue)
+        if (newValue == getConnectedAddress()) {
+          this.userIsNewOwner = true
+          this.confirmBtn3Visible = true
+        }
+      }
+    },
   },
   methods: {
     copyAddress(str) {
@@ -179,7 +190,7 @@ export default {
     async updateOwner() {
       let data = {
         walletId: this.currentWalletId,
-        ownerAddress: this.currentUserAddress,
+        ownerAddress: this.newOwnerAddress,
         network_id: getConnectedNet().id,
       }
       const { hasError } = await this.$store.dispatch('updateOwnerAddress', {...data});
@@ -325,12 +336,11 @@ export default {
     },
     async getRecoverInfo() {
       const SecurityContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      let res = await SecurityContract.isInRecovery(this.currentWalletAddress);
+      this.isTriggerRecover = await SecurityContract.isInRecovery(this.currentWalletAddress);
       let RecoveryExpiryHash = await SecurityContract.getRecoveryExpiryTime(this.currentWalletAddress);
       let recoveryExpiryNumber = web3.utils.hexToNumberString(RecoveryExpiryHash)
-      this.confirmBtn2Disabled = res
-      console.log(recoveryExpiryNumber)
-      res && this.timer(recoveryExpiryNumber)
+      this.confirmBtn2Disabled = this.isTriggerRecover && this.userIsNewOwner
+      this.isTriggerRecover && this.timer(recoveryExpiryNumber)
     },
     timer(seconds) {
       setInterval(() => {
