@@ -453,6 +453,7 @@ export default {
       let totalSignMessage = this.getSignMessage()
       if (totalSignMessage) {
         this.signMsg = totalSignMessage
+        this.currentOptType === 'triggerRecover'
         this.showConfirmModal()
       } else {
         this.showLoading = false
@@ -514,6 +515,7 @@ export default {
       this.overrides.gasLimit = overrides.gasLimit
       this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
       this.showLoading = true
+      console.log(this.currentOptType)
       if (this.currentOptType === 'triggerRecover') {
         this.dealDataBeforeTriggerRecover()
       }

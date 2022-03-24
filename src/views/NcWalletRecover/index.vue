@@ -250,6 +250,9 @@ export default {
       this.showInputPswModal = false
       this.dealDataBeforeRecoverNext()
     },
+    handleAccountChange(addressInfo) {
+      this.currentUserAddress = getConnectedAddress()
+    },
   },
   created() {
     if (!isLogin()) {
@@ -258,6 +261,9 @@ export default {
     }
     this.currentUserAddress = getConnectedAddress()
     this.getIsHasRecoverWallet()
+  },
+  async mounted() {
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
   },
 };
 </script>

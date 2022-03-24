@@ -429,6 +429,9 @@ export default {
       this.showCancelPopup = false
       this.$router.push({ path: '/overview' })
     },
+    handleAccountChange(addressInfo) {
+      this.currentUserAddress = getConnectedAddress()
+    },
   },
   async created() {
     if (!isLogin()) {
@@ -450,6 +453,7 @@ export default {
   },
   async mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
   },
 };
 </script>
