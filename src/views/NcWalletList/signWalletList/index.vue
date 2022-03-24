@@ -441,9 +441,11 @@ export default {
             this.showConfirmModal()
           })
           .catch((error) => {
+            this.showLoading = false
             console.log(error)
           });
       } else {
+        this.showLoading = false
         Toast('Confirm Recover success')
       }
     },
@@ -465,7 +467,6 @@ export default {
         network_id: getConnectedNet().id,
       }
       const { hasError, data } = await this.$store.dispatch('getSignMessage', {...dataParams});
-      this.showLoading = false
       return data
     },
     getNewOwnerInfo() {

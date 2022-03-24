@@ -330,7 +330,7 @@ export default {
       let recoveryExpiryNumber = web3.utils.hexToNumberString(RecoveryExpiryHash)
       this.confirmBtn2Disabled = res
       console.log(recoveryExpiryNumber)
-      this.timer(recoveryExpiryNumber)
+      res && this.timer(recoveryExpiryNumber)
     },
     timer(seconds) {
       setInterval(() => {
