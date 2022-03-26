@@ -1,17 +1,33 @@
 @import '@/app.scss';
 .ncWalletRecover-page {
-	.recover-des {
+	  .recover-des {
       font-size: 0.96rem;
-	  line-height: 30px;
+	    line-height: 30px;
+      color: #9D9FA8;
+    }
+    .recover-content-box {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 40px;
     }
     .wallet-list {
-      margin-top: 20px;
+      margin-right: 20px;
+      width: 40%;
     }
     .wallet-select {
-      width: 50%;
+      width: 100%;
+      ::v-deep .el-input__inner {
+        border-radius: 7px;
+      }
     }
     .recover-next {
-      margin-top: 40px;
+      ::v-deep .el-button {
+        border-radius: 18px;
+        background-color: #3466E6;
+        border-colod: #3466E6;
+        height: 40px;
+      }
     }
     .confirm-modal-popUp {
       border-radius: 5px;

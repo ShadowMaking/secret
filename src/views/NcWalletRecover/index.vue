@@ -1,49 +1,32 @@
 <template>
   <div class="ncWalletRecover-page">
+    <v-navTitle title="Recovery Wallet"></v-navTitle>
     <div class="recover-page-1" v-show="recoverPage1Visible">
-      <v-navTitle title="Recovery Wallet"></v-navTitle>
+      
       <div class="recover-wallet-container">
         <p class="recover-des">We show the Eigen wallet in your current Eigen account, Choose the Eigen Wallet you want to recover.</p>
-        <div class="wallet-list">
-          <el-select v-model="walletSelectInfo" placeholder="" class="wallet-select" value-key="wallet_id">
-            <el-option
-              v-for="item in walletList"
-              :key="item.wallet_id"
-              :label="item.name + '-' + item.wallet_address"
-              :value="item">
-            </el-option>
-          </el-select>
-        </div>
-        <div class="recover-next">
-          <el-button type="primary" @click="recoverNext" :loading="nextLoading">Next</el-button>
+        <div class="recover-content-box">
+          <div class="wallet-list">
+            <el-select v-model="walletSelectInfo" placeholder="" class="wallet-select" value-key="wallet_id">
+              <el-option
+                v-for="item in walletList"
+                :key="item.wallet_id"
+                :label="item.name + '-' + item.wallet_address"
+                :value="item">
+              </el-option>
+            </el-select>
+          </div>
+          <div class="recover-next">
+            <el-button type="primary" @click="recoverNext" :loading="nextLoading">Next</el-button>
+          </div>
         </div>
       </div>
-      <van-popup v-model="showConfirmPopup" class="confirm-modal-popUp flex flex-center flex-column" @close="closeModal">
-        <div class="selcet-confirm-content">
-          <p>The Eigen Wallet</p>
-          <p><span class="confirm-address">{{walletSelectAddress}}</span></p>
-          <p>will recover to</p>
-          <p><span class="confirm-address">{{newOwnerAddress}}</span></p>
-          <p>would you confirm?</p>
-        </div>
-        <div class="select-confirm-btn">
-          <el-button @click="closeModal">Cancel</el-button>
-          <el-button type="primary" @click="recoverConfirm">Confirm</el-button>
-        </div>
-      </van-popup>
-      <van-popup v-model="showWarnPopup" class="confirm-modal-popUp flex flex-center flex-column" @close="closeWarnModal">
-        <div class="selcet-confirm-content">
-          <p>This eigen smart contract wallet cannot be recovered because the wallet itself exists in <span class="confirm-address">{{walletSelectAddress}}</span> Under <span class="confirm-address">{{currentUserAddress}}</span> account, we can only restore the eigen smart contract wallet that does not exist under this account</p>
-        </div>
-        <div class="select-confirm-btn">
-          <el-button type="primary" @click="closeWarnModal">Confirm</el-button>
-        </div>
-      </van-popup>
     </div>
     <div class="recover-page-2" v-show="recoverPage2Visible">
-      <v-recoverPage2 :currentWalletId="walletSelectId" :currentWalletAddress="walletSelectAddress" :newOwnerAddress="newOwnerAddress"></v-recoverPage2>
+      <v-recoverPage2 :currentWalletId="walletSelectId" :currentWalletAddress="walletSelectAddress" :newOwnerAddress="newOwnerAddress" :oldOwnerAddress="oldOwnerAddress"></v-recoverPage2>
     </div>
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
+    <v-resultModal :show="showResultModal" :content="resuletContent" :needColse="needResultColse" @confirm="confirmResultModal" @close="cancelResultModal"></v-resultModal>
   </div>
 </template>
 
@@ -55,6 +38,7 @@ import { Toast, Dialog } from 'vant'
 import navTitle from '@/components/NavTitle/index'
 import recoverPage2 from './recoverPage2/index'
 import InputPswModal from '@/components/InputPswModal'
+import resultModal from '@/components/ResultModal'
 
 import { isLogin, getContractAt,getConnectedAddress, getDecryptPrivateKeyFromStore, getSupportNet, getConnectedNet, getEncryptKeyByAddressFromStore} from '@/utils/dashBoardTools';
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
@@ -78,18 +62,22 @@ export default {
       walletSelectAddress: '',
       walletList: [],
       newOwnerAddress: '',
+      oldOwnerAddress: '',
 
-      showConfirmPopup: false,
       currentUserAddress: '',
       nextLoading: false,
-
+      
       recoverPage1Visible: true,
       recoverPage2Visible: false,
 
       securityModuleContract: null,
       walletStatus,
       securityModuleRouter,
-      showWarnPopup: false,
+      
+      resuletContent: '',
+      needResultColse: true,
+      showResultModal: false,
+      currentTip: 'warn',//warn next
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -107,6 +95,7 @@ export default {
     "v-navTitle": navTitle,
     "v-recoverPage2": recoverPage2,
     'v-inputPsw': InputPswModal,
+    'v-resultModal': resultModal,
   },
   methods: {
     async getIsHasRecoverWallet() {
@@ -123,7 +112,8 @@ export default {
       if (list.length > 0) {//has a recovering wallet
         this.walletSelectId = list[0].wallet_id
         this.walletSelectAddress = list[0].wallet_address
-        this.newOwnerAddress = list[0].address
+        this.newOwnerAddress = list[0].new_address
+        this.oldOwnerAddress = list[0].address
         this.recoverConfirm()//show recover detail
       } else {
         this.getWalletList()
@@ -169,16 +159,16 @@ export default {
         let isSigner = await this.securityModuleContract.isSigner(currentWallet, currentUserAddress)
         if (isSigner) {
           this.nextLoading = false
-          this.showWarnPopup = true
+          this.showTipModal()
           // Toast('Signer Cannot Recover Wallet')
           return
         }
-
+    
         const walletContract = await getContractAt({ tokenAddress: currentWallet, abi: WalletJson.abi }, this)
         const ownerAddress = await walletContract.owner()
         if (ownerAddress.toLocaleLowerCase() == currentUserAddress) {
           this.nextLoading = false
-          this.showWarnPopup = true
+          this.showTipModal()
           // Toast('Owner Cannot Recover Wallet')
           return
         }
@@ -195,22 +185,28 @@ export default {
       }
       
     },
+    showTipModal() {
+      this.currentTip = 'warn'
+      this.showResultModal = true
+      this.resuletContent = `This eigen smart contract wallet cannot be recovered because the wallet itself exists in ${this.walletSelectAddress} Under ${this.currentUserAddress} account, we can only restore the eigen smart contract wallet that does not exist under this account`
+      this.needResultColse = false
+    },
+    showConfirmModal() {
+      this.currentTip = 'next'
+      this.showResultModal = true
+      this.needResultColse = true
+      this.resuletContent = `The Eigen Wallet ${this.walletSelectAddress} will recover to ${this.newOwnerAddress} would you confirm?`
+    },
     openSelectTipDialog() {
       this.walletSelectId = this.walletSelectInfo && this.walletSelectInfo.wallet_id
       this.walletSelectAddress = this.walletSelectInfo && this.walletSelectInfo.wallet_address
       this.newOwnerAddress = getConnectedAddress()
-      this.showConfirmPopup = true
-    },
-    closeModal() {
-      this.nextLoading = false
-      this.showConfirmPopup = false
-    },
-    closeWarnModal() {
-      this.showWarnPopup = false
+      this.oldOwnerAddress = this.walletSelectInfo && this.walletSelectInfo.address
+      this.showConfirmModal()
     },
     recoverConfirm() {
       this.nextLoading = false
-      this.showConfirmPopup = false
+      this.showResultModal = false
       this.recoverPage1Visible = false
       this.recoverPage2Visible = true
     },
@@ -255,6 +251,15 @@ export default {
     },
     handleAccountChange(addressInfo) {
       this.currentUserAddress = getConnectedAddress()
+    },
+    confirmResultModal() {
+      if (this.currentTip == 'next') {
+        this.recoverConfirm()
+      }
+      this.showResultModal = false
+    },
+    cancelResultModal() {
+      this.showResultModal = false
     },
   },
   created() {

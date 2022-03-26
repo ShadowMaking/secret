@@ -1,33 +1,46 @@
 @import '@/app.scss';
 .recover-confirm-page {
 	  .recover-confirm-title {
-      font-size: 0.86rem;
-      font-weight: bold;
-      line-height: 25px;
+      font-size: 0.96rem;
+      line-height: 30px;
+      color: #9D9FA8;
+    }
+    .recover-content-box {
+      width: 85%;
     }
     .address-blue {
       color: #495ABE;
-      padding: 0 5px;
+    }
+    .recover-step-show {
+      font-size: 0.96rem;
+      margin-top: 10px;
+    }
+    .step-show-title {
+      margin-right: 15px;
     }
     .confirm-step-list {
-      margin-top: 50px;
+      margin-top: 15px;
+      border: 1px solid #dfdfdf;
+      border-radius: 5px;
+      padding: 0 15px 15px;
       .confrim-step-item {
         display:flex;
         align-items: center;
-        font-size: 0.86rem;
-        font-weight: bold;
         line-height: 25px;
         margin-top: 20px;
+        .step-left-title {
+          font-size: 0.96rem;
+        }
+        .step-left-content {
+          color: #9D9FA8;
+        }
         .confirm-step-right {
           margin-left: 30px;
         }
-        .el-icon-success {
+        .el-icon-circle-check, .el-icon-remove-outline {
           font-size: 1.38rem;
-          color: #66b1ff;
-        }
-        .el-icon-loading {
-          color: #67c23a;
-          font-size: 1.38rem;
+          color: #495ABE;
+          margin-left: 10px;
         }
       }
     }
@@ -55,6 +68,11 @@
           height: 25px;
           line-height:22px;
         }
+        .el-tag--dark.el-tag--info {
+          background-color: #dfdfdf;
+          border-color: #dfdfdf;
+          color: #2c3e50;
+        }
       }
     }
     .confirm-modal-popUp {
@@ -73,6 +91,18 @@
       }
       .select-confirm-btn {
         margin-top: 20px;
+      }
+    }
+    .confirm-btn-item {
+      border: 1px solid #dfdfdf;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 30px;
+      margin-bottom: 20px;
+      .confirm-btn-label {
+        margin-right: 10px;
       }
     }
 }

@@ -26,7 +26,7 @@
           prop="owner_address"
           label="Owner Address ">
           <template slot-scope="scope">
-              <span @click="copyAddress(scope.row.owner_address)">{{scope.row.owner_address}}</span>
+              <span @click="copyAddress(scope.row.owner_address)">{{scope.row.new_owner_address ? scope.row.new_owner_address : scope.row.owner_address}}</span>
           </template>
         </el-table-column>
         <el-table-column
@@ -438,6 +438,8 @@ export default {
           })
           .then(() => {
             this.signMsg = totalSignMessage
+            this.currentOptType = 'triggerRecover'
+            this.showLoading = true
             this.showConfirmModal()
           })
           .catch((error) => {
@@ -472,7 +474,7 @@ export default {
     },
     getNewOwnerInfo() {
       let currentWalletAddress = this.signRow.wallet_address
-      let newOwnAddress = this.signRow.owner_address
+      let newOwnAddress = this.signRow.new_owner_address
       const SMABI = [
           "function executeRecovery(address)",
           "function cancelRecovery(address)",
