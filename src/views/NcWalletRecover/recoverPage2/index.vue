@@ -1,7 +1,7 @@
 <template>
   <div class="recover-confirm-page">
     <div class="recover-confirm-title">
-      <p>You are trying to recover Wallet <span @click="copyAddress(currentWalletAddress)">(Name {{currentWalletAddress}}),</span>The owner will change from <span @click="copyAddress(newOwnerAddress)">{{oldOwnerAddress}}</span> to <span @click="copyAddress(newOwnerAddress)">{{newOwnerAddress}}</span></p>
+      <p>You are trying to recover Wallet <span @click="copyAddress(currentWalletAddress)">({{walletName}} {{currentWalletAddress}}),</span>The owner will change from <span @click="copyAddress(newOwnerAddress)">{{oldOwnerAddress}}</span> to <span @click="copyAddress(newOwnerAddress)">{{newOwnerAddress}}</span></p>
     </div>
     <div class="recover-content-box">
       <div class="recover-step-show address-blue">
@@ -110,7 +110,7 @@ Vue.use(Toast);
 
 export default {
   name: 'recover-confirm',
-  props: ['currentWalletId', 'currentWalletAddress', 'newOwnerAddress', 'oldOwnerAddress'],
+  props: ['currentWalletId', 'currentWalletAddress', 'newOwnerAddress', 'oldOwnerAddress', 'walletName'],
   data() {
     return {
       // currentWalletId: 195,
@@ -205,20 +205,27 @@ export default {
     },
     ownerStartRecover() {
       this.updateOwner(null)
+      this.addMultTx()
     },
     async updateOwner(txid) {
-      let data = {
-        walletId: this.currentWalletId,
-        ownerAddress: this.newOwnerAddress,
-        network_id: getConnectedNet().id,
-        txid: txid,
+      let data;
+      if (txid) {
+        data = {
+          walletId: this.currentWalletId,
+          txid: txid,
+        }
+      } else {
+        data = {
+          walletId: this.currentWalletId,
+          ownerAddress: this.newOwnerAddress,
+          network_id: getConnectedNet().id,
+        }
       }
       const { hasError } = await this.$store.dispatch('updateOwnerAddress', {...data});
       if (hasError) {
         Toast('Update Owner Failed')
       } else {
         console.log('Update Owner success')
-        this.addMultTx()
       }
     },
     async addMultTx() {
@@ -360,17 +367,18 @@ export default {
     },
     async getRecoverInfo() {
       const SecurityContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      console.log(this.currentWalletAddress)
       this.isTriggerRecover = await SecurityContract.isInRecovery(this.currentWalletAddress);
       let RecoveryExpiryHash = await SecurityContract.getRecoveryExpiryTime(this.currentWalletAddress);
       let recoveryExpiryNumber = web3.utils.hexToNumberString(RecoveryExpiryHash)
       console.log(this.userIsNewOwner)
+      console.log(this.isTriggerRecover)
       this.confirmBtn2Disabled = (this.isTriggerRecover && this.userIsNewOwner)
       this.isTriggerRecover && this.timer(recoveryExpiryNumber)
     },
     timer(seconds) {
       this.thisTimer = window.setInterval(() => {
           seconds -= 1
-          console.log(seconds)
           this.countDown(seconds)
       }, 1000)
     },

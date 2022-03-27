@@ -186,10 +186,18 @@ import request from '@/utils/request';
  */
  export const updateOwnerAddress = (data) => {
   const walletId = data['walletId']
-  let _data = {
-    owner_address: data['ownerAddress'],
-    network_id: data['network_id'],
+  let _data
+  if (data['txid']) {
+    _data = {
+      txid: data['txid']
+    }
+  } else {
+    _data = {
+      owner_address: data['ownerAddress'],
+      network_id: data['network_id'],
+    }
   }
+
   return request({
     url: `/api/user/wallet/${walletId}`,
     method: 'post',
@@ -204,10 +212,18 @@ import request from '@/utils/request';
  */
  export const updateWalletStatus = (data) => {
   const walletId = data['walletId']
-  let _data = {
-    status: data['status'],
-    txid: data['txid'],
-    network_id: data['network_id'],
+  let _data
+  if (data['txid']) {
+    _data = {
+      status: data['status'],
+      txid: data['txid'],
+      network_id: data['network_id'],
+    }
+  } else {
+    _data = {
+      status: data['status'],
+      network_id: data['network_id'],
+    }
   }
   return request({
     url: `/api/user/wallet/${walletId}`,

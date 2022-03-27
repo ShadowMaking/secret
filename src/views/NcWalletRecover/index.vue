@@ -23,7 +23,7 @@
       </div>
     </div>
     <div class="recover-page-2" v-show="recoverPage2Visible">
-      <v-recoverPage2 :currentWalletId="walletSelectId" :currentWalletAddress="walletSelectAddress" :newOwnerAddress="newOwnerAddress" :oldOwnerAddress="oldOwnerAddress"></v-recoverPage2>
+      <v-recoverPage2 :currentWalletId="walletSelectId" :currentWalletAddress="walletSelectAddress" :newOwnerAddress="newOwnerAddress" :oldOwnerAddress="oldOwnerAddress" :walletName="walletName"></v-recoverPage2>
     </div>
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
     <v-resultModal :show="showResultModal" :content="resuletContent" :needColse="needResultColse" @confirm="confirmResultModal" @close="cancelResultModal"></v-resultModal>
@@ -63,6 +63,7 @@ export default {
       walletList: [],
       newOwnerAddress: '',
       oldOwnerAddress: '',
+      walletName: '',
 
       currentUserAddress: '',
       nextLoading: false,
@@ -114,6 +115,7 @@ export default {
         this.walletSelectAddress = list[0].wallet_address
         this.newOwnerAddress = list[0].new_address
         this.oldOwnerAddress = list[0].address
+        this.walletName = list[0].name
         this.recoverConfirm()//show recover detail
       } else {
         this.getWalletList()
@@ -202,6 +204,7 @@ export default {
       this.walletSelectAddress = this.walletSelectInfo && this.walletSelectInfo.wallet_address
       this.newOwnerAddress = getConnectedAddress()
       this.oldOwnerAddress = this.walletSelectInfo && this.walletSelectInfo.address
+      this.walletName = this.walletSelectInfo && this.walletSelectInfo.name
       this.showConfirmModal()
     },
     recoverConfirm() {
