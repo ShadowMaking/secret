@@ -189,7 +189,8 @@ import request from '@/utils/request';
   let _data
   if (data['txid']) {
     _data = {
-      txid: data['txid']
+      txid: data['txid'],
+      status: data['status']
     }
   } else {
     _data = {

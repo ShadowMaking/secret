@@ -213,6 +213,7 @@ export default {
         data = {
           walletId: this.currentWalletId,
           txid: txid,
+          status: walletStatus['Active'],
         }
       } else {
         data = {
@@ -324,7 +325,6 @@ export default {
           this.showLoading = false
           this.showWarnPopup = true
           this.resetSignStatus()
-          this.updateWalletStatusSubmit(walletStatus['Active'], tx.hash)
           this.updateOwner(tx.hash)
           tx.wait().then(async res => {
            console.log('Execute Recover:', res)
