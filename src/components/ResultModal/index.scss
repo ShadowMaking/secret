@@ -13,9 +13,11 @@
   .confirm-modal-wraper {
 
     .confirm-modal-content {
-      text-align: center;
       font-size: 0.96rem;
       min-height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
     .el-button {
       padding: 8px 40px;

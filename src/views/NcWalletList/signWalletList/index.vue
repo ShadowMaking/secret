@@ -345,19 +345,7 @@ export default {
       this.$emit('signChild');
       console.log(isToast)
       !isToast && Toast(`${operateType} Submit Success`)
-      // this.updateWalletStatusSubmit(this.walletStatus[status], res.hash)
       addTransHistory(res, operateType, this)
-    },
-    async updateWalletStatusSubmit(status, txhash) {
-      console.log(status)
-      let data = {
-        walletId: this.signRow.wallet_id,
-        status: status,
-        txid: txhash,
-        network_id: getConnectedNet().id,
-      }
-      const { hasError } = await this.$store.dispatch('updateWalletStatus', {...data});
-      console.log(hasError)
     },
     cancelSignMessage() {
       this.showSignMessageModal = false
@@ -537,7 +525,7 @@ export default {
       let replaceOwnerData = this.getNewOwnerInfo()
       console.log(replaceOwnerData)
 
-      let expireTime = Math.floor((new Date().getTime()) / 1000) + 600;
+      let expireTime = Math.floor((new Date().getTime()) / 1000) + 1800;
       let signatures = this.signMsg;
       
       this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)

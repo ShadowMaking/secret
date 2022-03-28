@@ -44,7 +44,7 @@
         </div>
       </div>
       <div class="confirm-btn-box">
-        <div class="confirm-btn-item" v-show="confirmBtn1Disabled">
+        <div class="confirm-btn-item" v-show="confirmBtn1Disabled && userIsNewOwner">
           <span class="confirm-btn-label">Send recovery request to all guardians</span>
           <el-button type="primary" @click="ownerStartRecover">Confirm</el-button>
         </div>
@@ -52,9 +52,9 @@
           <span class="confirm-btn-label">Set this account as the owner of the contract Wallet</span>
           <el-button :type="confirmBtn2Disabled ? 'primary' : 'info'" :disabled="!confirmBtn2Disabled" @click="ownerExcuteRecover" :loading="isHasExcuteClick">Confirm</el-button>
         </div>
-        <div class="confirm-btn-item" v-show="confirmBtn3Visible">
+        <div class="confirm-btn-item" v-show="confirmBtn3Visible && userIsNewOwner">
           <span class="confirm-btn-label">Cancel the request of this smart contract Wallet</span>
-          <el-button type="danger" plain @click="cancelExcuteRecover">Confirm</el-button>
+          <el-button type="danger" plain @click="cancelExcuteRecover">Cancel</el-button>
         </div>
       </div>
     </div>
@@ -67,23 +67,7 @@
       @confirm="confirmRecover" />
     <v-loadingPopup :show="showLoading" :showSpinner="false" />
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
-    <van-popup v-model="showWarnPopup" class="confirm-modal-popUp flex flex-center flex-column" @close="closeWarnModal">
-        <div class="selcet-confirm-content">
-          <p>This eigen smart contract wallet has been retrieved successfully! Eigen smart contract wallet {{currentWalletAddress}}  has been automatically synced to you {{newOwnerAddress}} account</p>
-        </div>
-        <div class="select-confirm-btn">
-          <el-button type="primary" @click="confirmWarnModal">Confirm</el-button>
-        </div>
-      </van-popup>
-      <van-popup v-model="showCancelPopup" class="confirm-modal-popUp flex flex-center flex-column" @close="closeCancelModal">
-        <div class="selcet-confirm-content">
-          <p>Cancel successfully</p>
-        </div>
-        <div class="select-confirm-btn">
-          <el-button type="primary" @click="confirmCancelModal">Confirm</el-button>
-        </div>
-      </van-popup>
-      <v-resultModal :show="showResultModal" :content="resuletContent" :needColse="needResultColse" @confirm="confirmResultModal" @close="cancelResultModal"></v-resultModal>
+    <v-resultModal :show="showResultModal" :content="resuletContent" :needColse="needResultColse" @confirm="confirmResultModal" @close="cancelResultModal"></v-resultModal>
   </div>
 </template>
 
@@ -118,8 +102,6 @@ export default {
       confirmBtn1Disabled: true,
       confirmBtn2Disabled: false,
       confirmBtn3Visible: false,
-      showWarnPopup: false,
-      showCancelPopup: false,
       userIsNewOwner: false,
       isTriggerRecover: false,
       isComponse: true,
@@ -129,7 +111,6 @@ export default {
       needResultColse: false,
 
       signerList: [],
-      currentUserAddress: '',
       signerNeedTotal: 0,
       signerAgreeNum: 0,
       signerStatus,
@@ -146,6 +127,7 @@ export default {
       showLoading: false,
       isHasExcuteClick:false,
       lasetTimes: '48h',
+      currentTip: 'cancel',//cancel excuteConfirm cancelResult
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -181,19 +163,14 @@ export default {
     currentWalletAddress: {
       handler(newValue, oldValue) {
         if (newValue) {
-          this.getRecoverInfo()
+          this.getIsShowInputPsw()
         }
       }
     },
     newOwnerAddress: {
       handler(newValue, oldValue) {
-        console.log(newValue)
-        if (newValue == getConnectedAddress()) {
-          this.userIsNewOwner = true
-          if (!this.confirmBtn1Disabled) {
-            this.confirmBtn3Visible = true
-          }
-        }
+        console.log('newValue:' + newValue)
+        this.getIsNewOwner()
       }
     },
   },
@@ -203,24 +180,25 @@ export default {
         Toast.success('Copied');
       }
     },
+    getIsNewOwner() {
+      if (this.newOwnerAddress == getConnectedAddress()) {
+        this.userIsNewOwner = true
+        if (!this.confirmBtn1Disabled) {
+          this.confirmBtn3Visible = true
+        }
+      }
+    },
     ownerStartRecover() {
       this.updateOwner(null)
       this.addMultTx()
     },
     async updateOwner(txid) {
-      let data;
-      if (txid) {
-        data = {
-          walletId: this.currentWalletId,
-          txid: txid,
-          status: walletStatus['Active'],
-        }
-      } else {
-        data = {
-          walletId: this.currentWalletId,
-          ownerAddress: this.newOwnerAddress,
-          network_id: getConnectedNet().id,
-        }
+      let data = {
+        walletId: this.currentWalletId,
+        txid: txid,
+        status: walletStatus['Active'],
+        ownerAddress: this.newOwnerAddress,
+        network_id: getConnectedNet().id,
       }
       const { hasError } = await this.$store.dispatch('updateOwnerAddress', {...data});
       if (hasError) {
@@ -244,23 +222,30 @@ export default {
         console.log('addMultTx Failed')
       } else {
         console.log('addMultTx success')
-        Toast('Send success')
         for (var i=0; i<this.signerList.length; i++) {//waiting for signer agree
           await this.updateSigner(this.signerList[i].address, signerStatus['startRecover'])
         }
-        this.updateWalletStatusSubmit(walletStatus['Recovering'], null)
+        this.updateWalletStatusSubmit(walletStatus['Recovering'])
         this.getSignerListByid()
       }
     },
-    async updateWalletStatusSubmit(status, tx) {
-      console.log(status)
+    async updateWalletStatusSubmit(status) {
       let data = {
         walletId: this.currentWalletId,
         status: status,
-        txid: tx,
         network_id: getConnectedNet().id,
       }
       const { hasError } = await this.$store.dispatch('updateWalletStatus', {...data});
+      if (hasError) {
+        Toast('failed')
+      } else {
+        if (status == walletStatus['Recovering']) {
+          Toast('Send success')
+        } else {
+          this.showCacelResultModal()
+        }
+        
+      }
       console.log(hasError)
     },
     async updateSigner(signerAddress, status) {
@@ -323,7 +308,7 @@ export default {
       securityModuleContract.executeRecovery(this.currentWalletAddress, this.overrides).then(async tx=> {
           addTransHistory(tx, 'Execute Recover', this)
           this.showLoading = false
-          this.showWarnPopup = true
+          this.showSuccessModal()
           this.resetSignStatus()
           this.updateOwner(tx.hash)
           tx.wait().then(async res => {
@@ -343,9 +328,25 @@ export default {
       })
     },
     cancelExcuteRecover() {
-      this.updateWalletStatusSubmit(walletStatus['Active'], null)
-      this.resetSignStatus()
-      this.showCancelPopup = true
+      this.showCancelModal()
+    },
+    showSuccessModal() {
+      this.currentTip = 'excuteConfirm'
+      this.showResultModal = true
+      this.resuletContent = `This eigen smart contract wallet has been retrieved successfully! Eigen smart contract wallet ${this.currentWalletAddress}  has been automatically synced to you ${this.newOwnerAddress} account`
+      this.needResultColse = false
+    },
+    showCancelModal() {
+      this.currentTip = 'cancel'
+      this.showResultModal = true
+      this.resuletContent = `Cancel this recover?`
+      this.needResultColse = true
+    },
+    showCacelResultModal() {
+      this.currentTip = 'cancelResult'
+      this.showResultModal = true
+      this.resuletContent = `Cancel successfully`
+      this.needResultColse = false
     },
     async getSignerListByid() {
       let data = {
@@ -365,7 +366,7 @@ export default {
       this.signerList = list
       this.signerNeedTotal = Math.ceil(this.signerList.length/2)
     },
-    async getRecoverInfo() {
+    async dealDataBeforeGetRecoverInfo() {
       const SecurityContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       console.log(this.currentWalletAddress)
       this.isTriggerRecover = await SecurityContract.isInRecovery(this.currentWalletAddress);
@@ -441,6 +442,7 @@ export default {
       if (!privateKey) {
         this.showInputPswModal = true;
       }
+      this.dealDataBeforeGetRecoverInfo()
     },
     cancelRecover() {
       this.showTradeConfirm = false
@@ -459,30 +461,23 @@ export default {
       console.log(info)
       return info && info['id'] || 1
     },
-    closeWarnModal() {
-      this.showWarnPopup = false
-    },
-    confirmWarnModal() {
-      this.showWarnPopup = false
-      this.$router.push({ path: '/overview' })
-    },
-    closeCancelModal() {
-      this.showCancelPopup = false
-    },
-    confirmCancelModal() {
-      this.showCancelPopup = false
-      this.$router.push({ path: '/overview' })
-    },
     handleAccountChange(addressInfo) {
-      this.currentUserAddress = getConnectedAddress()
+      this.getIsNewOwner()
+      this.getIsShowInputPsw()
     },
     stepComponseClick() {
       this.isComponse = !this.isComponse
-      console.log(this.isComponse)
     },
     confirmResultModal() {
-      this.$router.push({ path: '/overview' })
-      this.showResultModal = false
+      console.log(this.currentTip)
+      if (this.currentTip == 'cancel') {
+        this.showResultModal = false
+        this.updateWalletStatusSubmit(walletStatus['Active'])
+        this.resetSignStatus()
+      } else {//excute confirm result and cancelResult
+        this.$router.push({ path: '/overview' })
+        this.showResultModal = false
+      }
     },
     cancelResultModal() {
       this.showResultModal = false
@@ -501,14 +496,17 @@ export default {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
     this.overrides.gasPrice = await getEstimateGas('gasPrice', 5000000000)
-    this.currentUserAddress = getConnectedAddress()
-    this.getIsShowInputPsw()
     this.currentWalletId && this.getSignerListByid()
-    this.currentWalletAddress && this.getRecoverInfo()
+    this.currentWalletAddress && this.getIsShowInputPsw()
+    this.getIsNewOwner()
   },
   async mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
+    this.$once('hook:beforeDestroy', function () {
+      window.clearInterval(this.thisTimer)
+      this.thisTimer = null;
+    })
   },
   beforeDestroy() {
     window.clearInterval(this.thisTimer)

@@ -534,7 +534,7 @@ export default {
     },
     async walletSamllTrans(data) {
       console.log(data)
-      const expireTime = Math.floor((new Date().getTime()) / 1000) + 600; // 60 seconds
+      const expireTime = Math.floor((new Date().getTime()) / 1000) + 1800; // 60 seconds
       
       let txData = '0x'
       let thisWalletAddress = this.transFromAddress
