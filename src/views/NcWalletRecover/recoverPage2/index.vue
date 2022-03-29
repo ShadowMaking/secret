@@ -534,9 +534,10 @@ export default {
         this.showLoading = true
         this.tradeConfrimType = 'Cancel Recover'
         this.showTradeModalData()
+      } else {
+        this.updateWalletStatusSubmit(walletStatus['Active'])
+        this.resetSignStatus()
       }
-      this.updateWalletStatusSubmit(walletStatus['Active'])
-      this.resetSignStatus()
     },
     cancelResultModal() {
       this.showResultModal = false
