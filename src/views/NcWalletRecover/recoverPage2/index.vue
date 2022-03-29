@@ -4,12 +4,11 @@
       <p>You are trying to recover Wallet <span @click="copyAddress(currentWalletAddress)">({{walletName}} {{currentWalletAddress}}),</span>The owner will change from <span @click="copyAddress(newOwnerAddress)">{{oldOwnerAddress}}</span> to <span @click="copyAddress(newOwnerAddress)">{{newOwnerAddress}}</span></p>
     </div>
     <div class="recover-content-box">
-      <div class="recover-step-show address-blue">
+      <!-- <div class="recover-step-show address-blue">
         <span class="step-show-title">How to do?</span>
-        <!-- <i class="el-icon-arrow-down"></i> -->
         <i :class="isComponse ? 'el-icon-arrow-up' : 'el-icon-arrow-down'" @click="stepComponseClick"></i>
-      </div>
-      <div class="confirm-step-list" v-show="!isComponse">
+      </div> -->
+      <div class="confirm-step-list">
         <div class="confrim-step-item">
           <div class="confirm-step-left">
             <div class="step-left-title">Step 1: <i :class="this.signerAgreeNum >= this.signerNeedTotal ? 'el-icon-circle-check' : 'el-icon-remove-outline'"></i></div>
@@ -18,53 +17,69 @@
             </div>
           </div>
         </div>
+        <div class="confirm-signer-list">
+          <div class="confrim-signer-item" v-for="(item,index) in signerList" :key="index">
+            <div class="confirm-signer-item-left">
+              <img :src="item.picture">
+            </div>
+            <div class="confirm-signer-item-middle">
+              <p style="font-weight: bold">{{item.name}}</p>
+              <p>{{item.address}}</p>
+            </div>
+            <div class="confirm-signer-item-right">
+              <el-tag type="success" effect="dark" v-if="item.status == signerStatus['agreeRecover']">confirmed</el-tag>
+              <el-tag type="danger" effect="dark" v-if="item.status == signerStatus['ignoreRecover']">rejected</el-tag>
+              <el-tag type="info" effect="dark" v-if="item.status == signerStatus['startRecover']">confirming</el-tag>
+            </div>
+          </div>
+        </div>
+        <div class="confirm-btn-box">
+          <div class="confirm-btn-item" v-show="confirmBtn1Disabled && userIsNewOwner">
+            <span class="confirm-btn-label">Please start the recovery</span>
+            <el-button type="primary" @click="ownerStartRecover">Start</el-button>
+          </div>
+          <div class="confirm-btn-item" v-show="!confirmBtn1Disabled">Expired in {{lasetTimes}}</div>
+        </div>
+      </div>
+      
+      
+      <div class="confirm-step-list">
         <div class="confrim-step-item">
           <div class="confirm-step-left">
             <div class="step-left-title">Step 2: <i :class="isTriggerRecover ? 'el-icon-circle-check' : 'el-icon-remove-outline'"></i></div>
             <div class="step-left-content">
-              Ask any of guardian who approve your recover request to sign your request
+              Ask any of the signers above to trigger recovery
             </div>
           </div>
         </div>
       </div>
-      <div class="confirm-signer-list">
-        <div class="confrim-signer-item" v-for="(item,index) in signerList" :key="index">
-          <div class="confirm-signer-item-left">
-            <img :src="item.picture">
+      <div class="confirm-step-list">
+        <div class="confrim-step-item">
+          <div class="confirm-step-left">
+            <div class="step-left-title">Step 3: <i class="el-icon-remove-outline"></i></div>
           </div>
-          <div class="confirm-signer-item-middle">
-            <p style="font-weight: bold">{{item.name}}</p>
-            <p>{{item.address}}</p>
-          </div>
-          <div class="confirm-signer-item-right">
-            <el-tag type="info" effect="dark" v-if="item.status == signerStatus['agreeRecover']">Guardian has confirmed your retrieval request,Wait for him to sign the request(Expire after {{lasetTimes}})</el-tag>
-            <el-tag type="info" effect="dark" v-if="item.status == signerStatus['ignoreRecover']">Guardian rejected your recover request (Apply recover again after {{lasetTimes}})</el-tag>
-            <el-tag type="info" effect="dark" v-if="item.status == signerStatus['startRecover']">Wait for guardian to confirm</el-tag>
+        </div>
+        <div class="confirm-btn-box" style="margin-top: 20px">
+          <div class="confirm-btn-item">
+            <span class="confirm-btn-label">Set my account as the new owner</span>
+            <el-button :type="confirmBtn2Disabled ? 'primary' : 'info'" :disabled="!confirmBtn2Disabled" @click="ownerExcuteRecover" :loading="isHasExcuteClick">Confirm</el-button>
           </div>
         </div>
       </div>
-      <div class="confirm-btn-box">
-        <div class="confirm-btn-item" v-show="confirmBtn1Disabled && userIsNewOwner">
-          <span class="confirm-btn-label">Send recovery request to all guardians</span>
-          <el-button type="primary" @click="ownerStartRecover">Confirm</el-button>
+      <div class="confirm-btn-box" style="margin-top: 20px">
+          <div class="confirm-btn-item" v-show="confirmBtn3Visible && userIsNewOwner">
+            <span class="confirm-btn-label">Cancel the recovery</span>
+            <el-button type="danger" plain @click="cancelExcuteRecover" :loading="isHasCancelClick">Cancel</el-button>
+          </div>
         </div>
-        <div class="confirm-btn-item">
-          <span class="confirm-btn-label">Set this account as the owner of the contract Wallet</span>
-          <el-button :type="confirmBtn2Disabled ? 'primary' : 'info'" :disabled="!confirmBtn2Disabled" @click="ownerExcuteRecover" :loading="isHasExcuteClick">Confirm</el-button>
-        </div>
-        <div class="confirm-btn-item" v-show="confirmBtn3Visible && userIsNewOwner">
-          <span class="confirm-btn-label">Cancel the request of this smart contract Wallet</span>
-          <el-button type="danger" plain @click="cancelExcuteRecover">Cancel</el-button>
-        </div>
-      </div>
     </div>
     <v-confirmModal
       :show="showTradeConfirm"
-      type="Recover Wallet"
+      :type="tradeConfrimType"
       :metadata="sendMetadata"
       @close="showTradeConfirm=false"
-      @reject="cancelRecover"
-      @confirm="confirmRecover" />
+      @reject="cancelTrade"
+      @confirm="confirmTrade" />
     <v-loadingPopup :show="showLoading" :showSpinner="false" />
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
     <v-resultModal :show="showResultModal" :content="resuletContent" :needColse="needResultColse" @confirm="confirmResultModal" @close="cancelResultModal"></v-resultModal>
@@ -144,6 +159,8 @@ export default {
       sendMetadata: null,
       defaultNetWork: '',
       thisTimer: null,
+      tradeConfrimType: 'Recover Wallet',
+      isHasCancelClick: false,
     }
   },
   components: {
@@ -262,8 +279,13 @@ export default {
         console.log('Update Signer success')
       }
     },
-    async ownerExcuteRecover() {
+    ownerExcuteRecover() {
       this.isHasExcuteClick = true
+      this.tradeConfrimType = 'Recover Wallet'
+      this.showTradeModalData()
+    },
+    async showTradeModalData() {
+
       let thisGasPrice = this.overrides.gasPrice.toString()
       let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
       let estimatedGasFee = await getEstimateGas('gasUsed', 5000000000)
@@ -272,6 +294,7 @@ export default {
       if (connectBalance < estimatedGasFee) {
         Toast('Insufficient Funds')
         this.isHasExcuteClick = false
+        this.isHasCancelClick = false
         this.showLoading = false
         return
       }
@@ -286,6 +309,7 @@ export default {
         DATA: '',
         estimatedGasFee: estimatedGasFee
       }
+      this.showLoading = false
       this.showTradeConfirm = true
     },
     async dealDataBeforeOwnerExcuteRecover() {
@@ -328,6 +352,7 @@ export default {
       })
     },
     cancelExcuteRecover() {
+
       this.showCancelModal()
     },
     showSuccessModal() {
@@ -368,14 +393,16 @@ export default {
     },
     async dealDataBeforeGetRecoverInfo() {
       const SecurityContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      console.log(this.currentWalletAddress)
+      console.log(SecurityContract)
       this.isTriggerRecover = await SecurityContract.isInRecovery(this.currentWalletAddress);
       let RecoveryExpiryHash = await SecurityContract.getRecoveryExpiryTime(this.currentWalletAddress);
       let recoveryExpiryNumber = web3.utils.hexToNumberString(RecoveryExpiryHash)
       console.log(this.userIsNewOwner)
       console.log(this.isTriggerRecover)
       this.confirmBtn2Disabled = (this.isTriggerRecover && this.userIsNewOwner)
-      this.isTriggerRecover && this.timer(recoveryExpiryNumber)
+      if (this.isTriggerRecover && !this.thisTimer) {
+        this.timer(recoveryExpiryNumber)
+      }
     },
     timer(seconds) {
       this.thisTimer = window.setInterval(() => {
@@ -444,17 +471,24 @@ export default {
       }
       this.dealDataBeforeGetRecoverInfo()
     },
-    cancelRecover() {
+    cancelTrade() {
       this.showTradeConfirm = false
       this.isHasExcuteClick = false
-      Toast('Cancel Recover')
+      this.isHasCancelClick = false
+      Toast('Cancel')
     },
-    confirmRecover({ overrides }) {
+    confirmTrade({ overrides }) {
       this.overrides.gasLimit = overrides.gasLimit
       this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
       this.isHasExcuteClick = false
+      this.isHasCancelClick = false
       this.showLoading = true;
-      this.dealDataBeforeOwnerExcuteRecover()
+      if (this.tradeConfrimType == 'Recover Wallet') {
+        this.dealDataBeforeOwnerExcuteRecover()
+      } else {
+        this.dealDataBeforeCancleRecover()
+      }
+      
     },
     getDefaultNetWork() {
       const info = getInfoFromStorageByKey('netInfo')
@@ -465,19 +499,44 @@ export default {
       this.getIsNewOwner()
       this.getIsShowInputPsw()
     },
-    stepComponseClick() {
-      this.isComponse = !this.isComponse
-    },
+    // stepComponseClick() {
+    //   this.isComponse = !this.isComponse
+    // },
     confirmResultModal() {
       console.log(this.currentTip)
       if (this.currentTip == 'cancel') {
+        this.cancelRecoveryByStatus()
         this.showResultModal = false
-        this.updateWalletStatusSubmit(walletStatus['Active'])
-        this.resetSignStatus()
       } else {//excute confirm result and cancelResult
         this.$router.push({ path: '/overview' })
         this.showResultModal = false
       }
+    },
+    async dealDataBeforeCancleRecover() {
+      const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      securityModuleContract.cancelRecovery(this.currentWalletAddress, this.overrides).then(async tx=> {
+          addTransHistory(tx, 'Cancel Recover', this)
+          this.showLoading = false
+          this.showCacelResultModal()
+          tx.wait().then(async res => {
+           console.log('Cancel Recover:', res)
+          })
+      }).catch(error => {
+        console.log(error)
+        this.showLoading = false
+        let errorValue = formatErrorContarct(error)
+        Toast.fail(errorValue)
+      })
+    },
+    async cancelRecoveryByStatus() {
+      if (this.isTriggerRecover) {
+        this.isHasCancelClick = true
+        this.showLoading = true
+        this.tradeConfrimType = 'Cancel Recover'
+        this.showTradeModalData()
+      }
+      this.updateWalletStatusSubmit(walletStatus['Active'])
+      this.resetSignStatus()
     },
     cancelResultModal() {
       this.showResultModal = false

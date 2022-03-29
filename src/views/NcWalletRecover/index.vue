@@ -190,7 +190,8 @@ export default {
     showTipModal() {
       this.currentTip = 'warn'
       this.showResultModal = true
-      this.resuletContent = `This eigen smart contract wallet cannot be recovered because the wallet itself exists in ${this.walletSelectAddress} Under ${this.currentUserAddress} account, we can only restore the eigen smart contract wallet that does not exist under this account`
+      // this.resuletContent = `This eigen smart contract wallet cannot be recovered because the wallet itself exists in ${this.walletSelectAddress} Under ${this.currentUserAddress} account, we can only restore the eigen smart contract wallet that does not exist under this account`
+      this.resuletContent = `The owner or signers itself of wallet ${this.walletSelectAddress} can not transfer the ownership`
       this.needResultColse = false
     },
     showConfirmModal() {
