@@ -17,6 +17,7 @@ import {
   getSigerMessages,
   addSignerMultMessages,
   updateTransTx,
+  cancelRecoverWallet,
 } from '@/api/ncwallet'
 
 
@@ -188,6 +189,19 @@ const ncWallet = {
     updateWalletStatus({ commit }, params) {
       return new Promise((resolve, reject) => {
         updateWalletStatus(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
+    cancelRecoverWallet({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        cancelRecoverWallet(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0) {
             resolve({ hasError: false })

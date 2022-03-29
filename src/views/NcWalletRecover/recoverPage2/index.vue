@@ -516,8 +516,7 @@ export default {
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       securityModuleContract.cancelRecovery(this.currentWalletAddress, this.overrides).then(async tx=> {
           addTransHistory(tx, 'Cancel Recover', this)
-          this.showLoading = false
-          this.showCacelResultModal()
+          this.cancelRecoverySubmit(tx.hash)
           tx.wait().then(async res => {
            console.log('Cancel Recover:', res)
           })
@@ -527,6 +526,21 @@ export default {
         let errorValue = formatErrorContarct(error)
         Toast.fail(errorValue)
       })
+    },
+    async cancelRecoverySubmit(txid) {
+      let data = {
+        walletId: this.currentWalletId,
+        txid: txid,
+        status: walletStatus['Active'],
+        ownerAddress: this.oldOwnerAddress,
+      }
+      const { hasError } = await this.$store.dispatch('cancelRecoverWallet', {...data});
+      if (hasError) {
+        Toast('Cancel Failed')
+      } else {
+        this.showLoading = false
+        this.showCacelResultModal()
+      }
     },
     async cancelRecoveryByStatus() {
       if (this.isTriggerRecover) {

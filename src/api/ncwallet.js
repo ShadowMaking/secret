@@ -196,8 +196,30 @@ import request from '@/utils/request';
     _data = {
       owner_address: data['ownerAddress'],
       network_id: data['network_id'],
+      action: 'to_recover',
     }
   }
+
+  return request({
+    url: `/api/user/wallet/${walletId}`,
+    method: 'post',
+    data: _data,
+  })
+}
+
+/**
+ * @description: cancel recover wallet 
+ * @param {"owner_address": "0x123"}
+ * @return 
+ */
+ export const cancelRecoverWallet = (data) => {
+  const walletId = data['walletId']
+  let _data = {
+      owner_address: data['ownerAddress'],
+      status: data['status'],
+      action: 'to_cancel_recover',
+      txid: data['txid'],
+    }
 
   return request({
     url: `/api/user/wallet/${walletId}`,
