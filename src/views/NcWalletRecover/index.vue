@@ -1,180 +1,85 @@
 <template>
   <div class="ncWalletRecover-page">
-    <v-navTitle title="Recover Multisig Wallet"></v-navTitle>
-    <div class="recover-wallet-container">
-      <p class="recover-des">Recover your wallet by multisig transaction first, and more than N/2 signers’ signature is needed, then the new owner executes the owner transfer.</p>
-      <div class="recover-wallet-box">
-        <div class="recover-steps">
-          <van-steps :active="activeStep">
-            <van-step>Choose</van-step>
-            <van-step>Multi-sign</van-step>
-            <van-step>Recover</van-step>
-          </van-steps>
-        </div>
+    <v-navTitle title="Recovery Wallet"></v-navTitle>
+    <div class="recover-page-1" v-show="recoverPage1Visible">
+      
+      <div class="recover-wallet-container">
+        <p class="recover-des">We show the Eigen wallet in your current Eigen account, Choose the Eigen Wallet you want to recover.</p>
         <div class="recover-content-box">
-          <v-walletList v-show="walletShow" @recoverChild="recoverChild"></v-walletList>
-          <div class="choose-wallet-container" v-show="!walletShow">
-            <div class="choose-wallet" v-show="activeStep==0"><!-- setp0 -->
-              <div v-show="signerTotal !== 0">
-                <p class="choose-wallet-des">The private key corresponding to the following address will be recovered</p>
-                <div class="choose-wallt-info">
-                  <div class="choose-wallet-item">
-                    <p class="choose-wallet-item-name">Name</p>
-                    <p><span class="choose-wallet-item-con">{{currentWalletName}}</span></p>
-                  </div>
-                  <div class="choose-wallet-item">
-                    <p class="choose-wallet-item-name">Address</p>
-                    <span class="choose-wallet-item-con">{{currentWalletAddress}}</span>
-                  </div>
-                </div>
-              </div>
-              <div class="wallet-no-signer" v-show="signerTotal == 0">no active signer</div>
-            </div>
-            <div class="sign-complete-box">
-              <div class="signer-confirm" v-show="activeStep==1"><!-- setp1 -->
-                <p class="choose-wallet-des">Please ask at other {{signerTotal}} signers below to confirm:</p>
-                <div class="choose-wallet-table">
-                  <div class="choose-refresh"><el-button type="success" @click="recoverRefresh">Refresh</el-button></div>
-                  <el-table
-                    :data="signerList"
-                    empty-text="no data"
-                    header-align="center">
-                    <el-table-column
-                      prop="name"
-                      label="Name"
-                      align="center"
-                     >
-                    </el-table-column>
-                    <el-table-column
-                      prop="address"
-                      label="Signer Address/ENS"
-                      align="center"
-                      >
-                    </el-table-column>
-                    <el-table-column
-                      prop="status"
-                      label="confirmed"
-                      align="center">
-                      <template slot-scope="scope">
-                        <div v-if="scope.row.status == signerStatus['active']" class="confirm-icon">
-                          <i class="el-icon-question"></i>
-                        </div>
-                        <div v-if="scope.row.status == signerStatus['startRecover']" class="confirm-icon">
-                          <i class="el-icon-question"></i>
-                        </div>
-                        <div v-if="scope.row.status == signerStatus['ignoreRecover']" class="confirm-icon">
-                          <i class="el-icon-error"></i>
-                        </div>
-                        <div v-if="scope.row.status == signerStatus['agreeRecover']" class="confirm-icon">
-                          <i class="el-icon-success"></i>
-                        </div>
-                        <div v-if="scope.row.status == signerStatus['freezeRecover']" class="confirm-icon">
-                          <i class="el-icon-error"></i>
-                        </div>
-                      </template>
-                    </el-table-column>
-                  </el-table>
-                  <div class="add-signer-tip" v-if="this.agreeRecoverNum >= this.signerPercent && !isInRecovery">{{agreeRecoverNum}} Signers have signed, please ask anyone of signers to trigger the recovery</div>
-                  <div class="add-signer-tip" v-else>Any transaction requires the confirmation of: {{signerPercent}} out of {{signerTotal}} signer(s)</div>
-                </div>
-              </div>
-              <div class="complete-box" v-show="activeStep==2"><!-- setp2 -->
-                 <p class="choose-wallet-des">Congratulations, the private key has been successfully recovered!</p>
-                 <div class="complete-success-icon">
-                  <el-row>
-                    <el-col>
-                      <el-result icon="success" title="Submited Successfully">
-                      </el-result>
-                    </el-col>
-                  </el-row>
-                 </div>
-              </div>
-              <div class="choose-btn">
-                <el-button type="info" @click="backStep" v-show="activeStep !==2">Back</el-button>
-                <el-button type="primary" @click="nextStep" :disabled="!isInRecovery && activeStep == 1">{{confirmTxt}}</el-button>
-              </div>
-            </div>
+          <div class="wallet-list">
+            <el-select v-model="walletSelectInfo" placeholder="" class="wallet-select" value-key="wallet_id">
+              <el-option
+                v-for="item in walletList"
+                :key="item.wallet_id"
+                :label="item.name + '-' + item.wallet_address"
+                :value="item">
+              </el-option>
+            </el-select>
+          </div>
+          <div class="recover-next">
+            <el-button type="primary" @click="recoverNext" :loading="nextLoading">Next</el-button>
           </div>
         </div>
       </div>
     </div>
-    <v-confirmModal
-      :show="showTradeConfirm"
-      type="Create Wallet"
-      :metadata="sendMetadata"
-      @close="showTradeConfirm=false"
-      @reject="cancelRecover"
-      @confirm="confirmRecover" />
-    <!-- <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-      <div class="inner-wrapper">
-        <van-loading type="spinner" />
-      </div>
-    </van-popup> -->
-    <v-loadingPopup :show="showLoading" :showSpinner="false" />
+    <div class="recover-page-2" v-show="recoverPage2Visible">
+      <v-recoverPage2 :currentWalletId="walletSelectId" :currentWalletAddress="walletSelectAddress" :newOwnerAddress="newOwnerAddress" :oldOwnerAddress="oldOwnerAddress" :walletName="walletName"></v-recoverPage2>
+    </div>
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
+    <v-resultModal :show="showResultModal" :content="resuletContent" :needColse="needResultColse" @confirm="confirmResultModal" @close="cancelResultModal"></v-resultModal>
   </div>
 </template>
 
 <script>
 import Vue from 'vue'
 import { ethers } from 'ethers'
-import { Toast, Step, Steps, Loading, Popup, Dialog } from 'vant'
+import { Toast, Dialog } from 'vant'
+
 import navTitle from '@/components/NavTitle/index'
-import ConfirmModal from '@/components/ConfirmModal';
-import LoadingPopup from '@/components/LoadingPopup';
+import recoverPage2 from './recoverPage2/index'
 import InputPswModal from '@/components/InputPswModal'
-import { isLogin, getContractAt, getConnectedAddress, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory, getConnectedNet } from '@/utils/dashBoardTools';
-import walletList from './walletList/index'
+import resultModal from '@/components/ResultModal'
+
+import { isLogin, getContractAt,getConnectedAddress, getDecryptPrivateKeyFromStore, getSupportNet, getConnectedNet, getEncryptKeyByAddressFromStore} from '@/utils/dashBoardTools';
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
-import { signerStatus, securityModuleRouter, multOperation } from '@/utils/global';
+import { walletStatus, securityModuleRouter } from '@/utils/global';
+
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
-import { CHAINMAP } from '@/utils/netWorkForToken';
+import WalletJson from "@/assets/contractJSON/Wallet.json";
+
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import web3 from 'web3'
-import { formatErrorContarct } from '@/utils/index'
 
 Vue.use(Toast);
-Vue.use(Step);
-Vue.use(Steps);
-Vue.use(Loading);
-Vue.use(Popup);
 Vue.use(Dialog);
 
 export default {
   name: 'NC-Wallet-Recover',
   data() {
     return {
-      signerStatus,
-      activeStep: 0,//0-choose 1-signer confirm 2-complete
-      walletShow: true,
-      signerList: [],
-      signerTotal: 0,
-      signerPercent: 0,
+      walletSelectInfo: null,
+      walletSelectId: '',
+      walletSelectAddress: '',
+      walletList: [],
+      newOwnerAddress: '',
+      oldOwnerAddress: '',
+      walletName: '',
 
-      currentWalletAddress: '',
-      currentWalletName: '',
-      currentWalletId: '',
-      userId: getFromStorage('gUID'),
-      agreeRecoverNum: 0,
-      isStartRecover: false,
-      isInRecovery: false,
+      currentUserAddress: '',
+      nextLoading: false,
+      
+      recoverPage1Visible: true,
+      recoverPage2Visible: false,
 
-      confirmTxt: 'Confirm',
+      securityModuleContract: null,
+      walletStatus,
       securityModuleRouter,
+      
+      resuletContent: '',
+      needResultColse: true,
+      showResultModal: false,
+      currentTip: 'warn',//warn next
 
-      multOperation,
-
-      showLoading: false,
-      showTradeConfirm: false,
-      overrides: {
-        gasLimit: 8000000,
-        gasPrice: 20000000000,
-      },
-      currentChainInfo: null,
-      sendMetadata: null,
-
-      currentOptType: '', // executeRecover||recoverChild
-      currentRecord: null,
       // ***************** inputPsw start ***************** //
       userPsw: '',
       publicKey: '',
@@ -189,242 +94,125 @@ export default {
   },
   components: {
     "v-navTitle": navTitle,
-    "v-walletList": walletList,
-    'v-confirmModal': ConfirmModal,
-    'v-loadingPopup': LoadingPopup,
+    "v-recoverPage2": recoverPage2,
     'v-inputPsw': InputPswModal,
+    'v-resultModal': resultModal,
   },
   methods: {
-    nextStep() {
-      this.confirmTxt = 'Confirm'
-      if (this.activeStep == 0) {
-        if (this.signerList.length == 0) { 
-          this.walletShow = true 
+    async getIsHasRecoverWallet() {
+      let data = {
+        network_id: getConnectedNet().id,
+        user_id: getFromStorage('gUID'),
+        wallet_status: walletStatus['Recovering']
+      }
+      const { hasError, list } = await this.$store.dispatch('getWalletList', data)
+      if (hasError) {
+        Toast('Get Error')
+        return
+      }
+      if (list.length > 0) {//has a recovering wallet
+        this.walletSelectId = list[0].wallet_id
+        this.walletSelectAddress = list[0].wallet_address
+        this.newOwnerAddress = list[0].new_address
+        this.oldOwnerAddress = list[0].address
+        this.walletName = list[0].name
+        this.recoverConfirm()//show recover detail
+      } else {
+        this.getWalletList()
+      }
+    },
+    async getWalletList() {
+      let data = {
+        network_id: getConnectedNet().id,
+        user_id: getFromStorage('gUID'),
+      }
+      const { hasError, list } = await this.$store.dispatch('getWalletList', data)
+      this.walletList = list
+      if (hasError) {
+        Toast('Get Error')
+      }
+    },
+    async recoverNext() {
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      await this.dealDataBeforeRecoverNext()
+    },
+    async dealDataBeforeRecoverNext() {
+      let recoverSelect = this.walletSelectInfo
+      this.nextLoading = true
+      if (!recoverSelect) {
+        this.nextLoading = false
+        Toast('Select Wallet')
+        return
+      }
+      if (!getSupportNet()) {
+        this.nextLoading = false
+        return
+      }
+      if (recoverSelect.wallet_status == walletStatus['Active']) {
+        
+        let currentWallet = recoverSelect.wallet_address
+        let currentUserAddress = getConnectedAddress()
+
+        this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+        let isSigner = await this.securityModuleContract.isSigner(currentWallet, currentUserAddress)
+        if (isSigner) {
+          this.nextLoading = false
+          this.showTipModal()
+          // Toast('Signer Cannot Recover Wallet')
           return
         }
-        Dialog.confirm({
-          message: 'Are you sure to recover this wallet?',
-          confirmButtonText: 'Confirm',
-          confirmButtonColor: '#4375f1',
-          cancelButtonText: 'Cancel'
-        })
-        .then(() => {
-          this.startRecover() //trigger need multicall
-        })
-        .catch(() => {
-          console.log('cancel')
-        });
-      } else if (this.activeStep == 1) {
-        if (this.agreeRecoverNum >= this.signerPercent) {
-          let thisGasPrice = this.overrides.gasPrice.toString()
-          let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
-          this.sendMetadata = {
-            from: getConnectedAddress(),
-            to: this.securityModuleRouter,
-            gas: this.overrides.gasLimit,
-            gasPrice: gasPrice,
-            value: 0,
-            symbolName: 'ETH',
-            netInfo: this.currentChainInfo,
-            DATA: '',
-            estimatedGasFee: '0' // todo
-          }
-          this.showTradeConfirm = true
-        } else {
-          Toast(`Any transaction requires the confirmation of: ${this.signerPercent} signers`)
+    
+        const walletContract = await getContractAt({ tokenAddress: currentWallet, abi: WalletJson.abi }, this)
+        const ownerAddress = await walletContract.owner()
+        if (ownerAddress.toLocaleLowerCase() == currentUserAddress) {
+          this.nextLoading = false
+          this.showTipModal()
+          // Toast('Owner Cannot Recover Wallet')
+          return
         }
         
-        // this.executeRecover() //need not multicall
-      } else if (this.activeStep == 2) {
-        this.activeStep = 0
-        this.walletShow = true
-      }
-    },
-    backStep() {
-      this.walletShow = true
-      this.activeStep == 0
-      // this.confirmTxt = 'Confirm'
-      // if (this.activeStep == 0) {
-      //   this.walletShow = true
-      //   return
-      // }
-      // this.activeStep = this.activeStep - 1
-    },
-    startRecover() {
-      this.signerList.map(async item => {//waiting for signer agree
-        console.log(item)
-        this.updateSigner(item.address, signerStatus['startRecover'])
-      })
-      this.updateOwner()
-    },
-    async updateSigner(signerAddress, status) {
-      let data = {
-        walletId: this.currentWalletId,
-        signerAddress: signerAddress,
-        status: status,
-      }
-      const { hasError } = await this.$store.dispatch('updateSigner', {...data});
-      if (hasError) {
-        console.log('Update Signer Failed')
+        let isInRecovery = await this.securityModuleContract.isInRecovery(currentWallet)
+        if (isInRecovery && currentUserAddress !== recoverSelect.address) {
+          this.nextLoading = false
+          Toast('Wallet is Recovering')
+          return
+        }
+        this.openSelectTipDialog()
       } else {
-        this.addMultTx()
-        console.log('Update Signer success')
+        Toast('Wallet is Unavailable')
       }
-    },
-    async updateOwner() {
-      let data = {
-        walletId: this.currentWalletId,
-        ownerAddress: getConnectedAddress(),
-        network_id: getConnectedNet().id,
-      }
-      const { hasError } = await this.$store.dispatch('updateOwnerAddress', {...data});
-      if (hasError) {
-        Toast('Update Owner Failed')
-      } else {
-        console.log('Update Owner success')
-        this.activeStep = this.activeStep + 1
-        this.confirmTxt = 'Execute'
-      }
-    },
-    async addMultTx() {
-      const submitData = {
-        user_id: getFromStorage('gUID'),
-        wallet_address: this.currentWalletAddress,
-        to: this.securityModuleRouter,
-        value: 0,
-        network_id: this.currentChainInfo.id,
-        data: '',
-        operation: multOperation['Recovery']
-      }
-      const res = await this.$store.dispatch('addMultTx', submitData);
-      if (res.hasError) {
-        console.log('addMultTx Failed')
-      } else {
-        console.log('addMultTx success')
-      }
-    },
-    async recoverRefresh() {
-      this.getSignerListByid()
-      const SecurityContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      let res = await SecurityContract.isInRecovery(this.currentWalletAddress);
-      this.isInRecovery = res
-      console.log("isInRecovery:" + res)
-    },
-    cancelRecover() {
-      this.showTradeConfirm = false
-      Toast('Cancel create')
-    },
-    confirmRecover({ overrides }) {
-      this.overrides.gasLimit = overrides.gasLimit
-      this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
-      this.showLoading = true;
-      this.executeRecover()
-    },
-    async dealDataBeforeExecuteRecover() {
-      console.log('start excute')
-      const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-
-      let amount = 0
-      const SMABI = [
-          "function executeRecovery(address)",
-          "function cancelRecovery(address)",
-          "function triggerRecovery(address, address)"
-      ]
-      // let newOwnAddress = getConnectedAddress()
-      // let newOwnAddress = '0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9'
-      // let iface = new ethers.utils.Interface(SMABI)
-      // let replaceOwnerData = iface.encodeFunctionData("triggerRecovery", [this.currentWalletAddress, newOwnAddress])
-
-      // console.log(replaceOwnerData)
-      console.log(securityModuleContract)
-      securityModuleContract.executeRecovery(this.currentWalletAddress, this.overrides).then(async tx=> {
-          addTransHistory(tx, 'Execute Recover', this)
-          this.showLoading = false;
-          this.activeStep = this.activeStep + 1
-          this.resetSignStatus()
-         tx.wait().then(async res => {
-          console.log('Execute Recover:', res)
-          this.showLoading = false
-        })
-      }).catch(error => {
-        console.log(error)
-        this.showLoading = false
-        let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
-      })
       
     },
-    resetSignStatus() {
-      this.signerList.map(async item => {
-        console.log(item)
-        this.updateSigner(item.address, signerStatus['active'])
-      })
+    showTipModal() {
+      this.currentTip = 'warn'
+      this.showResultModal = true
+      // this.resuletContent = `This eigen smart contract wallet cannot be recovered because the wallet itself exists in ${this.walletSelectAddress} Under ${this.currentUserAddress} account, we can only restore the eigen smart contract wallet that does not exist under this account`
+      this.resuletContent = `The owner or signers itself of wallet ${this.walletSelectAddress} can not transfer the ownership`
+      this.needResultColse = false
     },
-    async executeRecover() { //  gyy
-      this.currentRecord = null
-      this.currentOptType = 'executeRecover'
-      // check privateKey whether is existed
-      const privateKey = await getDecryptPrivateKeyFromStore(this)
-      if (!privateKey) {
-        this.showInputPswModal = true;
-        return
-      }
-      await this.dealDataBeforeExecuteRecover()
+    showConfirmModal() {
+      this.currentTip = 'next'
+      this.showResultModal = true
+      this.needResultColse = true
+      this.resuletContent = `The Eigen Wallet ${this.walletSelectAddress} will recover to ${this.newOwnerAddress} would you confirm?`
     },
-    async dealDataBeforeRecoverChild() {
-      const value = this.currentRecord
-
-      this.walletShow = false
-      this.currentWalletAddress = value.wallet_address
-      this.currentWalletName = value.name
-      this.currentWalletId = value.wallet_id
-      this.getSignerListByid()
-
-      const SecurityContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      let res = await SecurityContract.isInRecovery(this.currentWalletAddress);
-      this.isInRecovery = res
-      console.log("isInRecovery:" + res)
+    openSelectTipDialog() {
+      this.walletSelectId = this.walletSelectInfo && this.walletSelectInfo.wallet_id
+      this.walletSelectAddress = this.walletSelectInfo && this.walletSelectInfo.wallet_address
+      this.newOwnerAddress = getConnectedAddress()
+      this.oldOwnerAddress = this.walletSelectInfo && this.walletSelectInfo.address
+      this.walletName = this.walletSelectInfo && this.walletSelectInfo.name
+      this.showConfirmModal()
     },
-    async recoverChild(value) { // gyy
-      this.currentRecord = _.cloneDeep(value)
-      this.currentOptType = 'recoverChild'
-      // check privateKey whether is existed
-      const privateKey = await getDecryptPrivateKeyFromStore(this)
-      if (!privateKey) {
-        this.showInputPswModal = true;
-        return
-      }
-      await this.dealDataBeforeRecoverChild()
-    },
-    async getSignerListByid() {
-      let data = {
-        network_id: getConnectedNet().id,
-        walletId: this.currentWalletId
-      }
-      this.isStartRecover = false
-      const { hasError, list } = await this.$store.dispatch('getSignerList', {...data})
-      for (var i=0; i<list.length; i++) {
-        if (list[i].status >= 5) {
-          this.isStartRecover = true
-          this.activeStep = 1
-        }
-      }
-      console.log(this.isStartRecover)
-      let newList = list.filter((item, index)=>{
-        if (!this.isStartRecover) {
-          console.log(item.status == this.signerStatus['active'])
-          return item.status == this.signerStatus['active']
-        } else {
-          (item.status == this.signerStatus['agreeRecover']) && (this.agreeRecoverNum = this.agreeRecoverNum + 1)
-          return (item.status == this.signerStatus['startRecover'] || item.status == this.signerStatus['agreeRecover'] || item.status == this.signerStatus['ignoreRecover'] || item.status == this.signerStatus['freezeRecover'])
-        }
-      });
-      console.log(this.agreeRecoverNum)
-      // let newList = list
-      console.log(newList)
-      this.signerList = newList
-      this.signerTotal = newList.length
-      this.signerPercent = Math.ceil(this.signerTotal/2)
+    recoverConfirm() {
+      this.nextLoading = false
+      this.showResultModal = false
+      this.recoverPage1Visible = false
+      this.recoverPage2Visible = true
     },
     async confirmPswOk({ show, psw }) {
       this.userPsw = psw; // password of user input for encrypt privateKey
@@ -463,44 +251,44 @@ export default {
 
       this.confirmPswBtnLoading = false
       this.showInputPswModal = false
-
-      if (this.currentOptType === 'executeRecover') {
-        await this.dealDataBeforeExecuteRecover()
-      }
-      if (this.currentOptType === 'recoverChild') {
-        await this.dealDataBeforeRecoverChild()
-      }
-      
+      this.dealDataBeforeRecoverNext()
     },
-    _handleNetworkChange({ chainInfo, from }) {
-      if (from === 'sendMenu') { return }
-      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(chainInfo.id)]
+    handleAccountChange(addressInfo) {
+      this.currentUserAddress = getConnectedAddress()
+    },
+    confirmResultModal() {
+      if (this.currentTip == 'next') {
+        this.recoverConfirm()
+      }
+      this.showResultModal = false
+    },
+    cancelResultModal() {
+      this.showResultModal = false
     },
   },
-  async created() {
+  created() {
     if (!isLogin()) {
       Toast('Need Login')
       return
     }
-    const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
-    if (netInfo) {
-      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
-    } else {
-      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
-    }
+    this.currentUserAddress = getConnectedAddress()
+    this.getIsHasRecoverWallet()
   },
   async mounted() {
-    this.$eventBus.$on('networkChange', this._handleNetworkChange)
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
   },
 };
 </script>
 <style lang="scss" scoped>
   @import "index";
-  ::v-deep .el-button {
+  ::v-deep .recover-next .el-button {
+    padding: 0.6rem 4rem;
+  }
+  ::v-deep .select-confirm-btn .el-button {
     padding: 0.6rem 1.2rem;
   }
-  ::v-deep .el-result__icon svg {
-    width: 60px;
-    height: 60px;
+  ::v-deep .el-select-dropdown__list .el-select-dropdown__item{
+    padding: 0 10px !important;
+    text-align: center;
   }
 </style>

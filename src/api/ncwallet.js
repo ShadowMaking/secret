@@ -132,6 +132,7 @@ import request from '@/utils/request';
   let _data = {
     address: data['signerAddress'],
     status: data['status'],
+    network_id: data['network_id'],
   }
   return request({
     url: `/api/user/wallet/${walletId}/signer`,
@@ -185,10 +186,41 @@ import request from '@/utils/request';
  */
  export const updateOwnerAddress = (data) => {
   const walletId = data['walletId']
-  let _data = {
-    owner_address: data['ownerAddress'],
-    network_id: data['network_id'],
+  let _data
+  if (data['txid']) {
+    _data = {
+      txid: data['txid'],
+      status: data['status']
+    }
+  } else {
+    _data = {
+      owner_address: data['ownerAddress'],
+      network_id: data['network_id'],
+      action: 'to_recover',
+    }
   }
+
+  return request({
+    url: `/api/user/wallet/${walletId}`,
+    method: 'post',
+    data: _data,
+  })
+}
+
+/**
+ * @description: cancel recover wallet 
+ * @param {"owner_address": "0x123"}
+ * @return 
+ */
+ export const cancelRecoverWallet = (data) => {
+  const walletId = data['walletId']
+  let _data = {
+      owner_address: data['ownerAddress'],
+      status: data['status'],
+      action: 'to_cancel_recover',
+      txid: data['txid'],
+    }
+
   return request({
     url: `/api/user/wallet/${walletId}`,
     method: 'post',
@@ -205,7 +237,6 @@ import request from '@/utils/request';
   const walletId = data['walletId']
   let _data = {
     status: data['status'],
-    txid: data['txid'],
     network_id: data['network_id'],
   }
   return request({

@@ -57,8 +57,8 @@
             </div>
             <div class="path-item-bottom" v-if="item.signer_address == currentUserAddress">
               <div class="path-item-bottom-btn">
-                <el-button type="primary" @click="signerConfirmTrans()">Confirm</el-button>
-                <el-button @click="signerRefuseTrans()">Refuse</el-button>
+                <el-button type="primary" @click="signerConfirmTrans()" :disabled="mtxInfo.operation == multOperation['Recovery']">Confirm</el-button>
+                <el-button @click="signerRefuseTrans()" :disabled="mtxInfo.operation == multOperation['Recovery']">Refuse</el-button>
               </div>
             </div>
             <div class="path-item-bottom" v-else>
@@ -254,7 +254,8 @@ export default {
       }
       this.signerList = list
       this.signerLength = this.signerList.length
-      if (hasSignLength/this.signerLength >= 1/2) {
+      console.log(this.operationType)
+      if (hasSignLength/this.signerLength >= 1/2 && this.mtxInfo.operation !== multOperation['Recovery']) {
         this.isCanExcute = true
       }
     },
@@ -306,6 +307,7 @@ export default {
               this.setSecurityPeriodSign()
               break;
            default:
+             console.log(this.operationType)
              break;
       } 
     },
@@ -385,6 +387,8 @@ export default {
         operationType = 'Payment Limit'
       } else if (this.mtxInfo.operation == multOperation['setSecurityPeriod']) {
         operationType = 'Security Setting'
+      } else if (this.mtxInfo.operation == multOperation['Recovery']) {
+        operationType = 'Recovery'
       }
       return operationType
     },
@@ -410,6 +414,7 @@ export default {
               this.setSecurityPeriodExecute()
               break;
            default:
+             console.log(this.operationType)
              break;
       } 
     },

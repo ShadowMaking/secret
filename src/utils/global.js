@@ -25,9 +25,9 @@ const supportNetContractRouter = [
   {
     chainId: 3,
     name: 'Ropsten',
-    securityModuleRouter: '0xbA09166A6AE1e1271a2c7A0d0104d37E1dab2AbF',
-    proxyRouter: '0x0015bF7FFeC35434f10eBdAA26252b5A68c75a52',
-    walletTransactionRouter: '0x55AaD4c440D5Ac4A10E5c61d974E64776841B9b3',
+    securityModuleRouter: '0x595c8DE165DB79f00EB08C5dF3e3A912bB97b560',
+    proxyRouter: '0xD3AF01DE8349EEc674D67d5EB142020bc8B539d9',
+    walletTransactionRouter: '0x1FdC3eC6cE48A78a16FC116178E1f5f9d1631810',
   },
   {
     chainId: 588,
@@ -81,7 +81,7 @@ const walletStatus = {
   'init': 0,
   'Creating': 1,
   'Active': 2,
-  // 'Recovering': 3,
+  'Recovering': 3,
   'Fail': 4,
   // 'Freezing': 5,
   // 'Locked': 6,
