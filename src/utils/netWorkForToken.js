@@ -104,7 +104,7 @@ const CHAINMAP  = {
   [web3.utils.numberToHex(10)]: {
                                 id: 10,
                                 name: 'Eigen Testnet',
-                                rpcUrls: ['http://43.133.35.136:8888'],
+                                rpcUrls: ['https://node.ieigen.com'],
                                 blockExplorerUrls: ['https://explorer.ieigen.com/'],
                                 icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
                               },                              
