@@ -1,6 +1,6 @@
 import web3 from 'web3';
 const defaultNetWorkForMetamask = [1, 3, 4, 5, 42]
-const supportNetWorkForContract = [3, 588, 80001, 97]
+const supportNetWorkForContract = [3, 588, 80001, 97, 10]
 const CHAINMAP  = {
   [web3.utils.numberToHex(1)]: {
                                 id: 1,
@@ -100,7 +100,14 @@ const CHAINMAP  = {
                                 rpcUrls: ['https://data-seed-prebsc-1-s1.binance.org:8545'],
                                 blockExplorerUrls: ['https://testnet.bscscan.com/'],
                                 icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
-                              },                            
+                              },  
+  [web3.utils.numberToHex(10)]: {
+                                id: 10,
+                                name: 'Eigen Testnet',
+                                rpcUrls: ['http://43.133.35.136:8888'],
+                                blockExplorerUrls: ['https://explorer.ieigen.com/'],
+                                icon: 'https://zapper.fi/images/networks/ethereum-icon.png',
+                              },                              
 }
 const CHAINIDMAP  = {
   ETHEREUM: web3.utils.numberToHex(1),
@@ -119,6 +126,7 @@ const CHAINIDMAP  = {
   MUMBAI: web3.utils.numberToHex(80001),
   BSC: web3.utils.numberToHex(56),
   BSCTEST: web3.utils.numberToHex(97),
+  EIGENTEST: web3.utils.numberToHex(10),
 }
 
 const NETWORKSFORTOKEN = Object.keys(CHAINMAP).map(chainId => {

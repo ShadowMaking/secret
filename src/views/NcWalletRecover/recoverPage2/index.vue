@@ -371,7 +371,7 @@ export default {
     showCacelResultModal() {
       this.currentTip = 'cancelResult'
       this.showResultModal = true
-      this.resuletContent = `Cancel successfully`
+      this.resuletContent = `Submitted Success`
       this.needResultColse = false
     },
     async getSignerListByid() {
