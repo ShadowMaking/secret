@@ -99,6 +99,7 @@ import web3 from 'web3'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json"
+import WalletJson from "@/assets/contractJSON/Wallet.json";
 
 import ConfirmModal from '@/components/ConfirmModal'
 import LoadingPopup from '@/components/LoadingPopup'
@@ -514,6 +515,7 @@ export default {
     },
     async dealDataBeforeCancleRecover() {
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+
       securityModuleContract.cancelRecovery(this.currentWalletAddress, this.overrides).then(async tx=> {
           addTransHistory(tx, 'Cancel Recover', this)
           this.cancelRecoverySubmit(tx.hash)
