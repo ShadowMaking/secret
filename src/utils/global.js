@@ -25,9 +25,9 @@ const supportNetContractRouter = [
   {
     chainId: 3,
     name: 'Ropsten',
-    securityModuleRouter: '0x595c8DE165DB79f00EB08C5dF3e3A912bB97b560',
-    proxyRouter: '0xD3AF01DE8349EEc674D67d5EB142020bc8B539d9',
-    walletTransactionRouter: '0x1FdC3eC6cE48A78a16FC116178E1f5f9d1631810',
+    securityModuleRouter: '0xaD7858B91C20A3f851F4df4332541a5d314466C7',
+    proxyRouter: '0x124C839d02A3d7b4FeaA5263295316313954029F',
+    walletTransactionRouter: '0xdD1ADf016aF313b049CB400B4E97904539FcFFeC',
   },
   {
     chainId: 588,
