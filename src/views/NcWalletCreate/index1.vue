@@ -2,11 +2,12 @@
   <div class="ncWalletCreate-page">
     <v-navTitle title="Create Eigen Multi-Signature Wallet"></v-navTitle>
     <div class="page-content-box">
-      <div class="create-top-des page-section-border">
-        <div class="create-top-des-show address-blue">
+      <div class="create-top-des">
+        <div class="create-top-des-show blueColor">
           <span class="create-top-des-title">How to do?</span>
           <i :class="isComponse ? 'el-icon-arrow-up' : 'el-icon-arrow-down'" @click="stepComponseClick"></i>
         </div>
+        <div class="page-section-border">You need to add at least one Guardian to create a multi-signature wallet,which can be recovered and locked to keep you assets safe. Any transaction requires 50%+ Guardian signatures</div>
       </div>
     </div>
     <div class="create-page-1" v-show="createPage1Visible">

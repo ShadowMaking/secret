@@ -334,7 +334,7 @@ export default {
           addTransHistory(tx, 'Execute Recover', this)
           this.showLoading = false
           this.showSuccessModal()
-          this.resetSignStatus()
+          // this.resetSignStatus()
           this.updateOwner(tx.hash)
           tx.wait().then(async res => {
            console.log('Execute Recover:', res)
@@ -407,8 +407,13 @@ export default {
     },
     timer(seconds) {
       this.thisTimer = window.setInterval(() => {
+        if (seconds > 0) {
           seconds -= 1
           this.countDown(seconds)
+        } else {
+          this.confirmBtn2Disabled = false
+        }
+        
       }, 1000)
     },
     countDown(seconds) {

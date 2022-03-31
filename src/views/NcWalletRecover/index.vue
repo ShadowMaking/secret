@@ -159,6 +159,7 @@ export default {
 
         this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
         let isSigner = await this.securityModuleContract.isSigner(currentWallet, currentUserAddress)
+        console.log(isSigner)
         if (isSigner) {
           this.nextLoading = false
           this.showTipModal()
@@ -167,6 +168,7 @@ export default {
         }
     
         const walletContract = await getContractAt({ tokenAddress: currentWallet, abi: WalletJson.abi }, this)
+        console.log(walletContract)
         const ownerAddress = await walletContract.owner()
         if (ownerAddress.toLocaleLowerCase() == currentUserAddress) {
           this.nextLoading = false

@@ -250,56 +250,65 @@ export default {
       const transactionContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: WalletTransaction.abi }, this)
       console.log(proxyContract)
       console.log(proxyRouter)
-      // const saletnew = ethers.utils.formatBytes32String(randomBytesToString);
-      const saletnew = ethers.utils.formatBytes32String(ethers.utils.sha256(ethers.utils.randomBytes(32)).substr(2,31))
-      console.log(saletnew)
-       // utils.formatBytes32String(utils.sha256(utils.randomBytes(32)).substr(2,31))
+      const saletnew = ethers.utils.randomBytes(32);
       
       let createSignList = this.createSignerSubmit
       // let providertest = new ethers.providers.JsonRpcProvider('https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161')
       
       // let user1 = ethers.Wallet.createRandom().connect(providertest)
       // let user2 = ethers.Wallet.createRandom().connect(providertest)
-      let walletAddress = await proxyContract.getAddress(saletnew);
-      
-      proxyContract.create(saletnew,this.overrides).then(async tx=> {
-          console.log(tx)
-          tx.wait().then(async res => {
-            console.log(res)
-            const walletContract = await getContractAt({ tokenAddress: walletAddress, abi: WalletJson.abi }, this)
-    
-            let modules = [ transactionContract.address, securityModuleContract.address ]
-            let encoder = ethers.utils.defaultAbiCoder
-            let du = ethers.utils.parseEther("15")//one day
-            let lap = ethers.utils.parseEther("10")//one 
-            let data = [encoder.encode(["uint", "uint"], [du, lap]), encoder.encode(["address[]"], [createSignList])]
-            
-            
-            walletContract.initialize(
-              modules, 
-              data, 
-              this.overrides
-            ).then(async tx=> {
-                console.log(tx)
-                this.createWallet(walletAddress, tx.hash)
-                addTransHistory(tx, 'Create Wallet', this)
-                tx.wait().then(async res => {
-                  console.log('Create:', res)
-                })
-            }).catch(error => {
-              console.log(error)
-              this.showLoading = false
-              let errorValue = formatErrorContarct(error)
-              Toast.fail(errorValue)
-            })
-          })
+      // let walletAddress = await proxyContract.getAddress(saletnew);
+      console.log(saletnew)
+      proxyContract.getAddress(saletnew).then(tx => {
+        console.log(tx)
+        tx.wait().then(res => {
+          console.log(res)
+        }).catch(error => {
+        console.log(error)
+        
+        })
       }).catch(error => {
         console.log(error)
-        this.showLoading = false
-        let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
-        return
+        
       })
+      // proxyContract.create(saletnew,this.overrides).then(async tx=> {
+      //     console.log(tx)
+      //     tx.wait().then(async res => {
+      //       console.log(res)
+      //       const walletContract = await getContractAt({ tokenAddress: walletAddress, abi: WalletJson.abi }, this)
+    
+      //       let modules = [ transactionContract.address, securityModuleContract.address ]
+      //       let encoder = ethers.utils.defaultAbiCoder
+      //       let du = ethers.utils.parseEther("15")//one day
+      //       let lap = ethers.utils.parseEther("10")//one 
+      //       let data = [encoder.encode(["uint", "uint"], [du, lap]), encoder.encode(["address[]"], [createSignList])]
+            
+            
+      //       walletContract.initialize(
+      //         modules, 
+      //         data, 
+      //         this.overrides
+      //       ).then(async tx=> {
+      //           console.log(tx)
+      //           this.createWallet(walletAddress, tx.hash)
+      //           addTransHistory(tx, 'Create Wallet', this)
+      //           tx.wait().then(async res => {
+      //             console.log('Create:', res)
+      //           })
+      //       }).catch(error => {
+      //         console.log(error)
+      //         this.showLoading = false
+      //         let errorValue = formatErrorContarct(error)
+      //         Toast.fail(errorValue)
+      //       })
+      //     })
+      // }).catch(error => {
+      //   console.log(error)
+      //   this.showLoading = false
+      //   let errorValue = formatErrorContarct(error)
+      //   Toast.fail(errorValue)
+      //   return
+      // })
       
     },
     async createWallet(walletAddress, txhash) {
@@ -409,13 +418,6 @@ export default {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
     this.overrides.gasPrice = await getEstimateGas('gasPrice', 20000000000)
-    console.log(WalletJson.abi)
-    // const randomBytes = ethers.utils.randomBytes(10)
-    //   console.log(randomBytes)
-    //   const randomBytesToString = ethers.utils.toUtf8String(randomBytes)
-    //   console.log(randomBytesToString)
-    //   const saletnew = ethers.utils.formatBytes32String(randomBytesToString);
-    //   console.log(saletnew)
   },
   async mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)

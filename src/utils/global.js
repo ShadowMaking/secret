@@ -46,16 +46,16 @@ const supportNetContractRouter = [
   {
     chainId: 97,
     name: 'BSCTestnet',//BSC Test
-    securityModuleRouter: '0x69bd9795fB03B3EC641e115a42C56F3AE2b626F8',
-    proxyRouter: '0xF3cc50709d747AB5B6B4De7979069eaFF3Eb2FD1',
-    walletTransactionRouter: '0xFbbD72a7766a896203c059272DCB25C95385C5fa',
+    securityModuleRouter: '0x04Bc674c91D100a9d0B08Ed1999Ad470ed368F3e',
+    proxyRouter: '0xA89550E7B289CA9c2637379792F87E67d29641f3',
+    walletTransactionRouter: '0xFc4C0aD1a23fE36E7ee322D7E48Ca98E8Ba05137',
   },
   {
     chainId: 10,
     name: 'Eigen',//Eigen Test
-    securityModuleRouter: '0x9A1b486c65A4163876F4BEcDcC5Db1bd88AaA08e',
-    proxyRouter: '0x00E21A31b27450d0CE653dfA1558F72662d76299',
-    walletTransactionRouter: '0x85C9c72A99F1a4ae0E18D47a2E3A1906a2c6370C',
+    securityModuleRouter: '0x5fe46790aE8c6Af364C2f715AB6594A370089B35',
+    proxyRouter: '0x1aA8B292adAC035194716C4caA2aeE313b9111Ff',
+    walletTransactionRouter: '0x71D99A0f8F609Ef484D1E99314e44a54CFFe01c4',
   },
 ]
 let securityModuleRouter = supportNetContractRouter[0].securityModuleRouter;
