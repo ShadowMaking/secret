@@ -94,7 +94,7 @@ export default {
 
       showStatusPop: false,
       popStatus: "success",
-      statusPopTitle: 'Submited Successfully!',
+      statusPopTitle: 'Submitted Successfully!',
       timeTxt: '',
       userId: getFromStorage('gUID'),
 

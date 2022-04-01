@@ -1,8 +1,15 @@
 @import '@/app.scss';
 .ncWalletCreate-page {
+  .create-top-des-show {
+    margin-bottom: 10px;
+    font-size: 1.08rem;
+  }
   .create-top-des-title {
-    font-size: 0.96rem;
     margin-right: 15px;
   }  
-    
+  .create-des-text {
+    color: #9D9FA8;
+    font-size: 0.96rem;
+	line-height: 20px;
+  }  
 }
