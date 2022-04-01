@@ -634,16 +634,16 @@ export default {
         return
       }
       this.publicKey = publicKey;
-      console.log(`GetPublicKey result is: ${publicKey}`)
+      // console.log(`GetPublicKey result is: ${publicKey}`)
       
       // const password = ecies.crypto.randomBytes(16).toString("base64");
       const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
       const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
-      console.log('aesKey:', aesKey)
+      // console.log('aesKey:', aesKey)
       this.aesKey = aesKey
       this.encryptPsw = encryptPsw
       this.encryptCr1 = encryptCr1
-      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+      // console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
 
       // to decrypt privatekey
       const userId = getInfoFromStorageByKey('gUID')

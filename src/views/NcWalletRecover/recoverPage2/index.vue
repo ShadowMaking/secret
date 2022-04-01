@@ -359,7 +359,8 @@ export default {
     showSuccessModal() {
       this.currentTip = 'excuteConfirm'
       this.showResultModal = true
-      this.resuletContent = `This eigen smart contract wallet has been retrieved successfully! Eigen smart contract wallet ${this.currentWalletAddress}  has been automatically synced to you ${this.newOwnerAddress} account`
+      this.resuletContent = 'The wallet’s owner will be changed to current account soon!'
+      // this.resuletContent = `This eigen smart contract wallet has been retrieved successfully! Eigen smart contract wallet ${this.currentWalletAddress}  has been automatically synced to you ${this.newOwnerAddress} account`
       this.needResultColse = false
     },
     showCancelModal() {
@@ -441,16 +442,16 @@ export default {
         return
       }
       this.publicKey = publicKey;
-      console.log(`GetPublicKey result is: ${publicKey}`)
+      // console.log(`GetPublicKey result is: ${publicKey}`)
       
       // const password = ecies.crypto.randomBytes(16).toString("base64");
       const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
       const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
-      console.log('aesKey:', aesKey)
+      // console.log('aesKey:', aesKey)
       this.aesKey = aesKey
       this.encryptPsw = encryptPsw
       this.encryptCr1 = encryptCr1
-      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+      // console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
 
       // to decrypt privatekey
       const userId = getInfoFromStorageByKey('gUID')
@@ -513,6 +514,10 @@ export default {
       if (this.currentTip == 'cancel') {
         this.cancelRecoveryByStatus()
         this.showResultModal = false
+      } else if (this.currentTip == 'excuteConfirm'){
+        this.showResultModal = false
+        this.confirmBtn2Disabled = false
+        this.confirmBtn3Visible = false
       } else {//excute confirm result and cancelResult
         this.$router.push({ path: '/overview' })
         this.showResultModal = false

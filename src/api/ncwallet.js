@@ -190,7 +190,7 @@ import request from '@/utils/request';
   if (data['txid']) {
     _data = {
       txid: data['txid'],
-      status: data['status']
+      action: 'to_execute_recover',
     }
   } else {
     _data = {

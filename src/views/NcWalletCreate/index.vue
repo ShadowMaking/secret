@@ -341,6 +341,13 @@ export default {
         Toast.fail('Set Signer')
         return false
       }
+      let currentUser = getConnectedAddress()
+      if (this.createSignerSubmit.indexOf(currentUser) > -1) {
+        Toast.fail('This Owner Can Not To Be This Signer')
+        this.createSignerSubmit = []
+       this.createSignerList = []
+        return false
+      }
       return true
     },
     changeVisible() {
@@ -361,16 +368,16 @@ export default {
         return
       }
       this.publicKey = publicKey;
-      console.log(`GetPublicKey result is: ${publicKey}`)
+      // console.log(`GetPublicKey result is: ${publicKey}`)
       
       // const password = ecies.crypto.randomBytes(16).toString("base64");
       const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
       const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
-      console.log('aesKey:', aesKey)
+      // console.log('aesKey:', aesKey)
       this.aesKey = aesKey
       this.encryptPsw = encryptPsw
       this.encryptCr1 = encryptCr1
-      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+      // console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
 
       // to decrypt privatekey
       const userId = getInfoFromStorageByKey('gUID')
@@ -393,6 +400,10 @@ export default {
     _handleNetworkChange({ chainInfo, from }) {
       if (from === 'sendMenu') { return }
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(chainInfo.id)]
+    },
+    handleAccountChange(addressInfo) {
+      this.createSignerSubmit = []
+      this.createSignerList = []
     },
   },
   async created() {
@@ -419,6 +430,7 @@ export default {
   },
   async mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
   },
 };
 </script>
