@@ -4,10 +4,10 @@
     <div class="recover-page-1" v-show="recoverPage1Visible">
       
       <div class="recover-wallet-container">
-        <p class="recover-des">We show the Eigen wallet in your current Eigen account, Choose the Eigen Wallet you want to recover.</p>
+        <p class="recover-des">We show the Eigen wallet in your current Eigen account, choose the Eigen Wallet you want to recover.</p>
         <div class="recover-content-box">
           <div class="wallet-list">
-            <el-select v-model="walletSelectInfo" placeholder="" class="wallet-select" value-key="wallet_id">
+            <el-select v-model="walletSelectInfo" placeholder="" class="wallet-select" value-key="wallet_id" :loading="selectLoading">
               <el-option
                 v-for="item in walletList"
                 :key="item.wallet_id"
@@ -61,12 +61,14 @@ export default {
       walletSelectId: '',
       walletSelectAddress: '',
       walletList: [],
+      allWalletList: [],
       newOwnerAddress: '',
       oldOwnerAddress: '',
       walletName: '',
 
       currentUserAddress: '',
       nextLoading: false,
+      selectLoading: true,
       
       recoverPage1Visible: true,
       recoverPage2Visible: false,
@@ -122,15 +124,60 @@ export default {
       }
     },
     async getWalletList() {
+      this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       let data = {
         network_id: getConnectedNet().id,
         user_id: getFromStorage('gUID'),
+        recoverable_address: getConnectedAddress(),
       }
       const { hasError, list } = await this.$store.dispatch('getWalletList', data)
+      this.selectLoading = false
       this.walletList = list
       if (hasError) {
         Toast('Get Error')
+        return
       }
+      // this.dealWalletList()
+    },
+    async dealWalletList() {
+      let allWalletList = this.allWalletList
+      let newList = []
+      this.walletList = []
+      for (var i=0; i<allWalletList.length; i++) {
+        let isSigner = await this.getCurrentUserISSigner(allWalletList[i].wallet_address)
+        let isOwner = await this.getCurrentUserISOwner(allWalletList[i].wallet_address)
+        let WalletIsActive = await this.getWalletStatusIsActive(allWalletList[i].wallet_address, allWalletList[i].wallet_status,allWalletList[i].address)
+        !isSigner && !isOwner && WalletIsActive && newList.push(allWalletList[i])
+      }
+      console.log(newList)
+      this.selectLoading = false
+      this.walletList = newList
+    },
+    async getCurrentUserISSigner(walletAddress) {
+      let currentUserAddress = getConnectedAddress()
+      let isSigner = await this.securityModuleContract.isSigner(walletAddress, currentUserAddress)
+      return isSigner
+    },
+    async getCurrentUserISOwner(walletAddress) {
+      let currentUserAddress = getConnectedAddress()
+      let walletContract = await getContractAt({ tokenAddress: walletAddress, abi: WalletJson.abi }, this)
+      console.log(walletContract)
+      let ownerAddress = await walletContract.owner()
+      if (ownerAddress.toLocaleLowerCase() == currentUserAddress) {
+        return true
+      }
+      return false
+    },
+    async getWalletStatusIsActive(walletAddress, status, ownerAddress) {
+      let currentUserAddress = getConnectedAddress()
+      if (status == walletStatus['Active']) {
+        let isInRecovery = await this.securityModuleContract.isInRecovery(walletAddress)
+        if (isInRecovery && currentUserAddress !== ownerAddress) {
+          return false
+        }
+        return true
+      }
+      return false
     },
     async recoverNext() {
       const privateKey = await getDecryptPrivateKeyFromStore(this)
@@ -152,39 +199,42 @@ export default {
         this.nextLoading = false
         return
       }
-      if (recoverSelect.wallet_status == walletStatus['Active']) {
+      this.openSelectTipDialog()
+      // if (recoverSelect.wallet_status == walletStatus['Active']) {
         
-        let currentWallet = recoverSelect.wallet_address
-        let currentUserAddress = getConnectedAddress()
+      //   let currentWallet = recoverSelect.wallet_address
+      //   let currentUserAddress = getConnectedAddress()
 
-        this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-        let isSigner = await this.securityModuleContract.isSigner(currentWallet, currentUserAddress)
-        if (isSigner) {
-          this.nextLoading = false
-          this.showTipModal()
-          // Toast('Signer Cannot Recover Wallet')
-          return
-        }
+      //   this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      //   let isSigner = await this.securityModuleContract.isSigner(currentWallet, currentUserAddress)
+      //   console.log(isSigner)
+      //   if (isSigner) {
+      //     this.nextLoading = false
+      //     this.showTipModal()
+      //     // Toast('Signer Cannot Recover Wallet')
+      //     return
+      //   }
     
-        const walletContract = await getContractAt({ tokenAddress: currentWallet, abi: WalletJson.abi }, this)
-        const ownerAddress = await walletContract.owner()
-        if (ownerAddress.toLocaleLowerCase() == currentUserAddress) {
-          this.nextLoading = false
-          this.showTipModal()
-          // Toast('Owner Cannot Recover Wallet')
-          return
-        }
+      //   const walletContract = await getContractAt({ tokenAddress: currentWallet, abi: WalletJson.abi }, this)
+      //   console.log(walletContract)
+      //   const ownerAddress = await walletContract.owner()
+      //   if (ownerAddress.toLocaleLowerCase() == currentUserAddress) {
+      //     this.nextLoading = false
+      //     this.showTipModal()
+      //     // Toast('Owner Cannot Recover Wallet')
+      //     return
+      //   }
         
-        let isInRecovery = await this.securityModuleContract.isInRecovery(currentWallet)
-        if (isInRecovery && currentUserAddress !== recoverSelect.address) {
-          this.nextLoading = false
-          Toast('Wallet is Recovering')
-          return
-        }
-        this.openSelectTipDialog()
-      } else {
-        Toast('Wallet is Unavailable')
-      }
+      //   let isInRecovery = await this.securityModuleContract.isInRecovery(currentWallet)
+      //   if (isInRecovery && currentUserAddress !== recoverSelect.address) {
+      //     this.nextLoading = false
+      //     Toast('Wallet is Recovering')
+      //     return
+      //   }
+      //   this.openSelectTipDialog()
+      // } else {
+      //   Toast('Wallet is Unavailable')
+      // }
       
     },
     showTipModal() {
@@ -224,16 +274,16 @@ export default {
         return
       }
       this.publicKey = publicKey;
-      console.log(`GetPublicKey result is: ${publicKey}`)
+      // console.log(`GetPublicKey result is: ${publicKey}`)
       
       // const password = ecies.crypto.randomBytes(16).toString("base64");
       const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
       const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
-      console.log('aesKey:', aesKey)
+      // console.log('aesKey:', aesKey)
       this.aesKey = aesKey
       this.encryptPsw = encryptPsw
       this.encryptCr1 = encryptCr1
-      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+      // console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
 
       // to decrypt privatekey
       const userId = getInfoFromStorageByKey('gUID')
@@ -251,11 +301,9 @@ export default {
 
       this.confirmPswBtnLoading = false
       this.showInputPswModal = false
-      this.dealDataBeforeRecoverNext()
+      this.getIsHasRecoverWallet()
     },
-    handleAccountChange(addressInfo) {
-      this.currentUserAddress = getConnectedAddress()
-    },
+    
     confirmResultModal() {
       if (this.currentTip == 'next') {
         this.recoverConfirm()
@@ -265,17 +313,31 @@ export default {
     cancelResultModal() {
       this.showResultModal = false
     },
+    handleAccountChange(addressInfo) {
+      this.getIsHasRecoverWallet()
+    },
+    _handleNetworkChange({ chainInfo, from }) {
+      this.getIsHasRecoverWallet()
+    },
+    async getIsShowPwd() {
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      await this.getIsHasRecoverWallet()
+    }
   },
   created() {
     if (!isLogin()) {
       Toast('Need Login')
       return
     }
-    this.currentUserAddress = getConnectedAddress()
-    this.getIsHasRecoverWallet()
+    this.getIsShowPwd()
   },
-  async mounted() {
+  mounted() {
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
   },
 };
 </script>

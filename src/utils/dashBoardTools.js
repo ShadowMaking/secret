@@ -324,7 +324,7 @@ export const addTransHistory = async (txInfo, taransType, self, value, name, isW
 
 export const getSupportNet = () => {
   const currentChainInfo = getConnectedNet()
-  if (supportNetWorkForContract.indexOf(currentChainInfo.id) > -1) {
+  if (supportNetWorkForContract.indexOf(currentChainInfo.id) > -1 && !(currentChainInfo.id == 10 && process.env.NODE_ENV == 'production')) {
     return true
   } else {
     Toast(`Ropsten,Stardust,Mumbai,BSC Testnet presently, the ${currentChainInfo.name} will be available soon`)
