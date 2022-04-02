@@ -4,7 +4,7 @@
     <div class="page-content-box">
       <div class="create-top-des">
         <div class="create-top-des-show blueColor">
-          <span class="create-top-des-title">How to do?</span>
+          <span class="create-top-des-title">About Eigen Multi-Signature Wallet?</span>
           <i :class="isComponse ? 'el-icon-arrow-up' : 'el-icon-arrow-down'" @click="stepComponseClick"></i>
         </div>
         <div class="page-section-border create-des-text">You need to add at least one Guardian to create a multi-signature wallet,which can be recovered and locked to keep you assets safe. Any transaction requires 50%+ Guardian signatures</div>
@@ -14,7 +14,7 @@
       
       <div class="create-1-container">
         <p class="create-1-title">Set Wallet Name</p>
-        <div class="recover-content-box">
+        <div class="create-1-box">
           <div class="wallet-list">
             <el-select v-model="walletSelectInfo" placeholder="" class="wallet-select" value-key="wallet_id">
               <el-option
@@ -25,14 +25,31 @@
               </el-option>
             </el-select>
           </div>
-          <div class="recover-next">
+          <div class="create-1-next">
             <el-button type="primary" @click="recoverNext" :loading="nextLoading">Next</el-button>
           </div>
         </div>
       </div>
     </div>
-    <div class="recover-page-2" v-show="recoverPage2Visible">
-      
+    <div class="create-page-2" v-show="createPage2Visible">
+      <div class="create-2-container">
+        <p class="create-2-title">Add your Guardian</p>
+        <div class="create-2-signer-list">
+          <div class="create-2-signer-item">
+            <div class="create-signer-left"><img src="http://ccw.xinshenxuetang.com:9000/xinshen-public/defaultImage/headimage.png?v=1"></div>
+            <div class="create-signer-right">
+              <div class="create-sigern-name">Mike</div>
+              <div class="create-signer-address">0x241579898323</div>
+            </div>
+          </div>
+        </div>
+        <div class="create-2-add-signer">
+          <v-searchSignerModal
+          :dataSource="searchSignerList"
+          @confirm="confirmSearchSigner"
+          @addConfirm="confirmAddSigner" />
+        </div>
+      </div>
     </div>
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
     <v-resultModal :show="showResultModal" :content="resuletContent" :needColse="needResultColse" @confirm="confirmResultModal" @close="cancelResultModal"></v-resultModal>
@@ -47,6 +64,7 @@ import { Toast, Dialog } from 'vant'
 import navTitle from '@/components/NavTitle/index'
 import InputPswModal from '@/components/InputPswModal'
 import resultModal from '@/components/ResultModal'
+import searchSignerModal from '@/components/SearchSignerModal/index'
 
 import { isLogin, getContractAt,getConnectedAddress, getDecryptPrivateKeyFromStore, getSupportNet, getConnectedNet, getEncryptKeyByAddressFromStore} from '@/utils/dashBoardTools';
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
@@ -65,8 +83,10 @@ export default {
   name: 'NC-Wallet-Recover',
   data() {
     return {
-      createPage1Visible: true,
-      recoverPage2Visible: false,
+      createPage1Visible: false,
+      createPage2Visible: true,
+
+      searchSignerList: [],
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -84,9 +104,47 @@ export default {
     "v-navTitle": navTitle,
     'v-inputPsw': InputPswModal,
     'v-resultModal': resultModal,
+    "v-searchSignerModal": searchSignerModal,
   },
   methods: {
-    
+    async confirmSearchSigner(value) {
+      var searchData = {
+        userId: this.userId,
+        value: value
+      }
+      const { hasError, list } = await this.$store.dispatch('searchSigner', searchData);
+      this.searchSignerList = list
+    },
+    async confirmAddSigner(value) {
+      if (!value) {
+        Toast('Please Choose Signer')
+        return
+      }
+      let currentOwner = getConnectedAddress()
+      if (value.toLocaleLowerCase() == currentOwner) {
+        Toast('This Owner Can Not To Be This Signer')
+        return
+      }
+      let isSignerExist = this.createSignerList.findIndex(function(item) {
+        return item.signAddress == value
+      })
+      if (isSignerExist > -1) {
+        Toast('This Signer Already Exists')
+        return
+      }
+      var nowDate = new Date()
+      var nowTime = timeFormat(nowDate, 'yyyy-MM-dd hh:mm:ss')
+      // const signAddress = await getEns(value)
+      const signAddress = value
+      console.log(this.createSignerList)
+      this.createSignerList.push({
+        signAddress: signAddress,
+        addTime: nowTime,
+      })
+      this.createSignerSubmit.push(signAddress.toLocaleLowerCase())
+      this.signerTotal = this.createSignerList.length
+      this.signerPercent = Math.ceil(this.signerTotal/2)
+    },
     
     
     async confirmPswOk({ show, psw }) {

@@ -128,14 +128,16 @@ export default {
       let data = {
         network_id: getConnectedNet().id,
         user_id: getFromStorage('gUID'),
+        valid_address: 1,
       }
       const { hasError, list } = await this.$store.dispatch('getWalletList', data)
-      this.allWalletList = list
+      this.selectLoading = false
+      this.walletList = list
       if (hasError) {
         Toast('Get Error')
         return
       }
-      this.dealWalletList()
+      // this.dealWalletList()
     },
     async dealWalletList() {
       let allWalletList = this.allWalletList
