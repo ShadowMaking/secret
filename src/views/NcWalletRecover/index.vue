@@ -128,7 +128,8 @@ export default {
       let data = {
         network_id: getConnectedNet().id,
         user_id: getFromStorage('gUID'),
-        valid_address: 1,
+        recoverable_address: 1,
+        address: getConnectedAddress(),
       }
       const { hasError, list } = await this.$store.dispatch('getWalletList', data)
       this.selectLoading = false

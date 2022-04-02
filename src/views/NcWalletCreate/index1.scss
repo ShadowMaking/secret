@@ -69,10 +69,10 @@
         color: #9D9FA8;
         margin-top: 2px;
       }
-      .create-2-add-signer {
-        .add-signer-btn {
-          justify-content: start !important;
-        }
+    }
+    .create-2-add-signer {
+      ::v-deep .add-signer-btn {
+        justify-content: start !important;
       }
     }
   }
