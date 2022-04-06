@@ -110,7 +110,7 @@ Vue.use(Toast);
 
 export default {
   name: 'recover-confirm',
-  props: ['currentWalletId', 'currentWalletAddress', 'newOwnerAddress', 'oldOwnerAddress', 'walletName'],
+  props: ['currentWalletId', 'currentWalletAddress', 'newOwnerAddress', 'oldOwnerAddress', 'walletName', 'recoverWalletTxid'],
   data() {
     return {
       // currentWalletId: 195,
@@ -568,6 +568,9 @@ export default {
     cancelResultModal() {
       this.showResultModal = false
     },
+    getIsHasConfirming() {
+      // this.
+    },
   },
   async created() {
     if (!isLogin()) {
@@ -584,6 +587,7 @@ export default {
     this.overrides.gasPrice = await getEstimateGas('gasPrice', 5000000000)
     this.currentWalletId && this.getSignerListByid()
     this.currentWalletAddress && this.getIsShowInputPsw()
+    // this.recoverWalletTxid && this.getIsHasConfirming()
     this.getIsNewOwner()
   },
   async mounted() {

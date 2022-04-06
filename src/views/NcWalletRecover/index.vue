@@ -23,7 +23,7 @@
       </div>
     </div>
     <div class="recover-page-2" v-show="recoverPage2Visible">
-      <v-recoverPage2 :currentWalletId="walletSelectId" :currentWalletAddress="walletSelectAddress" :newOwnerAddress="newOwnerAddress" :oldOwnerAddress="oldOwnerAddress" :walletName="walletName"></v-recoverPage2>
+      <v-recoverPage2 :currentWalletId="walletSelectId" :currentWalletAddress="walletSelectAddress" :newOwnerAddress="newOwnerAddress" :oldOwnerAddress="oldOwnerAddress" :walletName="walletName" :recoverWalletTxid="recoverWalletTxid"></v-recoverPage2>
     </div>
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
     <v-resultModal :show="showResultModal" :content="resuletContent" :needColse="needResultColse" @confirm="confirmResultModal" @close="cancelResultModal"></v-resultModal>
@@ -65,6 +65,7 @@ export default {
       newOwnerAddress: '',
       oldOwnerAddress: '',
       walletName: '',
+      recoverWalletTxid: '',
 
       currentUserAddress: '',
       nextLoading: false,
@@ -118,6 +119,9 @@ export default {
         this.newOwnerAddress = list[0].new_address
         this.oldOwnerAddress = list[0].address
         this.walletName = list[0].name
+        if (list[0].txid) {
+          this.recoverWalletTxid = list[0].txid
+        }
         this.recoverConfirm()//show recover detail
       } else {
         this.getWalletList()

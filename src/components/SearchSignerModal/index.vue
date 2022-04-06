@@ -18,11 +18,12 @@
               placeholder=""
               :remote-method="remoteMethod"
               style="width: 94%;margin-left: 3%"
-              no-data-text="no data">
+              no-data-text="no data"
+              value-key="address">
               <el-option
                 v-for="(item, index) in signListoptions"
                 :key="index"
-                :label="item"
+                :label="item.address"
                 :value="item" style="padding-left: 10px;">
               </el-option>
             </el-select>

@@ -362,7 +362,8 @@ export default {
         console.log(error)
       })
     },
-    async confirmAddSigner(address) {
+    async confirmAddSigner(signerInfo) {
+      let address = signerInfo.address
       this.currentOptType = 'addSigner'
       this.currentRecord = _.cloneDeep(address)
       if (!address) {

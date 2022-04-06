@@ -29,10 +29,10 @@
         <p class="create-2-title">Add your Guardian</p>
         <div class="create-2-signer-list">
           <div class="create-2-signer-item" v-for="(item,index) in createSignerList" :key="index">
-            <div class="create-signer-left"><img src=""></div>
+            <div class="create-signer-left"><img :src="item.picture"></div>
             <div class="create-signer-right">
-              <div class="create-sigern-name">Signer{{index}}</div>
-              <div class="create-signer-address">{{item.signAddress}}</div>
+              <div class="create-sigern-name">{{item.name}}</div>
+              <div class="create-signer-address">{{item.address}}</div>
             </div>
           </div>
         </div>
@@ -104,8 +104,8 @@ export default {
   name: 'NC-Wallet-Recover',
   data() {
     return {
-      createPage1Visible: true,
-      createPage2Visible: false,
+      createPage1Visible: false,
+      createPage2Visible: true,
       setNameLoading: false,
       createSubmitLoading: false,
       isComponse: true,
@@ -186,13 +186,15 @@ export default {
         Toast('Please choose signer')
         return
       }
+      const signAddress = value.address
       let currentOwner = getConnectedAddress()
-      if (value.toLocaleLowerCase() == currentOwner) {
+
+      if (signAddress.toLocaleLowerCase() == currentOwner) {
         Toast('This owner can not to be this signer')
         return
       }
       let isSignerExist = this.createSignerList.findIndex(function(item) {
-        return item.signAddress == value
+        return item.address == value
       })
       if (isSignerExist > -1) {
         Toast('This signer already exists')
@@ -201,10 +203,12 @@ export default {
       // var nowDate = new Date()
       // var nowTime = timeFormat(nowDate, 'yyyy-MM-dd hh:mm:ss')
       // const signAddress = await getEns(value)
-      const signAddress = value
+      
       console.log(this.createSignerList)
       this.createSignerList.push({
-        signAddress: signAddress,
+        address: signAddress,
+        name: value.name,
+        picture: value.picture,
       })
       this.createSignerSubmit.push(signAddress.toLocaleLowerCase())
       // this.signerTotal = this.createSignerList.length
