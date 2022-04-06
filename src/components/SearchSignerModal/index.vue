@@ -7,28 +7,30 @@
   <van-popup v-model="showPopup" class="search-modal-popUp" @close="closeModal">
     <div class="sign-modal">
       <div class="sign-modal-wraper">
-        <div class="sign-modal-title">Search Google account name,address and ENS to add signer</div>
-        <div class="sign-model-input">
-          <el-select
-            v-model="searchInput"
-            filterable
-            remote
-            reserve-keyword
-            placeholder="Google Account Name、Address or ENS"
-            :remote-method="remoteMethod"
-            style="width: 94%;margin-left: 3%"
-            no-data-text="no data">
-            <el-option
-              v-for="(item, index) in signListoptions"
-              :key="index"
-              :label="item"
-              :value="item" style="padding-left: 10px;">
-            </el-option>
-          </el-select>
+        <div class="sign-modal-top">
+          <div class="sign-modal-title">Search your friend Eigen account and add him as Guardian</div>
+          <div class="sign-model-input">
+            <el-select
+              v-model="searchInput"
+              filterable
+              remote
+              reserve-keyword
+              placeholder=""
+              :remote-method="remoteMethod"
+              style="width: 94%;margin-left: 3%"
+              no-data-text="no data">
+              <el-option
+                v-for="(item, index) in signListoptions"
+                :key="index"
+                :label="item"
+                :value="item" style="padding-left: 10px;">
+              </el-option>
+            </el-select>
+          </div>
         </div>
         <div class="button-content">
-          <van-button class="opt-button" color="#367BCF" plain @click="cancelModal">Cancel</van-button>
-          <van-button class="opt-button" color="#367BCF" @click="confirmAdd">Add</van-button>
+          <van-button class="opt-button" type="default" @click="cancelModal">Cancel</van-button>
+          <van-button class="opt-button" color="#367BCF" @click="confirmAdd">Confirm</van-button>
         </div>
       </div>
     </div>

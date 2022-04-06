@@ -5,10 +5,10 @@
     max-width: 400px;
   }
   ::v-deep .el-dialog__body {
-    border-bottom: 1px solid #ececec;
+    
   }
   ::v-deep .el-dialog__footer {
-    padding: 20px;
+    padding: 0px;
   }
   .confirm-modal-wraper {
 
@@ -21,6 +21,23 @@
     }
     .el-button {
       padding: 8px 40px;
+    }
+    .result-btn {
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+    .dialog-footer {
+      border-top: 1px solid #ececec;
+    }
+    .result-modal-icon {
+      text-align: center;
+      img {
+        width: 2.4rem;
+        height: 2.4rem;
+      }
+    }
+    .confirm-modal-detail {
+      text-align: center;
     }
   }
   
