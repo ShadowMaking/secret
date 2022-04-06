@@ -94,7 +94,7 @@ export default {
 
       showStatusPop: false,
       popStatus: "success",
-      statusPopTitle: 'Submited Successfully!',
+      statusPopTitle: 'Submitted Successfully!',
       timeTxt: '',
       userId: getFromStorage('gUID'),
 
@@ -200,6 +200,12 @@ export default {
       }
       let thisGasPrice = this.overrides.gasPrice.toString()
       let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
+
+      let geeweiTtoal = estimatedGasFee * 1000000000
+      let gree = geeweiTtoal/gasPrice
+      let grNum = geeweiTtoal/gasPrice
+      console.log(grNum)
+
       this.sendMetadata = {
         from: getConnectedAddress(),
         to: this.securityModuleRouter,
@@ -230,7 +236,6 @@ export default {
       // check privateKey whether is existed
       const privateKey = await getDecryptPrivateKeyFromStore(this)
       if (!privateKey) {
-        this.isHasClick = false
         this.showInputPswModal = true;
         return
       }
@@ -245,7 +250,10 @@ export default {
       const transactionContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: WalletTransaction.abi }, this)
       console.log(proxyContract)
       console.log(proxyRouter)
-      const saletnew = ethers.utils.randomBytes(32);
+      // const saletnew = ethers.utils.formatBytes32String(randomBytesToString);
+      const saletnew = ethers.utils.formatBytes32String(ethers.utils.sha256(ethers.utils.randomBytes(32)).substr(2,31))
+      console.log(saletnew)
+       // utils.formatBytes32String(utils.sha256(utils.randomBytes(32)).substr(2,31))
       
       let createSignList = this.createSignerSubmit
       // let providertest = new ethers.providers.JsonRpcProvider('https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161')
@@ -265,6 +273,7 @@ export default {
             let du = ethers.utils.parseEther("15")//one day
             let lap = ethers.utils.parseEther("10")//one 
             let data = [encoder.encode(["uint", "uint"], [du, lap]), encoder.encode(["address[]"], [createSignList])]
+            
             
             walletContract.initialize(
               modules, 
@@ -299,10 +308,10 @@ export default {
       let data = {
         name: this.createWalletName,
         address: selectedConnectAddress,
-        walletAddress: walletAddress.toLocaleLowerCase(),//0xe744919008dd978dfAF9771E5623fDfbEd4C29D3
+        wallet_address: walletAddress.toLocaleLowerCase(),//0xe744919008dd978dfAF9771E5623fDfbEd4C29D3
         signers: this.createSignerSubmit,
-        userId: this.userId,
-        txid: txhash
+        txid: txhash,
+        network_id: getConnectedNet().id,
       }
       // let data = {
       //   name: 'wallet271',
@@ -332,6 +341,13 @@ export default {
         Toast.fail('Set Signer')
         return false
       }
+      let currentUser = getConnectedAddress()
+      if (this.createSignerSubmit.indexOf(currentUser) > -1) {
+        Toast.fail('This Owner Can Not To Be This Signer')
+        this.createSignerSubmit = []
+       this.createSignerList = []
+        return false
+      }
       return true
     },
     changeVisible() {
@@ -352,16 +368,16 @@ export default {
         return
       }
       this.publicKey = publicKey;
-      console.log(`GetPublicKey result is: ${publicKey}`)
+      // console.log(`GetPublicKey result is: ${publicKey}`)
       
       // const password = ecies.crypto.randomBytes(16).toString("base64");
       const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
       const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
-      console.log('aesKey:', aesKey)
+      // console.log('aesKey:', aesKey)
       this.aesKey = aesKey
       this.encryptPsw = encryptPsw
       this.encryptCr1 = encryptCr1
-      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+      // console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
 
       // to decrypt privatekey
       const userId = getInfoFromStorageByKey('gUID')
@@ -385,6 +401,10 @@ export default {
       if (from === 'sendMenu') { return }
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(chainInfo.id)]
     },
+    handleAccountChange(addressInfo) {
+      this.createSignerSubmit = []
+      this.createSignerList = []
+    },
   },
   async created() {
     this.defaultNetWork = this.getDefaultNetWork()
@@ -400,9 +420,17 @@ export default {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
     this.overrides.gasPrice = await getEstimateGas('gasPrice', 20000000000)
+    console.log(WalletJson.abi)
+    // const randomBytes = ethers.utils.randomBytes(10)
+    //   console.log(randomBytes)
+    //   const randomBytesToString = ethers.utils.toUtf8String(randomBytes)
+    //   console.log(randomBytesToString)
+    //   const saletnew = ethers.utils.formatBytes32String(randomBytesToString);
+    //   console.log(saletnew)
   },
   async mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
   },
 };
 </script>

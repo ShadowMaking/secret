@@ -1,0 +1,27 @@
+.result-modal-wraper {
+  ::v-deep .el-dialog {
+    border-radius: 8px;
+    width: 80%;
+    max-width: 400px;
+  }
+  ::v-deep .el-dialog__body {
+    border-bottom: 1px solid #ececec;
+  }
+  ::v-deep .el-dialog__footer {
+    padding: 20px;
+  }
+  .confirm-modal-wraper {
+
+    .confirm-modal-content {
+      font-size: 0.96rem;
+      min-height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .el-button {
+      padding: 8px 40px;
+    }
+  }
+  
+}

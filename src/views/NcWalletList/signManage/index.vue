@@ -102,7 +102,7 @@ import navTitle from '@/components/NavTitle/index'
 import searchSignerModal from '@/components/SearchSignerModal/index'
 import LoadingPopup from '@/components/LoadingPopup';
 import ConfirmModal from '@/components/ConfirmModal';
-import {  isLogin, getContractAt, getConnectedAddress, getEncryptKeyByAddressFromStore, addTransHistory, getSupportNet, getBalanceByAddress,getEstimateGas } from '@/utils/dashBoardTools'
+import {  isLogin, getContractAt, getConnectedAddress, getEncryptKeyByAddressFromStore, addTransHistory, getSupportNet, getBalanceByAddress,getEstimateGas, getConnectedNet } from '@/utils/dashBoardTools'
 import { getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { signerStatus, securityModuleRouter, lockType } from '@/utils/global';
@@ -300,10 +300,10 @@ export default {
     },
     async deleteSignerSubmit(row, txHash) {
       let deleteData = {
-        userId: this.userId,
         walletId: this.$route.params.id,
         signerAddress: row.address,
-        txid: txHash
+        txid: txHash,
+        network_id: getConnectedNet().id,
       }
       const { hasError, list } = await this.$store.dispatch('deleteSigner', {...deleteData});
       if (hasError) {
@@ -379,11 +379,11 @@ export default {
     }, 
     async addSignerSubmit(address, txHash) {
       let addData = {
-        userId: this.userId,
         walletId: this.$route.params.id,
         address: address.toLocaleLowerCase(),
         name: this.signList[0].wallet_name,
-        txid: txHash
+        txid: txHash,
+        network_id: getConnectedNet().id,
       }
       console.log(addData)
       const { hasError, list } = await this.$store.dispatch('addSigner', {...addData});
@@ -404,7 +404,7 @@ export default {
     },
     async getSignerListByid() {
       let data = {
-        userId: this.userId,
+        network_id: getConnectedNet().id,
         walletId: this.$route.params.id
       }
       const { hasError, list } = await this.$store.dispatch('getSignerList', {...data})
@@ -437,16 +437,16 @@ export default {
         return
       }
       this.publicKey = publicKey;
-      console.log(`GetPublicKey result is: ${publicKey}`)
+      // console.log(`GetPublicKey result is: ${publicKey}`)
       
       // const password = ecies.crypto.randomBytes(16).toString("base64");
       const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
       const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
-      console.log('aesKey:', aesKey)
+      // console.log('aesKey:', aesKey)
       this.aesKey = aesKey
       this.encryptPsw = encryptPsw
       this.encryptCr1 = encryptCr1
-      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+      // console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
 
       // to decrypt privatekey
       const userId = getInfoFromStorageByKey('gUID')

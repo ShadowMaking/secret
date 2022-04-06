@@ -26,7 +26,7 @@
           prop="owner_address"
           label="Owner Address ">
           <template slot-scope="scope">
-              <span @click="copyAddress(scope.row.owner_address)">{{scope.row.owner_address}}</span>
+              <span @click="copyAddress(scope.row.owner_address)">{{scope.row.new_owner_address ? scope.row.new_owner_address : scope.row.owner_address}}</span>
           </template>
         </el-table-column>
         <el-table-column
@@ -37,7 +37,7 @@
               <div v-if="scope.row.wallet_status == walletStatus['Creating']">
                 <el-tag>Creating</el-tag>
               </div>
-              <div v-else-if="scope.row.wallet_status == walletStatus['Active']">
+              <div v-else-if="scope.row.wallet_status == walletStatus['Active'] || scope.row.wallet_status == walletStatus['Recovering']">
                 <el-tag v-if="scope.row.isInRecovery">Recovering</el-tag>
                 <el-tag type="info" v-else-if="scope.row.isLocked">Locked</el-tag>
                 <el-tag type="success" v-else>Active</el-tag>
@@ -72,7 +72,7 @@
               <div v-if="scope.row.wallet_status == walletStatus['Creating']">
                 <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
               </div>
-              <div v-else-if="scope.row.wallet_status == walletStatus['Active']">
+              <div v-else-if="scope.row.wallet_status == walletStatus['Active'] || scope.row.wallet_status == walletStatus['Recovering']">
                 <div v-if="scope.row.isLocked">
                   <el-button @click="handleClick(scope.row, 'Unlock')" type="text" size="small" class="sign-operate agree-btn">Unlock</el-button>
                 </div>
@@ -162,7 +162,7 @@ import { ethers } from 'ethers'
 import { Toast, Loading, Popup, Dialog } from 'vant'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
-import { getContractAt, getConnectedAddress, getContractWallet, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory, getEstimateGas, getBalanceByAddress } from '@/utils/dashBoardTools'
+import { getContractAt, getConnectedAddress, getContractWallet, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory, getEstimateGas, getBalanceByAddress, getConnectedNet } from '@/utils/dashBoardTools'
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { signerStatus, securityModuleRouter, walletStatus, multOperation, lockType } from '@/utils/global';
 import StatusPop from '@/components/StatusPop';
@@ -309,10 +309,10 @@ export default {
     },
     async updateSignerStatus(status, isToast) {
       let data = {
-        userId: this.userId,
         walletId: this.signRow.wallet_id,
         signerAddress: this.signRow.address,
         status: status,
+        network_id: getConnectedNet().id,
       }
       const { hasError } = await this.$store.dispatch('updateSigner', {...data});
       this.showLoading = false;
@@ -345,19 +345,7 @@ export default {
       this.$emit('signChild');
       console.log(isToast)
       !isToast && Toast(`${operateType} Submit Success`)
-      // this.updateWalletStatusSubmit(this.walletStatus[status], res.hash)
       addTransHistory(res, operateType, this)
-    },
-    async updateWalletStatusSubmit(status, txhash) {
-      console.log(status)
-      let data = {
-        userId: this.userId,
-        walletId: this.signRow.wallet_id,
-        status: status,
-        txid: txhash,
-      }
-      const { hasError } = await this.$store.dispatch('updateWalletStatus', {...data});
-      console.log(hasError)
     },
     cancelSignMessage() {
       this.showSignMessageModal = false
@@ -438,12 +426,16 @@ export default {
           })
           .then(() => {
             this.signMsg = totalSignMessage
+            this.currentOptType = 'triggerRecover'
+            this.showLoading = true
             this.showConfirmModal()
           })
           .catch((error) => {
+            this.showLoading = false
             console.log(error)
           });
       } else {
+        this.showLoading = false
         Toast('Confirm Recover success')
       }
     },
@@ -451,6 +443,7 @@ export default {
       let totalSignMessage = this.getSignMessage()
       if (totalSignMessage) {
         this.signMsg = totalSignMessage
+        this.currentOptType === 'triggerRecover'
         this.showConfirmModal()
       } else {
         this.showLoading = false
@@ -459,18 +452,17 @@ export default {
     },
     async getSignMessage() {
       let dataParams = {
-        userId: this.userId,
         walletId: this.signRow.wallet_id,
         signerAddress: this.signRow.address,
-        mtxid: this.signRow.mtxid
+        mtxid: this.signRow.mtxid,
+        network_id: getConnectedNet().id,
       }
       const { hasError, data } = await this.$store.dispatch('getSignMessage', {...dataParams});
-      this.showLoading = false
       return data
     },
     getNewOwnerInfo() {
       let currentWalletAddress = this.signRow.wallet_address
-      let newOwnAddress = this.signRow.owner_address
+      let newOwnAddress = this.signRow.new_owner_address
       const SMABI = [
           "function executeRecovery(address)",
           "function cancelRecovery(address)",
@@ -513,6 +505,7 @@ export default {
       this.overrides.gasLimit = overrides.gasLimit
       this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
       this.showLoading = true
+      console.log(this.currentOptType)
       if (this.currentOptType === 'triggerRecover') {
         this.dealDataBeforeTriggerRecover()
       }
@@ -532,7 +525,7 @@ export default {
       let replaceOwnerData = this.getNewOwnerInfo()
       console.log(replaceOwnerData)
 
-      let expireTime = Math.floor((new Date().getTime()) / 1000) + 600;
+      let expireTime = Math.floor((new Date().getTime()) / 1000) + 1800;
       let signatures = this.signMsg;
       
       this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
@@ -641,16 +634,16 @@ export default {
         return
       }
       this.publicKey = publicKey;
-      console.log(`GetPublicKey result is: ${publicKey}`)
+      // console.log(`GetPublicKey result is: ${publicKey}`)
       
       // const password = ecies.crypto.randomBytes(16).toString("base64");
       const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
       const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
-      console.log('aesKey:', aesKey)
+      // console.log('aesKey:', aesKey)
       this.aesKey = aesKey
       this.encryptPsw = encryptPsw
       this.encryptCr1 = encryptCr1
-      console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+      // console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
 
       // to decrypt privatekey
       const userId = getInfoFromStorageByKey('gUID')

@@ -67,6 +67,7 @@
         for( var i=0; i<this.confirmingList.length; i++) {
           let confirmingItemHash = this.confirmingList[i]
           const txReceipt = (confirmingItemHash.indexOf('-') < 0 && await provider.getTransactionReceipt(confirmingItemHash));
+          console.log(txReceipt)
           if (txReceipt && txReceipt.blockNumber) {
             //0-success 1-send 2-confirming -1-failed
             let transHistoryStatus = 1;

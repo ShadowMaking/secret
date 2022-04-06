@@ -1,78 +1,51 @@
 @import '@/app.scss';
 .ncWalletRecover-page {
-	.recover-des {
-    font-size: 0.96rem;
-	  line-height: 30px;
-    color: #9E9E9E;
-	}
-	.recover-wallet-box {
-	  .recover-steps {
-	    margin-top: 15px;
-	    margin-bottom: 15px;
-	    // width: 50%;
-	  }
-	  .choose-wallet {
-	    
-	    .choose-wallt-info {
-	      display: flex;
-	      .choose-wallet-item {
-	        min-width: 200px;
-	        text-align: center;
-	        .choose-wallet-item-name {
-              margin-bottom: 10px;
-              font-size: 0.96rem; 
-	        }
-	        .choose-wallet-item-con {
-	          border: 1px solid #dfdfdf;
-	          padding: 0.6rem 1rem;
-	          display: inline-block;
-	        }
-	      }
-	    }
-
-	  }
-	  .wallet-no-signer {
-	      width:80%;
-	      text-align: center;
-	      color: #999;
-	      margin-top: 10px;
-	      margin-bottom: 10px;
-	   }
-	  
-	}
-	.choose-wallet-des {
+	  .recover-des {
       font-size: 0.96rem;
-      margin-bottom: 15px;
+	    line-height: 30px;
+      color: #9D9FA8;
     }
-	.choose-refresh {
-	  margin-top: 15px;
-	  margin-bottom: 15px;
-	  text-align: right;
-	}
-    .sign-complete-box {
-      width: 80%;
-      .choose-btn {
-	    margin-top: 30px;
-	    text-align: center;
-	  }
+    .recover-content-box {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 40px;
     }
-    .complete-success-icon {
-      text-align: center;
+    .wallet-list {
+      margin-right: 20px;
+      width: 40%;
     }
-    .confirm-icon {
-      font-size: 1.5rem;
-      .el-icon-success {
-        color: #85ce61;
-      }
-      .el-icon-question {
-        color: #e6a23c;
-      }
-      .el-icon-error {
-        color: #f56c6c;
+    .wallet-select {
+      width: 100%;
+      ::v-deep .el-input__inner {
+        border-radius: 7px;
       }
     }
-    .add-signer-tip {
-      margin-top: 20px;
-      color: #999;
+    .recover-next {
+      ::v-deep .el-button {
+        border-radius: 18px;
+        background-color: #3466E6;
+        border-colod: #3466E6;
+        height: 40px;
+      }
     }
+    .confirm-modal-popUp {
+      border-radius: 5px;
+      padding: 20px 10px;
+      line-height: 20px;
+      max-width: 300px;
+      p {
+        font-weight: bold;
+        text-align: center;
+      }
+      .confirm-address {
+        color: #495ABE;
+        padding: 0 5px;
+        font-size: 0.86rem;
+      }
+      .select-confirm-btn {
+        margin-top: 20px;
+      }
+    }
+    
 }

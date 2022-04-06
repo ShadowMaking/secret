@@ -1,0 +1,108 @@
+@import '@/app.scss';
+.recover-confirm-page {
+	  .recover-confirm-title {
+      font-size: 0.96rem;
+      line-height: 30px;
+      color: #9D9FA8;
+    }
+    .recover-content-box {
+      width: 85%;
+    }
+    .address-blue {
+      color: #495ABE;
+    }
+    .recover-step-show {
+      font-size: 0.96rem;
+      margin-top: 10px;
+    }
+    .step-show-title {
+      margin-right: 15px;
+    }
+    .confirm-step-list {
+      margin-top: 15px;
+      border: 1px solid #dfdfdf;
+      border-radius: 5px;
+      padding: 0 15px 15px;
+      .confrim-step-item {
+        display:flex;
+        align-items: center;
+        line-height: 25px;
+        margin-top: 20px;
+        .step-left-title {
+          font-size: 0.96rem;
+        }
+        .step-left-content {
+          color: #9D9FA8;
+        }
+        .confirm-step-right {
+          margin-left: 30px;
+        }
+        .el-icon-circle-check, .el-icon-remove-outline {
+          font-size: 1.38rem;
+          color: #495ABE;
+          margin-left: 10px;
+        }
+      }
+    }
+    .confirm-signer-list {
+      margin-top: 40px;
+    }
+    .confrim-signer-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      .confirm-signer-item-left img {
+        width: 2rem;
+        height: 2rem;
+        margin-right: 10px;
+        border-radius: 50%;
+      }
+      .confirm-signer-item-middle {
+        line-height: 20px;
+        font-size: 0.8rem;
+        margin-right: 20px;
+      }
+      .confirm-signer-item-right {
+        .el-tag {
+          height: 25px;
+          line-height:22px;
+        }
+        .el-tag--dark.el-tag--info {
+          background-color: #dfdfdf;
+          border-color: #dfdfdf;
+          color: #2c3e50;
+        }
+      }
+    }
+    .confirm-modal-popUp {
+      border-radius: 5px;
+      padding: 20px 10px;
+      line-height: 20px;
+      width: 300px;
+      p {
+        font-weight: bold;
+        text-align: center;
+      }
+      .confirm-address {
+        color: #495ABE;
+        padding: 0 5px;
+        font-size: 0.86rem;
+      }
+      .select-confirm-btn {
+        margin-top: 20px;
+      }
+    }
+    .confirm-btn-item {
+      border: 1px solid #dfdfdf;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 30px;
+      margin-bottom: 20px;
+      .confirm-btn-label {
+        margin-right: 10px;
+      }
+    }
+}
