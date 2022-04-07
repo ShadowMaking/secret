@@ -2,7 +2,7 @@
   <div class="search-sign-page">
     <div class="add-signer-btn" style="width: 100%" @click="addSignerBtn">
       <img src="~@/assets/friendIcon.png" class="signer-icon">
-      <span class="blueColor">Add Guardian</span>
+      <span class="blueColor">Add Signer</span>
     </div>
   <van-popup v-model="showPopup" class="search-modal-popUp" @close="closeModal">
     <div class="sign-modal">

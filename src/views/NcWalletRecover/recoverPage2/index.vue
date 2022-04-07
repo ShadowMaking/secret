@@ -191,6 +191,11 @@ export default {
         this.getIsNewOwner()
       }
     },
+    recoverWalletTxid: {
+      handler(newValue, oldValue) {
+        this.getIsHasConfirming()
+      }
+    },
   },
   methods: {
     copyAddress(str) {
@@ -569,7 +574,10 @@ export default {
       this.showResultModal = false
     },
     getIsHasConfirming() {
-      // this.
+      if (this.recoverWalletTxid) {
+        this.confirmBtn2Disabled = false
+        this.confirmBtn3Visible = false
+      }
     },
   },
   async created() {
@@ -587,7 +595,7 @@ export default {
     this.overrides.gasPrice = await getEstimateGas('gasPrice', 5000000000)
     this.currentWalletId && this.getSignerListByid()
     this.currentWalletAddress && this.getIsShowInputPsw()
-    // this.recoverWalletTxid && this.getIsHasConfirming()
+    this.getIsHasConfirming()
     this.getIsNewOwner()
   },
   async mounted() {

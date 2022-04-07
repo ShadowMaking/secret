@@ -7,7 +7,7 @@
           <span class="create-top-des-title">About Eigen Multi-Signature Wallet?</span>
           <i :class="isComponse ? 'el-icon-arrow-up' : 'el-icon-arrow-down'" @click="stepComponseClick"></i>
         </div>
-        <div class="page-section-border create-des-text" v-show="isComponse">You need to add at least one Guardian to create a multi-signature wallet,which can be recovered and locked to keep you assets safe. Any transaction requires 50%+ Guardian signatures</div>
+        <div class="page-section-border create-des-text" v-show="isComponse">You need to add at least one signer to create a multi-signature wallet,which can be recovered and locked to keep your assets safe. Any transaction requires 50%+ signer signatures</div>
       </div>
     </div>
     <div class="create-page-1" v-show="createPage1Visible">
@@ -26,7 +26,7 @@
     </div>
     <div class="create-page-2" v-show="createPage2Visible">
       <div class="create-2-container">
-        <p class="create-2-title">Add your Guardian</p>
+        <p class="create-2-title">Add your Signer</p>
         <div class="create-2-signer-list">
           <div class="create-2-signer-item" v-for="(item,index) in createSignerList" :key="index">
             <div class="create-signer-left"><img :src="item.picture"></div>
@@ -104,8 +104,8 @@ export default {
   name: 'NC-Wallet-Recover',
   data() {
     return {
-      createPage1Visible: false,
-      createPage2Visible: true,
+      createPage1Visible: true,
+      createPage2Visible: false,
       setNameLoading: false,
       createSubmitLoading: false,
       isComponse: true,
@@ -256,7 +256,7 @@ export default {
       })
     },
     showSetp1Waitting() {
-      this.resuletContent = '<span class="blueColor">30s</span> will finish Transactioon Waiting for payment confirmation'
+      this.resuletContent = '<span class="blueColor">30s</span> will finish Transaction Waiting for payment confirmation'
       this.showResultModal = true
       this.needBtnConfirm = false
       this.resultStatus = 'waiting'
