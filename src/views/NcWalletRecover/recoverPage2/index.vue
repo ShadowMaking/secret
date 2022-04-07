@@ -67,7 +67,7 @@
         </div>
       </div>
       <div class="confirm-btn-box" style="margin-top: 20px">
-          <div class="confirm-btn-item" v-show="confirmBtn3Visible && userIsNewOwner">
+          <div class="confirm-btn-item" v-show="confirmBtn3Visible && userIsNewOwner && !recoverWalletTxid">
             <span class="confirm-btn-label">Cancel the recovery</span>
             <el-button type="danger" plain @click="cancelExcuteRecover" :loading="isHasCancelClick">Cancel</el-button>
           </div>
@@ -574,6 +574,7 @@ export default {
       this.showResultModal = false
     },
     getIsHasConfirming() {
+      console.log(this.recoverWalletTxid)
       if (this.recoverWalletTxid) {
         this.confirmBtn2Disabled = false
         this.confirmBtn3Visible = false
