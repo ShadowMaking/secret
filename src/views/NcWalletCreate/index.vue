@@ -150,6 +150,7 @@ export default {
 
       currentClickType: 'setName',//setName createSubmit
       createWalletAddress: '',
+      lasetTimes: 30,
       
     
       // ***************** inputPsw start ***************** //
@@ -240,9 +241,13 @@ export default {
           let currentNetInfo = getConnectedNet()
           let blockExplorerUrls = currentNetInfo.blockExplorerUrls[0]
           this.detailUrl = `${blockExplorerUrls}/tx/${tx.hash}`
+          addTransHistory(tx, 'Create Wallet', this)
           tx.wait().then(async res => {
             console.log(res)
             this.showResultModal = false
+            this.storeProxyInfo(tx.hash)
+            window.clearInterval(this.thisTimer)
+            this.lasetTimes = 30
             this.createPage1Visible = false
             this.createPage2Visible = true
           })
@@ -256,11 +261,38 @@ export default {
       })
     },
     showSetp1Waitting() {
-      this.resuletContent = '<span class="blueColor">30s</span> will finish Transaction Waiting for payment confirmation'
+      this.resuletContent = `Waiting <span class="blueColor">${this.lasetTimes}s</span> for transaction confirming`
       this.showResultModal = true
       this.needBtnConfirm = false
       this.resultStatus = 'waiting'
       this.showCloseIcon = false
+      this.timer()
+    },
+    async storeProxyInfo(hash) {
+      let proxyData = {
+        user_address: getConnectedAddress(),
+        wallet_address: this.createWalletAddress,
+        txid: hash,
+        name: this.createWalletName,
+      }
+      const { hasError } = await this.$store.dispatch('storeProxyInfo', {...proxyData});
+      if (hasError) {
+        console.log('store proxy error')
+      } else {
+        console.log('store proxy success')
+      }
+    },
+    async getProxyInfo() {
+      let proxyData = {
+        user_address: getConnectedAddress(),
+      }
+      const { hasError, data } = await this.$store.dispatch('getProxyInfo', {...proxyData});
+      if (!hasError && data) {
+        this.createWalletName = data.name
+        this.createWalletAddress = data.wallet_address
+        this.createPage1Visible = false
+        this.createPage2Visible = true
+      }
     },
     // ***************** set wallet name end ***************** //
 
@@ -316,6 +348,8 @@ export default {
           this.showResultModal = false
           this.createWallet(this.createWalletAddress, tx.hash)
           addTransHistory(tx, 'Create Wallet', this)
+          window.clearInterval(this.thisTimer)
+          this.lasetTimes = 30
           tx.wait().then(async res => {
             console.log('Create:', res)
           })
@@ -511,12 +545,24 @@ export default {
       this.createSignerSubmit = []
       this.createSignerList = []
     },
+    timer() {
+      this.thisTimer = window.setInterval(() => {
+        if (this.lasetTimes > 0) {
+          this.lasetTimes -= 1
+          this.resuletContent = `Waiting <span class="blueColor">${this.lasetTimes}s</span> for transaction confirming`
+        } else {
+          this.lasetTimes = 30
+        }
+        console.log(this.lasetTimes)
+      }, 1000)
+    },
   },
   async created() {
     if (!isLogin()) {
       Toast('Need Login')
       return
     }
+    this.getProxyInfo()
     this.defaultNetWork = this.getDefaultNetWork()
     const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
     console.log(netInfo)
@@ -530,6 +576,10 @@ export default {
   async mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
+    this.$once('hook:beforeDestroy', function () {
+      window.clearInterval(this.thisTimer)
+      this.thisTimer = null;
+    })
   },
 };
 </script>
