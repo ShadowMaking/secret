@@ -189,6 +189,7 @@ export default {
       }
     },
     async getConfirmModalData() {
+      this.showLoading = true
       if (!getSupportNet()) {
         return
       }
@@ -213,6 +214,7 @@ export default {
         DATA: '0x',
         estimatedGasFee: estimatedGasFee
       }
+      this.showLoading = false
       this.showTradeConfirm = true
     },
     formatterTime(row) {
@@ -333,6 +335,10 @@ export default {
       if (walletTime < canTime) {
         this.showLoading = false
         Toast('Invalid wallet')
+        return
+      }
+      if (address.toLocaleLowerCase() == getConnectedAddress()) {
+        Toast('This owner can not to be this signer')
         return
       }
       

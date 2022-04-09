@@ -151,6 +151,20 @@ export default {
       }
       return list
     },
+    reloadData() {
+      this.ownWalletList = []
+      this.ownShowLoading = true
+      this.signWalletList = []
+      this.signShowLoading = true
+      this.getWalletAsOwner()
+      this.getWalletAsSigner()
+    },
+    handleAccountChange(addressInfo) {
+      this.reloadData()
+    },
+    _handleNetworkChange({ chainInfo, from }) {
+      this.reloadData()
+    },
   },
   created() {
     if (!isLogin()) {
@@ -159,7 +173,10 @@ export default {
     }
     this.getWalletAsOwner()
     this.getWalletAsSigner()
-
+  },
+  mounted() {
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
   },
 };
 </script>
