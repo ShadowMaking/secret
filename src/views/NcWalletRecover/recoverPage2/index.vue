@@ -62,7 +62,7 @@
         <div class="confirm-btn-box" style="margin-top: 20px">
           <div class="confirm-btn-item">
             <span class="confirm-btn-label">Set my account as the new owner</span>
-            <el-button :type="confirmBtn2Disabled ? 'primary' : 'info'" :disabled="!confirmBtn2Disabled" @click="ownerExcuteRecover" :loading="isHasExcuteClick">Confirm</el-button>
+            <el-button :type="(confirmBtn2Disabled && !recoverWalletTxid) ? 'primary' : 'info'" :disabled="!(confirmBtn2Disabled && !recoverWalletTxid)" @click="ownerExcuteRecover" :loading="isHasExcuteClick">Confirm</el-button>
           </div>
         </div>
       </div>

@@ -8,8 +8,18 @@
         <span class="tip">Add an existing account by secret recovery phrase or private key.</span>
         <!-- backup-setting -->
         <div class="backup-setting-wrapper" style="border: none">
-          <van-cell-group>
-            <van-field v-model="importType" label="Type" readonly class="createType-select" :disabled="importTypeDisabled" @click="showSelectType('import')"/>
+          <div class="backup-setting-content">
+            <label>Type</label>
+            <el-select v-model="importType" class="backup-setting-select" @change="onConfirmSelectType">
+              <el-option-group>
+                <el-option value="mnemonic" label="mnemonic"></el-option>
+                <el-option value="privateKey" label="privateKey"></el-option>
+              </el-option-group>
+            </el-select>
+          </div>
+          
+          <!-- <van-cell-group> -->
+            <!-- <van-field v-model="importType" label="Type" readonly class="createType-select" :disabled="importTypeDisabled" @click="showSelectType('import')"/> -->
             <!-- <van-field v-model="backupNameForImport" :formatter="formatterTrim" label="Name" placeholder="name(Only alphanumeric)" :disabled="importTypeDisabled" :error-message="nameErrorMsg" />
             <van-field
               v-model="backupCommentForImport"
@@ -21,7 +31,7 @@
               maxlength="150"
               show-word-limit
               placeholder="enter description" /> -->
-          </van-cell-group>
+          <!-- </van-cell-group> -->
         </div>
         <!-- import mnemonic -->
         <div class="type-create" v-if="importType==='mnemonic'">
@@ -33,14 +43,14 @@
         </div>
       </div>
     </div>
-    <van-popup v-model="showCreateTypePopup" round position="bottom">
+    <!-- <van-popup v-model="showCreateTypePopup" round position="bottom">
       <van-picker
         show-toolbar
         :value="selectType"
         :columns="typeList"
         @cancel="showCreateTypePopup = false"
         @confirm="onConfirmSelectType" />
-    </van-popup>
+    </van-popup> -->
     <v-thirdlogintip
       key="thirdlogintip"
       :show="showThirdLoginTip"
@@ -165,11 +175,16 @@ export default {
       if (disabled) { return }
       this.showCreateTypePopup =  true
     },
-    onConfirmSelectType(val) {
-      console.log(val, this.activeCreateWalletType)
-      this.activeCreateWalletType === 'create' && (this.createType = val['key']);
-      this.activeCreateWalletType === 'import' && (this.importType = val['key']);
-      this.showCreateTypePopup = false;
+    // onConfirmSelectType(val) {
+    //   console.log(val, this.activeCreateWalletType)
+    //   this.activeCreateWalletType === 'create' && (this.createType = val['key']);
+    //   this.activeCreateWalletType === 'import' && (this.importType = val['key']);
+    //   this.showCreateTypePopup = false;
+    // },
+    onConfirmSelectType(val){
+      console.log(val)
+      this.activeCreateWalletType === 'create' && (this.createType = val);
+      this.activeCreateWalletType === 'import' && (this.importType = val);
     },
     handleNotLogin() {
       this.showThirdLoginTip = true
@@ -207,7 +222,7 @@ export default {
       } */
       const encryptPrivateKeyPublicKey = generateEncryptPrivateKeyByPublicKey(this.publicKey, privateKey)
       this.encryptPrivateKeyPublicKey = encryptPrivateKeyPublicKey;
-      console.log('encryptPrivateKeyPublicKey', encryptPrivateKeyPublicKey)
+      // console.log('encryptPrivateKeyPublicKey', encryptPrivateKeyPublicKey)
       let userpswHex = web3.utils.toHex(this.userPsw)
       const { hasError: encryptError, data: encryptPrivateKey, error: errorMsg } = await this.$store.dispatch('EncryptPrivateKeyByEcies', { userId, c1: this.encryptPrivateKeyPublicKey, cc1: this.encryptPsw, hash: ethers.utils.sha256(userpswHex) }) 
       if (encryptError) {

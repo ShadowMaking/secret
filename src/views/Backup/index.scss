@@ -38,6 +38,16 @@
       border-radius: 5px;
       padding: 3px;
       ::v-deep .van-hairline--top-bottom::after {border-width: 0;}
+
+      .backup-setting-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-left: 15px;
+      }
+      .backup-setting-select {
+        width: 85%;
+      }
     }
     .inner-type-wrapper{
       padding: 15px;
