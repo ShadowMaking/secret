@@ -1,53 +1,73 @@
 <template>
-  <div class="ncWalletCreate-page content-box">
-    <v-navTitle title="Create Multisig Wallet"></v-navTitle>
-    <div class="create-wallet-container content-page">
-      <p class="create-title">Multisig Wallet</p>
-      <p class="create-des">Create one right now!   Add at least one signer,  who can help you to recover your wallet, co-send large amount money, and lock the wallet when you need.</p>
-      <p class="create-des" style="margin-top: 15px; color: #2C3E50">Quickly create a Multisig Wallet:</p>
-      <div class="create-wallet-form">
-        <el-form label-position="left">
-          <el-form-item label="Set Wallet Name" label-width="135px">
+  <div class="ncWalletCreate-page">
+    <v-navTitle title="Create Eigen Multi-Signature Wallet"></v-navTitle>
+    <div class="page-content-box">
+      <div class="create-top-des">
+        <div class="create-top-des-show blueColor">
+          <span class="create-top-des-title">About Eigen Multi-Signature Wallet?</span>
+          <i :class="isComponse ? 'el-icon-arrow-up' : 'el-icon-arrow-down'" @click="stepComponseClick"></i>
+        </div>
+        <div class="page-section-border create-des-text" v-show="isComponse">You need to add at least one signer to create a multi-signature wallet, which can be recovered and locked to keep your assets safe. Any transaction requires 50%+ signer signatures</div>
+      </div>
+    </div>
+    <div class="create-page-1" v-show="createPage1Visible">
+      
+      <div class="create-1-container">
+        <p class="create-1-title">Set Wallet Name</p>
+        <div class="create-1-box">
+          <div class="wallet-list">
             <el-input v-model="createWalletName"></el-input>
-          </el-form-item>
-          <el-form-item label="Set Signer">
-            <el-table :data="createSignerList" border style="width: 100%" v-if="createSignerList.length">
-                <el-table-column fixed prop="addTime" label="Add Time"></el-table-column>
-                <el-table-column fixed prop="signAddress" label="Signer Address/ENS"></el-table-column>
-            </el-table>
-          </el-form-item>
-        </el-form>
-        <v-searchSignerModal
+          </div>
+          <div class="create-1-next">
+            <el-button type="primary" @click="setWalletNameClick" :loading="setNameLoading">Next</el-button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="create-page-2" v-show="createPage2Visible">
+      <div class="create-2-container">
+        <p class="create-2-title">Add your Signer</p>
+        <div class="create-2-signer-list">
+          <div class="create-2-signer-item" v-for="(item,index) in createSignerList" :key="index">
+            <div class="create-signer-left"><img :src="item.picture"></div>
+            <div class="create-signer-right">
+              <div class="create-sigern-name">{{item.name}}</div>
+              <div class="create-signer-address">{{item.address}}</div>
+            </div>
+          </div>
+        </div>
+        <div class="create-2-add-signer">
+          <v-searchSignerModal
           :dataSource="searchSignerList"
           @confirm="confirmSearchSigner"
           @addConfirm="confirmAddSigner" />
-        <div class="add-signer-tip">Any transaction requires the confirmation of: {{signerPercent}} out of {{signerTotal}} signer(s)</div>
-        <div class="create-btn-box">
-          <el-button type="primary" class="common-form-btn" :loading="isHasClick" @click="createSubmit">Create</el-button>
         </div>
-        <v-statusPop
-          :status="popStatus"
-          :title="statusPopTitle"
-          :timeTxt="timeTxt"
-          tip=""
-          :show="showStatusPop"
-          @childEvent="changeVisible" />
-        <!-- <van-popup v-model="showLoading" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-          <div class="inner-wrapper">
-            <van-loading type="spinner" />
-          </div>
-        </van-popup> -->
-        <v-loadingPopup :show="showLoading" :showSpinner="false" />
+        <div class="create-2-btn">
+          <el-button type="primary" @click="createWalletClick" :loading="createSubmitLoading">Create</el-button>
+        </div>
       </div>
     </div>
+    <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
+    <v-resultModal 
+      :show="showResultModal" 
+      :content="resuletContent" 
+      :needColse="needBtnColse" 
+      :needConfirm="needBtnConfirm"
+      :resultStatus="resultStatus"
+      :detailUrl="detailUrl"
+      :showCloseIcon="showCloseIcon"
+      :confirmText="confirmText"
+      @confirm="confirmResultModal" 
+      @close="cancelResultModal">
+    </v-resultModal>
     <v-confirmModal
       :show="showTradeConfirm"
       type="Create Wallet"
       :metadata="sendMetadata"
       @close="showTradeConfirm=false"
-      @reject="cancelCreate"
-      @confirm="confirmCreate" />
-    <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
+      @reject="cancelTradeModal"
+      @confirm="confirmTradeModal" />
+      <v-loadingPopup :show="showLoading" :showSpinner="false" />
   </div>
 </template>
 
@@ -55,12 +75,14 @@
 import Vue from 'vue'
 import { Toast, Dialog, Popup, Loading } from 'vant'
 import { ethers } from 'ethers'
+
 import navTitle from '@/components/NavTitle/index'
 import searchSignerModal from '@/components/SearchSignerModal/index'
-import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
+import resultModal from '@/components/ResultModal'
+
 import { getContractAt, getConnectedAddress, getEns, isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getBalanceByAddress, getSupportNet, getConnectedNet, initRPCProvider, getEstimateGas} from '@/utils/dashBoardTools';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
@@ -77,13 +99,26 @@ import { formatErrorContarct } from '@/utils/index'
 
 Vue.use(Toast);
 Vue.use(Dialog);
-Vue.use(Loading);
-Vue.use(Popup);
 
 export default {
-  name: 'NC-Wallet',
+  name: 'NC-Wallet-Recover',
   data() {
     return {
+      createPage1Visible: true,
+      createPage2Visible: false,
+      setNameLoading: false,
+      createSubmitLoading: false,
+      isComponse: true,
+
+      showResultModal: false,
+      resuletContent: '',
+      needBtnColse: false,
+      needBtnConfirm: false,
+      resultStatus: 'noresult',
+      detailUrl: '',
+      showCloseIcon: true,
+      confirmText: 'Confirm',
+      
       createWalletName: '',
       createSignerList: [],
       createSignerSubmit: [],
@@ -113,9 +148,11 @@ export default {
       sendMetadata: null,
       defaultNetWork: '',
 
-      isHasClick: false,
-
-
+      currentClickType: 'setName',//setName createSubmit
+      createWalletAddress: '',
+      lasetTimes: 30,
+      
+    
       // ***************** inputPsw start ***************** //
       userPsw: '',
       publicKey: '',
@@ -131,10 +168,10 @@ export default {
   components: {
     "v-navTitle": navTitle,
     "v-searchSignerModal": searchSignerModal,
-    'v-statusPop': StatusPop,
     'v-confirmModal': ConfirmModal,
     'v-loadingPopup': LoadingPopup,
     'v-inputPsw': InputPswModal,
+    'v-resultModal': resultModal,
   },
   methods: {
     async confirmSearchSigner(value) {
@@ -147,64 +184,290 @@ export default {
     },
     async confirmAddSigner(value) {
       if (!value) {
-        Toast('Please Choose Signer')
+        Toast('Please choose signer')
         return
       }
+      const signAddress = value.address
       let currentOwner = getConnectedAddress()
-      if (value.toLocaleLowerCase() == currentOwner) {
-        Toast('This Owner Can Not To Be This Signer')
+
+      if (signAddress.toLocaleLowerCase() == currentOwner) {
+        Toast('This owner can not to be this signer')
         return
       }
       let isSignerExist = this.createSignerList.findIndex(function(item) {
-        return item.signAddress == value
+        return item.address == value
       })
       if (isSignerExist > -1) {
-        Toast('This Signer Already Exists')
+        Toast('This signer already exists')
         return
       }
-      var nowDate = new Date()
-      var nowTime = timeFormat(nowDate, 'yyyy-MM-dd hh:mm:ss')
+      // var nowDate = new Date()
+      // var nowTime = timeFormat(nowDate, 'yyyy-MM-dd hh:mm:ss')
       // const signAddress = await getEns(value)
-      const signAddress = value
+      
       console.log(this.createSignerList)
       this.createSignerList.push({
-        signAddress: signAddress,
-        addTime: nowTime,
+        address: signAddress,
+        name: value.name,
+        picture: value.picture,
       })
       this.createSignerSubmit.push(signAddress.toLocaleLowerCase())
-      this.signerTotal = this.createSignerList.length
-      this.signerPercent = Math.ceil(this.signerTotal/2)
+      // this.signerTotal = this.createSignerList.length
+      // this.signerPercent = Math.ceil(this.signerTotal/2)
     },
-    cancelCreate() {
-      this.showTradeConfirm = false
-      Toast('Cancel create')
+    stepComponseClick() {
+      this.isComponse = !this.isComponse
     },
-    confirmCreate({ overrides }) {
+
+    // ***************** set wallet name start ***************** //
+    setWalletNameClick() {
+      this.setNameLoading = true
+      this.currentClickType = 'setName'
+      this.getIsShowPwd()
+    },
+    async confirmSetp1Ok() {
+      this.showSetp1Waitting() 
+
+      const proxyContract = await getContractAt({ tokenAddress: this.proxyRouter, abi: ProxyJson.abi }, this)
+      console.log(proxyContract)
+       // const saletnew = ethers.utils.formatBytes32String(randomBytesToString);
+      const saletnew = ethers.utils.formatBytes32String(ethers.utils.sha256(ethers.utils.randomBytes(32)).substr(2,31))
+      console.log(saletnew)
+       
+      this.createWalletAddress = await proxyContract.getAddress(saletnew);
+      
+      proxyContract.create(saletnew,this.overrides).then(async tx=> {
+          console.log(tx)
+          let currentNetInfo = getConnectedNet()
+          let blockExplorerUrls = currentNetInfo.blockExplorerUrls[0]
+          this.detailUrl = `${blockExplorerUrls}/tx/${tx.hash}`
+          addTransHistory(tx, 'Create Wallet', this)
+          tx.wait().then(async res => {
+            console.log(res)
+            this.showResultModal = false
+            this.storeProxyInfo(tx.hash)
+            window.clearInterval(this.thisTimer)
+            this.lasetTimes = 30
+            this.createPage1Visible = false
+            this.createPage2Visible = true
+          })
+      }).catch(error => {
+        console.log(error)
+        this.showResultModal = false
+        let errorValue = formatErrorContarct(error)
+        this.showSetpFail(errorValue)
+        // Toast.fail(errorValue)
+        return
+      })
+    },
+    showSetp1Waitting() {
+      this.resuletContent = `Waiting <span class="blueColor">${this.lasetTimes}s</span> for transaction confirming`
+      this.showResultModal = true
+      this.needBtnConfirm = false
+      this.resultStatus = 'waiting'
+      this.showCloseIcon = false
+      this.timer()
+    },
+    async storeProxyInfo(hash) {
+      let proxyData = {
+        user_address: getConnectedAddress(),
+        wallet_address: this.createWalletAddress,
+        txid: hash,
+        name: this.createWalletName,
+      }
+      const { hasError } = await this.$store.dispatch('storeProxyInfo', {...proxyData});
+      if (hasError) {
+        console.log('store proxy error')
+      } else {
+        console.log('store proxy success')
+      }
+    },
+    async getProxyInfo() {
+      let proxyData = {
+        user_address: getConnectedAddress(),
+      }
+      const { hasError, data } = await this.$store.dispatch('getProxyInfo', {...proxyData});
+      if (!hasError && data) {
+        this.createWalletName = data.name
+        this.createWalletAddress = data.wallet_address
+        this.createPage1Visible = false
+        this.createPage2Visible = true
+      }
+    },
+    // ***************** set wallet name end ***************** //
+
+    // ***************** confirm result model start ***************** //
+    confirmResultModal() {
+      if (this.resultStatus == 'success') {
+        this.showResultModal = false
+        this.$router.push({ name: 'ncWalletList' })
+      } else {//retry
+        this.showResultModal = false
+        this.createSignerSubmit = []
+        this.createSignerList = []
+        this.createPage1Visible = true
+        this.createPage2Visible = false
+      }
+      
+    },
+    cancelResultModal() {
+      this.showResultModal = false
+      this.$router.push({ name: 'ncWalletList' })
+    },
+    // ***************** confirm result model end ***************** //
+
+    // ***************** create start ***************** //
+    showSetp2Waitting() {
+      this.detailUrl = ''
+      this.showSetp1Waitting()
+    },
+    createWalletClick() {
+      this.createSubmitLoading = true
+      this.currentClickType = 'createSubmit'
+      this.getIsShowPwd()
+    },
+    async confirmSetp2Ok() {
+      this.showSetp2Waitting()
+      const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      const walletContract = await getContractAt({ tokenAddress: this.createWalletAddress, abi: WalletJson.abi }, this)
+      const transactionContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: WalletTransaction.abi }, this)
+    
+      let modules = [ transactionContract.address, securityModuleContract.address ]
+      let encoder = ethers.utils.defaultAbiCoder
+      let du = ethers.utils.parseEther("15")//one day
+      let lap = ethers.utils.parseEther("10")//one 
+      let data = [encoder.encode(["uint", "uint"], [du, lap]), encoder.encode(["address[]"], [this.createSignerSubmit])]
+      
+      
+      walletContract.initialize(
+        modules, 
+        data, 
+        this.overrides
+      ).then(async tx=> {
+          console.log(tx)
+          this.showResultModal = false
+          this.createWallet(this.createWalletAddress, tx.hash)
+          addTransHistory(tx, 'Initialize Wallet', this)
+          window.clearInterval(this.thisTimer)
+          this.lasetTimes = 30
+          tx.wait().then(async res => {
+            console.log('Create:', res)
+          })
+      }).catch(error => {
+        console.log(error)
+        this.showResultModal = false
+        let errorValue = formatErrorContarct(error)
+        this.showSetp2Fail(errorValue)
+      })
+    },
+    async createWallet(walletAddress, txhash) {
+      const selectedConnectAddress = getConnectedAddress()
+      console.log(txhash)
+      let data = {
+        name: this.createWalletName,
+        address: selectedConnectAddress,
+        wallet_address: walletAddress.toLocaleLowerCase(),
+        signers: this.createSignerSubmit,
+        txid: txhash,
+        network_id: getConnectedNet().id,
+      }
+      console.log(data)
+      const { hasError } = await this.$store.dispatch('addWallet', {...data});
+      this.showLoading = false;
+      if (hasError) {
+        this.showSetpFail('Create Failed')
+        // Toast.fail('Create Failed')
+      } else {
+        this.showSetp2Success()
+      }
+    },
+    showSetp2Success() {
+      this.resuletContent = 'Submitted Successfully!'
+      this.showResultModal = true
+      this.needBtnConfirm = true
+      this.confirmText = 'Confirm'
+      this.resultStatus = 'success'
+      this.showCloseIcon = true
+    },
+    showSetpFail(reason) {
+      this.resuletContent = reason
+      this.showResultModal = true
+      this.needBtnConfirm = true
+      this.confirmText = 'Retry'
+      this.resultStatus = 'noresult'
+      this.showCloseIcon = false
+    },
+    // ***************** create end ***************** //
+    confirmTradeModal({ overrides }) {
       this.overrides.gasLimit = overrides.gasLimit
       this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
-      this.createNcWallet()
+      if (this.currentClickType == 'setName') {
+        this.confirmSetp1Ok()
+      } else {
+        this.confirmSetp2Ok()
+      }
     },
-    async dealDataBeforeCreate() {
+    cancelTradeModal() {
+      this.showTradeConfirm = false
+      Toast('Cancel')
+    },
+    checkData() {
+      if (this.currentClickType == 'setName') {
+        if (!this.createWalletName) {
+          Toast.fail('Need Input Name')
+          return false
+        }
+      } else {
+        if (this.createSignerSubmit.length == 0) {
+          Toast.fail('Set Signer')
+          return false
+        }
+        let currentUser = getConnectedAddress()
+        if (this.createSignerSubmit.indexOf(currentUser) > -1) {
+          Toast.fail('This owner can not to be this signer')
+          this.createSignerSubmit = []
+          this.createSignerList = []
+          return false
+        }
+      }
+      return true
+    },
+    checkFalse() {
+      this.setNameLoading = false
+      this.createSubmitLoading = false
+      this.showLoading = false
+      return false
+    },
+    async showTradeConfirmModel() {
+      this.showLoading = true
       if (!getSupportNet()) {
-        this.isHasClick = false
+        this.checkFalse()
         return
+      }
+      if (!this.checkData()) { 
+        this.checkFalse()
+        return 
       }
       const selectedConnectAddress = getConnectedAddress()
       const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      if (connectBalance < 0) {
+        Toast('Insufficient Funds')
+        this.checkFalse()
+        return
+      }
       let estimatedGasFee = await getEstimateGas('gasUsed', 20000000000) * 10
       console.log(connectBalance)
       if (connectBalance < estimatedGasFee) {
         Toast('Insufficient Funds')
-        this.isHasClick = false
+        this.checkFalse()
         return
       }
       let thisGasPrice = this.overrides.gasPrice.toString()
       let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
 
-      let geeweiTtoal = estimatedGasFee * 1000000000
-      let gree = geeweiTtoal/gasPrice
-      let grNum = geeweiTtoal/gasPrice
-      console.log(grNum)
+      // let geeweiTtoal = estimatedGasFee * 1000000000
+      // let grNum = geeweiTtoal/gasPrice
+      // console.log(grNum)
 
       this.sendMetadata = {
         from: getConnectedAddress(),
@@ -217,146 +480,19 @@ export default {
         DATA: '0x',
         estimatedGasFee: estimatedGasFee
       }
+      this.showLoading = false
       this.showTradeConfirm = true
-      this.isHasClick = false
+      this.setNameLoading = false
+      this.createSubmitLoading = false
     },
-    async createSubmit() {
-      this.isHasClick = true
-      const selectedConnectAddress = getConnectedAddress()
-      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
-      if (connectBalance < 0) {
-        Toast('Insufficient Funds')
-        this.isHasClick = false
-        return
-      }
-      if (!this.checkData()) { 
-        this.isHasClick = false
-        return 
-      }
+    async getIsShowPwd() {
       // check privateKey whether is existed
       const privateKey = await getDecryptPrivateKeyFromStore(this)
       if (!privateKey) {
         this.showInputPswModal = true;
         return
       }
-      await this.dealDataBeforeCreate()
-    },
-    async createNcWallet() {
-      // if (!this.checkData()) { return }
-      this.showLoading = true; 
-
-      const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      const proxyContract = await getContractAt({ tokenAddress: this.proxyRouter, abi: ProxyJson.abi }, this)
-      const transactionContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: WalletTransaction.abi }, this)
-      console.log(proxyContract)
-      console.log(proxyRouter)
-      // const saletnew = ethers.utils.formatBytes32String(randomBytesToString);
-      const saletnew = ethers.utils.formatBytes32String(ethers.utils.sha256(ethers.utils.randomBytes(32)).substr(2,31))
-      console.log(saletnew)
-       // utils.formatBytes32String(utils.sha256(utils.randomBytes(32)).substr(2,31))
-      
-      let createSignList = this.createSignerSubmit
-      // let providertest = new ethers.providers.JsonRpcProvider('https://ropsten.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161')
-      
-      // let user1 = ethers.Wallet.createRandom().connect(providertest)
-      // let user2 = ethers.Wallet.createRandom().connect(providertest)
-      let walletAddress = await proxyContract.getAddress(saletnew);
-      
-      proxyContract.create(saletnew,this.overrides).then(async tx=> {
-          console.log(tx)
-          tx.wait().then(async res => {
-            console.log(res)
-            const walletContract = await getContractAt({ tokenAddress: walletAddress, abi: WalletJson.abi }, this)
-    
-            let modules = [ transactionContract.address, securityModuleContract.address ]
-            let encoder = ethers.utils.defaultAbiCoder
-            let du = ethers.utils.parseEther("15")//one day
-            let lap = ethers.utils.parseEther("10")//one 
-            let data = [encoder.encode(["uint", "uint"], [du, lap]), encoder.encode(["address[]"], [createSignList])]
-            
-            
-            walletContract.initialize(
-              modules, 
-              data, 
-              this.overrides
-            ).then(async tx=> {
-                console.log(tx)
-                this.createWallet(walletAddress, tx.hash)
-                addTransHistory(tx, 'Create Wallet', this)
-                tx.wait().then(async res => {
-                  console.log('Create:', res)
-                })
-            }).catch(error => {
-              console.log(error)
-              this.showLoading = false
-              let errorValue = formatErrorContarct(error)
-              Toast.fail(errorValue)
-            })
-          })
-      }).catch(error => {
-        console.log(error)
-        this.showLoading = false
-        let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
-        return
-      })
-      
-    },
-    async createWallet(walletAddress, txhash) {
-      const selectedConnectAddress = getConnectedAddress()
-      console.log(txhash)
-      let data = {
-        name: this.createWalletName,
-        address: selectedConnectAddress,
-        wallet_address: walletAddress.toLocaleLowerCase(),//0xe744919008dd978dfAF9771E5623fDfbEd4C29D3
-        signers: this.createSignerSubmit,
-        txid: txhash,
-        network_id: getConnectedNet().id,
-      }
-      // let data = {
-      //   name: 'wallet271',
-      //   address: '0x72756a6a48777019D9c414bb1f84550E8458cEf9',
-      //   signers: ['0xbb2eD316211dBB0E5A68E417E0420A0dfCaD6259'],
-      //   userId: '1040',
-      // }
-      console.log(data)
-      const { hasError } = await this.$store.dispatch('addWallet', {...data});
-      this.showLoading = false;
-      if (hasError) {
-        Toast.fail('Create Failed')
-      } else {
-        this.showStatusPop = true
-      }
-    },
-    checkData() {
-      if (!this.createWalletName) {
-        Toast.fail('Need Input Name')
-        return false
-      }
-      if (!this.userId) {
-        Toast.fail('Need Login')
-        return false
-      }
-      if (this.createSignerSubmit.length == 0) {
-        Toast.fail('Set Signer')
-        return false
-      }
-      let currentUser = getConnectedAddress()
-      if (this.createSignerSubmit.indexOf(currentUser) > -1) {
-        Toast.fail('This Owner Can Not To Be This Signer')
-        this.createSignerSubmit = []
-       this.createSignerList = []
-        return false
-      }
-      return true
-    },
-    changeVisible() {
-      this.showStatusPop = false;
-      this.$router.push({ name: 'ncWalletList' })
-    },
-    getDefaultNetWork() {
-      const info = getInfoFromStorageByKey('netInfo')
-      return info && info['id'] || 1
+      this.showTradeConfirmModel()
     },
     async confirmPswOk({ show, psw }) {
       this.userPsw = psw; // password of user input for encrypt privateKey
@@ -395,7 +531,11 @@ export default {
 
       this.confirmPswBtnLoading = false
       this.showInputPswModal = false
-      await this.dealDataBeforeCreate()
+      this.showTradeConfirmModel()
+    },
+    getDefaultNetWork() {
+      const info = getInfoFromStorageByKey('netInfo')
+      return info && info['id'] || 1
     },
     _handleNetworkChange({ chainInfo, from }) {
       if (from === 'sendMenu') { return }
@@ -405,13 +545,24 @@ export default {
       this.createSignerSubmit = []
       this.createSignerList = []
     },
+    timer() {
+      this.thisTimer = window.setInterval(() => {
+        if (this.lasetTimes > 0) {
+          this.lasetTimes -= 1
+          this.resuletContent = `Waiting <span class="blueColor">${this.lasetTimes}s</span> for transaction confirming`
+        } else {
+          this.lasetTimes = 30
+        }
+      }, 1000)
+    },
   },
   async created() {
-    this.defaultNetWork = this.getDefaultNetWork()
     if (!isLogin()) {
       Toast('Need Login')
       return
     }
+    this.getProxyInfo()
+    this.defaultNetWork = this.getDefaultNetWork()
     const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
     console.log(netInfo)
     if (netInfo) {
@@ -420,24 +571,17 @@ export default {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
     this.overrides.gasPrice = await getEstimateGas('gasPrice', 20000000000)
-    console.log(WalletJson.abi)
-    // const randomBytes = ethers.utils.randomBytes(10)
-    //   console.log(randomBytes)
-    //   const randomBytesToString = ethers.utils.toUtf8String(randomBytes)
-    //   console.log(randomBytesToString)
-    //   const saletnew = ethers.utils.formatBytes32String(randomBytesToString);
-    //   console.log(saletnew)
   },
   async mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
+    this.$once('hook:beforeDestroy', function () {
+      window.clearInterval(this.thisTimer)
+      this.thisTimer = null;
+    })
   },
 };
 </script>
 <style lang="scss" scoped>
   @import "index";
-  ::v-deep .el-form-item__label {
-    font-weight: bold;
-    font-size: 0.96rem;
-  }
 </style>

@@ -67,7 +67,7 @@
         </div>
       </div>
       <div class="confirm-btn-box" style="margin-top: 20px">
-          <div class="confirm-btn-item" v-show="confirmBtn3Visible && userIsNewOwner">
+          <div class="confirm-btn-item" v-show="confirmBtn3Visible && userIsNewOwner && !recoverWalletTxid">
             <span class="confirm-btn-label">Cancel the recovery</span>
             <el-button type="danger" plain @click="cancelExcuteRecover" :loading="isHasCancelClick">Cancel</el-button>
           </div>
@@ -110,7 +110,7 @@ Vue.use(Toast);
 
 export default {
   name: 'recover-confirm',
-  props: ['currentWalletId', 'currentWalletAddress', 'newOwnerAddress', 'oldOwnerAddress', 'walletName'],
+  props: ['currentWalletId', 'currentWalletAddress', 'newOwnerAddress', 'oldOwnerAddress', 'walletName', 'recoverWalletTxid'],
   data() {
     return {
       // currentWalletId: 195,
@@ -189,6 +189,11 @@ export default {
       handler(newValue, oldValue) {
         console.log('newValue:' + newValue)
         this.getIsNewOwner()
+      }
+    },
+    recoverWalletTxid: {
+      handler(newValue, oldValue) {
+        this.getIsHasConfirming()
       }
     },
   },
@@ -568,6 +573,13 @@ export default {
     cancelResultModal() {
       this.showResultModal = false
     },
+    getIsHasConfirming() {
+      console.log(this.recoverWalletTxid)
+      if (this.recoverWalletTxid) {
+        this.confirmBtn2Disabled = false
+        this.confirmBtn3Visible = false
+      }
+    },
   },
   async created() {
     if (!isLogin()) {
@@ -584,6 +596,7 @@ export default {
     this.overrides.gasPrice = await getEstimateGas('gasPrice', 5000000000)
     this.currentWalletId && this.getSignerListByid()
     this.currentWalletAddress && this.getIsShowInputPsw()
+    this.getIsHasConfirming()
     this.getIsNewOwner()
   },
   async mounted() {

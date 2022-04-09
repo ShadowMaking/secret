@@ -326,3 +326,29 @@ import request from '@/utils/request';
     data: data,
   })
 }
+
+/**
+ * @description: create wallet store ProxyInfo 
+ * @param {"user_address":, "wallet_address": "0x221", tx_id, name:''}
+ * @return 
+ */
+ export const storeProxyInfo = (data) => {
+  return request({
+    url: `/api/user/wallet_address`,
+    method: 'post',
+    data: data,
+  })
+}
+
+/**
+ * @description: create wallet get ProxyInfo 
+ * @param {"id":2, "txid": "0x221"}
+ * @return 
+ */
+ export const getProxyInfo = (data) => {
+  return request({
+    url: `/api/user/wallet_address`,
+    method: 'get',
+    params: data,
+  })
+}

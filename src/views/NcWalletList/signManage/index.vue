@@ -189,6 +189,7 @@ export default {
       }
     },
     async getConfirmModalData() {
+      this.showLoading = true
       if (!getSupportNet()) {
         return
       }
@@ -213,6 +214,7 @@ export default {
         DATA: '0x',
         estimatedGasFee: estimatedGasFee
       }
+      this.showLoading = false
       this.showTradeConfirm = true
     },
     formatterTime(row) {
@@ -335,6 +337,10 @@ export default {
         Toast('Invalid wallet')
         return
       }
+      if (address.toLocaleLowerCase() == getConnectedAddress()) {
+        Toast('This owner can not to be this signer')
+        return
+      }
       
       let lockStatus = await this.securityModuleContract.isLocked(this.walletAddress)
       if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner'] ) {
@@ -362,7 +368,8 @@ export default {
         console.log(error)
       })
     },
-    async confirmAddSigner(address) {
+    async confirmAddSigner(signerInfo) {
+      let address = signerInfo.address
       this.currentOptType = 'addSigner'
       this.currentRecord = _.cloneDeep(address)
       if (!address) {

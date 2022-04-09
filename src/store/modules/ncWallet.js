@@ -18,6 +18,8 @@ import {
   addSignerMultMessages,
   updateTransTx,
   cancelRecoverWallet,
+  storeProxyInfo,
+  getProxyInfo,
 } from '@/api/ncwallet'
 
 
@@ -270,6 +272,32 @@ const ncWallet = {
           const { errno, data, message } = response.data
           if (errno === 0) {
             resolve({ hasError: false })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
+    storeProxyInfo({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        storeProxyInfo(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
+    getProxyInfo({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        getProxyInfo(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false, data })
           }
           resolve({ hasError: true, error: message });
         }).catch(error => {
