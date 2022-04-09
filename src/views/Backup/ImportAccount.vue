@@ -8,6 +8,14 @@
         <span class="tip">Add an existing account by secret recovery phrase or private key.</span>
         <!-- backup-setting -->
         <div class="backup-setting-wrapper" style="border: none">
+          <!-- <div class="backup-setting-content">
+            <label>Type</label>
+            <el-select v-model="importType" class="backup-setting-select">
+              <el-option value="mnemonic" label="mnemonic"></el-option>
+              <el-option value="privateKey" label="privateKey"></el-option>
+            </el-select>
+          </div> -->
+          
           <van-cell-group>
             <van-field v-model="importType" label="Type" readonly class="createType-select" :disabled="importTypeDisabled" @click="showSelectType('import')"/>
             <!-- <van-field v-model="backupNameForImport" :formatter="formatterTrim" label="Name" placeholder="name(Only alphanumeric)" :disabled="importTypeDisabled" :error-message="nameErrorMsg" />
@@ -295,4 +303,5 @@ export default {
 </script>
 <style lang="scss" scoped>
   @import 'index';
+  ::v-deep .el-select-dropdown__item.selected span {padding: 0 20px !important;}
 </style>
