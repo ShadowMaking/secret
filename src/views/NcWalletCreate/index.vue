@@ -347,7 +347,7 @@ export default {
           console.log(tx)
           this.showResultModal = false
           this.createWallet(this.createWalletAddress, tx.hash)
-          addTransHistory(tx, 'Create Wallet', this)
+          addTransHistory(tx, 'Initialize Wallet', this)
           window.clearInterval(this.thisTimer)
           this.lasetTimes = 30
           tx.wait().then(async res => {
