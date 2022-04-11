@@ -8,8 +8,19 @@
           <span class="tip">Your account recovery phrase or private key can help you backup and recover the account. Don’t expose your private key or account recovery phase in the public network.</span>
           <!-- backup-setting -->
           <div class="backup-setting-wrapper">
+            <div class="backup-setting-type-box">
+              <div class="backup-setting-content">
+                <label>Type</label>
+                <el-select v-model="createType" class="backup-setting-select" @change="onConfirmSelectType">
+                  <el-option-group>
+                    <el-option value="mnemonic" label="mnemonic"></el-option>
+                    <el-option value="privatekey" label="privatekey"></el-option>
+                  </el-option-group>
+                </el-select>
+              </div>
+            </div>
             <van-cell-group>
-              <van-field v-model="createType" label="Type" readonly class="createType-select" :disabled="createTypeDisabled" @click="showSelectType('create')"/>
+              <!-- <van-field v-model="createType" label="Type" readonly class="createType-select" :disabled="createTypeDisabled" @click="showSelectType('create')"/> -->
               <!-- <van-field v-model="backupName" label="Name" :formatter="formatterTrim"  placeholder="name(Only alphanumeric)" :disabled="createTypeDisabled" :error-message="nameErrorMsg"/> -->
               <van-field
                 v-model="backupComment"
@@ -32,7 +43,7 @@
               @createComplete="hanldeCreateComplete" />
           </div>
           <!-- create privateKey -->
-          <div class="type-privatekey" v-if="createType==='privateKey'">
+          <div class="type-privatekey" v-if="createType==='privatekey'">
             <v-privatekeyType
               type="create"
               @notLogin="handleNotLogin"
@@ -87,7 +98,7 @@ export default {
       createType: 'mnemonic', // mnemonic || privateKey
       importType: 'mnemonic', // mnemonic || privateKey
       showCreateTypePopup: false,
-      typeList: [{ key: 'mnemonic', text: 'Mnemonic'}, { key: 'privateKey', text: 'privateKey' }],
+      typeList: [{ key: 'mnemonic', text: 'Mnemonic'}, { key: 'privatekey', text: 'privatekey' }],
       selectType: 'mnemonic',
       showThirdLoginTip: false,
       createTypeDisabled: false,
@@ -153,11 +164,15 @@ export default {
       if (disabled) { return }
       this.showCreateTypePopup =  true
     },
-    onConfirmSelectType(val) {
-      console.log(val, this.activeCreateWalletType)
-      this.activeCreateWalletType === 'create' && (this.createType = val['key']);
-      this.activeCreateWalletType === 'import' && (this.importType = val['key']);
-      this.showCreateTypePopup = false;
+    // onConfirmSelectType(val) {
+    //   console.log(val, this.activeCreateWalletType)
+    //   this.activeCreateWalletType === 'create' && (this.createType = val['key']);
+    //   this.activeCreateWalletType === 'import' && (this.importType = val['key']);
+    //   this.showCreateTypePopup = false;
+    // },
+    onConfirmSelectType(val){
+      this.activeCreateWalletType === 'create' && (this.createType = val);
+      this.activeCreateWalletType === 'import' && (this.importType = val);
     },
     handleNotLogin() {
       this.showThirdLoginTip = true
