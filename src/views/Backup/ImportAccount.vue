@@ -13,7 +13,7 @@
             <el-select v-model="importType" class="backup-setting-select" @change="onConfirmSelectType">
               <el-option-group>
                 <el-option value="mnemonic" label="mnemonic"></el-option>
-                <el-option value="privateKey" label="privateKey"></el-option>
+                <el-option value="privatekey" label="privatekey"></el-option>
               </el-option-group>
             </el-select>
           </div>
@@ -38,7 +38,7 @@
           <v-mnemonicType type="import" :need2FA="false" @notLogin="handleNotLogin" :settingData="settingDataForImport" @createComplete="hanldeCreateComplete" />
         </div>
         <!-- import privateKey -->
-        <div class="type-privatekey" v-if="importType==='privateKey'">
+        <div class="type-privatekey" v-if="importType==='privatekey'">
           <v-privatekeyType type="import" :need2FA="false" @notLogin="handleNotLogin" :settingData="settingDataForImport" @createComplete="hanldeCreateComplete" />
         </div>
       </div>
@@ -73,6 +73,7 @@ import LoadingPopup from '@/components/LoadingPopup';
 import { formatTrim, objHasOwnProperty } from '@/utils/str';
 import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey } from '@/utils/relayUtils'
 import web3 from 'web3'
+import {  isLogin } from '@/utils/dashBoardTools'
 
 Vue.use(Field)
 Vue.use(Popup)
@@ -96,7 +97,7 @@ export default {
       createType: 'mnemonic', // mnemonic || privateKey
       importType: 'mnemonic', // mnemonic || privateKey
       showCreateTypePopup: false,
-      typeList: [{ key: 'mnemonic', text: 'Mnemonic'}, { key: 'privateKey', text: 'privateKey' }],
+      typeList: [{ key: 'mnemonic', text: 'Mnemonic'}, { key: 'privatekey', text: 'privatekey' }],
       selectType: 'mnemonic',
       showThirdLoginTip: false,
       createTypeDisabled: false,
@@ -203,7 +204,7 @@ export default {
       let wallet;
       let address;
       let privateKey
-      if (type === 'privateKey') {
+      if (type === 'privatekey') {
         wallet = new ethers.Wallet(val);
         address = wallet.address
         privateKey = val
@@ -303,6 +304,10 @@ export default {
   created() {
   },
   mounted() {
+    if (!isLogin()) {
+      Toast('Need Login')
+      return
+    }
     // this.handlesInputFocus()
     this.showInputPswModal = true;
   },

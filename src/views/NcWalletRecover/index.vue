@@ -357,4 +357,7 @@ export default {
     padding: 0 10px !important;
     text-align: center;
   }
+  .el-select-dropdown__item {
+    padding: 0 20px !important;
+  }
 </style>
