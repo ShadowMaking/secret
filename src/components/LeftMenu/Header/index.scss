@@ -1,5 +1,69 @@
 @import '@/app.scss';
-
+.header-right .van-popover__wrapper {
+  width: 100%;
+}
+.account-header-login-out {
+  text-align: center;
+  .account-logo img{
+    width: 1.98rem;
+    height: 1.98rem;
+    margin: 10px auto;
+  }
+  .account-weclome {
+    font-size: 1.02rem;
+    font-weight: bold;
+    color: #18171C;
+    margin-bottom: 10px;
+  }
+  .account-manage-txt {
+    color: #48474D;
+    font-size: 0.86rem;
+    margin-bottom: 24px;
+  }
+  .account-login .el-button{
+    padding: 8px 10px;
+  }
+  .account-login {
+    margin-bottom: 30px;
+  }
+}
+.account-header-login-in {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem ;
+  .account-info-left {
+    display: flex;
+    align-items: center;
+    img {
+      width: 1.8rem;
+      height: 1.8rem;
+      margin-right: 5px;;
+    }
+    .account-info-address {
+      font-size: 0.84rem;
+      color: #141416;
+      line-height: 20px;
+      p {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        width: 100px;
+      }
+      .account-info-balance {
+        font-weight: bold;
+      }
+    }
+  }
+  .account-info-right {
+    font-size: 16px;
+    height: 24px;
+    font: normal normal normal 14px/1 vant-icon;
+    position: relative;
+    cursor: pointer;
+  }
+}
 .common-header{
   color: #236BFB;
   background: #fff;

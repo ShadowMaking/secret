@@ -2,6 +2,9 @@
   <div class="left-menu-box" id="leftmenu">
     <img src="~@/assets/menu.png" class="menu-icon" @click="showPopup" v-show="iconVisible">
     <van-popup v-model="menuVisible" position="left" class="popup-box" overlay-class="popup-overlay" :overlay="iconVisible">
+      <div class="account-header-warp">
+        <v-leftHeader></v-leftHeader>
+      </div>
       <div v-for="(item, index) in menuData" :key="index" @click="changeMenu(index, item.route, 'activeKey')"
       >
         <!-- <van-icon :name="item.icon" size="20px"/> -->
@@ -65,6 +68,7 @@ import web3 from 'web3'
 import 'vant/lib/index.css'
 import { Icon, Popup, Collapse, CollapseItem } from 'vant';
 import formSelect from '@/components/Select/index';
+import leftHeader from './Header/index';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 
@@ -142,10 +146,12 @@ export default {
       netWorkList: [],
 
       activeNames: ['Tools', 'Multisig Wallet'],
+      currentAddress: '',
     }
   },
   components: {
     "v-formSelect": formSelect,
+    "v-leftHeader": leftHeader,
   },
   mounted() {
     this.defaultNetWork = this.getDefaultNetWork()

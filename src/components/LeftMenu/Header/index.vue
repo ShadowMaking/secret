@@ -1,211 +1,94 @@
 <template>
-  <div style="width:100%" id="header">
-    <mt-header title="" class="common-header" v-show="!$route.meta.hideHeader">
-      <div slot="left" class="header-left">
-        <!-- <div v-show="showBackIcon" class="flex flex-center" @click="back">
-          <van-icon name="arrow-left" class="back-icon" size="18"/>
-          <span>{{ navTxt() }}</span>
-        </div>
-        <img :src="DEFAULTIMG.LOGO" class="logo" @click="toPage('home')" v-show="$route.name==='home'"/> -->
-      </div>
-      <div slot="right" class="header-right" style="display: none">
+  <div style="width:100%">
+    <div class="left-header">
+      
+      <div class="header-right">
         <div v-show="showConnectWallet">
           <div v-if="address!==''" >
             <van-popover
-              key="accountSetpopover"
-              close-on-click-outside
-              :overlay="true"
-              :get-container="getContainer"
-              v-model="showAccountInfo"
-              trigger="click"
-              placement="bottom-end">
-              <div class="show-accrout-address-popup" :style="showAccroutAddressPopupStyle()">
-                <div class="header"><h3>Account</h3></div>
-                <div class="inner-wraper">
-                  <div class="flex flex-content-between" style="display: none">
-                    <span>Connected to Metamask</span>
-                    <a class="disconnect" @click="disconnect">Logout</a>
-                  </div>
-                  <div class="address">{{ address }}</div>
-                  <div class="flex">
-                    <a class="copy-a" @click="copyAddress"><i class="a-icon "></i>{{ copyAddressTxt }}</a>
-                    <a class="view-in-explorer-a" @click="toExplorer"><i class="a-icon"></i>View in Explorer</a>
-                  </div>
-                </div>
-              </div>
-              <template #reference>
-                <span @click="showAccoutAddress" class="header-address" id="header-address-popup" v-if="address!==''" >
-                  {{ `${address.slice(0,6)}...${address.slice(-4)}` }}
-                  <i class="link-icon"></i>
-                </span>
-              </template>
-            </van-popover>
-          </div>
-          <div slot="right" v-else >
-            <!-- <a @click="chooseWallet" class="linkWallet">
-              <span>Connect Wallet</span>
-              <i class="link-icon"></i>
-            </a>
-            <i class="icon night" style="display:none"></i>
-            <i class="icon language" style="display:none"></i> -->
-            <van-popover
-              key="loginPopover"
+              key="leftloginPopover"
               close-on-click-outside
               :overlay="true"
               :get-container="getContainer"
               v-model="showLoginPopover"
               trigger="click"
-              placement="bottom-end">
-              <div class="login-popover">
+              placement="bottom-start">
+              <div class="account-popover">
                 <div class="van-hairline--bottom account-header">
-                  <span>Choose</span>
+                  <span>My Wallet</span>
                 </div>
+                <ul class="accountlist" v-if="address||gUName">
+                  <li :class="[{'active': item.wallet_address===address}]" v-for="(item,index) in ownWalletList" :key="index" @click="changeAccount(item, 'wallet')">
+                    <van-icon name="success" class="active-status-icon"/>
+                    <div class="account-text">
+                      <span>{{ item.wallet_address }}</span>
+                    </div>
+                  </li>
+                </ul>
+                <div class="van-hairline--bottom account-header">
+                  <span>My Account</span>
+                </div>
+                <ul class="accountlist" v-if="address||gUName">
+                  <li :class="[{'active': item.address===address}]" v-for="(item,index) in userList" :key="index" @click="changeAccount(item, 'user')">
+                    <van-icon name="success" class="active-status-icon"/>
+                    <div class="account-text">
+                      <span>{{ item.address }}</span>
+                    </div>
+                  </li>
+                </ul>
                 <div class="account-setting-wrapper van-hairline--top">
-                  <div class="opt-item van-hairline--bottom" @click="login('google')">
-                    <i class="login-icon logo-google"></i>
-                    <span>Continue with Google</span>
+                  <div class="opt-item van-hairline--bottom" @click="toPage('createAccount', 'create')">
+                    <router-link to="/backup?type=create">
+                      <van-icon name="plus" class="opt-icon" />
+                      <span>Create Account</span>
+                    </router-link>
                   </div>
-                   <div class="opt-item van-hairline--bottom" @click="login('metamask')">
-                    <i class="login-icon logo-metamsk"></i>
-                    <span>Continue with Metamask</span>
+                  <div class="opt-item van-hairline--bottom" @click="toPage('importAccount')">
+                    <router-link to="/importAccount">
+                      <van-icon name="down" class="opt-icon" />
+                      <span>Import Account</span>
+                    </router-link>
+                  </div>
+                  <div class="opt-item van-hairline--bottom" @click="disconnect" v-show="address">
+                    <van-icon name="peer-pay" class="opt-icon redColor"/>
+                    <span class="redColor">Logout</span>
+                  </div>
+                  <div class="opt-item van-hairline--bottom" @click="toPage('backup', 'import')" style="display: none">
+                    <router-link to="/backup?type=import">
+                      <van-icon name="down" class="opt-icon" />
+                      <span>Import Account</span>
+                    </router-link>
                   </div>
                 </div>
               </div>
               <template #reference>
-                <a class="linkWallet">
-                  <span>Connect Wallet</span>
-                  <i class="link-icon"></i>
-                </a>
+                <div class="account-header-login-in">
+                  <div class="account-info-left">
+                    <img src="~@/assets/icon_logo.png">
+                    <div class="account-info-address">
+                      <p>{{address}}</p>
+                      <p class="account-info-balance">￥15.250</p>
+                    </div>
+                  </div>
+                  <div class="account-info-right">
+                    <van-icon name="arrow-up" v-if="showAccountSetPopover"/>
+                    <van-icon name="arrow-down" v-if="!showAccountSetPopover"/>
+                  </div>
+                </div>
               </template>
             </van-popover>
           </div>
-        </div>
-        <van-popover
-          key="accountSetpopover"
-          close-on-click-outside
-          :overlay="true"
-          :get-container="getContainer"
-          v-model="showAccountSetPopover"
-          trigger="click"
-          placement="bottom-end">
-          <div class="account-popover">
-            <div class="van-hairline--bottom account-header">
-              <span>My Wallet</span>
-              <!-- <van-button plain type="info" class="lockbutton" size="small" @click="disconnect" v-show="address">Logout</van-button> -->
+          <div slot="right" v-else >
+            <div class="account-header-login-out">
+              <p class="account-logo"><img src="~@/assets/icon_logo.png"></p>
+              <p class="account-weclome">欢迎来到Eigen</p>
+              <p class="account-manage-txt">登录Eigen账号以管理你的资产</p>
+              <p class="account-login common-primary-btn" @click="loginIn"><el-button type="primary">登录账号</el-button></p>
             </div>
-            <ul class="accountlist" v-if="address||gUName">
-              <!-- <li class="active">
-                <van-icon name="success" class="active-status-icon"/>
-                <div class="account-text">
-                  <span>{{ address||gUName }}</span>
-                </div>
-              </li> -->
-              <li :class="[{'active': item.wallet_address===address}]" v-for="(item,index) in ownWalletList" :key="index" @click="changeAccount(item, 'wallet')">
-                <van-icon name="success" class="active-status-icon"/>
-                <div class="account-text">
-                  <span>{{ item.wallet_address }}</span>
-                </div>
-              </li>
-            </ul>
-            <div class="van-hairline--bottom account-header">
-              <span>My Account</span>
-              <!-- <van-button plain type="info" class="lockbutton" size="small" @click="disconnect" v-show="address">Logout</van-button> -->
-            </div>
-            <ul class="accountlist" v-if="address||gUName">
-              <!-- <li class="active">
-                <van-icon name="success" class="active-status-icon"/>
-                <div class="account-text">
-                  <span>{{ address||gUName }}</span>
-                </div>
-              </li> -->
-              <li :class="[{'active': item.address===address}]" v-for="(item,index) in userList" :key="index" @click="changeAccount(item, 'user')">
-                <van-icon name="success" class="active-status-icon"/>
-                <div class="account-text">
-                  <span>{{ item.address }}</span>
-                </div>
-              </li>
-            </ul>
-            <div class="account-setting-wrapper van-hairline--top">
-              <div class="opt-item van-hairline--bottom" @click="toPage('createAccount', 'create')">
-               <!--  <van-icon name="plus" class="opt-icon" />
-                <span>Create Account</span> -->
-                <router-link to="/backup?type=create">
-                  <van-icon name="plus" class="opt-icon" />
-                  <span>Create Account</span>
-                </router-link>
-              </div>
-              <div class="opt-item van-hairline--bottom" @click="toPage('importAccount')">
-                <!-- <van-icon name="down" class="opt-icon" />
-                <span>Import Account</span> -->
-                <router-link to="/importAccount">
-                  <van-icon name="down" class="opt-icon" />
-                  <span>Import Account</span>
-                </router-link>
-              </div>
-              <!-- <div class="opt-item van-hairline--bottom" @click="toPage('exportAccount')">
-                <router-link to="/exportAccount">
-                  <van-icon name="peer-pay" class="opt-icon" />
-                  <span>Export Account</span>
-                </router-link>
-              </div> -->
-              <div class="opt-item van-hairline--bottom" @click="disconnect" v-show="address">
-                <!-- <router-link to="/exportAccount"> -->
-                  <van-icon name="peer-pay" class="opt-icon redColor"/>
-                  <span class="redColor">Logout</span>
-                <!-- </router-link> -->
-              </div>
-              <div class="opt-item van-hairline--bottom" @click="toPage('backup', 'import')" style="display: none">
-                <!-- <van-icon name="down" class="opt-icon" />
-                <span>Import Account</span> -->
-                <router-link to="/backup?type=import">
-                  <van-icon name="down" class="opt-icon" />
-                  <span>Import Account</span>
-                </router-link>
-              </div>
-              <div class="opt-item van-hairline--bottom" @click="toPage('srecovery')" style="display: none">
-                <van-icon name="cluster-o" class="opt-icon" />
-                <span>Recover Secret</span>
-              </div>
-              <div class="opt-item van-hairline--bottom" @click="toPage('addfriends')" style="display: none">
-                <van-icon name="friends-o" class="opt-icon" />
-                <span>Friends</span>
-              </div>
-              <!-- <div class="opt-item van-hairline--bottom" @click="toPage('home')">
-                <router-link to="/introduction">
-                  <i class="opt-icon icon-bridge"></i>
-                  <span>Bridge</span>
-                </router-link>
-              </div> -->
-            </div>
-          </div>
-          <template #reference><div class="account"></div></template>
-        </van-popover>
-      </div>
-    </mt-header>
-    <van-popup v-model="popupVisible" round :position="checkBrower()" :style="{ minHeight: '30%' }" class="common-bottom-popup" get-container="body">
-      <div class="common-exchange-detail-wrap choose-wallet-popup">
-        <div class="header"><h3>Choose Wallet</h3></div>
-        <div class="choose-wallet" @click="connectWallet">
-          <i></i><span>metamask</span>
-        </div>
-      </div>
-    </van-popup>
-    <van-popup v-model="showAccountPopup" round key="showAccount" get-container="#header-address-popup" :style="{ top: '134px', border: '1px solid #ccc' }">
-      <div class="show-accrout-address-popup">
-        <div class="header"><h3>Account</h3></div>
-        <div class="inner-wraper">
-          <div class="flex flex-content-between" style="display: none">
-            <span>Connected to Metamask</span>
-            <a class="disconnect" @click="disconnect">Logout</a>
-          </div>
-          <div class="address">{{ address }}</div>
-          <div class="flex">
-            <a class="copy-a" @click="copyAddress"><i class="a-icon "></i>Copy Address</a>
-            <a class="view-in-explorer-a" @click="toExplorer"><i class="a-icon"></i>View in Explorer</a>
           </div>
         </div>
       </div>
-    </van-popup>
+    </div>
     <v-walletstatus :show="installWalletModal" key="installWalletModal" :installOtherWallet="installOtherWallet" />
     <v-netTipPopup :show="showNetTip" key="netTipModal" :showType="expectNetType" />
     <v-inputPsw :show="showInputPswModal" :canCloseByBtn="true" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
@@ -298,6 +181,9 @@ export default {
     }
   },
   methods: {
+    loginIn() {
+      this.$router.push({ path: '/loginIn' })
+    },
     checkBrower() {
       if (isPc()) { return 'center' };
       return 'bottom';
