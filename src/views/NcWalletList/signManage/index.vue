@@ -102,7 +102,7 @@ import navTitle from '@/components/NavTitle/index'
 import searchSignerModal from '@/components/SearchSignerModal/index'
 import LoadingPopup from '@/components/LoadingPopup';
 import ConfirmModal from '@/components/ConfirmModal';
-import {  isLogin, getContractAt, getConnectedAddress, getEncryptKeyByAddressFromStore, addTransHistory, getSupportNet, getBalanceByAddress,getEstimateGas, getConnectedNet } from '@/utils/dashBoardTools'
+import {  isLogin, getContractAt, getConnectedAddress, getEncryptKeyByAddressFromStore, addTransHistory, getSupportNet, getBalanceByAddress,getEstimateGas, getConnectedNet, getConnectedUserAddress } from '@/utils/dashBoardTools'
 import { getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { signerStatus, securityModuleRouter, lockType } from '@/utils/global';
@@ -457,7 +457,7 @@ export default {
 
       // to decrypt privatekey
       const userId = getInfoFromStorageByKey('gUID')
-      const address = getConnectedAddress()
+      const address = getConnectedUserAddress()
       const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
       const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
       if(decryptInfo.hasError) {

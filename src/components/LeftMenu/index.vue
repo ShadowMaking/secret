@@ -1,4 +1,5 @@
 <template>
+  <div class="left-container">
   <div class="left-menu-box" id="leftmenu">
     <img src="~@/assets/menu.png" class="menu-icon" @click="showPopup" v-show="iconVisible">
     <van-popup v-model="menuVisible" position="left" class="popup-box" overlay-class="popup-overlay" :overlay="iconVisible">
@@ -59,6 +60,8 @@
           @change="handleNetworkChange" />
       </div>
     </van-popup>
+  </div>
+  <div id="leftHeaderBox" style="width: 100%;"></div>
   </div>
 </template>
 

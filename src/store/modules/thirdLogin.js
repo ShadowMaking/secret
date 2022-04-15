@@ -106,10 +106,20 @@ const thirdLogin = {
         const address = params.address.toLocaleLowerCase()
         if (userId) {
           const userMap = {}
-          userMap[userId] = {
-            address: address,
-            encryptPrivateKey
+          if (params.walletAddress) {
+            const walletAddress = params.walletAddress.toLocaleLowerCase()
+            userMap[userId] = {
+              address: address,
+              encryptPrivateKey,
+              walletAddress: walletAddress,
+            }
+          } else {
+            userMap[userId] = {
+              address: address,
+              encryptPrivateKey
+            }
           }
+          
           saveToStorage({ userMap })
           resolve({ hasError: false })
         } else {

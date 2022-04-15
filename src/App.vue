@@ -4,7 +4,7 @@
       <div class="page-box-con">
         <div class="header-box">
           <v-leftmenu @oversize="oversize"></v-leftmenu>
-          <v-Header></v-Header>
+          <!-- <v-Header></v-Header> -->
         </div>
         <div class="right-content-box">
           <router-view :key="$route.path" />
@@ -18,7 +18,7 @@
 <script>
   import _ from 'lodash';
   import leftmenu from '@/components/LeftMenu/index';
-  import Header from '@/components/Header/index';
+  // import Header from '@/components/Header/index';
   import socketModal from '@/components/socketModal/index';
   
  
@@ -31,7 +31,7 @@
     },
     components: {
       "v-leftmenu": leftmenu,
-      "v-Header": Header,
+      // "v-Header": Header,
       "v-socketModal": socketModal,
     },
     methods: {

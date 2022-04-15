@@ -4,39 +4,92 @@
       
       <div class="header-right">
         <div v-show="showConnectWallet">
-          <div v-if="address!==''" >
+          <div v-if="currentUserAddress!==''" >
             <van-popover
               key="leftloginPopover"
               close-on-click-outside
               :overlay="true"
               :get-container="getContainer"
-              v-model="showLoginPopover"
+              v-model="showAccountSetPopover"
               trigger="click"
               placement="bottom-start">
               <div class="account-popover">
                 <div class="van-hairline--bottom account-header">
                   <span>My Wallet</span>
                 </div>
-                <ul class="accountlist" v-if="address||gUName">
-                  <li :class="[{'active': item.wallet_address===address}]" v-for="(item,index) in ownWalletList" :key="index" @click="changeAccount(item, 'wallet')">
-                    <van-icon name="success" class="active-status-icon"/>
-                    <div class="account-text">
-                      <span>{{ item.wallet_address }}</span>
-                    </div>
-                  </li>
-                </ul>
+                <div class="accountlist" v-if="currentUserAddress||gUName">
+                  <ul v-if="ownWalletList.length>0">
+                    <li :class="[{'active': item.wallet_address===currentshowAddress}]" v-for="(item,index) in ownWalletList" :key="index" @click.stop="changeAccount(item, 'wallet')">
+                      <div class="account-text">
+                        <span @click.stop="copyAddress(item.wallet_address)">{{ `${item.wallet_address.slice(0,14)}...${item.wallet_address.slice(-4)}` }}</span>
+                        <span class="account-text-banlance">￥{{ item.balance ? item.balance : '- - -'  }}</span>
+                      </div>
+                      <div class="account-more-box">
+                        <van-popover
+                          key="leftMorePopover"
+                          close-on-click-outside
+                          :overlay="true"
+                          :get-container="getMoreContainer"
+                          v-model="showAccountMorePopover[item.wallet_address]"
+                         placement="bottom-start">
+                          <div class="account-more-list">
+                            <ul>
+                              <li class="account-more-address">{{item.wallet_address}}</li>
+                              <li><i class="el-icon-document-copy more-pop-icon"  @click.stop="copyAddress(item.wallet_address)"></i>复制地址</li>
+                              <li class="redColor"><i class="el-icon-remove-outline more-pop-icon"></i>断开</li>
+                            </ul>
+                          </div>
+                          <template #reference>
+                            <span class="account-more" @click.stop="accountMore(item.wallet_address)" :id="'more-' + item.wallet_address">...</span>
+                          </template>
+                        </van-popover>
+                      </div>
+
+                      <van-icon name="success" class="active-status-icon"/>
+                    </li>
+                  </ul>
+                  <ul v-else>
+                    <li>
+                      <div class="account-text" @click="toPage('ncWalletCreate')">Create your wallet</div>
+                    </li>
+                  </ul>
+                </div>
                 <div class="van-hairline--bottom account-header">
                   <span>My Account</span>
                 </div>
-                <ul class="accountlist" v-if="address||gUName">
-                  <li :class="[{'active': item.address===address}]" v-for="(item,index) in userList" :key="index" @click="changeAccount(item, 'user')">
-                    <van-icon name="success" class="active-status-icon"/>
+                <ul class="accountlist" v-if="currentUserAddress||gUName">
+                  <li :class="[{'active': item.address===currentshowAddress}]" v-for="(item,index) in userList" :key="index" @click.stop="changeAccount(item, 'user')">
                     <div class="account-text">
-                      <span>{{ item.address }}</span>
+                      <span @click.stop="copyAddress(item.address)">{{ `${item.address.slice(0,14)}...${item.address.slice(-4)}` }}</span>
+                      <span class="account-text-banlance">￥{{ item.balance ? item.balance : '- - -'  }}</span>
                     </div>
+                    <div class="account-more-box">
+                      <van-popover
+                        key="leftMorePopover"
+                        close-on-click-outside
+                        :overlay="true"
+                        :get-container="getMoreContainer"
+                        v-model="showAccountMorePopover[item.address]"
+                        trigger="click"
+                        placement="bottom-start">
+                        <div class="account-more-list">
+                          fuzhi
+                        </div>
+                        <template #reference>
+                          <span class="account-more" @click.stop="accountMore(item.address)" :id="'more-' + item.address">...</span>
+                        </template>
+                      </van-popover>
+                    </div>
+                    <van-icon name="success" class="active-status-icon"/>
                   </li>
                 </ul>
                 <div class="account-setting-wrapper van-hairline--top">
+                  <div class="opt-item van-hairline--bottom" @click="toPage('ncWalletCreate')">
+                    <router-link to="/ncWalletCreate">
+                      <van-icon name="paid" class="opt-icon" />
+                      <span>Create Wallet</span>
+                    </router-link>
+                  </div>
                   <div class="opt-item van-hairline--bottom" @click="toPage('createAccount', 'create')">
                     <router-link to="/backup?type=create">
                       <van-icon name="plus" class="opt-icon" />
@@ -49,15 +102,9 @@
                       <span>Import Account</span>
                     </router-link>
                   </div>
-                  <div class="opt-item van-hairline--bottom" @click="disconnect" v-show="address">
+                  <div class="opt-item van-hairline--bottom" @click="disconnect" v-show="currentUserAddress">
                     <van-icon name="peer-pay" class="opt-icon redColor"/>
                     <span class="redColor">Logout</span>
-                  </div>
-                  <div class="opt-item van-hairline--bottom" @click="toPage('backup', 'import')" style="display: none">
-                    <router-link to="/backup?type=import">
-                      <van-icon name="down" class="opt-icon" />
-                      <span>Import Account</span>
-                    </router-link>
                   </div>
                 </div>
               </div>
@@ -66,8 +113,8 @@
                   <div class="account-info-left">
                     <img src="~@/assets/icon_logo.png">
                     <div class="account-info-address">
-                      <p>{{address}}</p>
-                      <p class="account-info-balance">￥15.250</p>
+                      <p>{{currentshowAddress}}</p>
+                      <p class="account-info-balance">￥{{currentBalance}}</p>
                     </div>
                   </div>
                   <div class="account-info-right">
@@ -89,8 +136,6 @@
         </div>
       </div>
     </div>
-    <v-walletstatus :show="installWalletModal" key="installWalletModal" :installOtherWallet="installOtherWallet" />
-    <v-netTipPopup :show="showNetTip" key="netTipModal" :showType="expectNetType" />
     <v-inputPsw :show="showInputPswModal" :canCloseByBtn="true" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
@@ -102,8 +147,6 @@ import { ethers } from 'ethers'
 import { Header, Button } from 'mint-ui';
 import { DEFAULTIMG } from '@/utils/global';
 import { Popup, Button as VanButton, Toast, Icon, Popover, Dialog } from 'vant';
-import WalletStatus from '@/components/WalletStatus';
-import NetTipModal from '@/components/NetTipModal';
 import InputPswModal from '@/components/InputPswModal'
 import { getSelectedChainID, getNetMode, getExpectNetTypeByRouteName, metamaskIsConnect, installWeb3Wallet, installWeb3WalletMetamask } from '@/utils/web3'
 import { copyTxt, isPc } from '@/utils/index';
@@ -111,7 +154,7 @@ import { initTokenTime, updateLoginTime, removeTokens, tokenIsExpires, logout, c
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
-import { getConnectedAddress, getConnectedNet } from '@/utils/dashBoardTools';
+import { getConnectedAddress, getConnectedNet, getBalanceByAddress } from '@/utils/dashBoardTools';
 
 Vue.use(Popup);
 Vue.use(VanButton);
@@ -128,10 +171,8 @@ export default {
     return {
       DEFAULTIMG,
       popupVisible: false,
-      installWalletModal: false,
       address: '',
       walletIsLock: true,
-      showNetTip: false,
       showAccountPopup: false,
       installOtherWallet: false,
       gUName: '',
@@ -151,22 +192,21 @@ export default {
       copyAddressTxt: 'Copy Address',
       showAccountInfo: false,
 
-      showLoginPopover: false,
       ownWalletList: [],
-      showAddress: '',//user address or wallet owner address
+      currentshowAddress: '',//user address or wallet address
+      currentUserAddress: '',//user address or wallet owner address
+      currentAccountType: 'wallet', //wallet or user
+      showAccountMorePopover: {},
+      moreActiveAddress: '',
+      currentBalance: '- - -',
     }
   },
   components: {
-    "v-walletstatus": WalletStatus,
-    "v-netTipPopup": NetTipModal,
     'v-inputPsw': InputPswModal
   },
   computed: {
     metamaskInstall() {
       return this.$store.state.metamask.metamaskInstall || installWeb3WalletMetamask()
-    },
-    expectNetType() {
-      return getExpectNetTypeByRouteName(this.$route.name)
     },
     showBackIcon() {
       return this.$route.name!=='home' && this.$route.name!=='introduction'
@@ -177,7 +217,7 @@ export default {
   },
   watch: {
     '$store.state.metamask.accountsArr': function (res) {
-      this.address = res.length&&res[0] || ''
+      this.currentUserAddress = res.length&&res[0] || ''
     }
   },
   methods: {
@@ -208,15 +248,13 @@ export default {
     showAccoutAddress() {
       // this.showAccountPopup = true;
     },
-    copyAddress() {
-      if (copyTxt(this.address)) {
-        // Toast.success('Success');
-        this.copyAddressTxt = 'Copied'
-        setTimeout(()=>{ this.copyAddressTxt = 'Copy Address'}, 500)
+    copyAddress(str) {
+      if (copyTxt(str)) {
+        Toast.success('Copied');
       }
     },
     toExplorer() {
-      window.open(`//explorer.ieigen.com/#/address?adr=${this.address}`)
+      window.open(`//explorer.ieigen.com/#/address?adr=${this.currentshowAddress}`)
     },
     async disconnect() {
       await this.$store.dispatch("WalletAccountsAddress", {accounts:[]})
@@ -239,81 +277,20 @@ export default {
       }
       this.$router.push({ name: pageName });
     },
-    chooseWallet() {
-      this.$router.push({ name: 'tlogin' })
-      return
-      this.popupVisible = true;
-      this.installWalletModal = false;
-    },
-
-    // unlock wallet and sign
-    async connectWallet() {
-      this.popupVisible = false;
-
-      if (this.metamaskInstall) {
-        // check netType
-        const networkId = getSelectedChainID();
-        const netMode = getNetMode(networkId);
-        const disabled = this.expectNetType === 'l1' && netMode !== "l1" || this.expectNetType === 'l2' && netMode !== "l2"
-
-        // dashBoard don not need L1 or L2 netWork
-        const dashBoardRouteName = ['overview', 'sendMenu', 'exchange']
-        const isDashBoardFun = dashBoardRouteName.includes(this.$route.name)
-        if (!isDashBoardFun && (netMode !== "l1" && netMode !== "l2" || disabled)) {
-          this.showNetTip = true;
-          return
-        }
-        if (!metamaskIsConnect()) {
-          await ethereum.request({
-            method: 'wallet_requestPermissions',
-            params:  [{ "eth_accounts": {} }]
-          })
-        }
-        const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
-        const selectedAccountAddress = getConnectedAddress();
-        await this.$store.dispatch("WalletAccountsAddress", {accounts})
-        console.log('currentSelectedAccountAddress', selectedAccountAddress)
-
-        let signRes;
-        let _isLock = true;
-        if (tokenIsExpires()) {
-          const message = `
-            Access Eigen account.
-            Only sign this message for a trusted client!
-          `;
-          // when signRes has value declare sign sucess
-          signRes = await this.web3.eth.personal.sign(this.web3.utils.fromUtf8(message), selectedAccountAddress);
-          signRes!==undefined && (_isLock = false)
-          signRes!==undefined && (initTokenTime())
-        } else {
-          _isLock = false
-          updateLoginTime()
-        }
-        console.log('signRes', signRes)
-        this.walletIsLock = _isLock;
-        await this.$store.dispatch('WalletLockStatus', {isLock: _isLock});
-        this.$eventBus.$emit('updateAddress', {address: selectedAccountAddress});
-        this.checkNetPair()
-        return
-      }
-      this.installWalletModal = true;
-      // exist install other web3 wallet
-      if (!installWeb3Wallet()) {
-        this.installOtherWallet = false
-      } else {
-        console.log('already install other web3 wallet')
-        this.installOtherWallet = true
-      }
-    },
+    
     updateAddress(info) {
-      this.address = info.address;
+      this.currentUserAddress = info.address;
+      this.currentshowAddress = info.address;
+      this.getCurrentBalance()
     },
     checkNetPair() {
       const netId = getSelectedChainID();
       console.log('netId', netId)
     },
     handleDisconnect() {
-      this.address = '';
+      this.currentshowAddress = '';
+      this.currentUserAddress = '';
+      this.getCurrentBalance();
       this.userList = [];
       this.walletIsLock = true;
       this.showAccountSetPopover = false
@@ -321,8 +298,17 @@ export default {
       this.$router.push({ name: 'overview' })
     },
     handleAccountsChanged(data) {
-      this.address = data.accounts.length&&data.accounts[0] || ''
+      this.currentUserAddress = data.accounts.length&&data.accounts[0] || ''
+      this.currentshowAddress = data.accounts.length&&data.accounts[0] || ''
+      this.getCurrentBalance()
       this.showAccountSetPopover = false
+    },
+    async getCurrentBalance() {
+      if (this.currentshowAddress) {
+        this.currentBalance = await this.getBalance(this.currentshowAddress)
+      } else {
+        this.currentBalance = '- - -'
+      }
     },
     handleChainChanged() {
       this.walletIsLock = true;
@@ -337,43 +323,61 @@ export default {
     async handleBindingUserInfoAferThirdLogin(thirdloginInfo) {
       const userId  = thirdloginInfo.thirdUserId
       const { data: userInfo } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId })
-      this.address = userInfo.address
+      this.currentshowAddress = userInfo.walletAddress || userInfo.address;
+      this.currentUserAddress = userInfo.address
+      this.getCurrentBalance()
       await this.getUserList(userId)
+      await this.getWalletAsOwner(userId)
+    },
+    async handleWalletAferCreateWallet() {
+      const userId  = getInfoFromStorageByKey('gUID')
       await this.getWalletAsOwner(userId)
     },
     async getUserList(uId) {
       const userId = uId || getInfoFromStorageByKey('gUID')
       const { data: userList } = await this.$store.dispatch('GetBindingGoogleUserInfoList', { userId })
       this.userList = _.cloneDeep(userList)
+      this.resetBalance(this.userList, 'address', 'userList')
     },
     getContainer() {
-      return document.getElementById('header');
+      return document.getElementById('leftHeaderBox');
     },
     async setInitData() {
       const userId = getInfoFromStorageByKey('gUID')
       if (userId) {
         const { data: userInfo } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId  })
-        this.address = userInfo && userInfo.address||'';
+        this.currentUserAddress = userInfo && userInfo.address||'';
+        this.currentshowAddress = userInfo && userInfo.walletAddress || userInfo.address || '';
+        this.getCurrentBalance()
         await this.getUserList(userId)
         await this.getWalletAsOwner(userId)
       }
     },
     async handleChangeAccount(record, privateKey) {
       const address = record.address
-      if (this.address.toLocaleLowerCase() === address.toLocaleLowerCase()) {
+      const showAddress = (this.currentAccountType == 'user' ? record.address : record.wallet_address)
+      if (this.currentshowAddress.toLocaleLowerCase() === showAddress.toLocaleLowerCase()) {
         this.showAccountSetPopover = false
         return
       }
-      this.address = address
+      this.currentshowAddress = showAddress
+      this.currentUserAddress = address
+      this.getCurrentBalance()
       const userId = getInfoFromStorageByKey('gUID')
       const addressInfo = _.find(this.userList, { address })
       const encryptPrivateKey = addressInfo.encryptPrivateKey
-      await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, address })
+      if (this.currentAccountType == 'user') {
+        await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, address })
+      } else {
+        const walletAddress = record.wallet_address
+        await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, address, walletAddress })
+      }
       await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey: encryptPrivateKey, privateKey })
       this.$eventBus.$emit('changeAccout', addressInfo)
       this.showAccountSetPopover = false
     },
     async changeAccount(record, type) {
+      this.currentAccountType = type
       this.changeTargetAccountInfo  = _.cloneDeep(record)
       this.showInputPswModal = true
     },
@@ -430,90 +434,6 @@ export default {
       }
       return { hasError: false, privateKey}
     },
-    async login(type) {
-      Toast.loading({
-        duration: 0,
-        message: 'loading...',
-        forbidClick: true,
-        loadingType: 'spinner',
-      });
-      if (type === 'google') {
-        this.googleLogin()
-      } else if (type === 'metamask') {
-        this.metamaskLogin()
-      }
-      
-      
-    },
-    async googleLogin() {
-      const loginRes = await this.$store.dispatch('GoogleLogin');
-      Toast.clear()
-      const { hasError, url } = loginRes;
-      if (hasError) {
-        this.showError = true
-        return
-      }
-      window.location.href = url
-    },
-    async metamaskLogin() {
-      if (!installWeb3WalletMetamask) {
-        this.openDialogInstallMetamask()
-        return
-      }
-      await ethereum.request({
-        method: 'wallet_requestPermissions',
-        params:  [{ "eth_accounts": {} }]
-      })
-      const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
-      const thisAccount = accounts[0]
-      let Logindata = { address: thisAccount }
-      const metamaskRes = await this.$store.dispatch('metamaskLogin', Logindata)
-      const metaMaskData = metamaskRes.data
-      if (metamaskRes.hasError) {
-        let toastMsg = metaMaskData && metaMaskData.message
-        Toast(toastMsg) 
-        return
-      }
-      const provider = new ethers.providers.Web3Provider(
-          window.ethereum,
-      )
-      const thisSigner = provider.getSigner()
-      const signNonce = metaMaskData && metaMaskData.data
-      const signature = await thisSigner.signMessage(signNonce)
-
-      const storageEmail = getFromStorage('metamaskFakeEmail')
-      const nowTime = new Date()
-      const fakeEmail = nowTime.getTime() + '@gmail.com.test'
-      let thisEmail = storageEmail ? storageEmail : fakeEmail
-      
-      const { hasError, data } = await this.$store.dispatch('metamaskVerify', {
-        signature: signature,
-        address: thisAccount,
-        email: thisEmail
-      });
-      if (hasError) {
-        Toast('login failed')
-        return
-      }
-      let backUrl = data.data
-      saveToStorage({ 'metamaskFakeEmail': thisEmail })
-      window.location.href = backUrl
-    },
-    openDialogInstallMetamask() {
-      Dialog.confirm({
-        message: 'Install Metamask?',
-        confirmButtonText: 'Confirm',
-        confirmButtonColor: '#4375f1',
-        cancelButtonText: 'Cancel'
-      })
-      .then(() => {
-        let url = 'https://metamask.io/'
-        window.open(url, '_blank');
-      })
-      .catch((error) => {
-        console.log(error)
-      });
-    },
     async getWalletAsOwner(userId) {
       let data = {
         network_id: getConnectedNet().id,
@@ -521,20 +441,32 @@ export default {
       }
       const { hasError, list } = await this.$store.dispatch('getWalletListAsOwner', data)
       this.ownWalletList = list
-      console.log(this.ownWalletList)
       if (hasError) {
         Toast('Get wallet Error')
       }
+      this.resetBalance(list, 'wallet_address', 'ownWalletList')
+    },
+    async resetBalance(list, itemName, dataName) {
+      for(let i=0; i<list.length;i+=1) {
+        let itemBalance = await this.getBalance(list[i][itemName])
+        this.$set(list[i], 'balance', itemBalance)
+      }
+      this[dataName] = list
+    },
+    accountMore(address) {
+      this.moreActiveAddress = address
+      this.$set(this.showAccountMorePopover, `${address}`, true)
+    },
+    getMoreContainer() {
+      const tar = `#more-${this.moreActiveAddress}`;
+      return document.querySelector(tar);
+    },
+    async getBalance(address) {
+      const balanceString = await getBalanceByAddress(address)
+      return balanceString
     },
   },
   async mounted() {
-    /* this.$nextTick(() => { })
-    setTimeout(()=>{
-      console.log(this.walletIsLock)
-      if (this.metamaskInstall && window.ethereum && window.ethereum.selectedAddress && !this.walletIsLock) {
-        this.address = window.ethereum && window.ethereum.selectedAddress
-      }
-    },800) */
     await this.setInitData();
    
     this.$eventBus.$on('thirdLogin', this.handleThirdLoginCallback);
@@ -543,6 +475,7 @@ export default {
     this.$eventBus.$on('accountsChanged', this.handleAccountsChanged);
     this.$eventBus.$on('disconnect', this.handleDisconnect);
     this.$eventBus.$on('BindingUserInfoAferThirdLogin', this.handleBindingUserInfoAferThirdLogin);
+    this.$eventBus.$on('BindingWalletAferCreateWallet', this.handleWalletAferCreateWallet);
   },
 };
 </script>

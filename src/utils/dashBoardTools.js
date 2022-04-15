@@ -195,7 +195,7 @@ export const getContractAt = async ({ tokenAddress, abi }, self) => {
   return contractWithSigner
 }
 
-export const getConnectedAddress = (byMetamask=false) => {
+export const getConnectedUserAddress = (byMetamask=false) => {
   if (byMetamask) {
     return window.ethereum && window.ethereum.selectedAddress.toLocaleLowerCase()
   }
@@ -204,6 +204,25 @@ export const getConnectedAddress = (byMetamask=false) => {
     const userMap = getInfoFromStorageByKey('userMap');
     const userData = userMap && userMap[userId]
     return userData && userData['address'].toLocaleLowerCase() || ''
+  }
+  return ''
+}
+
+export const getConnectedAddress = (byMetamask=false) => {
+  if (byMetamask) {
+    return window.ethereum && window.ethereum.selectedAddress.toLocaleLowerCase()
+  }
+  const userId = getFromStorage('gUID')
+  if (userId) {
+    const userMap = getInfoFromStorageByKey('userMap');
+    const userData = userMap && userMap[userId]
+    if (userData && userData['walletAddress']) {
+      return userData['walletAddress'].toLocaleLowerCase()
+    } else if (userData && userData['address']) {
+      return userData['address'].toLocaleLowerCase()
+    } else {
+       return ''
+    }
   }
   return ''
 }

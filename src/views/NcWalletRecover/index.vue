@@ -40,7 +40,7 @@ import recoverPage2 from './recoverPage2/index'
 import InputPswModal from '@/components/InputPswModal'
 import resultModal from '@/components/ResultModal'
 
-import { isLogin, getContractAt,getConnectedAddress, getDecryptPrivateKeyFromStore, getSupportNet, getConnectedNet, getEncryptKeyByAddressFromStore} from '@/utils/dashBoardTools';
+import { isLogin, getContractAt,getConnectedAddress, getDecryptPrivateKeyFromStore, getSupportNet, getConnectedNet, getEncryptKeyByAddressFromStore, getConnectedUserAddress} from '@/utils/dashBoardTools';
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import { walletStatus, securityModuleRouter } from '@/utils/global';
 
@@ -291,7 +291,7 @@ export default {
 
       // to decrypt privatekey
       const userId = getInfoFromStorageByKey('gUID')
-      const address = getConnectedAddress()
+      const address = getConnectedUserAddress()
       const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
       const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
       if(decryptInfo.hasError) {

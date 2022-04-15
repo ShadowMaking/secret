@@ -15,9 +15,9 @@
         :dataSource="netWorkList"
         placeholder="chose network"
         @change="handleNetworkChange" />
-      <div class="send-from-box">
+      <!-- <div class="send-from-box">
         <v-transFrom @transFromChange="transFromChange"></v-transFrom>
-      </div>
+      </div> -->
       <!-- <v-formInput label="Recipient" placeholder="Address or Google account" :isSearch="true" @inputChange="handleAddressInputChange" /> -->
       <v-InputSelect label="Recipient" placeholder="Address or Google account" :isSearch="true" @inputChange="handleAddressInputChange" />
       <v-formSelect 
@@ -91,7 +91,7 @@ import formSelect from '@/components/Select/index';
 import InputSelect from '@/components/InputSelect/index';
 import StatusPop from '@/components/StatusPop';
 import ConfirmModal from '@/components/ConfirmModal';
-import TransFrom from '@/components/TransFrom';
+// import TransFrom from '@/components/TransFrom';
 import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
 import { ethers, utils } from 'ethers'
@@ -104,7 +104,7 @@ import { getInfoFromStorageByKey, getFromStorage } from '@/utils/storage';
 import {
   generateTokenList, getDefaultETHAssets, getConnectedAddress,
   getContractWallet, isLogin, getDATACode, getContractAt, 
-  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas } from '@/utils/dashBoardTools';
+  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas, getConnectedUserAddress } from '@/utils/dashBoardTools';
 import WalletTransaction from "@/assets/contractJSON/TransactionModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
@@ -183,7 +183,7 @@ export default {
     "v-formSelect": formSelect,
     'v-statusPop': StatusPop,
     'v-confirmModal': ConfirmModal,
-    'v-transFrom': TransFrom,
+    // 'v-transFrom': TransFrom,
     'v-loadingPopup': LoadingPopup,
     'v-inputPsw': InputPswModal,
     'v-InputSelect': InputSelect,
@@ -427,7 +427,7 @@ export default {
 
       // to decrypt privatekey
       const userId = getInfoFromStorageByKey('gUID')
-      const address = getConnectedAddress()
+      const address = getConnectedUserAddress()
       const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
       const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
       if(decryptInfo.hasError) {
@@ -693,6 +693,8 @@ export default {
     },
     async handleAccountChange(addressInfo) {
       this.showLoading = true;
+      this.transFromAddress = getConnectedAddress()
+      await this.getCurrentAccountType()
       await this.getTokenAssetsForAccount()
       this.showLoading = false;
     },
@@ -701,6 +703,20 @@ export default {
       this.defaultNetWork = chainInfo.id
       this.defaultIcon = chainInfo.icon
       this.handleNetworkChange({value:{id:chainInfo.id}}, true)
+    },
+    getCurrentAccountType() {
+      const userId = getFromStorage('gUID')
+      if (userId) {
+        const userMap = getInfoFromStorageByKey('userMap');
+        const userData = userMap && userMap[userId]
+        if (userData['walletAddress']) {
+          this.transFromType = 2
+        } else {
+          this.transFromType = 1
+        }
+      } else {
+        this.transFromType = 1
+      }
     },
   },
   async created() {
@@ -718,6 +734,7 @@ export default {
     } else {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
+    this.getCurrentAccountType()
     await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
   },
   async mounted() {
