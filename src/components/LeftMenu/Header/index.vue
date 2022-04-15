@@ -21,7 +21,7 @@
                   <ul v-if="ownWalletList.length>0">
                     <li :class="[{'active': item.wallet_address===currentshowAddress}]" v-for="(item,index) in ownWalletList" :key="index" @click.stop="changeAccount(item, 'wallet')">
                       <div class="account-text">
-                        <span @click.stop="copyAddress(item.wallet_address)">{{ `${item.wallet_address.slice(0,14)}...${item.wallet_address.slice(-4)}` }}</span>
+                        <span>{{ `${item.wallet_address.slice(0,14)}...${item.wallet_address.slice(-4)}` }}</span>
                         <span class="account-text-banlance">￥{{ item.balance ? item.balance : '- - -'  }}</span>
                       </div>
                       <div class="account-more-box">
@@ -29,14 +29,18 @@
                           key="leftMorePopover"
                           close-on-click-outside
                           :overlay="true"
-                          :get-container="getMoreContainer"
+                          :get-container="getContainer"
                           v-model="showAccountMorePopover[item.wallet_address]"
                          placement="bottom-start">
                           <div class="account-more-list">
                             <ul>
                               <li class="account-more-address">{{item.wallet_address}}</li>
-                              <li><i class="el-icon-document-copy more-pop-icon"  @click.stop="copyAddress(item.wallet_address)"></i>复制地址</li>
-                              <li class="redColor"><i class="el-icon-remove-outline more-pop-icon"></i>断开</li>
+                              <li @click.stop="copyAddress(item.wallet_address)">
+                                <i class="el-icon-document-copy more-pop-icon"></i>Copy Address
+                              </li>
+                              <!-- <li class="redColor">
+                                <i class="el-icon-remove-outline more-pop-icon"></i>断开
+                              </li> -->
                             </ul>
                           </div>
                           <template #reference>
@@ -60,7 +64,7 @@
                 <ul class="accountlist" v-if="currentUserAddress||gUName">
                   <li :class="[{'active': item.address===currentshowAddress}]" v-for="(item,index) in userList" :key="index" @click.stop="changeAccount(item, 'user')">
                     <div class="account-text">
-                      <span @click.stop="copyAddress(item.address)">{{ `${item.address.slice(0,14)}...${item.address.slice(-4)}` }}</span>
+                      <span>{{ `${item.address.slice(0,14)}...${item.address.slice(-4)}` }}</span>
                       <span class="account-text-banlance">￥{{ item.balance ? item.balance : '- - -'  }}</span>
                     </div>
                     <div class="account-more-box">
@@ -68,12 +72,20 @@
                         key="leftMorePopover"
                         close-on-click-outside
                         :overlay="true"
-                        :get-container="getMoreContainer"
+                        :get-container="getContainer"
                         v-model="showAccountMorePopover[item.address]"
                         trigger="click"
                         placement="bottom-start">
                         <div class="account-more-list">
-                          fuzhi
+                          <ul>
+                            <li class="account-more-address">{{item.address}}</li>
+                            <li @click.stop="copyAddress(item.address)">
+                              <i class="el-icon-document-copy more-pop-icon"></i>Copy Address
+                            </li>
+                            <!-- <li class="redColor">
+                              <i class="el-icon-remove-outline more-pop-icon"></i>断开
+                            </li> -->
+                          </ul>
                         </div>
                         <template #reference>
                           <span class="account-more" @click.stop="accountMore(item.address)" :id="'more-' + item.address">...</span>

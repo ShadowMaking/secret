@@ -64,163 +64,11 @@
     cursor: pointer;
   }
 }
-.common-header{
-  color: #236BFB;
-  background: #fff;
-  height: 44px;
-  font-size: 1rem;
-  border-bottom: 1px solid #fafafa;
-  .header-left {
-    cursor: pointer;
-    color: #333;
-    font-family: PingFangSC-Regular, PingFang SC;
-    font-weight: 400;
-    font-size: 1.0625rem;
-    display: flex;
-    .back-icon { margin-right: 5px;}
-  }
-  .header-right {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    .account{
-      display: block;
-      width: 25px;
-      height: 25px;
-      border-radius: 50%;
-      background: #607d8b;
-      margin-left: 10px;
-    }
-  }
-  .logo {
-    width: 123px;
-    height: 26px;
-  }
-  .header-address {
-    cursor: pointer;
-    color: #343399;
-    background: #EAEAF4;
-    border-radius: 0.875rem;
-    padding: 5px 10px;
-    font-size: .9375rem;
-    i.link-icon{
-      background: url("~@/assets/icon_link_blue.png") center center no-repeat;
-      background-size: 100% 100%;
-    }
-  }
-  .link-icon {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    vertical-align: middle;
-    margin: 0 5px;
-  }
-  .linkWallet {
-    color: #236BFB; vertical-align: middle; display: inline-block; margin-top: 2px;
-    background: #F7F8F8;
-    font-size: .9375rem;
-    border-radius: 14px;
-    padding: 5px 10px;
-    color: #333333;
-    font-family: PingFangSC-Regular, PingFang SC;
-    font-weight: 400;
-    i.link-icon{
-      background: url("~@/assets/icon_link_black.png") center center no-repeat;
-      background-size: 100% 100%;
-    }
-  }
-  .icon {
-    width: 20px;
-    height: 20px;
-    vertical-align: middle;
-  }
-  .night {
-    background: url("~@/assets/icon_night.png") center center no-repeat;
-    background-size: 100% 100%;
-    margin: 0 15px;
-  }
-  .language {
-    background: url("~@/assets/icon_language.png") center center no-repeat;
-    background-size: 100% 100%;
-  }
-}
+
 
 #header{
   ::v-deep.van-overlay{
     background-color: transparent;
-  }
-}
-
-.choose-wallet-popup {
-  min-height: 154px;
-  .choose-wallet {
-    font-size: 1.25rem;
-    color: #333333;
-    i {
-      width: 21px;
-      height: 21px;
-      display: inline-block;
-      background: url('~@/assets/metamask.svg') center center no-repeat;
-      background-size: 100% 100%;
-      vertical-align: middle;
-      margin-right: 15px;
-    }
-  }
-}
-
-.show-accrout-address-popup {
-  width: 100%;
-  min-width: 300px;
-  background: #FFFFFF;
-  border-radius: 20px 20px 0 0;
-  // padding: rem(10);
-  padding: 10px;
-  .header{
-    margin-bottom: 10px;
-    padding: 0 10px;
-    h3 {
-      font-size: 1.25rem;
-      color: #333;
-    }
-  }
-  .inner-wraper {
-    background: #fafafa;
-    padding: 15px 10px;
-    border-radius: 8px;
-    font-size: .9375rem;
-    color: #606265;
-    .address {
-      color: #333;
-      margin: 20px 0;
-      font-size: 1rem;
-      line-height: 24px;
-    }
-    a{
-      color: #606265;
-    }
-    a.disconnect{
-      padding: 5px;
-      background: #E4E6F5;
-      color: #495ABE;
-      font-size: .75rem;
-      border-radius: 8px;
-    }
-    .a-icon {
-      display: inline-block;
-      width: 15px;
-      height: 15px;
-      vertical-align: middle;
-      margin-right: 5px;
-    }
-    .copy-a { margin-right: 15px;}
-    .copy-a i {
-      background: url("~@/assets/icon_copy.png") center center no-repeat;
-      background-size: 100% 100%;
-    }
-    .view-in-explorer-a i {
-      background: url("~@/assets/icon_out.png") center center no-repeat;
-      background-size: 100% 100%;
-    }
   }
 }
 
@@ -294,22 +142,6 @@
       .account-more:hover {
         background-color: #EFF0F2;
       }
-      .account-more-list {
-        width: 200px;
-        background-color: #fff;
-        border-radius: 6px;
-        padding: 5px 10px;
-        li+li {
-          border-top: 1px solid #E6E7E9;
-        }
-        .account-more-address {
-          color: #727177;
-          font-size: 14px;
-        }
-        .more-pop-icon {
-          margin-right: 10px;
-        }
-      }
     }
     li.active{
       .account-text {
@@ -357,5 +189,26 @@
   .logo-metamsk {
     background: url('~@/assets/metamask.png') center center no-repeat;
     background-size: 100% 100%;
+  }
+}
+.account-more-list {
+  width: 200px;
+  background-color: #fff;
+  border-radius: 6px;
+  padding: 15px;
+  li {
+    padding: 10px 0px;
+    cursor: pointer;
+  }
+  li+li {
+    border-top: 1px solid #E6E7E9;
+  }
+  .account-more-address {
+    color: #727177;
+    font-size: 14px;
+  }
+  .more-pop-icon {
+    margin-right: 10px;
+    font-size: 0.92rem;
   }
 }
