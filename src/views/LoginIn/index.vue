@@ -5,14 +5,14 @@
       <div class="connect-type-warp">
         <ul class="connect-type-list">
           <li class="connect-type-item">
-            <p class="connect-type-title">连接Google Account</p>
+            <p class="connect-type-title">Connect Google Account</p>
             <div class="connect-item-btn" @click="login('google')">
               <i class="login-icon logo-google"></i>
               <span>Google Account</span>
             </div>
           </li>
           <li class="connect-type-item">
-            <p class="connect-type-title">连接钱包</p>
+            <p class="connect-type-title">Connect Metamask</p>
             <div class="connect-item-btn" @click="login('metamask')">
               <i class="login-icon logo-metamsk"></i>
               <span>MetaMask</span>

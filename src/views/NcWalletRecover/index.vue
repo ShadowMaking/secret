@@ -337,7 +337,7 @@ export default {
       Toast('Need Login')
       return
     }
-    this.getIsShowPwd()
+    this.getIsHasRecoverWallet()
   },
   mounted() {
     this.$eventBus.$on('changeAccout', this.handleAccountChange)

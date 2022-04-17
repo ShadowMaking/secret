@@ -1,5 +1,6 @@
 <template>
   <div class="approval-box">
+    <v-navTitle title="Approval"></v-navTitle >
     <div class="tag-list">
       <span 
       v-for="(item, index) in netWorkList"
@@ -59,6 +60,7 @@ import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import None from '@/components/None/index'
 import VLoading from '@/components/Loading'
 import InputPswModal from '@/components/InputPswModal'
+import navTitle from '@/components/NavTitle/index'
 import { Popup, Toast, Loading } from 'vant';
 import { TRANSACTION_TYPE } from '@/api/transaction'
 import { generateTokenList, getConnectedAddress, getContractAt, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getIsCanTransaction, getEstimateGas, getConnectedUserAddress } from '@/utils/dashBoardTools';
@@ -111,6 +113,7 @@ export default {
     'v-loading': VLoading,
     'v-approveModal': ApproveModal,
     'v-inputPsw': InputPswModal,
+    "v-navTitle": navTitle,
   },
   computed: {
     getTokenName() {

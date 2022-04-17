@@ -27,6 +27,8 @@ const CreateAccount = () => import('../views/CreateAccount/index')
 const ExportAccount = () => import('../views/ExportAccount/index')
 const ChooseFriends = () => import('../views/SocailSendEmail/ChooseFriends')
 const LoginIn = () => import('../views/LoginIn/index')
+const Approval = () => import('../views/OverView/Approval/index')
+const NcWalletSetting = () => import('../views/NcWalletSetting/index')
 // cache origin push method
 const originalPush = VueRouter.prototype.push
 const originalReplace = VueRouter.prototype.replace
@@ -280,6 +282,22 @@ const routes = [
       title: "loginIn",
     },
     component: LoginIn,
+  },
+  {
+    path: '/approval',
+    name: 'approval',
+    meta: {
+      title: "approval",
+    },
+    component: Approval,
+  },
+  {
+    path: '/ncWalletSetting',
+    name: 'ncWalletSetting',
+    meta: {
+      title: "ncWalletSetting",
+    },
+    component: NcWalletSetting,
   },
 ];
 

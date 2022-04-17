@@ -2,6 +2,9 @@
 .header-right .van-popover__wrapper {
   width: 100%;
 }
+.header-right {
+  padding: 0 1rem;
+}
 .account-header-login-out {
   text-align: center;
   .account-logo img{
@@ -32,7 +35,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem ;
+  padding: 1rem 0rem;
   .account-info-left {
     display: flex;
     align-items: center;

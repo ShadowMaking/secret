@@ -22,10 +22,10 @@
       </div>
       <div class="left-menu-item-for-hasSub">
         <van-collapse v-model="activeNames" v-for="(item, index) in multiMenuData" :key="index">
-          <van-collapse-item :name="item.name" class="item">
+          <van-collapse-item :name="item.name" class="item" v-if="!(currentAccountType == 2 && item.name == 'Tools')">
             <template #title><div><label style="font-size: 20px"><i :class="item.icon" size="60px"></i></label>{{ item.name }}</div></template>
             <div v-for="(_item, index) in item.subMenu" :key="index" :class="['item-menu', {'active': `${index}-${_item.route}` == activeKey}]"  @click="_changeMenu(index, _item.route, 'activeKey')">
-              <router-link :to="_item.route"><span>{{ _item.name }}</span></router-link>
+              <router-link :to="_item.route" v-if="!(currentAccountType == 1 && _item.name == 'Security Setting')"><span>{{ _item.name }}</span></router-link>
             </div>
           </van-collapse-item>
         </van-collapse>
@@ -124,18 +124,23 @@ export default {
           {icon: 'el-icon-document', name: 'Recover Account', route: '/srecovery'},
           {icon: 'el-icon-s-custom', name: 'Co-workers', route: '/addfriends'},
         ]},
+        {icon: 'el-icon-suitcase-1', name: 'Activity', subMenu: [
+          // {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
+          {icon: 'el-icon-document', name: 'History', route: '/history'},
+          {icon: 'el-icon-s-custom', name: 'Approval', route: '/approval'},
+        ]},
         {
           icon: 'el-icon-collection', 
-          name: 'Multisig Wallet', 
+          name: 'Security', 
           // route: '/ncWalletList',
           subMenu: [{
             icon: 'el-icon-bank-card', 
-            name: 'My Wallet', 
+            name: 'Guardians', 
             route: '/ncWalletList',
           },{
             icon: 'el-icon-document-add', 
-            name: 'Create Wallet', 
-            route: '/ncWalletCreate',
+            name: 'Security Setting', 
+            route: '/ncWalletSetting',
           },{
             icon: 'el-icon-sell', 
             name: 'Recover Wallet', 
@@ -148,8 +153,8 @@ export default {
       defaultIcon: null,
       netWorkList: [],
 
-      activeNames: ['Tools', 'Multisig Wallet'],
-      currentAddress: '',
+      activeNames: ['Activity', 'Security'],
+      currentAccountType: 1, //1-account address ,2-wallet address
     }
   },
   components: {
@@ -159,12 +164,14 @@ export default {
   mounted() {
     this.defaultNetWork = this.getDefaultNetWork()
     this.$eventBus.$on('networkChange', this._handleNetworkChange)
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
     this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
     this.netWorkList.map(item => {
       if (item.id == this.defaultNetWork) {
         this.defaultIcon = item.icon
       }
     })
+    this.getCurrentAccountType()
 
     this.screenWidth = document.body.clientWidth
     window.onresize = () => {
@@ -218,6 +225,21 @@ export default {
       if (from === 'leftMenu') { return }
       this.defaultNetWork = chainInfo.id
       this.defaultIcon = chainInfo.icon
+    },
+    handleAccountChange(addressInfo) {
+      this.getCurrentAccountType()
+    },
+    getCurrentAccountType() {
+      const userId = getFromStorage('gUID')
+      if (userId) {
+        const userMap = getInfoFromStorageByKey('userMap');
+        const userData = userMap && userMap[userId]
+        if (userData['walletAddress']) {
+          this.currentAccountType = 2
+        } else {
+          this.currentAccountType = 1
+        }
+      }
     },
   },
 };

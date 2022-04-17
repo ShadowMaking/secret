@@ -227,6 +227,22 @@ export const getConnectedAddress = (byMetamask=false) => {
   return ''
 }
 
+export const getConnectedAccountType = () => {
+  const userId = getFromStorage('gUID')
+  if (userId) {
+    const userMap = getInfoFromStorageByKey('userMap');
+    const userData = userMap && userMap[userId]
+    if (userData && userData['walletAddress']) {
+      return 'wallet'
+    } else if (userData && userData['address']) {
+      return 'normal'
+    } else {
+       return ''
+    }
+  }
+  return ''
+}
+
 export const getConnectedNet = (byMetamask=false) => {
   const chainInfo = getInfoFromStorageByKey('netInfo')
   const numberChainId = chainInfo && chainInfo['id'] || 1

@@ -4,7 +4,7 @@
       
       <div class="header-right">
         <div v-show="showConnectWallet">
-          <div v-if="currentUserAddress!==''" >
+          <div v-if="currentUserAddress!==''">
             <van-popover
               key="leftloginPopover"
               close-on-click-outside
@@ -15,14 +15,14 @@
               placement="bottom-start">
               <div class="account-popover">
                 <div class="van-hairline--bottom account-header">
-                  <span>My Wallet</span>
+                  <span>Multisig Wallet</span>
                 </div>
                 <div class="accountlist" v-if="currentUserAddress||gUName">
                   <ul v-if="ownWalletList.length>0">
                     <li :class="[{'active': item.wallet_address===currentshowAddress}]" v-for="(item,index) in ownWalletList" :key="index" @click.stop="changeAccount(item, 'wallet')">
                       <div class="account-text">
                         <span>{{ `${item.wallet_address.slice(0,14)}...${item.wallet_address.slice(-4)}` }}</span>
-                        <span class="account-text-banlance">￥{{ item.balance ? item.balance : '- - -'  }}</span>
+                        <span class="account-text-banlance">${{ item.balance ? item.balance : '- - -'  }}</span>
                       </div>
                       <div class="account-more-box">
                         <van-popover
@@ -65,7 +65,7 @@
                   <li :class="[{'active': item.address===currentshowAddress}]" v-for="(item,index) in userList" :key="index" @click.stop="changeAccount(item, 'user')">
                     <div class="account-text">
                       <span>{{ `${item.address.slice(0,14)}...${item.address.slice(-4)}` }}</span>
-                      <span class="account-text-banlance">￥{{ item.balance ? item.balance : '- - -'  }}</span>
+                      <span class="account-text-banlance">${{ item.balance ? item.balance : '- - -'  }}</span>
                     </div>
                     <div class="account-more-box">
                       <van-popover
@@ -126,7 +126,7 @@
                     <img src="~@/assets/icon_logo.png">
                     <div class="account-info-address">
                       <p>{{currentshowAddress}}</p>
-                      <p class="account-info-balance">￥{{currentBalance}}</p>
+                      <p class="account-info-balance">${{currentBalance}}</p>
                     </div>
                   </div>
                   <div class="account-info-right">
@@ -140,9 +140,9 @@
           <div slot="right" v-else >
             <div class="account-header-login-out">
               <p class="account-logo"><img src="~@/assets/icon_logo.png"></p>
-              <p class="account-weclome">欢迎来到Eigen</p>
-              <p class="account-manage-txt">登录Eigen账号以管理你的资产</p>
-              <p class="account-login common-primary-btn" @click="loginIn"><el-button type="primary">登录账号</el-button></p>
+              <p class="account-weclome">Welcome onboard Eigen</p>
+              <p class="account-manage-txt">Manage your asset safely and privately</p>
+              <p class="account-login common-primary-btn" @click="loginIn"><el-button type="primary">Login</el-button></p>
             </div>
           </div>
         </div>
@@ -477,6 +477,10 @@ export default {
       const balanceString = await getBalanceByAddress(address)
       return balanceString
     },
+    _handleNetworkChange({ chainInfo, from }) {
+      const userId  = getInfoFromStorageByKey('gUID')
+      this.getWalletAsOwner(userId)
+    },
   },
   async mounted() {
     await this.setInitData();
@@ -488,6 +492,7 @@ export default {
     this.$eventBus.$on('disconnect', this.handleDisconnect);
     this.$eventBus.$on('BindingUserInfoAferThirdLogin', this.handleBindingUserInfoAferThirdLogin);
     this.$eventBus.$on('BindingWalletAferCreateWallet', this.handleWalletAferCreateWallet);
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
   },
 };
 </script>

@@ -150,7 +150,7 @@ export default {
 
       currentClickType: 'setName',//setName createSubmit
       createWalletAddress: '',
-      lasetTimes: 30,
+      lasetTimes: 180,
       
     
       // ***************** inputPsw start ***************** //
@@ -247,7 +247,7 @@ export default {
             this.showResultModal = false
             this.storeProxyInfo(tx.hash)
             window.clearInterval(this.thisTimer)
-            this.lasetTimes = 30
+            this.lasetTimes = 180
             this.createPage1Visible = false
             this.createPage2Visible = true
           })
@@ -349,7 +349,7 @@ export default {
           this.createWallet(this.createWalletAddress, tx.hash)
           addTransHistory(tx, 'Initialize Wallet', this)
           window.clearInterval(this.thisTimer)
-          this.lasetTimes = 30
+          this.lasetTimes = 180
           this.$eventBus.$emit('BindingWalletAferCreateWallet')
           tx.wait().then(async res => {
             console.log('Create:', res)
@@ -383,7 +383,7 @@ export default {
       }
     },
     showSetp2Success() {
-      this.resuletContent = 'Submitted Successfully!'
+      this.resuletContent = 'Eigen Multisig Wallet Creat Successfully!'
       this.showResultModal = true
       this.needBtnConfirm = true
       this.confirmText = 'Confirm'
@@ -552,7 +552,7 @@ export default {
           this.lasetTimes -= 1
           this.resuletContent = `Waiting <span class="blueColor">${this.lasetTimes}s</span> for transaction confirming`
         } else {
-          this.lasetTimes = 30
+          this.lasetTimes = 180
         }
       }, 1000)
     },
