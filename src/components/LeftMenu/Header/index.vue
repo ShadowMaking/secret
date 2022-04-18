@@ -126,7 +126,7 @@
                     <img src="~@/assets/icon_logo.png">
                     <div class="account-info-address">
                       <p>{{currentshowAddress}}</p>
-                      <p class="account-info-balance">${{currentBalance}}</p>
+                      <p class="account-info-balance">${{currentBalance.slice(0,6)}}</p>
                     </div>
                   </div>
                   <div class="account-info-right">
