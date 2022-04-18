@@ -392,7 +392,7 @@ export default {
 
       const selectedConnectAddress = getConnectedAddress()
       if (!selectedConnectAddress) {
-        Toast('Need Login')
+        Toast('Please Login')
         return
       }
 
@@ -739,7 +739,7 @@ export default {
   },
   async mounted() {
     if (!isLogin()) {
-      Toast('Need Login')
+      Toast('Please Login')
       return
     }
     this.$eventBus.$on('networkChange', this._handleNetworkChange)

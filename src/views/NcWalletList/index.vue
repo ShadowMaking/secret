@@ -168,7 +168,7 @@ export default {
   },
   created() {
     if (!isLogin()) {
-      Toast('Need Login')
+      Toast('Please Login')
       return
     }
     this.getWalletAsOwner()

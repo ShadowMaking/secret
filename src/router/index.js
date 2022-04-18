@@ -29,6 +29,7 @@ const ChooseFriends = () => import('../views/SocailSendEmail/ChooseFriends')
 const LoginIn = () => import('../views/LoginIn/index')
 const Approval = () => import('../views/OverView/Approval/index')
 const NcWalletSetting = () => import('../views/NcWalletSetting/index')
+const NcWalletSigner = () => import('../views/NcWalletSigner/index')
 // cache origin push method
 const originalPush = VueRouter.prototype.push
 const originalReplace = VueRouter.prototype.replace
@@ -298,6 +299,14 @@ const routes = [
       title: "ncWalletSetting",
     },
     component: NcWalletSetting,
+  },
+  {
+    path: '/ncWalletSigner',
+    name: 'ncWalletSigner',
+    meta: {
+      title: "ncWalletSigner",
+    },
+    component: NcWalletSigner,
   },
 ];
 

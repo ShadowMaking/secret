@@ -120,7 +120,7 @@ export default {
     confirmRecoveryType() {
       if (!this.thirdUserId) {
         this.showThirdLoginTip = true
-        console.log('need login')
+        console.log('Please Login')
         return
       }
       const mnemonic = getFromStorage('mnemonic')

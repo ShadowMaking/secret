@@ -489,7 +489,7 @@ export default {
   },
   async created() {
     if (!isLogin()) {
-      Toast('Need Login')
+      Toast('Please Login')
       return
     }
     this.defaultNetWork = this.getDefaultNetWork()

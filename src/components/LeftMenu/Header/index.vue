@@ -21,8 +21,8 @@
                   <ul v-if="ownWalletList.length>0">
                     <li :class="[{'active': item.wallet_address===currentshowAddress}]" v-for="(item,index) in ownWalletList" :key="index" @click.stop="changeAccount(item, 'wallet')">
                       <div class="account-text">
-                        <span>{{ `${item.wallet_address.slice(0,14)}...${item.wallet_address.slice(-4)}` }}</span>
-                        <span class="account-text-banlance">${{ item.balance ? item.balance : '- - -'  }}</span>
+                        <span class="wallet-account-name">{{item.name}}-{{ `${item.wallet_address}` }}</span>
+                        <span class="account-text-banlance">${{ item.balance ? item.balance.slice(0,6) : '- - -'  }}</span>
                       </div>
                       <div class="account-more-box">
                         <van-popover
@@ -65,7 +65,7 @@
                   <li :class="[{'active': item.address===currentshowAddress}]" v-for="(item,index) in userList" :key="index" @click.stop="changeAccount(item, 'user')">
                     <div class="account-text">
                       <span>{{ `${item.address.slice(0,14)}...${item.address.slice(-4)}` }}</span>
-                      <span class="account-text-banlance">${{ item.balance ? item.balance : '- - -'  }}</span>
+                      <span class="account-text-banlance">${{ item.balance ? item.balance.slice(0,6) : '- - -'  }}</span>
                     </div>
                     <div class="account-more-box">
                       <van-popover
@@ -141,7 +141,7 @@
             <div class="account-header-login-out">
               <p class="account-logo"><img src="~@/assets/icon_logo.png"></p>
               <p class="account-weclome">Welcome onboard Eigen</p>
-              <p class="account-manage-txt">Manage your asset safely and privately</p>
+              <!-- <p class="account-manage-txt">Manage your asset safely and privately</p> -->
               <p class="account-login common-primary-btn" @click="loginIn"><el-button type="primary">Login</el-button></p>
             </div>
           </div>

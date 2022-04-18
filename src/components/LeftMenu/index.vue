@@ -135,8 +135,8 @@ export default {
           // route: '/ncWalletList',
           subMenu: [{
             icon: 'el-icon-bank-card', 
-            name: 'Guardians', 
-            route: '/ncWalletList',
+            name: 'Signers', 
+            route: '/NcWalletList',
           },{
             icon: 'el-icon-document-add', 
             name: 'Security Setting', 

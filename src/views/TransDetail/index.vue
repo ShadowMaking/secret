@@ -568,7 +568,7 @@ export default {
   async created() {
     this.defaultNetWork = this.getDefaultNetWork()
     if (!isLogin()) {
-      Toast('Need Login')
+      Toast('Please Login')
       return
     }
     const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')

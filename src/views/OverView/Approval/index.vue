@@ -265,7 +265,7 @@ export default {
     thirdLogin() {
       const userId = this.userId
       if (!userId) {
-        Toast('You need Login')
+        Toast('Please Login')
         console.log('can detect userID after third login') 
         return false
       }

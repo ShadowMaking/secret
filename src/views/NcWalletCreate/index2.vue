@@ -334,7 +334,7 @@ export default {
         return false
       }
       if (!this.userId) {
-        Toast.fail('Need Login')
+        Toast.fail('Please Login')
         return false
       }
       if (this.createSignerSubmit.length == 0) {
@@ -409,7 +409,7 @@ export default {
   async created() {
     this.defaultNetWork = this.getDefaultNetWork()
     if (!isLogin()) {
-      Toast('Need Login')
+      Toast('Please Login')
       return
     }
     const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')

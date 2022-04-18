@@ -265,7 +265,7 @@ export default {
     async addFriend() {
       if (!this.thirdUserId) {
         this.showThirdLoginTip = true
-        console.log('need login')
+        console.log('Please Login')
         return
       }
       this.addIsLoading = true;

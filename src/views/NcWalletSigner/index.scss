@@ -1,0 +1,35 @@
+@import '@/app.scss';
+.ncWallet-setting-page {
+  .page-section-border {
+    max-width: 650px;
+    margin-bottom: 20px;
+    .setting-title {
+      font-size: 1.08rem;
+      font-weight: bold;
+    }
+    .setting-list {
+      margin-top: 20px;
+      .setting-item {
+        line-height: 30px;
+        margin-top: 10px;
+        label {
+          display: inline-block;
+          width: 180px;
+          color: #727177;
+          font-size: 0.96rem;
+        }
+        input {
+          max-width: 430px;
+          width: 90%;
+          border: 1px solid #E6E7E8;
+          border-radius: 10px;
+          padding: 0 10px;
+        }
+      }
+    }
+    .setting-set{
+      margin-top: 30px;
+      text-align: center;
+    } 
+  }
+}

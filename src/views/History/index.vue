@@ -159,7 +159,7 @@ export default {
   },
   mounted() {
     if (!isLogin()) {
-      Toast('Need Login')
+      Toast('Please Login')
       return
     }
     this.$eventBus.$on('changeAccout', this.handleAccountChange)

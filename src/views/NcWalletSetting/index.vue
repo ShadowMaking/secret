@@ -1,16 +1,16 @@
 <template>
   <div class="ncWallet-setting-page">
-    <v-navTitle title="Create Eigen Multi-Signature Wallet Setting"></v-navTitle>
+    <v-navTitle title="Security Setting"></v-navTitle>
     <div class="page-section-border payment-limit-box">
       <p class="setting-title">Payment Limit</p>
       <div class="setting-list">
         <div class="setting-item">
           <label>Max Per Day</label>
-          <input type="number" v-model="maxPerDay">
+          <input type="number" v-model="maxPerDay" :disabled="setDiabled">
         </div>
         <div class="setting-item">
           <label>Max Per Transaction</label>
-          <input type="number" v-model="maxPerTransaction">
+          <input type="number" v-model="maxPerTransaction" :disabled="setDiabled">
         </div>
       </div>
       <div class="setting-set">
@@ -18,15 +18,15 @@
       </div>
     </div>
     <div class="page-section-border security-setting-box">
-      <p class="setting-title">Security Setting</p>
+      <p class="setting-title">Expiry</p>
       <div class="setting-list">
         <div class="setting-item">
           <label>Lock Expiry</label>
-          <input type="number" v-model="lockExpiry">
+          <input type="number" v-model="lockExpiry" :disabled="setDiabled">
         </div>
         <div class="setting-item">
           <label>Recovery Expiry</label>
-          <input type="number" v-model="recoveryExpiry">
+          <input type="number" v-model="recoveryExpiry" :disabled="setDiabled">
         </div>
       </div>
       <div class="setting-set">
@@ -368,7 +368,7 @@ export default {
   },
   async created() {
     if (!isLogin()) {
-      Toast('Need Login')
+      Toast('Please Login')
       return
     }
     this.defaultNetWork = this.getDefaultNetWork()

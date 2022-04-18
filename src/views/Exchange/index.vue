@@ -715,7 +715,7 @@ export default {
       //   return 
       // }
       if (!isLogin()) {
-        Toast('Need Login')
+        Toast('Please Login')
         return
       }
       if(!this.connectedWallet()) { return }
@@ -909,7 +909,7 @@ export default {
     },
     async exchangeSubmit() {
       // if (this.currentProtocolType === 'v3') { Toast('Comming Soon'); return; }
-      if (!isLogin()) { Toast('Need Login'); return; }
+      if (!isLogin()) { Toast('Please Login'); return; }
       if(!this.connectedWallet()) { return; }
       if (!this.hasBalance()) {
         Toast('Not Enough ETH')
@@ -1266,7 +1266,7 @@ export default {
   },
   async mounted() {
      if (!isLogin()) {
-      Toast('Need Login')
+      Toast('Please Login')
       return
     }
     this.$eventBus.$on('networkChange', this._handleNetworkChange)
