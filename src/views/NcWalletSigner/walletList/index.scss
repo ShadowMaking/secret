@@ -1,0 +1,120 @@
+.tab-des {
+  font-size: 0.96rem;
+  color: #9D9FA8;
+  line-height: 25px;
+  padding: 10px 20px;
+}
+.tab-content-list {
+  margin-top: 20px;
+  .tab-content-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #dfdfdf;
+    padding-bottom:10px;
+  }
+  .tab-item-left {
+    .tab-item-left-top {
+      display: flex;
+      align-items:center;
+    }
+    .tab-item-left-bottom {
+      font-size: 0.96rem;
+      margin-top: 15px;
+    }
+  }
+  .tab-item-right {
+    .tab-item-tight-top {
+      text-align: center;
+      margin-bottom: 20px;
+      margin-top:10px;
+    }
+    ::v-deep .tab-item-right-btn .el-button {
+      width: 7.2rem;
+      height: 30px;
+      border-radius: 40px;
+    }
+    .tab-item-right-detail {
+      cursor: pointer;
+    }
+    .tab-item-right-icon {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      background-color: #4375f1;
+      margin-left: 2rem;
+    }
+  }
+}
+.wallet-list-page {
+  ::v-deep .el-dialog {
+    border-radius: 8px;
+    width: 80%;
+    max-width: 400px;
+  }
+  .detail-top {
+    display: flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 10px 30px;
+  }
+  .detail-top-left {
+    display: flex;
+    align-items:center;
+  }
+  .tab-item-left-img img {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  .tab-item-left-name {
+    font-size: 0.96rem;
+    font-weight: bold;
+  }
+  .tab-item-left-address {
+    color: #6a737d;
+    font-size: 0.84rem;
+    margin-top: 2px;
+  }
+  ::v-deep .detail-top-right .el-button {
+    width: 7.2rem;
+    height: 30px;
+    border-radius: 5px;
+  }
+  ::v-deep .el-dialog__body {
+    padding: 0px;
+  }
+  .detail-middle {
+    border-top: 1px solid #e6e7e9;
+    border-bottom: 1px solid #e6e7e9;
+    padding: 20px;
+    margin-top: 10px;
+    line-height: 20px;
+    font-size:0.84rem;
+  }
+  .detail-bottom {
+    padding:20px;
+    .detail-item {
+      display:flex;
+      justify-content: space-between;
+      line-height: 30px;
+      span {
+        color: #9D9FA8;
+      }
+    }
+  }
+  .check-modal-content {
+    padding: 20px;
+  }
+  ::v-deep .check-modal-content .el-button {
+    width: 10rem;
+    height: 35px;
+    border-radius: 5px;
+  }
+  .btn-item {
+    text-align:center;
+    margin-bottom: 10px;
+  }
+}

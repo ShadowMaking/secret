@@ -136,7 +136,7 @@ export default {
           subMenu: [{
             icon: 'el-icon-bank-card', 
             name: 'Signers', 
-            route: '/NcWalletList',
+            route: '/NcWalletSigner',
           },{
             icon: 'el-icon-document-add', 
             name: 'Security Setting', 

@@ -1,14 +1,14 @@
 <template>
   <div class="approval-box">
     <v-navTitle title="Approval"></v-navTitle >
-    <div class="tag-list">
+    <!-- <div class="tag-list">
       <span 
       v-for="(item, index) in netWorkList"
       :key="index"
       :class="['tag-item', defaultNetWork == item.id ? 'active' : '']"
       @click="changetTag(item.id)"
       >{{item.chainName}}</span>
-    </div>
+    </div> -->
     <div class="approval-list">
       <el-row class="list-header">
         <el-col :span="4" class="list-header-item">Approved Time</el-col>
@@ -360,10 +360,20 @@ export default {
       this.showInputPswModal = false
       await this.dealDataBeforeDecline()
     },
+    async _handleNetworkChange({ chainInfo, from }) {
+      if (from === 'sendMenu') { return }
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(chainInfo.id)]
+      this.showLoading = true;
+      this.approvalList = []
+      this.myTokeList = []
+      await this.getTokenList()
+      await this.getApprovalList()
+    },
   },
   async created (){
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
-    this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
+    // this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
     // window.ethereum && (this.defaultNetWork = web3.utils.hexToNumber(window.ethereum.chainId))
     // window.ethereum && window.ethereum.selectedAddress && (this.userAddress = (window.ethereum.selectedAddress).toLowerCase());
     const selectedConnectAddress = getConnectedAddress()

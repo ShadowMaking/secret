@@ -380,9 +380,11 @@ export default {
       const encryptPrivateKey = addressInfo.encryptPrivateKey
       if (this.currentAccountType == 'user') {
         await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, address })
+        removeFromStorage(['currentWalletInfo'])
       } else {
         const walletAddress = record.wallet_address
         await this.$store.dispatch('StoreBindingGoogleUserInfo', { userId, encryptPrivateKey, address, walletAddress })
+        saveToStorage({ 'currentWalletInfo': record })
       }
       await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey: encryptPrivateKey, privateKey })
       this.$eventBus.$emit('changeAccout', addressInfo)

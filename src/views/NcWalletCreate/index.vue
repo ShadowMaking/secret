@@ -300,7 +300,7 @@ export default {
     confirmResultModal() {
       if (this.resultStatus == 'success') {
         this.showResultModal = false
-        this.$router.push({ name: 'ncWalletList' })
+        this.$router.push({ name: 'history' })
       } else {//retry
         this.showResultModal = false
         this.createSignerSubmit = []
@@ -312,7 +312,7 @@ export default {
     },
     cancelResultModal() {
       this.showResultModal = false
-      this.$router.push({ name: 'ncWalletList' })
+      this.$router.push({ name: 'history' })
     },
     // ***************** confirm result model end ***************** //
 

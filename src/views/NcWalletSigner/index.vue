@@ -1,46 +1,48 @@
 <template>
-  <div class="ncWallet-setting-page">
+  <div class="ncWallet-signer-page">
     <v-navTitle title="Signers"></v-navTitle>
-    <div class="page-section-border payment-limit-box">
-      
+    <div class="page-section-border">
+      <van-tabs color="#4375f1" title-active-color="#4375f1" line-width="50%" :before-change="beforeChange">
+        <van-tab :title="tabTitle" title-style="font-weight: bold; border-bottom: 2px solid #dfdfdf;">
+          <v-signerList v-if="currentAccountType=='wallet'" :dataList="dataList" :signerPercent="signerPercent" @signerChange="getSignerList"></v-signerList>
+          <v-walletList v-if="currentAccountType=='normal'" :dataList="dataList"></v-walletList>
+          
+          <div class="no-data-container" v-if="!initShowLoading && dataList.length==0">
+            <v-none />
+          </div>
+          <v-loading v-show="initShowLoading" />
+        </van-tab>
+        <van-tab title="" title-style="border-bottom: 2px solid #dfdfdf;"></van-tab>
+      </van-tabs>
     </div>
-    <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
-    <v-confirmModal
-      :show="showTradeConfirm"
-      type="Create Wallet"
-      :metadata="sendMetadata"
-      @close="showTradeConfirm=false"
-      @reject="cancelTradeModal"
-      @confirm="confirmTradeModal" />
-    <v-loadingPopup :show="showLoading" :showSpinner="false" />
-    <v-resultModal :show="showResultModal" :content="resuletContent" :needColse="needResultColse" @confirm="confirmResultModal" @close="cancelResultModal"></v-resultModal>
   </div>
 </template>
 
 <script>
 import Vue from 'vue'
-import { Toast, Popup, Loading } from 'vant'
+import { Toast, Tab, Tabs } from 'vant'
 import { ethers } from 'ethers'
 
 import navTitle from '@/components/NavTitle/index'
-import ConfirmModal from '@/components/ConfirmModal';
-import LoadingPopup from '@/components/LoadingPopup';
-import InputPswModal from '@/components/InputPswModal'
-import resultModal from '@/components/ResultModal'
+import Loading from '@/components/Loading'
+import None from '@/components/None/index'
+import SignerList from './signerList/index'
+import WalletList from './walletList/index'
 
-import { getContractAt, getConnectedAddress, getEns, isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getBalanceByAddress, getSupportNet, getConnectedNet, initRPCProvider, getEstimateGas, getConnectedUserAddress, getConnectedAccountType, getDATACode} from '@/utils/dashBoardTools';
+import { isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore, getConnectedAccountType, getConnectedNet,
+  getConnectedAddress, getContractAt } from '@/utils/dashBoardTools';
+import { signerStatus, securityModuleRouter, lockType } from '@/utils/global';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
-import WalletJson from "@/assets/contractJSON/Wallet.json";
-import TransactionModule from "@/assets/contractJSON/TransactionModule.json";
-import { BigNumber } from "bignumber.js";
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
-import { securityModuleRouter, walletTransactionRouter, lockType, multOperation } from '@/utils/global';
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import web3 from 'web3'
 import { formatErrorContarct } from '@/utils/index'
+import { supportNetWorkForContract } from '@/utils/netWorkForToken'
 
 Vue.use(Toast);
+Vue.use(Tab);
+Vue.use(Tabs);
 
 export default {
   name: 'NC-Wallet-Recover',
@@ -48,92 +50,109 @@ export default {
     return {
       userId: getFromStorage('gUID'),
 
-      showLoading: false,
-      showTradeConfirm: false,
-
-      securityModuleRouter,
-      walletTransactionRouter,
-
-      overrides: {
-        gasLimit: 8000000,
-        gasPrice: 20000000000,//wei
-      },
       currentChainInfo: null,
-      sendMetadata: null,
       defaultNetWork: '',
       
+      initShowLoading: true,
+      dataList: [],
+      signerPercent: 0,
+      
+      tabTitle: 'who I protect',
+      currentAccountType: 'normal',
 
-      resuletContent: '',
-      needResultColse: false,
-      showResultModal: false,
-      currentTip: '',//warn next
-
-      // ***************** inputPsw start ***************** //
-      userPsw: '',
-      publicKey: '',
-      aesKey: '', // every decrypt has the same aesKey
-      encryptPsw: '',
-      encryptPrivateKeyPublicKey: '',
-      encryptCr1: '',
-      confirmPswBtnLoading: false,
-      showInputPswModal: false,
-      // ***************** inputPsw end ***************** //
+      securityModuleRouter,
+      signerStatus,
     }
   },
   components: {
     "v-navTitle": navTitle,
-    'v-confirmModal': ConfirmModal,
-    'v-loadingPopup': LoadingPopup,
-    'v-inputPsw': InputPswModal,
-    'v-resultModal': resultModal,
+    'v-loading': Loading,
+    'v-none': None,
+    'v-signerList': SignerList,
+    'v-walletList': WalletList,
   },
   methods: {
-    confirmTradeModal({ overrides }) {
-      this.overrides.gasLimit = overrides.gasLimit
-      this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
+    checkClick() {},
+    beforeChange(index) {
+      if(index == 1) {return false}
+      return true
     },
-    cancelTradeModal() {
-      this.showTradeConfirm = false
-      Toast('Cancel')
-    },
-    async confirmPswOk({ show, psw }) {
-      this.userPsw = psw; // password of user input for encrypt privateKey
-      this.confirmPswBtnLoading = true
-      const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
+    async getSignerList() {
+      const walletInfo = getInfoFromStorageByKey('currentWalletInfo')
+      const walletId = walletInfo && walletInfo['wallet_id']
+      let data = {
+        network_id: getConnectedNet().id,
+        walletId: walletId
+      }
+      const { hasError, list } = await this.$store.dispatch('getSignerList', {...data})
       if (hasError) {
-        Toast('Get PublickKey Failed! Retry')
-        this.confirmPswBtnLoading = false
+        Toast('get error')
         return
       }
-      this.publicKey = publicKey;
-      // console.log(`GetPublicKey result is: ${publicKey}`)
-      
-      // const password = ecies.crypto.randomBytes(16).toString("base64");
-      const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
-      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
-      // console.log('aesKey:', aesKey)
-      this.aesKey = aesKey
-      this.encryptPsw = encryptPsw
-      this.encryptCr1 = encryptCr1
-      // console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
-
-      // to decrypt privatekey
-      const userId = getInfoFromStorageByKey('gUID')
-      const address = getConnectedUserAddress()
-      const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
-      const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
-      if(decryptInfo.hasError) {
-        Toast('DecryptPrivateKeyByEcies failed! Retry!')
-        this.confirmPswBtnLoading = false
-        return
+      this.initShowLoading = false
+      this.dataList = list
+      const signerTotal = list.length
+      this.signerPercent = Math.ceil(signerTotal/2)
+    },
+    async getWalletAsSigner() {
+      console.log(getConnectedAddress())
+      let data = {
+        network_id: getConnectedNet().id,
+        address: getConnectedAddress(),
       }
-      const decryptedPrivateKey = decryptInfo.data
-      const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
-      privateKey && (await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey, privateKey }))
-
-      this.confirmPswBtnLoading = false
-      this.showInputPswModal = false
-      this.getWalletSetting()
+      const { hasError, list } = await this.$store.dispatch('getWalletListAsSign', data)
+      this.dataList = list
+      this.initShowLoading = false
+      // this.dataList = await this.generateWalletStatus(list)
+      if (hasError) {
+        Toast('Get Error')
+      }
+    },
+    async generateWalletStatus(list) {
+      const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      if (!securityModuleContract) {
+        console.log('privateKey: null')
+        return list
+      }
+      const currentChainInfo = getConnectedNet()
+      if (supportNetWorkForContract.indexOf(currentChainInfo.id) < 0) {
+        return false
+      }
+      for(var i=0; i<list.length; i++) {
+        
+        var walletTime = new Date(list[i].createdAt).getTime()
+        var canTime = new Date('2022-03-12 07:50:40.092 +00:00').getTime()
+        let lockStatus = 0
+        if (walletTime >= canTime) {
+          lockStatus = await securityModuleContract.isLocked(list[i].wallet_address)
+        }
+        console.log("lockStatus:" + lockStatus)
+        let thisIsLocked = (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) ? true : false
+        this.$set(list[i], 'isLocked', thisIsLocked)
+        let isInRecovery = await securityModuleContract.isInRecovery(list[i].wallet_address)
+        console.log("isInRecovery:" + isInRecovery)
+        let thisIsInRecovery = isInRecovery ? isInRecovery : false
+        this.$set(list[i], 'isInRecovery', thisIsInRecovery)
+      }
+      return list
+    },
+    getInitWalltInfo() {
+      this.tabTitle = 'who protect me'
+      this.getSignerList()
+    },
+    getInitNormalData() {
+      this.tabTitle = 'who I protect'
+      this.getWalletAsSigner()
+    },
+    getInitData() {
+      this.initShowLoading = true
+      this.dataList = []
+      this.currentAccountType = getConnectedAccountType()
+      if (this.currentAccountType == 'wallet') {
+        this.getInitWalltInfo()
+      } else if (this.currentAccountType == 'normal') {
+        this.getInitNormalData()
+      }
     },
     getDefaultNetWork() {
       const info = getInfoFromStorageByKey('netInfo')
@@ -141,29 +160,10 @@ export default {
     },
     _handleNetworkChange({ chainInfo, from }) {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(chainInfo.id)]
-      console.log('Please switch back to the network')
+      this.getInitData()
     },
     handleAccountChange(addressInfo) {
-      // this.getIsCanSet()
-    },
-    
-    confirmResultModal() {
-      
-      this.showResultModal = false
-    },
-    cancelResultModal() {
-      this.showResultModal = false
-    },
-    async getIsCanSet() {
-      if (!getSupportNet()) {
-        return
-      }
-      const privateKey = await getDecryptPrivateKeyFromStore(this)
-      if (!privateKey) {
-        this.showInputPswModal = true;
-        return
-      }
-      // this.getWalletSetting()
+      this.getInitData()
     },
   },
   async created() {
@@ -178,9 +178,9 @@ export default {
     } else {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
-    this.getIsCanSet()
+    this.getInitData()
   },
-  async mounted() {
+  mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
   },

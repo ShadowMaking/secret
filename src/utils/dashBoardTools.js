@@ -338,7 +338,7 @@ export const addTransHistory = async (txInfo, taransType, self, value, name, isW
   const chainId = currentChainInfo && currentChainInfo['id']
   const submitData = {
     txid: txInfo.hash,
-    from: txInfo.from,
+    from: getConnectedAddress(),
     to: (txInfo.to).toLocaleLowerCase(),
     type: TRANSACTION_TYPE['L2ToL2'],
     status: 0,//0-tobeconfirm 1-success 2-confirming -1-fail
