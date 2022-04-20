@@ -80,9 +80,12 @@
           <el-button type="danger" plain @click="checkDialogClick('rejectSign')">Reject</el-button>
         </div>
       </div>
-      <div class="check-modal-content" v-if="detailDataSource.status == signerStatus['agreeRecover'] && !detailDataSource.isInRecovery">
-        <div class="btn-item">
+      <div class="check-modal-content" v-if="detailDataSource.status == signerStatus['agreeRecover']">
+        <div class="btn-item" v-if="!detailDataSource.isInRecovery">
           <el-button type="primary" @click="checkDialogClick('triggerRecover')">Trigger</el-button>
+        </div>
+        <div class="btn-item" v-else>
+          <span>This wallet is recovering</span>
         </div>
       </div>
     </el-dialog>
@@ -101,6 +104,7 @@
       @reject="cancelSignMessage"
       @confirm="confirmSignMessage" />
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
+    <v-resultModal :show="showResultModal" :content="resuletContent" :needColse="needResultColse" @confirm="confirmResultModal" @close="cancelResultModal"></v-resultModal>
   </div>
 </template>
 <script>
@@ -117,6 +121,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import SignMessageModal from '@/components/SignMessageModal';
 import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
+import resultModal from '@/components/ResultModal'
 
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import web3 from 'web3'
@@ -165,6 +170,11 @@ export default {
       multOperation,
       currentOptType: '',
 
+      resuletContent: '',
+      needResultColse: false,
+      showResultModal: false,
+      currentTip: '',
+
       // ***************** inputPsw start ***************** //
       userPsw: '',
       publicKey: '',
@@ -183,6 +193,7 @@ export default {
     'v-signMessageModal': SignMessageModal,
     'v-loadingPopup': LoadingPopup,
     'v-inputPsw': InputPswModal,
+    'v-resultModal': resultModal,
   },
   methods: {
     checkClick(item){
@@ -201,10 +212,12 @@ export default {
       } else {
         this.currentOptType = 'freezeWalletSubmit'
       }
+      this.showDetailDialog = false
       this.getIsSupport()
     },
     checkDialogClick(type) {
       this.currentOptType = type
+      this.showCheckDialog = false
       this.getIsSupport()
     },
     async showDetail() {
@@ -229,7 +242,27 @@ export default {
       this.showLoading = false
       this.showDetailDialog = true
     },
-    getCheckDialog() {
+    async getCheckDialog() {
+      this.showLoading = true
+
+      var walletTime = new Date(this.detailDataSource['createdAt']).getTime()
+      var canTime = new Date('2022-03-12 07:50:40').getTime()//todo
+      if (walletTime < canTime) {
+        this.showLoading = false
+        Toast('Invalid wallet')
+        return
+      }
+
+      if (this.detailDataSource['wallet_status'] == walletStatus['Fail']) {
+        this.showLoading = false
+        Toast('Invalid wallet')
+        return
+      }
+      
+      const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      this.detailDataSource.isInRecovery = await securityModuleContract.isInRecovery(this.detailDataSource['wallet_address'])
+      console.log(this.detailDataSource)
+      this.showLoading = false
       this.showCheckDialog = true
     },
     
@@ -264,7 +297,7 @@ export default {
       let expireTime = Math.floor((new Date().getTime()) / 1000) + 1800;
       let signatures = this.signMsg;
       
-      this.securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       
       var walletTime = new Date(this.detailDataSource.createdAt).getTime()
       var canTime = new Date('2022-03-12 07:50:40.092 +00:00').getTime()
@@ -274,7 +307,7 @@ export default {
         return
       }
 
-      let lockStatus = await this.securityModuleContract.isLocked(this.detailDataSource.wallet_address)
+      let lockStatus = await securityModuleContract.isLocked(this.detailDataSource.wallet_address)
       console.log(lockStatus)
       if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
         this.showLoading = false
@@ -282,14 +315,14 @@ export default {
         return
       }
       
-      this.securityModuleContract.multicall(
+      securityModuleContract.multicall(
           this.detailDataSource.wallet_address,
           [this.securityModuleRouter, this.signAmount, replaceOwnerData, sequenceId, expireTime],
           signatures,
           this.overrides
         ).then(async tx=> {
           console.log(tx)
-          this.showStatusPop = true
+          this.triggerRecoverResult()
           this.changeWalletSuccess(tx, 'Recovering', 'Trigger Recover', true)
         
           tx.wait().then(async res => {
@@ -436,6 +469,11 @@ export default {
       }
     },
 
+    signerRejectSignMessage() {
+      this.showCheckDialog = false
+      this.updateSignerStatus(this.signerStatus['ignoreRecover'], true)
+    },
+
     async updateSignerStatus(status, isToast) {
       let data = {
         walletId: this.detailDataSource.wallet_id,
@@ -451,6 +489,19 @@ export default {
         if (isToast) {
           Toast('Update success')
         }
+      }
+    },
+
+    isCanTriggerRecover() {
+      this.showCheckDialog = false
+      let totalSignMessage = this.getSignMessage()
+      if (totalSignMessage) {
+        this.signMsg = totalSignMessage
+        this.currentOptType === 'triggerRecover'
+        this.showConfirmModal()
+      } else {
+        this.showLoading = false
+        Toast(`Any transaction requires the confirmation of half signers`)
       }
     },
     async getIsCanRecovery() {
@@ -498,7 +549,6 @@ export default {
     },
 
     async showConfirmModal() {
-      this.showDetailDialog = false
       this.showLoading = true
       let thisGasPrice = this.overrides.gasPrice.toString()
       let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
@@ -523,6 +573,17 @@ export default {
       }
       this.showLoading = false
       this.showTradeConfirm = true
+    },
+    triggerRecoverResult() {
+      this.currentTip = 'triggerSuccess'
+      this.showResultModal = true
+      this.resuletContent = `Submitted Successfully!`
+    },
+    confirmResultModal() {
+      this.showResultModal = false
+    },
+    cancelResultModal() {
+      this.showResultModal = false
     },
     async confirmPswOk({ show, psw }) {
       this.userPsw = psw; // password of user input for encrypt privateKey
