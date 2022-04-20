@@ -123,7 +123,8 @@
               <template #reference>
                 <div class="account-header-login-in">
                   <div class="account-info-left">
-                    <img src="~@/assets/icon_logo.png">
+                    <img :src="gUHeadImg">
+                    <!-- <img src="~@/assets/icon_logo.png" v-else> -->
                     <div class="account-info-address">
                       <p>{{currentshowAddress}}</p>
                       <p class="account-info-balance">${{currentBalance.slice(0,6)}}</p>
@@ -188,6 +189,7 @@ export default {
       showAccountPopup: false,
       installOtherWallet: false,
       gUName: '',
+      gUHeadImg: '',
       showAccountSetPopover: false,
       userList: [],
 
@@ -329,6 +331,7 @@ export default {
     handleThirdLoginCallback(info) {
       if (info.success) {
         this.gUName = info['userInfo'].name
+        this.gUHeadImg = info['userInfo'].picture
         saveToStorage({ 'metamaskFakeEmail': info['userInfo'].email })
       }
     },
@@ -363,6 +366,8 @@ export default {
         this.getCurrentBalance()
         await this.getUserList(userId)
         await this.getWalletAsOwner(userId)
+        const currentUserInfo = getInfoFromStorageByKey('currentUserInfo')
+        this.gUHeadImg = currentUserInfo && currentUserInfo.picture
       }
     },
     async handleChangeAccount(record, privateKey) {

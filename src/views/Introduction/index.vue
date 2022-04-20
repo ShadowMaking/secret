@@ -42,7 +42,7 @@ import _ from 'lodash';
 import { ethers } from 'ethers'
 import { getQueryString, getLocationParam } from '@/utils/index'
 import InputPswModal from '@/components/InputPswModal'
-import { getInfoFromStorageByKey } from '@/utils/storage'
+import { getInfoFromStorageByKey, saveToStorage } from '@/utils/storage'
 import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import web3 from 'web3'
 
@@ -229,6 +229,7 @@ export default {
       await this.$store.dispatch('StoreGoogleUserId', {userId: googleUserId })
       await this.$store.dispatch('StoreGoogleAuthToken', {authToken: googleAuthToken })
       const { hasError, data: userInfo } = await this.$store.dispatch('GetUserInfoById', { userId: googleUserId })
+      saveToStorage({ 'currentUserInfo': userInfo })
       const { data } = await this.$store.dispatch('DownloadAllEncrpytKey', { userId: googleUserId })
       this.$eventBus.$emit('thirdLogin', { success: !hasError, userInfo });
 

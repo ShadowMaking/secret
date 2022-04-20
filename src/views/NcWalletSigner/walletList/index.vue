@@ -207,6 +207,22 @@ export default {
       this.getIsSupport()
     },
     LockClick() {
+      const lockName = this.isLocked ? 'Unlock' : 'Freeze'
+      Dialog.confirm({
+        message: `Are you confirm to ${lockName} ${this.detailDataSource.owner_name}'s wallet?`,
+        confirmButtonText: 'Confirm',
+        confirmButtonColor: '#4375f1',
+        cancelButtonText: 'Cancel'
+      })
+      .then(() => {
+        this.LockClickConfirm()
+      })
+      .catch(() => {
+        console.log('cancel')
+      });
+      
+    },
+    LockClickConfirm() {
       if (this.isLocked) {
         this.currentOptType = 'unlockWalletSubmit'
       } else {
