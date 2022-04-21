@@ -2,6 +2,7 @@
   <div class="nav-title">
   	<i class="el-icon-arrow-left back-icon" v-if="backIcon" @click="backPage"></i>
     <span>{{title}}</span>
+    <img src="~@/assets/help.png" class="nav-title-help" @click="toHelp" v-if="helpUrl">
   </div>
 </template>
 
@@ -10,7 +11,7 @@ import Vue from 'vue';
 
 export default {
   name: 'Navtitle',
-  props: ['title', 'backIcon', 'backEvent'],
+  props: ['title', 'backIcon', 'backEvent', 'helpUrl'],
   methods: {
     backPage() {
       if (this.backEvent) {
@@ -18,6 +19,9 @@ export default {
       } else {
         this.$router.go(-1)
       }
+    },
+    toHelp() {
+      window.open('https://ieigen.github.io/#/'+ this.helpUrl, '_blank')
     },
   },
 };

@@ -1,13 +1,13 @@
 <template>
   <div class="ncWalletCreate-page">
-    <v-navTitle title="Create Eigen Multi-Signature Wallet"></v-navTitle>
+    <v-navTitle title="Create Eigen Multi-Signature Wallet" helpUrl="docs/usage/Account"></v-navTitle>
     <div class="page-content-box">
       <div class="create-top-des">
         <div class="create-top-des-show blueColor">
           <span class="create-top-des-title">About Eigen Multi-Signature Wallet?</span>
           <i :class="isComponse ? 'el-icon-arrow-up' : 'el-icon-arrow-down'" @click="stepComponseClick"></i>
         </div>
-        <div class="page-section-border create-des-text" v-show="isComponse">You need to add at least one signer to create a multi-signature wallet, which can be recovered and locked to keep your assets safe. Any transaction requires 50%+ signer signatures</div>
+        <div class="page-section-border create-des-text" v-show="isComponse">You need to add at least one signer to create a multi-signature wallet, which can be recovered and locked to keep your assets safe.</div>
       </div>
     </div>
     <div class="create-page-1" v-show="createPage1Visible">

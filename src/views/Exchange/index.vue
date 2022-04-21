@@ -1,6 +1,6 @@
 <template>
   <div class="exchange-page content-box">
-    <v-navTitle title="Exchange"></v-navTitle>
+    <v-navTitle title="Exchange" helpUrl="docs/usage/Exchange"></v-navTitle>
     <!-- <div class="send-from-box content-page">
       <v-transFrom @transFromChange="transFromChange"></v-transFrom>
     </div> -->

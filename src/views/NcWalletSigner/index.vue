@@ -1,6 +1,6 @@
 <template>
   <div class="ncWallet-signer-page">
-    <v-navTitle title="Signers"></v-navTitle>
+    <v-navTitle title="Signers" helpUrl="docs/usage/MultisigWallet"></v-navTitle>
     <div class="page-section-border">
       <van-tabs color="#4375f1" title-active-color="#4375f1" line-width="50%" :before-change="beforeChange">
         <van-tab :title="tabTitle" title-style="font-weight: bold; border-bottom: 2px solid #dfdfdf;">

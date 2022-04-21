@@ -1,6 +1,6 @@
 <template>
   <div class="first-wallet-page content-box">
-    <v-navTitle title="Create Account"></v-navTitle >
+    <v-navTitle title="Create Account" helpUrl="docs/usage/Account"></v-navTitle >
     <div class="create-wallet-type">
       <!-- <van-tabs @click="oncheckCreateType" v-model="activeCreateWalletType" animated color="#4375f1"> -->
         <div class="inner-type-wrapper">
