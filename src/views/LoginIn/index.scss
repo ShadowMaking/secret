@@ -1,0 +1,48 @@
+.login-in-page {
+  .login-in-content {
+    margin: 0 auto;
+    width: 330px;
+    .connect-type-list {
+      .connect-type-item {
+        p {
+          color: #17161B;
+          font-size: 1.02rem;
+          line-height: 22px;
+        }
+        .connect-item-btn {
+          border: 1px solid #CECED0;
+          width: 180px;
+          border-radius: 6px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-top: 16px;
+          margin-bottom: 20px;
+        }
+        .login-icon {
+          width: 26px;
+          height: 26px;
+          display: inline-block;
+          margin-right: 5px;
+          vertical-align: middle;
+        }
+        .logo-google {
+          background: url('~@/assets/google_icon.svg') center center no-repeat;
+          background-size: 100% 100%;
+        }
+        .logo-metamsk {
+          background: url('~@/assets/metamask.png') center center no-repeat;
+          background-size: 100% 100%;
+        }
+      }
+      li+li {
+        border-top:1px solid #D8D8D8;
+        padding-top: 20px;
+      }
+      li:hover {
+        cursor: pointer;
+      }
+    }
+  }
+}

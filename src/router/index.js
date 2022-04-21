@@ -2,9 +2,8 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import Home from '../views/Home/index';
 
-const Deposit = () => import('../views/Deposit/index')
+
 const Send = () => import('../views/Send/index')
-const Withdraw = () => import('../views/Withdraw/index')
 const ThirdLogin = () => import('../views/ThirdLogin/index')
 const Backup = () => import('../views/Backup/index')
 const ImportAccount = () => import('../views/Backup/ImportAccount')
@@ -17,15 +16,23 @@ const Exchange = () => import('../views/Exchange/index')
 const SendMenu = () => import('../views/SendMenu/index')
 const Bridge = () => import('../views/Bridge/index')
 const History = () => import('../views/History/index')
-const Test = () => import('../views/Test')
-const NcWalletList = () => import('../views/NcWalletList/index')
 const NcWalletCreate = () => import('../views/NcWalletCreate/index')
-const SignManage = () => import('../views/NcWalletList/signManage/index')
 const TransDetail = () => import('../views/TransDetail/index')
 const NcWalletRecover = () => import('../views/NcWalletRecover/index')
 const CreateAccount = () => import('../views/CreateAccount/index')
 const ExportAccount = () => import('../views/ExportAccount/index')
 const ChooseFriends = () => import('../views/SocailSendEmail/ChooseFriends')
+const LoginIn = () => import('../views/LoginIn/index')
+const Approval = () => import('../views/OverView/Approval/index')
+const NcWalletSetting = () => import('../views/NcWalletSetting/index')
+const NcWalletSigner = () => import('../views/NcWalletSigner/index')
+
+//old page not use
+const Test = () => import('../views/Test')
+const NcWalletList = () => import('../views/NcWalletList/index')
+const SignManage = () => import('../views/NcWalletList/signManage/index')
+const Deposit = () => import('../views/Deposit/index')
+const Withdraw = () => import('../views/Withdraw/index')
 // cache origin push method
 const originalPush = VueRouter.prototype.push
 const originalReplace = VueRouter.prototype.replace
@@ -271,6 +278,38 @@ const routes = [
       title: "chooseFriends",
     },
     component: ChooseFriends,
+  },
+  {
+    path: '/loginIn',
+    name: 'loginIn',
+    meta: {
+      title: "loginIn",
+    },
+    component: LoginIn,
+  },
+  {
+    path: '/approval',
+    name: 'approval',
+    meta: {
+      title: "approval",
+    },
+    component: Approval,
+  },
+  {
+    path: '/ncWalletSetting',
+    name: 'ncWalletSetting',
+    meta: {
+      title: "ncWalletSetting",
+    },
+    component: NcWalletSetting,
+  },
+  {
+    path: '/ncWalletSigner',
+    name: 'ncWalletSigner',
+    meta: {
+      title: "ncWalletSigner",
+    },
+    component: NcWalletSigner,
   },
 ];
 

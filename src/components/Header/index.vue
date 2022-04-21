@@ -8,7 +8,7 @@
         </div>
         <img :src="DEFAULTIMG.LOGO" class="logo" @click="toPage('home')" v-show="$route.name==='home'"/> -->
       </div>
-      <div slot="right" class="header-right">
+      <div slot="right" class="header-right" style="display: none">
         <div v-show="showConnectWallet">
           <div v-if="address!==''" >
             <van-popover
@@ -90,8 +90,8 @@
           placement="bottom-end">
           <div class="account-popover">
             <div class="van-hairline--bottom account-header">
-              <span>My Account</span>
-              <van-button plain type="info" class="lockbutton" size="small" @click="disconnect" v-show="address">Logout</van-button>
+              <span>My Wallet</span>
+              <!-- <van-button plain type="info" class="lockbutton" size="small" @click="disconnect" v-show="address">Logout</van-button> -->
             </div>
             <ul class="accountlist" v-if="address||gUName">
               <!-- <li class="active">
@@ -100,7 +100,25 @@
                   <span>{{ address||gUName }}</span>
                 </div>
               </li> -->
-              <li :class="[{'active': item.address===address}]" v-for="(item,index) in userList" :key="index" @click="changeAccount(item)">
+              <li :class="[{'active': item.wallet_address===address}]" v-for="(item,index) in ownWalletList" :key="index" @click="changeAccount(item, 'wallet')">
+                <van-icon name="success" class="active-status-icon"/>
+                <div class="account-text">
+                  <span>{{ item.wallet_address }}</span>
+                </div>
+              </li>
+            </ul>
+            <div class="van-hairline--bottom account-header">
+              <span>My Account</span>
+              <!-- <van-button plain type="info" class="lockbutton" size="small" @click="disconnect" v-show="address">Logout</van-button> -->
+            </div>
+            <ul class="accountlist" v-if="address||gUName">
+              <!-- <li class="active">
+                <van-icon name="success" class="active-status-icon"/>
+                <div class="account-text">
+                  <span>{{ address||gUName }}</span>
+                </div>
+              </li> -->
+              <li :class="[{'active': item.address===address}]" v-for="(item,index) in userList" :key="index" @click="changeAccount(item, 'user')">
                 <van-icon name="success" class="active-status-icon"/>
                 <div class="account-text">
                   <span>{{ item.address }}</span>
@@ -124,13 +142,17 @@
                   <span>Import Account</span>
                 </router-link>
               </div>
-              <div class="opt-item van-hairline--bottom" @click="toPage('exportAccount')">
-                <!-- <van-icon name="down" class="opt-icon" />
-                <span>Import Account</span> -->
+              <!-- <div class="opt-item van-hairline--bottom" @click="toPage('exportAccount')">
                 <router-link to="/exportAccount">
                   <van-icon name="peer-pay" class="opt-icon" />
                   <span>Export Account</span>
                 </router-link>
+              </div> -->
+              <div class="opt-item van-hairline--bottom" @click="disconnect" v-show="address">
+                <!-- <router-link to="/exportAccount"> -->
+                  <van-icon name="peer-pay" class="opt-icon redColor"/>
+                  <span class="redColor">Logout</span>
+                <!-- </router-link> -->
               </div>
               <div class="opt-item van-hairline--bottom" @click="toPage('backup', 'import')" style="display: none">
                 <!-- <van-icon name="down" class="opt-icon" />
@@ -206,7 +228,7 @@ import { initTokenTime, updateLoginTime, removeTokens, tokenIsExpires, logout, c
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
-import { getConnectedAddress } from '@/utils/dashBoardTools';
+import { getConnectedAddress, getConnectedNet } from '@/utils/dashBoardTools';
 
 Vue.use(Popup);
 Vue.use(VanButton);
@@ -247,6 +269,8 @@ export default {
       showAccountInfo: false,
 
       showLoginPopover: false,
+      ownWalletList: [],
+      showAddress: '',//user address or wallet owner address
     }
   },
   components: {
@@ -429,6 +453,7 @@ export default {
       const { data: userInfo } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId })
       this.address = userInfo.address
       await this.getUserList(userId)
+      await this.getWalletAsOwner(userId)
     },
     async getUserList(uId) {
       const userId = uId || getInfoFromStorageByKey('gUID')
@@ -444,6 +469,7 @@ export default {
         const { data: userInfo } = await this.$store.dispatch('GetBindingGoogleUserInfo', { userId  })
         this.address = userInfo && userInfo.address||'';
         await this.getUserList(userId)
+        await this.getWalletAsOwner(userId)
       }
     },
     async handleChangeAccount(record, privateKey) {
@@ -461,7 +487,7 @@ export default {
       this.$eventBus.$emit('changeAccout', addressInfo)
       this.showAccountSetPopover = false
     },
-    async changeAccount(record) {
+    async changeAccount(record, type) {
       this.changeTargetAccountInfo  = _.cloneDeep(record)
       this.showInputPswModal = true
     },
@@ -601,6 +627,18 @@ export default {
       .catch((error) => {
         console.log(error)
       });
+    },
+    async getWalletAsOwner(userId) {
+      let data = {
+        network_id: getConnectedNet().id,
+        user_id: userId,
+      }
+      const { hasError, list } = await this.$store.dispatch('getWalletListAsOwner', data)
+      this.ownWalletList = list
+      console.log(this.ownWalletList)
+      if (hasError) {
+        Toast('Get wallet Error')
+      }
     },
   },
   async mounted() {

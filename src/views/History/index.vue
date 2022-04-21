@@ -1,5 +1,6 @@
 <template>
   <div class="main-page home-page">
+    <v-navTitle title="History"></v-navTitle >
     <div class="page-wrapper">
       <div class="common-transaction-table">
         <div class="nc-tag">
@@ -27,6 +28,7 @@ import _ from 'lodash';
 import { Search, Toast } from 'vant';
 import { generateTransactionList } from '@/utils/index';
 import TransactionList from '@/components/TransactionList/TransactionList';
+import navTitle from '@/components/NavTitle/index';
 import { getConnectedAddress, isLogin } from '@/utils/dashBoardTools';
 import { getInfoFromStorageByKey } from '@/utils/storage';
 import { CHAINMAP } from '@/utils/netWorkForToken';
@@ -38,6 +40,7 @@ export default {
   name: 'Home',
   components: {
     'v-list': TransactionList,
+    "v-navTitle": navTitle,
   },
   data() {
     return {
@@ -156,7 +159,7 @@ export default {
   },
   mounted() {
     if (!isLogin()) {
-      Toast('Need Login')
+      Toast('Please Login')
       return
     }
     this.$eventBus.$on('changeAccout', this.handleAccountChange)

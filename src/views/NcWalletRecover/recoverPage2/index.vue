@@ -90,7 +90,7 @@
 import Vue from 'vue'
 import { Toast } from 'vant'
 
-import { isLogin, getConnectedNet, getConnectedAddress, getContractAt, addTransHistory, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas, getBalanceByAddress } from '@/utils/dashBoardTools'
+import { isLogin, getConnectedNet, getConnectedAddress, getContractAt, addTransHistory, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas, getBalanceByAddress, getConnectedUserAddress } from '@/utils/dashBoardTools'
 import { signerStatus, securityModuleRouter, multOperation, walletStatus } from '@/utils/global'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import { copyTxt, formatErrorContarct } from '@/utils/index'
@@ -460,7 +460,7 @@ export default {
 
       // to decrypt privatekey
       const userId = getInfoFromStorageByKey('gUID')
-      const address = getConnectedAddress()
+      const address = getConnectedUserAddress()
       const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
       const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
       if(decryptInfo.hasError) {
@@ -583,7 +583,7 @@ export default {
   },
   async created() {
     if (!isLogin()) {
-      Toast('Need Login')
+      Toast('Please Login')
       return
     }
     this.defaultNetWork = this.getDefaultNetWork()

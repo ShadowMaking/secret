@@ -1,0 +1,224 @@
+@import '@/app.scss';
+.header-right .van-popover__wrapper {
+  width: 100%;
+}
+.header-right {
+  padding: 0 1rem;
+}
+.account-header-login-out {
+  text-align: center;
+  .account-logo img{
+    width: 1.98rem;
+    height: 1.98rem;
+    margin: 10px auto;
+  }
+  .account-weclome {
+    font-size: 1.02rem;
+    font-weight: bold;
+    color: #18171C;
+    margin-bottom: 20px;
+  }
+  .account-manage-txt {
+    color: #48474D;
+    font-size: 0.86rem;
+    margin-bottom: 24px;
+  }
+  .account-login .el-button{
+    padding: 8px 10px;
+  }
+  .account-login {
+    margin-bottom: 15px;
+  }
+}
+.account-header-login-in {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0rem;
+  .account-info-left {
+    display: flex;
+    align-items: center;
+    img {
+      width: 1.8rem;
+      height: 1.8rem;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    .account-info-address {
+      font-size: 0.84rem;
+      color: #141416;
+      line-height: 20px;
+      p {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        width: 100px;
+      }
+      .account-info-balance {
+        font-weight: bold;
+      }
+    }
+  }
+  .account-info-right {
+    font-size: 16px;
+    height: 24px;
+    font: normal normal normal 14px/1 vant-icon;
+    position: relative;
+    cursor: pointer;
+  }
+}
+
+
+#header{
+  ::v-deep.van-overlay{
+    background-color: transparent;
+  }
+}
+
+
+.account-popover,
+.login-popover{
+  font-size: 0.875rem;
+  color: #6a737d;
+  width: 300px;
+  padding: 10px;
+  // background: rgba(0, 0, 0, 0.8);
+  box-shadow: rgb(0 0 0 / 15%) 0 2px 2px 2px;
+  .account-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 0;
+    >span{
+      font-size: .9375rem;
+      color: #000;
+    }
+    .lockbutton{
+      padding: 0 20px;
+    }
+  }
+  .accountlist {
+    max-height: 128px;
+    overflow-y: auto;
+    font-size: .9375rem;
+    li {
+      cursor: pointer;
+      margin: 5px;
+      display: flex;
+      align-items: center;
+      padding: 8px 5px;
+      .active-status-icon {
+        margin-right: 10px;
+        visibility: hidden;
+      }
+      .account-text {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        width: 170px;
+        span{
+          display: block;
+          margin-bottom: 5px;
+        }
+        .wallet-account-name {
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          width: 100%;
+        }
+        .account-text-banlance {
+           overflow: hidden;
+           white-space: nowrap;
+           text-overflow: ellipsis;
+           width: 130px;
+        }
+      }
+      .account-more-box {
+        width: 26px;
+        margin-right: 5px;
+        margin-left: 10px;
+      }
+      .account-more {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background-color: #fff;
+        
+        text-align:center;
+        border:1px solid #CFCED3;
+        display: none;
+      }
+      .account-more:hover {
+        background-color: #EFF0F2;
+      }
+    }
+    li.active{
+      .account-text {
+        span:first-child {color: #236BFB;}
+      }
+      .active-status-icon {
+        color: #236BFB;
+        visibility: visible;
+      }
+    }
+    li:hover {
+      background-color: #EFF0F2;
+      .account-more {
+        display:block;
+      }
+    }
+  }
+  .account-setting-wrapper{
+    padding: 10px;
+    .opt-item {
+      cursor: pointer;
+      padding: 10px 0;
+      .opt-icon {margin-right: 5px; vertical-align: middle; font-size: 16px;}
+      .icon-bridge {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        background: url('~@/assets/icon_bridge.png') center center;
+        background-size: contain;
+      }
+      span, i { color: #333; }
+    }
+  }
+  .login-icon {
+    width: 32px;
+    height: 32px;
+    display: inline-block;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .logo-google {
+    background: url('~@/assets/google_icon.svg') center center no-repeat;
+    background-size: 100% 100%;
+  }
+  .logo-metamsk {
+    background: url('~@/assets/metamask.png') center center no-repeat;
+    background-size: 100% 100%;
+  }
+}
+.account-more-list {
+  width: 200px;
+  background-color: #fff;
+  border-radius: 6px;
+  padding: 15px;
+  li {
+    padding: 10px 0px;
+    cursor: pointer;
+  }
+  li+li {
+    border-top: 1px solid #E6E7E9;
+  }
+  .account-more-address {
+    color: #727177;
+    font-size: 14px;
+  }
+  .more-pop-icon {
+    margin-right: 10px;
+    font-size: 0.92rem;
+  }
+}

@@ -83,7 +83,7 @@ import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
 import resultModal from '@/components/ResultModal'
 
-import { getContractAt, getConnectedAddress, getEns, isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getBalanceByAddress, getSupportNet, getConnectedNet, initRPCProvider, getEstimateGas} from '@/utils/dashBoardTools';
+import { getContractAt, getConnectedAddress, getEns, isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getBalanceByAddress, getSupportNet, getConnectedNet, initRPCProvider, getEstimateGas, getConnectedUserAddress} from '@/utils/dashBoardTools';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import ProxyJson from "@/assets/contractJSON/Proxy.json";
@@ -150,7 +150,7 @@ export default {
 
       currentClickType: 'setName',//setName createSubmit
       createWalletAddress: '',
-      lasetTimes: 30,
+      lasetTimes: 180,
       
     
       // ***************** inputPsw start ***************** //
@@ -247,7 +247,7 @@ export default {
             this.showResultModal = false
             this.storeProxyInfo(tx.hash)
             window.clearInterval(this.thisTimer)
-            this.lasetTimes = 30
+            this.lasetTimes = 180
             this.createPage1Visible = false
             this.createPage2Visible = true
           })
@@ -300,7 +300,7 @@ export default {
     confirmResultModal() {
       if (this.resultStatus == 'success') {
         this.showResultModal = false
-        this.$router.push({ name: 'ncWalletList' })
+        this.$router.push({ name: 'history' })
       } else {//retry
         this.showResultModal = false
         this.createSignerSubmit = []
@@ -312,7 +312,7 @@ export default {
     },
     cancelResultModal() {
       this.showResultModal = false
-      this.$router.push({ name: 'ncWalletList' })
+      this.$router.push({ name: 'history' })
     },
     // ***************** confirm result model end ***************** //
 
@@ -349,7 +349,8 @@ export default {
           this.createWallet(this.createWalletAddress, tx.hash)
           addTransHistory(tx, 'Initialize Wallet', this)
           window.clearInterval(this.thisTimer)
-          this.lasetTimes = 30
+          this.lasetTimes = 180
+          this.$eventBus.$emit('BindingWalletAferCreateWallet')
           tx.wait().then(async res => {
             console.log('Create:', res)
           })
@@ -382,7 +383,7 @@ export default {
       }
     },
     showSetp2Success() {
-      this.resuletContent = 'Submitted Successfully!'
+      this.resuletContent = 'Eigen Multisig Wallet Creat Successfully!'
       this.showResultModal = true
       this.needBtnConfirm = true
       this.confirmText = 'Confirm'
@@ -390,7 +391,7 @@ export default {
       this.showCloseIcon = true
     },
     showSetpFail(reason) {
-      this.resuletContent = reason
+      this.resuletContent = reason ? reason : 'fail'
       this.showResultModal = true
       this.needBtnConfirm = true
       this.confirmText = 'Retry'
@@ -517,7 +518,7 @@ export default {
 
       // to decrypt privatekey
       const userId = getInfoFromStorageByKey('gUID')
-      const address = getConnectedAddress()
+      const address = getConnectedUserAddress()
       const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
       const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
       if(decryptInfo.hasError) {
@@ -551,14 +552,14 @@ export default {
           this.lasetTimes -= 1
           this.resuletContent = `Waiting <span class="blueColor">${this.lasetTimes}s</span> for transaction confirming`
         } else {
-          this.lasetTimes = 30
+          this.lasetTimes = 180
         }
       }, 1000)
     },
   },
   async created() {
     if (!isLogin()) {
-      Toast('Need Login')
+      Toast('Please Login')
       return
     }
     this.getProxyInfo()

@@ -1,3 +1,8 @@
+#leftHeaderBox{
+  ::v-deep.van-overlay{
+    background-color: transparent;
+  }
+}
 .left-menu-box {
   .menu-icon {
     width: 1.64rem;

@@ -1,7 +1,11 @@
 <template>
+  <div class="left-container">
   <div class="left-menu-box" id="leftmenu">
     <img src="~@/assets/menu.png" class="menu-icon" @click="showPopup" v-show="iconVisible">
     <van-popup v-model="menuVisible" position="left" class="popup-box" overlay-class="popup-overlay" :overlay="iconVisible">
+      <div class="account-header-warp">
+        <v-leftHeader></v-leftHeader>
+      </div>
       <div v-for="(item, index) in menuData" :key="index" @click="changeMenu(index, item.route, 'activeKey')"
       >
         <!-- <van-icon :name="item.icon" size="20px"/> -->
@@ -18,10 +22,10 @@
       </div>
       <div class="left-menu-item-for-hasSub">
         <van-collapse v-model="activeNames" v-for="(item, index) in multiMenuData" :key="index">
-          <van-collapse-item :name="item.name" class="item">
+          <van-collapse-item :name="item.name" class="item" v-if="!(currentAccountType == 2 && item.name == 'Tools')">
             <template #title><div><label style="font-size: 20px"><i :class="item.icon" size="60px"></i></label>{{ item.name }}</div></template>
             <div v-for="(_item, index) in item.subMenu" :key="index" :class="['item-menu', {'active': `${index}-${_item.route}` == activeKey}]"  @click="_changeMenu(index, _item.route, 'activeKey')">
-              <router-link :to="_item.route"><span>{{ _item.name }}</span></router-link>
+              <router-link :to="_item.route" v-if="!(currentAccountType == 1 && _item.name == 'Security Setting')"><span>{{ _item.name }}</span></router-link>
             </div>
           </van-collapse-item>
         </van-collapse>
@@ -57,6 +61,8 @@
       </div>
     </van-popup>
   </div>
+  <div id="leftHeaderBox" style="width: 100%;"></div>
+  </div>
 </template>
 
 <script>
@@ -65,6 +71,7 @@ import web3 from 'web3'
 import 'vant/lib/index.css'
 import { Icon, Popup, Collapse, CollapseItem } from 'vant';
 import formSelect from '@/components/Select/index';
+import leftHeader from './Header/index';
 import { NETWORKSFORTOKEN, CHAINMAP } from '@/utils/netWorkForToken';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 
@@ -117,18 +124,23 @@ export default {
           {icon: 'el-icon-document', name: 'Recover Account', route: '/srecovery'},
           {icon: 'el-icon-s-custom', name: 'Co-workers', route: '/addfriends'},
         ]},
+        {icon: 'el-icon-suitcase-1', name: 'Activity', subMenu: [
+          // {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
+          {icon: 'el-icon-document', name: 'History', route: '/history'},
+          {icon: 'el-icon-s-custom', name: 'Approval', route: '/approval'},
+        ]},
         {
           icon: 'el-icon-collection', 
-          name: 'Multisig Wallet', 
+          name: 'Security', 
           // route: '/ncWalletList',
           subMenu: [{
             icon: 'el-icon-bank-card', 
-            name: 'My Wallet', 
-            route: '/ncWalletList',
+            name: 'Signers', 
+            route: '/NcWalletSigner',
           },{
             icon: 'el-icon-document-add', 
-            name: 'Create Wallet', 
-            route: '/ncWalletCreate',
+            name: 'Security Setting', 
+            route: '/ncWalletSetting',
           },{
             icon: 'el-icon-sell', 
             name: 'Recover Wallet', 
@@ -141,21 +153,25 @@ export default {
       defaultIcon: null,
       netWorkList: [],
 
-      activeNames: ['Tools', 'Multisig Wallet'],
+      activeNames: ['Activity', 'Security'],
+      currentAccountType: 1, //1-account address ,2-wallet address
     }
   },
   components: {
     "v-formSelect": formSelect,
+    "v-leftHeader": leftHeader,
   },
   mounted() {
     this.defaultNetWork = this.getDefaultNetWork()
     this.$eventBus.$on('networkChange', this._handleNetworkChange)
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
     this.netWorkList = _.cloneDeep(NETWORKSFORTOKEN)
     this.netWorkList.map(item => {
       if (item.id == this.defaultNetWork) {
         this.defaultIcon = item.icon
       }
     })
+    this.getCurrentAccountType()
 
     this.screenWidth = document.body.clientWidth
     window.onresize = () => {
@@ -209,6 +225,21 @@ export default {
       if (from === 'leftMenu') { return }
       this.defaultNetWork = chainInfo.id
       this.defaultIcon = chainInfo.icon
+    },
+    handleAccountChange(addressInfo) {
+      this.getCurrentAccountType()
+    },
+    getCurrentAccountType() {
+      const userId = getFromStorage('gUID')
+      if (userId) {
+        const userMap = getInfoFromStorageByKey('userMap');
+        const userData = userMap && userMap[userId]
+        if (userData['walletAddress']) {
+          this.currentAccountType = 2
+        } else {
+          this.currentAccountType = 1
+        }
+      }
     },
   },
 };

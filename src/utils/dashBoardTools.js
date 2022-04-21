@@ -195,7 +195,7 @@ export const getContractAt = async ({ tokenAddress, abi }, self) => {
   return contractWithSigner
 }
 
-export const getConnectedAddress = (byMetamask=false) => {
+export const getConnectedUserAddress = (byMetamask=false) => {
   if (byMetamask) {
     return window.ethereum && window.ethereum.selectedAddress.toLocaleLowerCase()
   }
@@ -204,6 +204,41 @@ export const getConnectedAddress = (byMetamask=false) => {
     const userMap = getInfoFromStorageByKey('userMap');
     const userData = userMap && userMap[userId]
     return userData && userData['address'].toLocaleLowerCase() || ''
+  }
+  return ''
+}
+
+export const getConnectedAddress = (byMetamask=false) => {
+  if (byMetamask) {
+    return window.ethereum && window.ethereum.selectedAddress.toLocaleLowerCase()
+  }
+  const userId = getFromStorage('gUID')
+  if (userId) {
+    const userMap = getInfoFromStorageByKey('userMap');
+    const userData = userMap && userMap[userId]
+    if (userData && userData['walletAddress']) {
+      return userData['walletAddress'].toLocaleLowerCase()
+    } else if (userData && userData['address']) {
+      return userData['address'].toLocaleLowerCase()
+    } else {
+       return ''
+    }
+  }
+  return ''
+}
+
+export const getConnectedAccountType = () => {
+  const userId = getFromStorage('gUID')
+  if (userId) {
+    const userMap = getInfoFromStorageByKey('userMap');
+    const userData = userMap && userMap[userId]
+    if (userData && userData['walletAddress']) {
+      return 'wallet'
+    } else if (userData && userData['address']) {
+      return 'normal'
+    } else {
+       return ''
+    }
   }
   return ''
 }
@@ -303,7 +338,7 @@ export const addTransHistory = async (txInfo, taransType, self, value, name, isW
   const chainId = currentChainInfo && currentChainInfo['id']
   const submitData = {
     txid: txInfo.hash,
-    from: txInfo.from,
+    from: getConnectedAddress(),
     to: (txInfo.to).toLocaleLowerCase(),
     type: TRANSACTION_TYPE['L2ToL2'],
     status: 0,//0-tobeconfirm 1-success 2-confirming -1-fail

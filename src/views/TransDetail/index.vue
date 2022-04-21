@@ -111,7 +111,7 @@ import _ from 'lodash';
 import navTitle from '@/components/NavTitle/index'
 import { Toast, Dialog } from 'vant'
 import { ethers } from 'ethers'
-import {  isLogin, getConnectedAddress, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore, getContractWallet, getContractAt, addTransHistory, initRPCProvider, getConnectedNet, getDATACode, getMultSignMessage, getEstimateGas,getBalanceByAddress} from '@/utils/dashBoardTools'
+import {  isLogin, getConnectedAddress, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore, getContractWallet, getContractAt, addTransHistory, initRPCProvider, getConnectedNet, getDATACode, getMultSignMessage, getEstimateGas,getBalanceByAddress, getConnectedUserAddress} from '@/utils/dashBoardTools'
 import { timeFormat, timeSericeFormat } from '@/utils/str'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage'
 import { signerStatus, walletTransactionRouter, securityModuleRouter, multOperation } from '@/utils/global'
@@ -509,7 +509,7 @@ export default {
 
       // to decrypt privatekey
       const userId = getInfoFromStorageByKey('gUID')
-      const address = getConnectedAddress()
+      const address = getConnectedUserAddress()
       const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
       const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
       if(decryptInfo.hasError) {
@@ -568,7 +568,7 @@ export default {
   async created() {
     this.defaultNetWork = this.getDefaultNetWork()
     if (!isLogin()) {
-      Toast('Need Login')
+      Toast('Please Login')
       return
     }
     const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')

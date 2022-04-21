@@ -1,6 +1,6 @@
 <template>
   <div class="left-menu-box" id="leftmenu">
-    <van-popup v-model="showPopup" class="status-popup flex flex-center flex-column" @close="closeModal" :close-on-click-overlay="false">
+    <van-popup v-model="showPopup" class="status-popup flex flex-center flex-column" @close="closeModal" :close-on-click-overlay="false" :get-container="getContainer">
       <div class="input-psw-container">
         <span>Fund password：</span>
         <span class="psw">
@@ -83,7 +83,10 @@ export default {
     changeShowPsw() {
       this.showPsw=!this.showPsw
       this.pswType = this.showPsw ? 'text' : 'password'
-    }
+    },
+    getContainer() {
+      return document.getElementById('leftHeaderBox');
+    },
   },
   mounted() {
     this.$eventBus.$on('resetValueAfterInputPsw', () => {

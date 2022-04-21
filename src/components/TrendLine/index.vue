@@ -216,7 +216,7 @@ export default {
       const connectedNetInfo = getConnectedNet()
       const chainId = connectedNetInfo && web3.utils.numberToHex(connectedNetInfo.id)
       if (!chainId || !userAddress) {
-        Toast('Need Login')
+        Toast('Please Login')
         return false
       }
       return true

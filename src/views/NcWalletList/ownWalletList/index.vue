@@ -127,7 +127,7 @@ import LoadingPopup from '@/components/LoadingPopup';
 import { BigNumber } from "bignumber.js";
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import TransactionModule from "@/assets/contractJSON/TransactionModule.json";
-import { getContractAt, addTransHistory, getDecryptPrivateKeyFromStore, getConnectedAddress, getEncryptKeyByAddressFromStore, getSupportNet, getConnectedNet, getDATACode } from '@/utils/dashBoardTools'
+import { getContractAt, addTransHistory, getDecryptPrivateKeyFromStore, getConnectedAddress, getEncryptKeyByAddressFromStore, getSupportNet, getConnectedNet, getDATACode, getConnectedUserAddress } from '@/utils/dashBoardTools'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import InputPswModal from '@/components/InputPswModal'
 
@@ -298,7 +298,7 @@ export default {
 
       // to decrypt privatekey
       const userId = getInfoFromStorageByKey('gUID')
-      const address = getConnectedAddress()
+      const address = getConnectedUserAddress()
       const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
       const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
       if(decryptInfo.hasError) {

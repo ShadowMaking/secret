@@ -162,7 +162,7 @@ import { ethers } from 'ethers'
 import { Toast, Loading, Popup, Dialog } from 'vant'
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
-import { getContractAt, getConnectedAddress, getContractWallet, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory, getEstimateGas, getBalanceByAddress, getConnectedNet } from '@/utils/dashBoardTools'
+import { getContractAt, getConnectedAddress, getContractWallet, getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, addTransHistory, getEstimateGas, getBalanceByAddress, getConnectedNet, getConnectedUserAddress } from '@/utils/dashBoardTools'
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import { signerStatus, securityModuleRouter, walletStatus, multOperation, lockType } from '@/utils/global';
 import StatusPop from '@/components/StatusPop';
@@ -647,7 +647,7 @@ export default {
 
       // to decrypt privatekey
       const userId = getInfoFromStorageByKey('gUID')
-      const address = getConnectedAddress()
+      const address = getConnectedUserAddress()
       const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
       const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
       if(decryptInfo.hasError) {

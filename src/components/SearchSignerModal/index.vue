@@ -8,7 +8,7 @@
     <div class="sign-modal">
       <div class="sign-modal-wraper">
         <div class="sign-modal-top">
-          <div class="sign-modal-title">Search your friend Eigen account and add him as Guardian</div>
+          <div class="sign-modal-title">Add signer by Eigen Account</div>
           <div class="sign-model-input">
             <el-select
               v-model="searchInput"

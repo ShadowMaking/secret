@@ -1,8 +1,8 @@
 <template>
   <div class="overview-page">
     <v-navTitle title="Overview"></v-navTitle >
-    <van-tabs v-model="tabActive" color="#4375f1" title-active-color="#4375f1">
-      <van-tab title="Home" title-style="font-weight: bold">
+    <!-- <van-tabs v-model="tabActive" color="#4375f1" title-active-color="#4375f1"> -->
+      <!-- <van-tab title="Home" title-style="font-weight: bold"> -->
         <div class="home-page">
           <v-trendLine :sourceData="chartSourceData"/>
           <div class="home-assets">
@@ -27,14 +27,14 @@
             <v-none v-if="!showLoading && assetsData.length==0"/>
           </div>
         </div>
-      </van-tab>
-      <van-tab title="History" title-style="font-weight: bold">
+      <!-- </van-tab> -->
+      <!-- <van-tab title="History" title-style="font-weight: bold">
         <v-history></v-history>
       </van-tab>
       <van-tab title="Approval" title-style="font-weight: bold">
         <v-approval></v-approval>        
-      </van-tab>
-    </van-tabs>
+      </van-tab> -->
+    <!-- </van-tabs> -->
   </div>
 </template>
 
@@ -42,7 +42,7 @@
 import Vue from 'vue'
 import { Icon, Popup, Tab, Tabs, Toast } from 'vant'
 import navTitle from '@/components/NavTitle/index'
-import history from '../History/index'
+// import history from '../History/index'
 import TrendLine from '@/components/TrendLine'
 import * as ethers from 'ethers'
 import { retainDecimals } from '@/utils/number'
@@ -52,7 +52,7 @@ import { generateTokenList, getDefaultETHAssets, getConnectedNet, getConnectedAd
 import web3 from 'web3'
 import None from '@/components/None/index'
 import Loading from '@/components/Loading'
-import Approval from './Approval/index'
+// import Approval from './Approval/index'
 
 
 Vue.use(Toast)
@@ -84,11 +84,11 @@ export default {
   },
   components: {
     "v-navTitle": navTitle,
-    "v-history": history,
+    // "v-history": history,
     "v-trendLine": TrendLine,
     'v-none': None,
     'v-loading': Loading,
-    'v-approval': Approval,
+    // 'v-approval': Approval,
   },
   filters: {
     showAvailableBalance(amount) {
@@ -148,7 +148,7 @@ export default {
       const connectedNetInfo = getConnectedNet()
       const chainId = connectedNetInfo && web3.utils.numberToHex(connectedNetInfo.id)
       if (!chainId || !userAddress) {
-        Toast('Need Login')
+        Toast('Please Login')
         return false
       }
       return true
