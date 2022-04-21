@@ -12,7 +12,7 @@
             </div>
             <div class="tab-item-left-info">
               <p class="tab-item-left-name">{{item.name}}</p>
-              <p class="tab-item-left-address">{{item.wallet_address}}</p>
+              <p class="tab-item-left-address" @click="copyAddress(item.wallet_address)">{{item.wallet_address}}</p>
             </div>
           </div>
           <div class="tab-item-left-bottom blueColor" v-if="item.status > 4">Recover invitation</div>
@@ -196,6 +196,11 @@ export default {
     'v-resultModal': resultModal,
   },
   methods: {
+    copyAddress(str) {
+      if (copyTxt(str)) {
+        Toast.success('Copied');
+      }
+    },
     checkClick(item){
       this.currentOptType = 'checkClick'
       this.detailDataSource = item

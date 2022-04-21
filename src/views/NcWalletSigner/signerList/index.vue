@@ -1,10 +1,29 @@
 <template>
   <div class="signer-list-page" >
     <div class="tab-des">
-      The owner and signers of wallet  {{currentWalltInfo && currentWalltInfo.name}} ({{currentWalltInfo && currentWalltInfo.wallet_address}})
+      The owner and signers of wallet  {{currentWalltInfo && currentWalltInfo.name}} <span @click="copyAddress(currentWalltInfo.wallet_address)">({{currentWalltInfo && currentWalltInfo.wallet_address}})</span>
       <!-- You need {{signerPercent}} signer approval for a vault recovery or to approve an untrusted transaction. -->
     </div>
     <div class="tab-content-list">
+      <div class="tab-content-item" v-if="currentWalltInfo">
+        <div class="tab-item-left">
+          <div class="tab-item-left-top">
+            <div class="tab-item-left-img">
+              <img :src="currentWalltInfo.owner_picture">
+            </div>
+            <div class="tab-item-left-info">
+              <p class="tab-item-left-name"><span>{{currentWalltInfo.owner_name}}</span><el-tag size="small" type="warning">owner</el-tag></p>
+              <p class="tab-item-left-address" @click="copyAddress(currentWalltInfo.address)">{{currentWalltInfo.address}}</p>
+            </div>
+          </div>
+        </div>
+        <div class="tab-item-right">
+          <div class="tab-item-right-btn">
+            <el-button type="primary" @click="ownerDetail()">Detail</el-button>
+          </div>
+        </div>
+      </div>
+   
       <div class="tab-content-item" v-for="(item, index) in dataList" :key="index">
         <div class="tab-item-left">
           <div class="tab-item-left-top">
@@ -13,7 +32,7 @@
             </div>
             <div class="tab-item-left-info">
               <p class="tab-item-left-name"><span>{{item.name}}</span><el-tag size="small">signer</el-tag></p>
-              <p class="tab-item-left-address">{{item.address}}</p>
+              <p class="tab-item-left-address" @click="copyAddress(item.address)">{{item.address}}</p>
             </div>
           </div>
           <!-- <div class="tab-item-left-bottom blueColor">Invitaion rejected</div> -->
@@ -53,7 +72,7 @@
           </div>
         </div>
         <div class="detail-top-right">
-          <el-button type="primary" @click="DeleteClick">Delete</el-button>
+          <el-button type="primary" @click="DeleteClick" v-if="!detailDataSource.isOwner">Delete</el-button>
         </div>
       </div>
       <div class="detail-middle">
@@ -161,9 +180,24 @@ export default {
     'v-resultModal': resultModal,
   },
   methods: {
+    copyAddress(str) {
+      if (copyTxt(str)) {
+        Toast.success('Copied');
+      }
+    },
     signerDetail(item) {
       this.showDetailDialog = true
       this.detailDataSource = item
+    },
+    ownerDetail() {
+      this.detailDataSource = {
+        picture: this.currentWalltInfo.owner_picture,
+        name: this.currentWalltInfo.owner_name,
+        address: this.currentWalltInfo.address,
+        email: this.currentWalltInfo.owner_email,
+        isOwner: true,
+      }
+      this.showDetailDialog = true
     },
     DeleteClick() {
       let totalSigner = this.dataList.length
