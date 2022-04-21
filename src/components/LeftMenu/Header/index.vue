@@ -141,7 +141,7 @@
           <div slot="right" v-else >
             <div class="account-header-login-out">
               <p class="account-logo"><img src="~@/assets/icon_logo.png"></p>
-              <p class="account-weclome">Welcome onboard Eigen</p>
+              <p class="account-weclome">Welcome to Eigen</p>
               <!-- <p class="account-manage-txt">Manage your asset safely and privately</p> -->
               <p class="account-login common-primary-btn" @click="loginIn"><el-button type="primary">Login</el-button></p>
             </div>

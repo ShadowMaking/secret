@@ -77,8 +77,6 @@
       </div>
       <div class="detail-middle">
         <p style="font-weight:bold;">The signers help you to recover your ownership,  fine-grain payment management by multi-signature.</p>
-        <p>It works in consensus with your other signers.</p>
-        <p>By enabling, you will receive a email to authorize recovery or untrusted transaction.</p>
       </div>
       <div class="detail-bottom">
         <div class="detail-item">
