@@ -1,6 +1,6 @@
 <template>
   <div class="social-recovery-page">
-    <v-navTitle title="Recover Account"></v-navTitle >
+    <v-navTitle title="Recover Account" helpUrl="docs/usage/Tools"></v-navTitle >
     <van-steps :active="activeStepForSrecovery">
       <!-- <van-step>Type</van-step> -->
       <van-step>Choose</van-step>

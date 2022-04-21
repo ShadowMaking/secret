@@ -1,6 +1,6 @@
 <template>
   <div class="send-menu-page content-box">
-    <v-navTitle title="Send"></v-navTitle >
+    <v-navTitle title="Send" helpUrl="docs/usage/Send"></v-navTitle >
     <div class="send-menu content-page">
       <!-- <v-formSelect 
         label="Recipient" 

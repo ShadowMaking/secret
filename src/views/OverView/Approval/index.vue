@@ -1,6 +1,6 @@
 <template>
   <div class="approval-box">
-    <v-navTitle title="Approval"></v-navTitle >
+    <v-navTitle title="Approval" helpUrl="docs/usage/Overview"></v-navTitle >
     <!-- <div class="tag-list">
       <span 
       v-for="(item, index) in netWorkList"

@@ -1,6 +1,6 @@
 <template>
   <div class="ncWalletRecover-page">
-    <v-navTitle title="Recovery Wallet"></v-navTitle>
+    <v-navTitle title="Recovery Wallet" helpUrl="docs/usage/MultisigWallet"></v-navTitle>
     <div class="recover-page-1" v-show="recoverPage1Visible">
       
       <div class="recover-wallet-container">

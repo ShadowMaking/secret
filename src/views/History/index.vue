@@ -1,6 +1,6 @@
 <template>
   <div class="main-page home-page">
-    <v-navTitle title="History"></v-navTitle >
+    <v-navTitle title="History" helpUrl="docs/usage/Overview"></v-navTitle >
     <div class="page-wrapper">
       <div class="common-transaction-table">
         <div class="nc-tag">
