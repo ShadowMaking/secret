@@ -1,7 +1,8 @@
 <template>
   <div class="signer-list-page" >
     <div class="tab-des">
-      You need {{signerPercent}} signer approval for a vault recovery or to approve an untrusted transaction.
+      The owner and signers of wallet  {{currentWalltInfo && currentWalltInfo.name}} ({{currentWalltInfo && currentWalltInfo.wallet_address}})
+      <!-- You need {{signerPercent}} signer approval for a vault recovery or to approve an untrusted transaction. -->
     </div>
     <div class="tab-content-list">
       <div class="tab-content-item" v-for="(item, index) in dataList" :key="index">
@@ -11,7 +12,7 @@
               <img :src="item.picture">
             </div>
             <div class="tab-item-left-info">
-              <p class="tab-item-left-name">{{item.name}}</p>
+              <p class="tab-item-left-name"><span>{{item.name}}</span><el-tag size="small">signer</el-tag></p>
               <p class="tab-item-left-address">{{item.address}}</p>
             </div>
           </div>
@@ -56,7 +57,7 @@
         </div>
       </div>
       <div class="detail-middle">
-        <p style="font-weight:bold;">This is an signer approved by you.</p>
+        <p style="font-weight:bold;">The signers help you to recover your ownership,  fine-grain payment management by multi-signature.</p>
         <p>It works in consensus with your other signers.</p>
         <p>By enabling, you will receive a email to authorize recovery or untrusted transaction.</p>
       </div>

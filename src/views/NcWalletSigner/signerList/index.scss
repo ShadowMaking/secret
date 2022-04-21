@@ -9,8 +9,9 @@
   .tab-content-item {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     margin-bottom: 20px;
+    border-bottom: 1px solid #dfdfdf;
+    padding-bottom:10px;
   }
   .tab-item-left {
     .tab-item-left-top {
@@ -70,6 +71,9 @@
   .tab-item-left-name {
     font-size: 0.96rem;
     font-weight: bold;
+    span {
+      margin-right: 10px;
+    }
   }
   .tab-item-left-address {
     color: #6a737d;
