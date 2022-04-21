@@ -391,7 +391,7 @@ export default {
       this.showCloseIcon = true
     },
     showSetpFail(reason) {
-      this.resuletContent = reason
+      this.resuletContent = reason ? reason : 'fail'
       this.showResultModal = true
       this.needBtnConfirm = true
       this.confirmText = 'Retry'
