@@ -5,7 +5,7 @@
       <van-tabs color="#4375f1" title-active-color="#4375f1" line-width="50%" :before-change="beforeChange">
         <van-tab :title="tabTitle" title-style="font-weight: bold; border-bottom: 2px solid #dfdfdf;">
           <v-signerList v-if="currentAccountType=='wallet'" :dataList="dataList" :signerPercent="signerPercent" @signerChange="getSignerList"></v-signerList>
-          <v-walletList v-if="currentAccountType=='normal'" :dataList="dataList"></v-walletList>
+          <v-walletList v-if="currentAccountType=='normal'" :dataList="dataList" @signChild="getWalletAsSigner"></v-walletList>
           
           <div class="no-data-container" v-if="!initShowLoading && dataList.length==0">
             <v-none />
@@ -15,6 +15,7 @@
         <van-tab title="" title-style="border-bottom: 2px solid #dfdfdf;"></van-tab>
       </van-tabs>
     </div>
+    <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
 
@@ -28,9 +29,11 @@ import Loading from '@/components/Loading'
 import None from '@/components/None/index'
 import SignerList from './signerList/index'
 import WalletList from './walletList/index'
+import InputPswModal from '@/components/InputPswModal'
+
 
 import { isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore, getConnectedAccountType, getConnectedNet,
-  getConnectedAddress, getContractAt } from '@/utils/dashBoardTools';
+  getConnectedAddress, getContractAt, getSupportNet, getConnectedUserAddress } from '@/utils/dashBoardTools';
 import { signerStatus, securityModuleRouter, lockType } from '@/utils/global';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
@@ -62,6 +65,17 @@ export default {
 
       securityModuleRouter,
       signerStatus,
+
+      // ***************** inputPsw start ***************** //
+      userPsw: '',
+      publicKey: '',
+      aesKey: '', // every decrypt has the same aesKey
+      encryptPsw: '',
+      encryptPrivateKeyPublicKey: '',
+      encryptCr1: '',
+      confirmPswBtnLoading: false,
+      showInputPswModal: false,
+      // ***************** inputPsw end ***************** //
     }
   },
   components: {
@@ -70,6 +84,7 @@ export default {
     'v-none': None,
     'v-signerList': SignerList,
     'v-walletList': WalletList,
+    'v-inputPsw': InputPswModal,
   },
   methods: {
     checkClick() {},
@@ -101,38 +116,25 @@ export default {
         address: getConnectedAddress(),
       }
       const { hasError, list } = await this.$store.dispatch('getWalletListAsSign', data)
-      this.dataList = list
+      // this.dataList = list
+      
+      this.dataList = await this.generateWalletStatus(list)
       this.initShowLoading = false
-      // this.dataList = await this.generateWalletStatus(list)
       if (hasError) {
         Toast('Get Error')
       }
     },
     async generateWalletStatus(list) {
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      if (!securityModuleContract) {
-        console.log('privateKey: null')
-        return list
-      }
       const currentChainInfo = getConnectedNet()
-      if (supportNetWorkForContract.indexOf(currentChainInfo.id) < 0) {
-        return false
-      }
       for(var i=0; i<list.length; i++) {
-        
-        var walletTime = new Date(list[i].createdAt).getTime()
-        var canTime = new Date('2022-03-12 07:50:40.092 +00:00').getTime()
-        let lockStatus = 0
-        if (walletTime >= canTime) {
-          lockStatus = await securityModuleContract.isLocked(list[i].wallet_address)
+        if (list[i].status == signerStatus['agreeRecover']) {
+          console.log(list[i])
+          let isInRecovery = await securityModuleContract.isInRecovery(list[i].wallet_address)
+          console.log("isInRecovery:" + isInRecovery)
+          let thisIsInRecovery = isInRecovery ? isInRecovery : false
+          this.$set(list[i], 'isInRecovery', thisIsInRecovery)
         }
-        console.log("lockStatus:" + lockStatus)
-        let thisIsLocked = (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) ? true : false
-        this.$set(list[i], 'isLocked', thisIsLocked)
-        let isInRecovery = await securityModuleContract.isInRecovery(list[i].wallet_address)
-        console.log("isInRecovery:" + isInRecovery)
-        let thisIsInRecovery = isInRecovery ? isInRecovery : false
-        this.$set(list[i], 'isInRecovery', thisIsInRecovery)
       }
       return list
     },
@@ -142,7 +144,7 @@ export default {
     },
     getInitNormalData() {
       this.tabTitle = 'who I protect'
-      this.getWalletAsSigner()
+      this.getIsSupport()
     },
     getInitData() {
       this.initShowLoading = true
@@ -164,6 +166,57 @@ export default {
     },
     handleAccountChange(addressInfo) {
       this.getInitData()
+    },
+    async getIsSupport() {
+      if (!getSupportNet()) {
+        return
+      }
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      this.getWalletAsSigner()
+    },
+    async confirmPswOk({ show, psw }) {
+      this.userPsw = psw; // password of user input for encrypt privateKey
+      this.confirmPswBtnLoading = true
+      const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
+      if (hasError) {
+        Toast('Get PublickKey Failed! Retry')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      this.publicKey = publicKey;
+      // console.log(`GetPublicKey result is: ${publicKey}`)
+      
+      // const password = ecies.crypto.randomBytes(16).toString("base64");
+      const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
+      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      // console.log('aesKey:', aesKey)
+      this.aesKey = aesKey
+      this.encryptPsw = encryptPsw
+      this.encryptCr1 = encryptCr1
+      // console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+
+      // to decrypt privatekey
+      const userId = getInfoFromStorageByKey('gUID')
+      const address = getConnectedUserAddress()
+      const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
+      const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
+      if(decryptInfo.hasError) {
+        Toast('DecryptPrivateKeyByEcies failed! Retry!')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      const decryptedPrivateKey = decryptInfo.data
+      const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
+      privateKey && (await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey, privateKey }))
+
+      this.confirmPswBtnLoading = false
+      this.showInputPswModal = false
+
+      this.getWalletAsSigner()
     },
   },
   async created() {

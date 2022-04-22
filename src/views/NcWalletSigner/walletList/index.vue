@@ -15,15 +15,22 @@
               <p class="tab-item-left-address" @click="copyAddress(item.wallet_address)">{{item.wallet_address}}</p>
             </div>
           </div>
-          <div class="tab-item-left-bottom blueColor" v-if="item.status > 4">Recover invitation</div>
+          <!-- <div class="tab-item-left-bottom blueColor" v-if="item.status > 4">Recover invitation</div> -->
         </div>
         <div class="tab-item-right">
           <div class="tab-item-tight-top">
             <span class="tab-item-right-detail blueColor" @click="walletDetail(item)">Detail</span>
             <!-- <div class="tab-item-right-icon"></div> -->
           </div>
-          <div class="tab-item-right-btn">
-            <el-button type="primary" @click="checkClick(item)" v-if="item.status > 4">Check</el-button>
+          <div class="tab-item-right-btn" v-if="item.status > 4 && item['wallet_status'] !== walletStatus['Fail']">
+            <div class="tab-item-right-btn-list" v-if="item.status == signerStatus['startRecover']">
+              <el-button type="primary" @click="checkDialogClick(item, 'singerSignMessage')">Confirm</el-button>
+              <el-button type="danger" plain @click="checkDialogClick(item, 'rejectSign')">Reject</el-button>
+            </div>
+            <div class="tab-item-right-btn-list" v-if="item.status == signerStatus['agreeRecover']">
+              <el-button type="primary" @click="checkDialogClick(item, 'triggerRecover')" v-if="!item.isInRecovery">Trigger</el-button>
+              <span v-else>This wallet is recovering</span>
+            </div>
           </div>
         </div>
       </div>
@@ -64,29 +71,7 @@
         </div>
       </div>
     </el-dialog>
-    <el-dialog
-      title="Recover Wallet"
-      :visible.sync="showCheckDialog"
-      custom-class="check-modal-wraper"
-      center
-      v-if="detailDataSource">
-      <div class="check-modal-content" v-if="detailDataSource.status == signerStatus['startRecover']">
-        <div class="btn-item">
-          <el-button type="primary" @click="checkDialogClick('singerSignMessage')">Confirm</el-button>
-        </div>
-        <div class="btn-item">
-          <el-button type="danger" plain @click="checkDialogClick('rejectSign')">Reject</el-button>
-        </div>
-      </div>
-      <div class="check-modal-content" v-if="detailDataSource.status == signerStatus['agreeRecover']">
-        <div class="btn-item" v-if="!detailDataSource.isInRecovery">
-          <el-button type="primary" @click="checkDialogClick('triggerRecover')">Trigger</el-button>
-        </div>
-        <div class="btn-item" v-else>
-          <span>This wallet is recovering</span>
-        </div>
-      </div>
-    </el-dialog>
+
     <v-loadingPopup :show="showLoading" :showSpinner="false" />
     <v-confirmModal
       :show="showTradeConfirm"
@@ -199,11 +184,6 @@ export default {
         Toast.success('Copied');
       }
     },
-    checkClick(item){
-      this.currentOptType = 'checkClick'
-      this.detailDataSource = item
-      this.getIsSupport()
-    },
     walletDetail(item) {
       this.currentOptType = 'detail'
       this.detailDataSource = item
@@ -234,7 +214,8 @@ export default {
       this.showDetailDialog = false
       this.getIsSupport()
     },
-    checkDialogClick(type) {
+    checkDialogClick(item, type) {
+      this.detailDataSource = item
       this.currentOptType = type
       this.showCheckDialog = false
       this.getIsSupport()
@@ -506,6 +487,7 @@ export default {
         isToast && Toast.fail('Update Failed')
       } else {
         if (isToast) {
+          this.$emit('signChild');
           Toast('Update success')
         }
       }
@@ -647,8 +629,6 @@ export default {
     dealOptType() {
       if (this.currentOptType == 'detail') {
         this.showDetail()
-      } else if (this.currentOptType == 'checkClick') {
-        this.getCheckDialog()
       } else if (this.currentOptType == 'singerSignMessage') {
         this.dealDataBeforeSingerSignMessage()
       } else if (this.currentOptType == 'rejectSign') {
