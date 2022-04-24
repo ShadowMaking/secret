@@ -37,7 +37,7 @@ export default {
       var showUserList = []
       for (var i = 0; i < results.length; i++) {
         showUserList.push({
-          value: results[i] 
+          value: results[i].address 
         })
       }
       cb(showUserList);

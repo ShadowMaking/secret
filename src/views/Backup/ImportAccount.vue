@@ -204,7 +204,7 @@ export default {
       let wallet;
       let address;
       let privateKey
-      if (type === 'privatekey') {
+      if (type === 'privateKey') {
         wallet = new ethers.Wallet(val);
         address = wallet.address
         privateKey = val

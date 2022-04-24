@@ -25,7 +25,7 @@
             </div>
             <v-selectItem v-else
               v-bind:rightVal="item.rightVal"
-              labelShow=true
+              :labelShow='false'
               v-bind:leftTitle="item.tokenName"
               v-bind:leftDes="item.leftDes"
               v-bind:icon="item.icon"
@@ -41,7 +41,7 @@
         <!-- <input type="text" name="formVal" placeholder="0" v-model="exchangVal" @input="inputChange" :disabled="inputDisabled" onkeyup="value=value.replace(/^(0+)|[^\d]+/g,'')" /> -->
         <input type="text" name="formVal" placeholder="0" v-model="exchangVal" @input="inputChange" :disabled="inputDisabled" @keyup="hanldeValue" />
       </h3>
-      <p class="exchange-des">=<label>${{ selectedTokenEchange }}</label></p>
+      <p class="exchange-des">=<label>{{ selectedTokenEchange }}</label></p>
     </div>
   </div>
 </template>

@@ -324,6 +324,7 @@ const token = {
       return new Promise(async (resolve, reject) => {
         const { changeType, tokenAddress } = params
         const fetchTicker = await transTickerObject(changeType)
+        console.log(fetchTicker)
         if (fetchTicker) {
           const forUsdt = fetchTicker.close;
           const percentage = fetchTicker.percentage;
