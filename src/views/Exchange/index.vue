@@ -44,6 +44,7 @@
           :showLoading="tokenLoading"
           :inputDisabled="true"
           :inputDefaultValue="exchangeTo"
+          :exchangeToInput="exchangeToInput"
           @selectChagne="val=>selectChagne('exchangeTo', val)"
           @inputChange="val=>inputChange('exchangeTo', val)"
           ref="tokenToSelect" />
@@ -204,6 +205,7 @@ export default {
       approveMetadata: null,
 
       currentOptType:'', // exchangeSubmit||approveSubmit
+      exchangeToInput: 0,
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -265,6 +267,7 @@ export default {
         const tokenB = this.exchangeToToken
         const tokenASymbol = tokenA && !!tokenA['tokenAddress'] ?  tokenA['symbol'] : 'ETH'
         const tokenBSymbol = tokenB && !!tokenB['tokenAddress'] ?  tokenB['symbol'] : 'ETH'
+        this.exchangeToInput = record
         if (tokenASymbol === tokenBSymbol) {
           this.exchangeTo = record
         } else {

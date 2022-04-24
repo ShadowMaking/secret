@@ -41,7 +41,7 @@
         <!-- <input type="text" name="formVal" placeholder="0" v-model="exchangVal" @input="inputChange" :disabled="inputDisabled" onkeyup="value=value.replace(/^(0+)|[^\d]+/g,'')" /> -->
         <input type="text" name="formVal" placeholder="0" v-model="exchangVal" @input="inputChange" :disabled="inputDisabled" @keyup="hanldeValue" />
       </h3>
-      <p class="exchange-des">=<label>{{ selectedTokenEchange }}</label></p>
+      <p class="exchange-des">=<label>{{ exchangeInputVal }}</label></p>
     </div>
   </div>
 </template>
@@ -58,7 +58,7 @@ Vue.use(Search);
 
 export default {
   name: 'ExchangItem',
-  props: ['isMax', 'type', 'sourceData', 'inputDisabled', 'inputDefaultValue', 'showLoading'],
+  props: ['isMax', 'type', 'sourceData', 'inputDisabled', 'inputDefaultValue', 'showLoading', 'exchangeToInput'],
   data() {
     return {
       exchangVal: '',
@@ -66,6 +66,7 @@ export default {
       selectOptionData: _.cloneDeep(this.sourceData),
       searchTxt: '',
       selectedTokenInfo: null,
+      exchangeInputVal: 0,
     }
   },
   components: {
@@ -85,23 +86,36 @@ export default {
     inputDefaultValue() {
       if (this.type === 'To') {
         this.exchangVal = this.inputDefaultValue
+        this.dealShowUs(this.exchangeToInput)
       }
+    },
+    selectedTokenInfo() {
+      this.exchangeInputVal = this.selectedTokenInfo && this.selectedTokenInfo.rightVal || '0.0'
     },
   },
-  computed: {
-    selectedTokenEchange() {
-      const selectedTokenInfo = this.selectedTokenInfo
-      if (selectedTokenInfo) {
-        return selectedTokenInfo.rightVal;
-      }
-      return 0.0
-    },
-  
+  // computed: {
+  //   selectedTokenEchange() {
+  //     const selectedTokenInfo = this.selectedTokenInfo
+  //     if (selectedTokenInfo) {
+  //       return selectedTokenInfo.rightVal;
+  //     }
+  //     return 0.0
+  //   },
+    
+  // },
+  created() {
+    this.exchangeInputVal = this.selectedTokenInfo && this.selectedTokenInfo.rightVal || '0.0'
   },
   methods: {
     inputChange(e) {
       const val = e.target.value
+      this.dealShowUs(val)
       this.$emit('inputChange', this.exchangVal);
+    },
+    dealShowUs(val) {
+      const changeCCXT = this.selectedTokenInfo && this.selectedTokenInfo.leftDes.split('$')
+      let changeCCXTval = changeCCXT && changeCCXT[1] || 0
+      this.exchangeInputVal = 'US$' + (val *changeCCXTval).toFixed(2)
     },
     showOptionList() {
       this.OptionListVisile = true
