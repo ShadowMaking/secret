@@ -272,6 +272,16 @@ export const isLogin = () => {
   return true
 }
 
+export const getTokenIsValid = async (self) => {
+  const userId = getInfoFromStorageByKey('gUID')
+  if (!userId) {return false}
+  const { hasError, data } = await self.$store.dispatch('addViewNum', {userId, kind: 'getTokenIsExpire'})
+  if (hasError) {
+    return false
+  }
+  return true
+}
+
 // DATA fro Transaction
 // params is Array or Object
 export const getDATACode = (abi, functionName, params) => {

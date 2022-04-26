@@ -68,13 +68,18 @@
 </template>
 <script>
 import Vue from 'vue';
-import { Popup, Button, Tab, Tabs } from 'vant';
+import { Popup, Button, Tab, Tabs, Toast } from 'vant';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
+import { getTokenIsValid } from '@/utils/dashBoardTools';
+
+import { LOCATION_HREF } from '../../global'
+import { logout } from '@/utils/auth'
 
 Vue.use(Popup);
 Vue.use(Button);
 Vue.use(Tab);
 Vue.use(Tabs);
+Vue.use(Toast);
 
 export default {
   name: 'ConfirmModal',
@@ -175,6 +180,13 @@ export default {
     showEdit(type) {
       this[`show${type}`] = true
     },
+  },
+  created() {
+    if(!getTokenIsValid(this)){
+      Toast('Please Login')
+      logout()
+      setTimeout(()=>{ window.location.href = LOCATION_HREF }, 2000);
+    }
   },
 }
 </script>
