@@ -303,7 +303,7 @@ const socailRecovery = {
       return new Promise((resolve, reject) => {
         addViewNum(params).then(response => {
           const { errno, data, message } = response.data
-          if (errno === 0 && data) {
+          if (errno === 0) {
             resolve({ hasError: false, data  })
           }
           resolve({ hasError: true, error: message });
