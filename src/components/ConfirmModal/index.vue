@@ -113,6 +113,9 @@ export default {
   },
   watch: {
     show() {
+      if (this.show) {
+        this.getTokenIsValid()
+      }
       this.showPopup = this.show
     },
     metadata: {
@@ -180,13 +183,17 @@ export default {
     showEdit(type) {
       this[`show${type}`] = true
     },
+    getTokenIsValid() {
+      if(!getTokenIsValid(this)){
+        Toast('Please Login')
+        logout()
+        setTimeout(()=>{ window.location.href = LOCATION_HREF }, 2000);
+        return false
+      }
+    },
   },
   created() {
-    if(!getTokenIsValid(this)){
-      Toast('Please Login')
-      logout()
-      setTimeout(()=>{ window.location.href = LOCATION_HREF }, 2000);
-    }
+    this.getTokenIsValid()
   },
 }
 </script>
