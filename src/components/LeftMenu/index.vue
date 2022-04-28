@@ -25,7 +25,7 @@
           <van-collapse-item :name="item.name" class="item" v-if="!(currentAccountType == 2 && item.name == 'Tools')">
             <template #title><div><label style="font-size: 20px"><i :class="item.icon" size="60px"></i></label>{{ item.name }}</div></template>
             <div v-for="(_item, index) in item.subMenu" :key="index" :class="['item-menu', {'active': `${index}-${_item.route}` == activeKey}]"  @click="_changeMenu(index, _item.route, 'activeKey')">
-              <router-link :to="_item.route" v-if="!(currentAccountType == 1 && _item.name == 'Security Setting')"><span>{{ _item.name }}</span></router-link>
+              <router-link :to="_item.route" v-if="!(currentAccountType == 1 && _item.name == 'Security Setting' || (currentAccountType == 2 && _item.name == 'Recover Wallet'))"><span>{{ _item.name }}</span></router-link>
             </div>
           </van-collapse-item>
         </van-collapse>
