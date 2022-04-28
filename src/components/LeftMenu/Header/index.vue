@@ -54,7 +54,7 @@
                   </ul>
                   <ul v-else>
                     <li>
-                      <div class="account-text" @click="toPage('ncWalletCreate')">Create your wallet</div>
+                      <div class="account-text" @click="toPage('ncWalletCreate')">Create Multisig wallet</div>
                     </li>
                   </ul>
                 </div>
@@ -99,7 +99,7 @@
                   <div class="opt-item van-hairline--bottom" @click="toPage('ncWalletCreate')">
                     <router-link to="/ncWalletCreate">
                       <van-icon name="paid" class="opt-icon" />
-                      <span>Create Wallet</span>
+                      <span>Create Multisig Wallet</span>
                     </router-link>
                   </div>
                   <div class="opt-item van-hairline--bottom" @click="toPage('createAccount', 'create')">
