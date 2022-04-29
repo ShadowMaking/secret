@@ -151,6 +151,8 @@ export default {
       currentClickType: 'setName',//setName createSubmit
       createWalletAddress: '',
       lasetTimes: 180,
+
+      proxyTxHash: '',
       
     
       // ***************** inputPsw start ***************** //
@@ -238,18 +240,12 @@ export default {
       
       proxyContract.create(saletnew,this.overrides).then(async tx=> {
           console.log(tx)
-          let currentNetInfo = getConnectedNet()
-          let blockExplorerUrls = currentNetInfo.blockExplorerUrls[0]
-          this.detailUrl = `${blockExplorerUrls}/tx/${tx.hash}`
+          this.getProxyDetail(tx.hash)
           addTransHistory(tx, 'Create Wallet', this)
+          this.storeProxyInfo(tx.hash)
           tx.wait().then(async res => {
             console.log(res)
-            this.showResultModal = false
-            this.storeProxyInfo(tx.hash)
-            window.clearInterval(this.thisTimer)
-            this.lasetTimes = 180
-            this.createPage1Visible = false
-            this.createPage2Visible = true
+            this.proxySuccess()
           })
       }).catch(error => {
         console.log(error)
@@ -259,6 +255,18 @@ export default {
         // Toast.fail(errorValue)
         return
       })
+    },
+    proxySuccess() {
+      this.showResultModal = false
+      window.clearInterval(this.thisTimer)
+      this.lasetTimes = 180
+      this.createPage1Visible = false
+      this.createPage2Visible = true
+    },
+    getProxyDetail(txhash) {
+      let currentNetInfo = getConnectedNet()
+      let blockExplorerUrls = currentNetInfo.blockExplorerUrls[0]
+      this.detailUrl = `${blockExplorerUrls}/tx/${txhash}`
     },
     showSetp1Waitting() {
       this.resuletContent = `Waiting <span class="blueColor">${this.lasetTimes}s</span> for transaction confirming`
@@ -288,11 +296,28 @@ export default {
       }
       const { hasError, data } = await this.$store.dispatch('getProxyInfo', {...proxyData});
       if (!hasError && data) {
+        this.getTxStatus(data)
+      }
+    },
+    async getTxStatus(data) {
+      const network = getConnectedNet()
+      const rpcUrl = network['rpcUrls'][0]
+      const provider = initRPCProvider(rpcUrl)
+      console.log(data)
+      const txReceipt = await provider.getTransactionReceipt(data.txid);
+      if (data.txid && !txReceipt) {//pending
+        this.showSetp1Waitting()
+        this.createWalletName = data.name
+        this.createWalletAddress = data.wallet_address
+        this.proxyTxHash = data.txid
+        this.getProxyDetail(data.txid)
+      } else if (txReceipt && txReceipt.status == 1) {
         this.createWalletName = data.name
         this.createWalletAddress = data.wallet_address
         this.createPage1Visible = false
         this.createPage2Visible = true
       }
+      console.log(txReceipt)
     },
     // ***************** set wallet name end ***************** //
 
@@ -556,6 +581,11 @@ export default {
         }
       }, 1000)
     },
+    handleTxStatusChange(txInfo) {
+      if (this.proxyTxHash && this.proxyTxHash == txInfo.hash) {
+        this.proxySuccess()
+      }
+    }
   },
   async created() {
     if (!isLogin()) {
@@ -576,6 +606,7 @@ export default {
   async mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
+    this.$eventBus.$on('txStatusChange', this.handleTxStatusChange)
     this.$once('hook:beforeDestroy', function () {
       window.clearInterval(this.thisTimer)
       this.thisTimer = null;

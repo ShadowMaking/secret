@@ -100,6 +100,7 @@
               });
               transHistoryStatus = -1
             }
+            this.$eventBus.$emit('txStatusChange', {status: txReceipt.status, hash: confirmingItemHash})
             this.confirmedList.push({
               txid: this.confirmingList[i],
               block_num: txReceipt.blockNumber,
