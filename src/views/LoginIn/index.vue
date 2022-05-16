@@ -71,7 +71,7 @@ export default {
       window.location.href = url
     },
     async metamaskLogin() {
-      if (!installWeb3WalletMetamask) {
+      if (!installWeb3WalletMetamask()) {
         this.openDialogInstallMetamask()
         return
       }
