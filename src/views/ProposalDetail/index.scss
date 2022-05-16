@@ -1,0 +1,52 @@
+.proposal-detail-page {
+  .proposal-detail-content {
+    display: flex;
+    width: 85%;
+    .proposal-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .proposal-col-left {
+      font-size: 0.96rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+    }
+    .proposal-detail-left {
+      width: 500px;
+    }
+    .proposal-user-image {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      margin-left: 8px;
+      margin-right: 5px;
+    }
+    .proposal-address-box {
+      margin-top: 10px;
+      .proposal-col-left {
+        font-weight: normal;
+        font-size: 0.86rem;
+        color: #9E9E9E;
+      }
+      .grey-color {
+        color: #9E9E9E;
+      }
+      .contant-address {
+        margin-right: 5px;
+        font-size: 0.86rem;
+      }
+
+    }
+    .proposal-des-content {
+      line-height: 20px;
+      font-size: 0.86rem;
+      margin-top: 20px;
+    }
+    .proposal-detail-url {
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+  }
+}

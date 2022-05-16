@@ -124,7 +124,7 @@ export default {
           {icon: 'el-icon-document', name: 'Recover Account', route: '/srecovery'},
           {icon: 'el-icon-s-custom', name: 'Co-workers', route: '/addfriends'},
         ]},
-        {icon: 'el-icon-suitcase-1', name: 'Activity', subMenu: [
+        {icon: 'el-icon-news', name: 'Activity', subMenu: [
           // {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
           {icon: 'el-icon-document', name: 'History', route: '/history'},
           {icon: 'el-icon-s-custom', name: 'Approval', route: '/approval'},
@@ -147,13 +147,19 @@ export default {
             route: '/ncWalletRecover',
           }]
         },
+        {icon: 'el-icon-odometer', name: 'Governance', subMenu: [
+          // {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
+          {icon: 'el-icon-document', name: 'Proposals', route: '/proposalList'},
+          {icon: 'el-icon-s-custom', name: 'New proposal', route: '/addProposal'},
+        ]},
       ],
       screenWidth: null,
 
       defaultIcon: null,
       netWorkList: [],
 
-      activeNames: ['Activity', 'Security'],
+      //activeNames: ['Security'],
+      activeNames: [],
       currentAccountType: 1, //1-account address ,2-wallet address
     }
   },

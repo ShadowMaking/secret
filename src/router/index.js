@@ -26,6 +26,9 @@ const LoginIn = () => import('../views/LoginIn/index')
 const Approval = () => import('../views/OverView/Approval/index')
 const NcWalletSetting = () => import('../views/NcWalletSetting/index')
 const NcWalletSigner = () => import('../views/NcWalletSigner/index')
+const ProposalList = () => import('../views/ProposalList/index')
+const AddProposal = () => import('../views/AddProposal/index')
+const ProposalDetail = () => import('../views/ProposalDetail/index')
 
 //old page not use
 const Test = () => import('../views/Test')
@@ -310,6 +313,30 @@ const routes = [
       title: "ncWalletSigner",
     },
     component: NcWalletSigner,
+  },
+  {
+    path: '/proposalList',
+    name: 'proposalList',
+    meta: {
+      title: "proposalList",
+    },
+    component: ProposalList,
+  },
+  {
+    path: '/addProposal',
+    name: 'addProposal',
+    meta: {
+      title: "addProposal",
+    },
+    component: AddProposal,
+  },
+  {
+    path: '/proposalDetail',
+    name: 'proposalDetail',
+    meta: {
+      title: "proposalDetail",
+    },
+    component: ProposalDetail,
   },
 ];
 
