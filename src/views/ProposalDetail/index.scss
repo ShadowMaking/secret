@@ -2,6 +2,7 @@
   .proposal-detail-content {
     display: flex;
     width: 85%;
+    flex-wrap: wrap;
     .proposal-row {
       display: flex;
       justify-content: space-between;
@@ -47,6 +48,61 @@
     .proposal-detail-url {
       margin-top: 20px;
       margin-bottom: 20px;
+    }
+    .proposal-vote-list {
+      margin-top: 20px;
+      line-height: 30px;
+      .proposal-vote-title {
+        font-size: 0.96rem;
+        font-weight: bold;
+      }
+      .list-header-item {
+        font-weight: bold;
+        text-align: center;
+      }
+      .list-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+    .block-container {
+      border: 1px solid #dfdfdf;
+      border-radius: 5px;
+      padding: 10px;
+    }
+    .right-block-1 .row-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .proposal-detail-right {
+      margin-left: 30px;
+      width: 250px;
+      .right-block-1 {
+        line-height: 20px;
+      }
+      .right-block-2 {
+        margin-top: 30px;
+        margin-bottom: 30px;
+      }
+      ::v-deep .el-progress-bar {
+        padding-right: 0px !important;
+      }
+      .progress-txt-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.72rem;
+        font-weight: bold;
+      }
+      .block-3-title {
+        font-size: 1.02rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+      }
+      .progress-item-row {
+        margin-bottom: 20px;
+      }
     }
   }
 }

@@ -24,7 +24,7 @@
           <div class="proposal-detail-sy">Synopsis:</div>
           <div class="proposal-detail-des">sam are the community engeagement team for sushi and serve to build trust between users,community menmbers, and sushi</div>
         </div>
-        <div class="proposal-vote-list">
+        <div class="proposal-vote-list block-container">
           <div class="proposal-vote-title">343 Votes</div>
           <el-row class="list-header">
             <el-col :span="8" class="list-header-item">Address</el-col>
@@ -35,13 +35,47 @@
             class="list-content" 
             v-for="(item, index) in voteList"
             :key="index">
-             <el-col :span="8" class="list-item">{{item.address}}</el-col>
+             <el-col :span="8" class="list-item">
+               <img src="~@/assets/help.png" class="proposal-user-image">
+               {{item.address}}
+             </el-col>
              <el-col :span="8" class="list-item">{{item.status}}</el-col>
              <el-col :span="8" class="list-item">{{item.share}}</el-col>
           </el-row>
         </div>
       </div>
-      <div class="proposal-detail-right"></div>
+      <div class="proposal-detail-right">
+        <div class="block-container right-block-1">
+          <div class="row-item" v-for="(item, index) in rightBlock1" :key="index">
+            <div>{{item.name}}</div>
+            <div>{{item.value}}</div>
+          </div>
+        </div>
+        <div class="block-container right-block-2">
+          <div class="progress-item-row">
+            <div class="progress-txt-row">
+              <div>Yes</div>
+              <div>5.5M 99.54%</div>
+            </div>
+            <el-progress :percentage="50" :format="formatProgress"></el-progress>
+          </div>
+          <div class="progress-item-row">
+            <div class="progress-txt-row">
+              <div>No</div>
+              <div>19k 0.54%</div>
+            </div>
+            <el-progress :percentage="50" :format="formatProgress"></el-progress>
+          </div>
+        </div>
+        <div class="block-container right-block-3">
+          <div class="block-3-title">Quorum</div>
+          <div class="progress-txt-row">
+            <div>5.6M / 5M </div>
+            <div>111.5% </div>
+          </div>
+          <el-progress :percentage="50" :format="formatProgress"></el-progress>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -60,8 +94,17 @@ export default {
   data() {
     return {
       voteList: [
+        {address: 'sdsd', status: 'Yes', share: '0.2ETH'},
+        {address: 'sdsd', status: 'No', share: '0.2ETH'},
         {address: 'sdsd', status: 'Yes', share: '0.2ETH'}
-      ]
+      ],
+      rightBlock1: [
+        {name: 'Strategie(s)', value: 'ox6e9s...3244'},
+        {name: 'IPFS', value: '#qMBz6cY'},
+        {name: 'Voting system', value: 'Single choice voting'},
+        {name: 'Start date', value: 'Mar 5,2022,12:00 AM'},
+        {name: 'End date', value: 'Mar 5,2022,12:00 AM'},
+      ],
     }
   },
   components: {
@@ -70,6 +113,9 @@ export default {
   
   methods: {
     addSubmit() {},
+    formatProgress(percentage) {
+      return '';
+    },
   },
   created() {
     
