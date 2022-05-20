@@ -25,9 +25,13 @@ const supportNetContractRouter = [
   {
     chainId: 3,
     name: 'Ropsten',
-    securityModuleRouter: '0x3b5Ad456e8B9118331A2FD0D6a09A592E0F6651F',
-    proxyRouter: '0x20E14B268Cd763d286536EF100eFf433C5f0E43E',
-    walletTransactionRouter: '0xa0861f705Cf3996fB6993810A82D5053de8ED3a9',
+    securityModuleRouter: '0xFAC488D62fFf39D9ac0D5ee69515c1B96E9Fbf5e',//0x3b5Ad456e8B9118331A2FD0D6a09A592E0F6651F
+    proxyRouter: '0x3DAA80E3682e932C8300CDd7cbEf35EfB7B3e680',//0x20E14B268Cd763d286536EF100eFf433C5f0E43E
+    walletTransactionRouter: '0x190eec581fd4b4fAd36BE913C5F79f8A858F90e7',//0xa0861f705Cf3996fB6993810A82D5053de8ED3a9
+    GovernanceTokenRouter: '0xb1a6511aC393886074b3DF012F4aa41b55DAc51a',
+    GovernorAlphaRouter: '0xD3E438A314d9C283d92eAA0D5F7745b620777aA6',
+    securityModuleProxyRouter: '0x61FD4fC15cF6c98aBB0Fc7062D9038Db9FbceF6F',
+    transactionModuleProxyRouter: '0x22DC64bC07Abb6C170CD7eAe70251a0B55Dbc6F2',
   },
   {
     chainId: 588,
@@ -61,6 +65,10 @@ const supportNetContractRouter = [
 let securityModuleRouter = supportNetContractRouter[0].securityModuleRouter;
 let proxyRouter = supportNetContractRouter[0].proxyRouter;
 let walletTransactionRouter = supportNetContractRouter[0].walletTransactionRouter;
+let GovernanceTokenRouter = supportNetContractRouter[0].GovernanceTokenRouter;
+let GovernorAlphaRouter = supportNetContractRouter[0].GovernorAlphaRouter;
+let securityModuleProxyRouter = supportNetContractRouter[0].securityModuleProxyRouter;
+let transactionModuleProxyRouter = supportNetContractRouter[0].transactionModuleProxyRouter;
 let currentChainId = getConnectedNet().id
 for (let i = 0; i < supportNetContractRouter.length; i++) {
   if (currentChainId == supportNetContractRouter[i].chainId) {
@@ -127,4 +135,8 @@ export {
   walletStatus,
   multOperation,
   lockType,
+  GovernanceTokenRouter,
+  GovernorAlphaRouter,
+  securityModuleProxyRouter,
+  transactionModuleProxyRouter,
 }

@@ -310,7 +310,8 @@ a{
   line-height: 44px;
   color: #fff;
   // background-color: #4375f1;
-  background-color: #495ABE;
+  background-color: #495ABE !important;
+  border-color:  #495ABE !important;
   border-radius: 10px;
   display: inline-block;
 }
