@@ -3,6 +3,11 @@
     display: flex;
     width: 85%;
     flex-wrap: wrap;
+    min-width: 790px;
+    .proposal-vote-item {
+      margin-top: 15px;
+      margin-bottom: 15px;
+    }
     .proposal-row {
       display: flex;
       justify-content: space-between;
@@ -52,6 +57,7 @@
     .proposal-vote-list {
       margin-top: 20px;
       line-height: 30px;
+      margin-bottom: 20px;
       .proposal-vote-title {
         font-size: 0.96rem;
         font-weight: bold;
