@@ -5,28 +5,35 @@
       <div class="proposal-detail-left">
         <div class="proposal-row">
           <div class="proposal-col-left">Samurai v2 [Implementation]</div>
-          <div class="proposal-col-right"><el-tag>closed</el-tag></div>
+          <div class="proposal-col-right">
+            <el-tag type="warn" v-if="proposalStatus == 0">Pending</el-tag>
+            <el-tag type="success" v-else-if="proposalStatus == 1">Active</el-tag>
+            <el-tag v-else-if="proposalStatus == 2">Closed</el-tag>
+          </div>
         </div>
         <div class="proposal-row proposal-address-box">
           <div class="proposal-col-left">
             <span>By</span>
             <img src="~@/assets/help.png" class="proposal-user-image">
-            <span>0x6e81...9782</span>
+            <span v-if="proposalInfo && proposalInfo.proposer">{{`${proposalInfo.proposer.slice(0,10)}...${proposalInfo.proposer.slice(-4)}`}}</span>
           </div>
           <div class="proposal-col-right">
             <span class="contant-address">new contract address</span>
-            <span class="grey-color">0x6e81...9782</span>
+            <span class="grey-color" v-if="newContractAddress">
+            {{`${newContractAddress.slice(0,10)}...${newContractAddress.slice(-4)}`}}
+            </span>
+            <span class="grey-color" v-else>--</span>
           </div>
         </div>
         <div class="proposal-des-content">
           <div class="proposal-detail-title">This proposal expectation is to produce an implementation. Full details and discussions thus far can be found at:</div>
           <div class="proposal-detail-url">httos://for/9768</div>
           <div class="proposal-detail-sy">Synopsis:</div>
-          <div class="proposal-detail-des">sam are the community engeagement team for sushi and serve to build trust between users,community menmbers, and sushi</div>
+          <div class="proposal-detail-des">{{proposalInfoDes}}</div>
         </div>
         <div class="proposal-vote-list block-container">
-          <!-- <div class="proposal-vote-list">
-            <div class="proposal-vote-title">343 Votes</div>
+          <div class="proposal-vote-list" v-if="isVote">
+            <div class="proposal-vote-title">{{voteList.length}} Votes</div>
             <el-row class="list-header">
               <el-col :span="8" class="list-header-item">Address</el-col>
               <el-col :span="8" class="list-header-item">Opinion</el-col>
@@ -38,13 +45,13 @@
               :key="index">
                <el-col :span="8" class="list-item">
                  <img src="~@/assets/help.png" class="proposal-user-image">
-                 {{item.address}}
+                 {{`${item.voter.slice(0,10)}...${item.voter.slice(-4)}`}}
                </el-col>
-               <el-col :span="8" class="list-item">{{item.status}}</el-col>
-               <el-col :span="8" class="list-item">{{item.share}}</el-col>
+               <el-col :span="8" class="list-item">{{item.support}}</el-col>
+               <el-col :span="8" class="list-item">{{item.value}}</el-col>
             </el-row>
-          </div> -->
-          <div class="proposal-vote-btn-container">
+          </div>
+          <div class="proposal-vote-btn-container" v-else>
             <div class="proposal-vote-title">Cast your vote</div>
             <div class="proposal-vote-opration">
               <div class="proposal-vote-item">
@@ -116,12 +123,17 @@ import resultModal from '@/components/ResultModal';
 import GovernorAlpha from "@/assets/contractJSON/GovernorAlpha.json";
 import { GovernorAlphaRouter } from '@/utils/global';
 
-import { getInfoFromStorageByKey } from '@/utils/storage';
+import { getInfoFromStorageByKey, getFromStorage } from '@/utils/storage';
 
-import { getContractAt, getDecryptPrivateKeyFromStore, isLogin, getEncryptKeyByAddressFromStore, getConnectedUserAddress } from '@/utils/dashBoardTools';
+import { getContractAt, getDecryptPrivateKeyFromStore, isLogin, getEncryptKeyByAddressFromStore, getConnectedUserAddress, getConnectedAddress, getBalanceByAddress, getSupportNet, getEstimateGas, addTransHistory, getConnectedNet, initWeb3Provider } from '@/utils/dashBoardTools';
 
 import { Toast, Dialog} from 'vant'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
+
+import web3 from 'web3'
+import { CHAINMAP } from '@/utils/netWorkForToken';
+import { formatErrorContarct } from '@/utils/index'
+import { timeFormat } from '@/utils/str'
 
 Vue.use(Toast);
 Vue.use(Dialog);
@@ -130,24 +142,30 @@ export default {
   name: 'addProposal',
   data() {
     return {
-      voteList: [
-        {address: 'sdsd', status: 'Yes', share: '0.2ETH'},
-        {address: 'sdsd', status: 'No', share: '0.2ETH'},
-        {address: 'sdsd', status: 'Yes', share: '0.2ETH'}
-      ],
+      voteList: [],
       rightBlock1: [
         {name: 'Strategie(s)', value: 'ox6e9s...3244'},
         {name: 'IPFS', value: '#qMBz6cY'},
         {name: 'Voting system', value: 'Single choice voting'},
-        {name: 'Start date', value: 'Mar 5,2022,12:00 AM'},
-        {name: 'End date', value: 'Mar 5,2022,12:00 AM'},
+        {name: 'Start date', value: '--'},
+        {name: 'End date', value: '--'},
       ],
       GovernorAlphaRouter,
       agreeLoading: false,
       rejectLoading: false,
       GovernorAlphaContract: '',
       proposalId: this.$route.query.id,
+      proposalInfo: null,
       showLoading: false,
+      newContractAddress: '',
+      proposalStatus: '',
+      proposalInfoDes: '--',
+      isVote: false,
+
+      overrides: {
+        gasLimit: 8000000,
+        gasPrice: 20000000000,//wei
+      },
 
       currentChainInfo: null,
       sendMetadata: null,
@@ -157,6 +175,7 @@ export default {
       showResultModal: false,
       resuletContent: 'Submitted Success',
       needResultColse: false,
+      currentOptType: 'agree',//agree reject
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -180,14 +199,63 @@ export default {
   
   methods: {
     async agreeSubmit() {
-      const proposalId = this.$route.query.id
-      this.GovernorAlphaContract.castVote(proposalId, true).then(async tx=> {
-          console.log(tx)
-      }).catch(error => {
-          console.log(error)
-      })
+      this.currentOptType = 'agree'
+      this.agreeLoading = true
+      const selectedConnectAddress = getConnectedAddress()
+      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      if (connectBalance < 0) {
+        Toast('Insufficient Funds')
+        this.agreeLoading = false
+        return
+      }
+      this.showConfirmModal()
     },
-    rejectSubmit() {},
+    async rejectSubmit() {
+      this.currentOptType = 'reject'
+      this.rejectLoading = true
+      const selectedConnectAddress = getConnectedAddress()
+      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      if (connectBalance < 0) {
+        Toast('Insufficient Funds')
+        this.rejectLoading = false
+        return
+      }
+      this.showConfirmModal()
+    },
+    async showConfirmModal() {
+      if (!getSupportNet()) {
+        this.agreeLoading = false
+        this.rejectLoading = false
+        return
+      }
+      const selectedConnectAddress = getConnectedAddress()
+      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      let estimatedGasFee = await getEstimateGas('gasUsed')
+      console.log(connectBalance)
+      if (connectBalance < estimatedGasFee) {
+        Toast('Insufficient Funds')
+        this.agreeLoading = false
+        this.rejectLoading = false
+        return
+      }
+      let thisGasPrice = this.overrides.gasPrice.toString()
+      let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
+
+      this.sendMetadata = {
+        from: getConnectedAddress(),
+        to: this.GovernorAlphaRouter,
+        gas: this.overrides.gasLimit,
+        gasPrice: gasPrice,
+        value: 0,
+        symbolName: 'ETH',
+        netInfo: this.currentChainInfo,
+        DATA: '0x',
+        estimatedGasFee: estimatedGasFee
+      }
+      this.showTradeConfirm = true
+      this.agreeLoading = false
+      this.rejectLoading = false
+    },
     formatProgress(percentage) {
       return '';
     },
@@ -198,6 +266,35 @@ export default {
     confirmModal({ overrides }) {
       this.overrides.gasLimit = overrides.gasLimit
       this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
+      if (this.currentOptType == 'agree') {
+        this.dealDataAgreeContract()
+      } else if (this.currentOptType == 'reject') {
+        this.dealDataRejectContract()
+      }
+    },
+    dealDataAgreeContract() {
+      this.castVoteByContract(true, 'Agree Vote')
+    },
+    dealDataRejectContract() {
+      this.castVoteByContract(false, 'Reject Vote')
+    },
+    async castVoteByContract(oprType, hisrotyText) {
+      this.showLoading = true
+      const proposalId = this.$route.query.id
+      this.GovernorAlphaContract.castVote(proposalId, oprType, this.overrides).then(async tx=> {
+          console.log(tx)
+          this.showLoading = false
+          this.showResultModal = true
+          addTransHistory(tx, hisrotyText, this)
+          tx.wait().then(async res => {
+            console.log('Agree Vote:', res)
+          })
+      }).catch(error => {
+          console.log(error)
+          this.showLoading = false
+          let errorValue = formatErrorContarct(error)
+          Toast.fail(errorValue)
+      })
     },
     cancelResultModal() {
       this.showResultModal = false
@@ -207,7 +304,52 @@ export default {
     },
     async getProposalInfo() {
       this.GovernorAlphaContract = await getContractAt({ tokenAddress: this.GovernorAlphaRouter, abi: GovernorAlpha.abi }, this)
-      console.log(this.GovernorAlphaContract)
+      const proposalInfo = await this.GovernorAlphaContract.proposals(this.proposalId)
+      this.proposalInfo = proposalInfo
+      console.log(proposalInfo)
+      this.resetDate(proposalInfo.startBlock, 'start')
+      this.resetDate(proposalInfo.endBlock, 'end')
+      
+      const proposalItem = getInfoFromStorageByKey('proposalItem')
+      const calldata = (proposalItem.args[5])[0]
+      this.newContractAddress = calldata.slice(0,2) + calldata.slice(26)
+      this.proposalStatus = proposalItem.status
+      this.proposalInfoDes = proposalItem.args[8]
+      const voteCastInfo = await this.GovernorAlphaContract.queryFilter(
+                    this.GovernorAlphaContract.filters.VoteCast(),
+                )
+      this.dealVoteList(voteCastInfo)
+      console.log(voteCastInfo)
+    },
+    async resetDate(dateBlock, type) {
+      const network = getConnectedNet()
+      const rpcUrl = network['rpcUrls'][0]
+      const currentWeb3Provider = initWeb3Provider(rpcUrl)
+      const thisDateBlock = web3.utils.hexToNumberString(dateBlock)
+      const blockRes = await currentWeb3Provider.eth.getBlock(thisDateBlock);
+      const blockTime = blockRes ? timeFormat(blockRes.timestamp * 1000, 'yyyy-MM-dd hh:mm:ss') : '--'
+      if (type == 'start') {
+        this.rightBlock1[3].value = blockTime
+      } else {
+        this.rightBlock1[4].value = blockTime
+      }
+    },
+    dealVoteList(data) {
+      let dealData = []
+      let currentUserAddress = getConnectedUserAddress()
+      console.log(currentUserAddress)
+      for (var i = 0; i < data.length; i++) {
+        const voter = data[i].args.voter.toLocaleLowerCase()
+        if (voter == currentUserAddress) {
+          this.isVote = true
+        }
+        dealData.push({
+          voter: voter,
+          support: data[i].args.support ? 'Yes' : 'No',
+          value: web3.utils.hexToNumberString(data[i].args.votes),
+        })
+      }
+      this.voteList = dealData
     },
     async confirmPswOk({ show, psw }) {
       this.userPsw = psw; // password of user input for encrypt privateKey
@@ -257,13 +399,36 @@ export default {
       }
       await this.getProposalInfo()
     },
+    getDefaultNetWork() {
+      const info = getInfoFromStorageByKey('netInfo')
+      return info && info['id'] || 1
+    },
+    _handleNetworkChange({ chainInfo, from }) {
+      console.log(chainInfo)
+    },
+    handleAccountChange(addressInfo) {
+      console.log(addressInfo)
+    },
   },
-  created() {
+  async created() {
     if (!isLogin()) {
       Toast('Please Login')
       return
     }
+    this.defaultNetWork = this.getDefaultNetWork()
+    const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
+    console.log(netInfo)
+    if (netInfo) {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
+    } else {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
+    }
+    this.overrides.gasPrice = await getEstimateGas('gasPrice')
     this.isShowPwdModal()
+  },
+  async mounted() {
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
   },
 }
 </script>

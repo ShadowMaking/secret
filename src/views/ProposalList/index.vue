@@ -9,7 +9,7 @@
         <van-tab title="Closed" title-style="font-weight: bold;"></van-tab>
       </van-tabs>
       <div class="proposal-list">
-        <div class="proposal-item" v-for="(item, index) in dataList" :key="index" @click="goDetail(item.args.id)">
+        <div class="proposal-item" v-for="(item, index) in dataList" :key="index" @click="goDetail(item)">
           <div class="proposal-item-top">
             <div class="proposal-item-top-left">
               <span>By</span>
@@ -121,10 +121,11 @@ export default {
       })
       this.dataList = fiterProposal
     },
-    goDetail(id) {
+    goDetail(param) {
+      saveToStorage({'proposalItem': param})
       this.$router.push({
         path: `/proposalDetail`,
-        query: {id: id},
+        query: {id: param.args.id},
       })
     },
     async getProposalList() {

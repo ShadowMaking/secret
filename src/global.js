@@ -11,20 +11,20 @@ let LOCATION_HREF;
 
 switch(process.env.NODE_ENV){
 	case 'dev':
-    WEBSITE_BASEURL = 'https://test.ieigen.com'
+    WEBSITE_BASEURL = 'https://test.eigen.cash'
     LOCATION_HREF = protocol + '//dev-deliver-secret.eigen.com:8090'
   break;
   case 'preview':
-    WEBSITE_BASEURL =  protocol + '//preview.ieigen.com'
-    LOCATION_HREF = protocol + '//preview.ieigen.com'
+    WEBSITE_BASEURL =  protocol + '//preview.eigen.cash'
+    LOCATION_HREF = protocol + '//preview.eigen.cash'
   break;
   case 'test':
-		WEBSITE_BASEURL =  protocol + '//test.ieigen.com'
-    LOCATION_HREF = protocol + '//test.ieigen.com'
+		WEBSITE_BASEURL =  protocol + '//test.eigen.cash'
+    LOCATION_HREF = protocol + '//test.eigen.cash'
 	break;
 	case 'production':
-		WEBSITE_BASEURL = protocol + '//rpc.ieigen.com'
-    LOCATION_HREF = protocol + '//secret.ieigen.com'
+		WEBSITE_BASEURL = protocol + '//rpc.eigen.cash'
+    LOCATION_HREF = protocol + '//secret.eigen.cash'
 	break;
 }
 
