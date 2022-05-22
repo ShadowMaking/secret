@@ -45,6 +45,7 @@
 import Vue from 'vue';
 import _ from 'lodash';
 import { ethers } from 'ethers'
+import web3 from 'web3'
 
 import navTitle from '@/components/NavTitle/index'
 import Loading from '@/components/Loading'
@@ -123,9 +124,10 @@ export default {
     },
     goDetail(param) {
       saveToStorage({'proposalItem': param})
+      const id = web3.utils.hexToNumberString(param.args.id)
       this.$router.push({
         path: `/proposalDetail`,
-        query: {id: param.args.id},
+        query: {id: id},
       })
     },
     async getProposalList() {

@@ -125,7 +125,8 @@ import resultModal from '@/components/ResultModal';
 import Loading from '@/components/Loading'
 
 import GovernorAlpha from "@/assets/contractJSON/GovernorAlpha.json";
-import { GovernorAlphaRouter } from '@/utils/global';
+import GovernanceToken from "@/assets/contractJSON/GovernanceToken.json";
+import { GovernorAlphaRouter, GovernanceTokenRouter } from '@/utils/global';
 
 import { getInfoFromStorageByKey, getFromStorage } from '@/utils/storage';
 
@@ -138,6 +139,7 @@ import web3 from 'web3'
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import { formatErrorContarct } from '@/utils/index'
 import { timeFormat } from '@/utils/str'
+import { BigNumber } from "bignumber.js";
 
 Vue.use(Toast);
 Vue.use(Dialog);
@@ -155,6 +157,7 @@ export default {
         {name: 'End date', value: '--'},
       ],
       GovernorAlphaRouter,
+      GovernanceTokenRouter,
       agreeLoading: false,
       rejectLoading: false,
       GovernorAlphaContract: '',
@@ -359,25 +362,34 @@ export default {
         this.rightBlock1[4].value = blockTime
       }
     },
-    dealVoteList(data) {
+    async dealVoteList(data) {
       let dealData = []
       let proposalTotal = data.length
       let agreeTotal = 0
       let currentUserAddress = getConnectedUserAddress()
-      console.log(currentUserAddress)
+      const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
       for (var i = 0; i < data.length; i++) {
         const voter = data[i].args.voter.toLocaleLowerCase()
-        if (data[i].args.proposalId == this.proposalId) {//fiter
+        let itemProposalId = web3.utils.hexToNumberString(data[i].args.proposalId)
+        if (itemProposalId == this.proposalId) {//fiter
             if (voter == currentUserAddress) {
               this.isVote = true
             }
             if (data[i].args.support) {
               agreeTotal = agreeTotal + 1
             }
+
+            const voteBalance = data[i].args.votes
+            const decimals = await GovernanceTokenContract.decimals() 
+            const decimalsIsBigNumber = web3.utils.isBigNumber(decimals)||web3.utils.isHexStrict(decimals)||!_.isFinite(decimals)
+            const decimalsNumber = BigNumber(10).pow((decimalsIsBigNumber?decimals.toNumber():decimals)) // .toNumber() 1000000000000000000
+            const balanceNumber = BigNumber(Number(web3.utils.hexToNumberString(voteBalance)))
+            const balanceFormatString = balanceNumber.div(decimalsNumber).toFixed(2,1) || 0.0000
+
             dealData.push({
               voter: voter,
               support: data[i].args.support ? 'Yes' : 'No',
-              value: web3.utils.hexToNumberString(data[i].args.votes),
+              value: balanceFormatString,
             })
         }
       }
