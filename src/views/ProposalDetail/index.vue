@@ -15,11 +15,11 @@
           <div class="proposal-col-left">
             <span>By</span>
             <img src="~@/assets/help.png" class="proposal-user-image">
-            <span v-if="proposalInfo && proposalInfo.proposer">{{`${proposalInfo.proposer.slice(0,10)}...${proposalInfo.proposer.slice(-4)}`}}</span>
+            <span v-if="proposalInfo && proposalInfo.proposer" @click="copyAddress(proposalInfo.proposer)">{{`${proposalInfo.proposer.slice(0,10)}...${proposalInfo.proposer.slice(-4)}`}}</span>
           </div>
           <div class="proposal-col-right">
             <span class="contant-address">new contract address</span>
-            <span class="grey-color" v-if="newContractAddress">
+            <span class="grey-color" v-if="newContractAddress" @click="copyAddress(newContractAddress)">
             {{`${newContractAddress.slice(0,10)}...${newContractAddress.slice(-4)}`}}
             </span>
             <span class="grey-color" v-else>--</span>
@@ -78,14 +78,14 @@
           <div class="progress-item-row">
             <div class="progress-txt-row">
               <div>Yes</div>
-              <div>5.5M {{yesPercent}}%</div>
+              <div>{{yesShowBalance}} {{yesPercent}}%</div>
             </div>
             <el-progress :percentage="yesPercent" :format="formatProgress"></el-progress>
           </div>
           <div class="progress-item-row">
             <div class="progress-txt-row">
               <div>No</div>
-              <div>19k {{noPercent}}%</div>
+              <div>{{noShowBalance}} {{noPercent}}%</div>
             </div>
             <el-progress :percentage="noPercent" :format="formatProgress"></el-progress>
           </div>
@@ -137,7 +137,7 @@ import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivat
 
 import web3 from 'web3'
 import { CHAINMAP } from '@/utils/netWorkForToken';
-import { formatErrorContarct } from '@/utils/index'
+import { formatErrorContarct, copyTxt } from '@/utils/index'
 import { timeFormat } from '@/utils/str'
 import { BigNumber } from "bignumber.js";
 
@@ -172,6 +172,10 @@ export default {
 
       yesPercent: 0,
       noPercent: 0,
+      yesBalance: 0,
+      noBalance: 0,
+      yesShowBalance: 0,
+      noShowBalance: 0,
 
       overrides: {
         gasLimit: 8000000,
@@ -210,6 +214,11 @@ export default {
   },
   
   methods: {
+    copyAddress(str) {
+      if (copyTxt(str)) {
+        Toast.success('Copied');
+      }
+    },
     async agreeSubmit() {
       this.currentOptType = 'agree'
       this.agreeLoading = true
@@ -335,8 +344,8 @@ export default {
       const proposalInfo = await this.GovernorAlphaContract.proposals(this.proposalId)
       this.proposalInfo = proposalInfo
       console.log(proposalInfo)
-      this.resetDate(proposalInfo.startBlock, 'start')
-      this.resetDate(proposalInfo.endBlock, 'end')
+      this.rightBlock1[3].value = await this.resetDate(proposalInfo.startBlock, 'start')
+      this.rightBlock1[4].value = await this.getEndDate(proposalInfo.endBlock, 'end', proposalInfo.startBlock)
       
       const proposalItem = getInfoFromStorageByKey('proposalItem')
       const calldata = (proposalItem.args[5])[0]
@@ -355,19 +364,26 @@ export default {
       const currentWeb3Provider = initWeb3Provider(rpcUrl)
       const thisDateBlock = web3.utils.hexToNumberString(dateBlock)
       const blockRes = await currentWeb3Provider.eth.getBlock(thisDateBlock);
-      const blockTime = blockRes ? timeFormat(blockRes.timestamp * 1000, 'yyyy-MM-dd hh:mm:ss') : '--'
-      if (type == 'start') {
-        this.rightBlock1[3].value = blockTime
-      } else {
-        this.rightBlock1[4].value = blockTime
+      const blockTime = blockRes ? timeFormat(blockRes.timestamp * 1000, 'yyyy-MM-dd hh:mm:ss') : null
+      return blockTime
+    },
+    async getEndDate(endBlock, type, startBlock) {
+      let endTime = await this.resetDate(endBlock, type)
+      console.log(endTime)
+      if (!endTime) {
+        let blockNum = (endBlock - startBlock)*15*1000
+        let endTimeDate = new Date(this.rightBlock1[3].value)
+        console.log(endTimeDate.getTime())
+        endTime = timeFormat(blockNum + endTimeDate.getTime(), 'yyyy-MM-dd hh:mm:ss')
       }
+      return endTime
     },
     async dealVoteList(data) {
       let dealData = []
-      let proposalTotal = data.length
-      let agreeTotal = 0
       let currentUserAddress = getConnectedUserAddress()
       const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
+      this.yesBalance = 0
+      this.noBalance = 0
       for (var i = 0; i < data.length; i++) {
         const voter = data[i].args.voter.toLocaleLowerCase()
         let itemProposalId = web3.utils.hexToNumberString(data[i].args.proposalId)
@@ -375,17 +391,20 @@ export default {
             if (voter == currentUserAddress) {
               this.isVote = true
             }
-            if (data[i].args.support) {
-              agreeTotal = agreeTotal + 1
-            }
-
+            
             const voteBalance = data[i].args.votes
             const decimals = await GovernanceTokenContract.decimals() 
             const decimalsIsBigNumber = web3.utils.isBigNumber(decimals)||web3.utils.isHexStrict(decimals)||!_.isFinite(decimals)
             const decimalsNumber = BigNumber(10).pow((decimalsIsBigNumber?decimals.toNumber():decimals)) // .toNumber() 1000000000000000000
             const balanceNumber = BigNumber(Number(web3.utils.hexToNumberString(voteBalance)))
-            const balanceFormatString = balanceNumber.div(decimalsNumber).toFixed(2,1) || 0.0000
+            const balanceFormatString = balanceNumber.div(decimalsNumber).toFixed(2,1) || 0.00
 
+            if (data[i].args.support) {
+              this.resetVoteBalance(balanceFormatString, 'add')
+            } else {
+              this.resetVoteBalance(balanceFormatString, 'reduce')
+            }
+            
             dealData.push({
               voter: voter,
               support: data[i].args.support ? 'Yes' : 'No',
@@ -393,10 +412,31 @@ export default {
             })
         }
       }
-      this.yesPercent = (agreeTotal/proposalTotal)*100
-      this.noPercent = ((proposalTotal-agreeTotal)/proposalTotal)*100
+      let voteTotal = this.yesBalance + this.noBalance
+      if (voteTotal > 0) {
+        this.yesPercent = (this.yesBalance/voteTotal)*100
+        this.noPercent = (this.noBalance/voteTotal)*100
+        this.yesShowBalance = this.dealShowVoteNum(this.yesBalance)
+        this.noShowBalance = this.dealShowVoteNum(this.noBalance)
+      }
       this.listLoading = false
       this.voteList = dealData
+    },
+    resetVoteBalance(value, type) {
+      if (type == 'add') {
+        this.yesBalance = this.yesBalance + Number(value)
+      } else {
+        this.noBalance = this.noBalance + Number(value)
+      }
+    },
+    dealShowVoteNum(value) {
+      if (value >= 1000 && value < 1000000) {
+        return (value/1000).toFixed(0) + 'k'
+      } else if (value >= 1000000) {
+        return (value/1000000).toFixed(0) + 'M'
+      } else {
+        return value
+      }
     },
     async confirmPswOk({ show, psw }) {
       this.userPsw = psw; // password of user input for encrypt privateKey
