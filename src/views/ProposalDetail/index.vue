@@ -26,39 +26,42 @@
           </div>
         </div>
         <div class="proposal-des-content">
-          <div class="proposal-detail-title">This proposal expectation is to produce an implementation. Full details and discussions thus far can be found at:</div>
-          <div class="proposal-detail-url">httos://for/9768</div>
+          <!-- <div class="proposal-detail-title">This proposal expectation is to produce an implementation. Full details and discussions thus far can be found at:</div>
+          <div class="proposal-detail-url">httos://for/9768</div> -->
           <div class="proposal-detail-sy">Synopsis:</div>
           <div class="proposal-detail-des">{{proposalInfoDes}}</div>
         </div>
         <div class="proposal-vote-list block-container">
-          <div class="proposal-vote-list" v-if="isVote">
-            <div class="proposal-vote-title">{{voteList.length}} Votes</div>
-            <el-row class="list-header">
-              <el-col :span="8" class="list-header-item">Address</el-col>
-              <el-col :span="8" class="list-header-item">Opinion</el-col>
-              <el-col :span="8" class="list-header-item">Share</el-col>
-            </el-row>
-            <el-row 
-              class="list-content" 
-              v-for="(item, index) in voteList"
-              :key="index">
-               <el-col :span="8" class="list-item">
-                 <img src="~@/assets/help.png" class="proposal-user-image">
-                 {{`${item.voter.slice(0,10)}...${item.voter.slice(-4)}`}}
-               </el-col>
-               <el-col :span="8" class="list-item">{{item.support}}</el-col>
-               <el-col :span="8" class="list-item">{{item.value}}</el-col>
-            </el-row>
-          </div>
-          <div class="proposal-vote-btn-container" v-else>
-            <div class="proposal-vote-title">Cast your vote</div>
-            <div class="proposal-vote-opration">
-              <div class="proposal-vote-item">
-                <el-button type="primary" class="common-form-btn" :loading="agreeLoading" @click="agreeSubmit">Yes</el-button>
-              </div>
-              <div class="proposal-vote-item">
-                <el-button plain type="info" class="common-reject-btn" :loading="rejectLoading" @click="rejectSubmit">No</el-button>
+          <v-loading v-if="listLoading" />
+          <div v-else>
+            <div class="proposal-vote-list" v-if="isVote">
+              <div class="proposal-vote-title">{{voteList.length}} Votes</div>
+              <el-row class="list-header">
+                <el-col :span="8" class="list-header-item">Address</el-col>
+                <el-col :span="8" class="list-header-item">Opinion</el-col>
+                <el-col :span="8" class="list-header-item">Share</el-col>
+              </el-row>
+              <el-row 
+                class="list-content" 
+                v-for="(item, index) in voteList"
+                :key="index">
+                 <el-col :span="8" class="list-item">
+                   <img src="~@/assets/help.png" class="proposal-user-image">
+                   {{`${item.voter.slice(0,10)}...${item.voter.slice(-4)}`}}
+                 </el-col>
+                 <el-col :span="8" class="list-item">{{item.support}}</el-col>
+                 <el-col :span="8" class="list-item">{{item.value}}</el-col>
+              </el-row>
+            </div>
+            <div class="proposal-vote-btn-container" v-else>
+              <div class="proposal-vote-title">Cast your vote</div>
+              <div class="proposal-vote-opration">
+                <div class="proposal-vote-item">
+                  <el-button type="primary" class="common-form-btn" :loading="agreeLoading" @click="agreeSubmit" :disabled="proposalStatus !== 1">Yes</el-button>
+                </div>
+                <div class="proposal-vote-item">
+                  <el-button plain type="info" class="common-reject-btn" :loading="rejectLoading" @click="rejectSubmit" :disabled="proposalStatus !== 1">No</el-button>
+                </div>
               </div>
             </div>
           </div>
@@ -75,16 +78,16 @@
           <div class="progress-item-row">
             <div class="progress-txt-row">
               <div>Yes</div>
-              <div>5.5M 99.54%</div>
+              <div>5.5M {{yesPercent}}%</div>
             </div>
-            <el-progress :percentage="50" :format="formatProgress"></el-progress>
+            <el-progress :percentage="yesPercent" :format="formatProgress"></el-progress>
           </div>
           <div class="progress-item-row">
             <div class="progress-txt-row">
               <div>No</div>
-              <div>19k 0.54%</div>
+              <div>19k {{noPercent}}%</div>
             </div>
-            <el-progress :percentage="50" :format="formatProgress"></el-progress>
+            <el-progress :percentage="noPercent" :format="formatProgress"></el-progress>
           </div>
         </div>
         <div class="block-container right-block-3">
@@ -119,6 +122,7 @@ import InputPswModal from '@/components/InputPswModal'
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingPopup from '@/components/LoadingPopup';
 import resultModal from '@/components/ResultModal';
+import Loading from '@/components/Loading'
 
 import GovernorAlpha from "@/assets/contractJSON/GovernorAlpha.json";
 import { GovernorAlphaRouter } from '@/utils/global';
@@ -161,6 +165,10 @@ export default {
       proposalStatus: '',
       proposalInfoDes: '--',
       isVote: false,
+      listLoading: true,
+
+      yesPercent: 0,
+      noPercent: 0,
 
       overrides: {
         gasLimit: 8000000,
@@ -195,32 +203,46 @@ export default {
     'v-confirmModal': ConfirmModal,
     'v-loadingPopup': LoadingPopup,
     'v-resultModal': resultModal,
+    'v-loading': Loading,
   },
   
   methods: {
     async agreeSubmit() {
       this.currentOptType = 'agree'
       this.agreeLoading = true
+      this.isHasBalance()
+    },
+    async rejectSubmit() {
+      this.currentOptType = 'reject'
+      this.rejectLoading = true
+      this.isHasBalance()
+    },
+    async isHasBalance() {
       const selectedConnectAddress = getConnectedAddress()
       const connectBalance = await getBalanceByAddress(selectedConnectAddress)
       if (connectBalance < 0) {
         Toast('Insufficient Funds')
         this.agreeLoading = false
-        return
-      }
-      this.showConfirmModal()
-    },
-    async rejectSubmit() {
-      this.currentOptType = 'reject'
-      this.rejectLoading = true
-      const selectedConnectAddress = getConnectedAddress()
-      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
-      if (connectBalance < 0) {
-        Toast('Insufficient Funds')
         this.rejectLoading = false
         return
       }
-      this.showConfirmModal()
+      this.openDialog()
+    },
+    openDialog() {
+      Dialog.confirm({
+        message: 'Are you sure you want to cast this vote? This action cannot be undone',
+        confirmButtonText: 'Confirm',
+        confirmButtonColor: '#4375f1',
+        cancelButtonText: 'Cancel'
+      })
+      .then(() => {
+        this.showConfirmModal()
+      })
+      .catch((error) => {
+        this.rejectLoading = false
+        this.agreeLoading = false
+        console.log(error)
+      });
     },
     async showConfirmModal() {
       if (!getSupportNet()) {
@@ -285,6 +307,7 @@ export default {
           console.log(tx)
           this.showLoading = false
           this.showResultModal = true
+          this.getProposalInfo()
           addTransHistory(tx, hisrotyText, this)
           tx.wait().then(async res => {
             console.log('Agree Vote:', res)
@@ -303,7 +326,9 @@ export default {
       this.showResultModal = false
     },
     async getProposalInfo() {
+      this.listLoading = true
       this.GovernorAlphaContract = await getContractAt({ tokenAddress: this.GovernorAlphaRouter, abi: GovernorAlpha.abi }, this)
+      console.log(this.GovernorAlphaContract)
       const proposalInfo = await this.GovernorAlphaContract.proposals(this.proposalId)
       this.proposalInfo = proposalInfo
       console.log(proposalInfo)
@@ -316,7 +341,7 @@ export default {
       this.proposalStatus = proposalItem.status
       this.proposalInfoDes = proposalItem.args[8]
       const voteCastInfo = await this.GovernorAlphaContract.queryFilter(
-                    this.GovernorAlphaContract.filters.VoteCast(),
+                    this.GovernorAlphaContract.filters.VoteCast()
                 )
       this.dealVoteList(voteCastInfo)
       console.log(voteCastInfo)
@@ -336,19 +361,29 @@ export default {
     },
     dealVoteList(data) {
       let dealData = []
+      let proposalTotal = data.length
+      let agreeTotal = 0
       let currentUserAddress = getConnectedUserAddress()
       console.log(currentUserAddress)
       for (var i = 0; i < data.length; i++) {
         const voter = data[i].args.voter.toLocaleLowerCase()
-        if (voter == currentUserAddress) {
-          this.isVote = true
+        if (data[i].args.proposalId == this.proposalId) {//fiter
+            if (voter == currentUserAddress) {
+              this.isVote = true
+            }
+            if (data[i].args.support) {
+              agreeTotal = agreeTotal + 1
+            }
+            dealData.push({
+              voter: voter,
+              support: data[i].args.support ? 'Yes' : 'No',
+              value: web3.utils.hexToNumberString(data[i].args.votes),
+            })
         }
-        dealData.push({
-          voter: voter,
-          support: data[i].args.support ? 'Yes' : 'No',
-          value: web3.utils.hexToNumberString(data[i].args.votes),
-        })
       }
+      this.yesPercent = (agreeTotal/proposalTotal)*100
+      this.noPercent = ((proposalTotal-agreeTotal)/proposalTotal)*100
+      this.listLoading = false
       this.voteList = dealData
     },
     async confirmPswOk({ show, psw }) {
