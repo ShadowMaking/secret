@@ -93,8 +93,8 @@
         <div class="block-container right-block-3">
           <div class="block-3-title">Quorum</div>
           <div class="progress-txt-row">
-            <div>5.6M / 5M </div>
-            <div>111.5% </div>
+            <div>{{yesShowBalance}} / {{quorumVotes}} </div>
+            <div>{{quorumPercent}}% </div>
           </div>
           <el-progress :percentage="50" :format="formatProgress"></el-progress>
         </div>
@@ -176,6 +176,9 @@ export default {
       noBalance: 0,
       yesShowBalance: 0,
       noShowBalance: 0,
+
+      quorumVotes: 0,
+      quorumPercent: 0,
 
       overrides: {
         gasLimit: 8000000,
@@ -352,11 +355,18 @@ export default {
       this.newContractAddress = calldata.slice(0,2) + calldata.slice(26)
       this.proposalStatus = proposalItem.status
       this.proposalInfoDes = proposalItem.args[8]
+      
       const voteCastInfo = await this.GovernorAlphaContract.queryFilter(
                     this.GovernorAlphaContract.filters.VoteCast()
                 )
       this.dealVoteList(voteCastInfo)
-      console.log(voteCastInfo)
+
+      const quorumVotesBig = await this.GovernorAlphaContract.quorumVotes()
+      const quorumVotesBalance = await this.dealBigNumber(quorumVotesBig)
+      this.quorumVotes = this.dealShowVoteNum(quorumVotesBalance)
+      if (quorumVotesBalance>0) {
+        this.quorumPercent = (this.yesBalance/quorumVotesBalance)*100
+      }
     },
     async resetDate(dateBlock, type) {
       const network = getConnectedNet()
@@ -378,10 +388,19 @@ export default {
       }
       return endTime
     },
+    async dealBigNumber(bigValue) {
+      const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
+      const decimals = await GovernanceTokenContract.decimals() 
+      const decimalsIsBigNumber = web3.utils.isBigNumber(decimals)||web3.utils.isHexStrict(decimals)||!_.isFinite(decimals)
+      const decimalsNumber = BigNumber(10).pow((decimalsIsBigNumber?decimals.toNumber():decimals)) // .toNumber() 1000000000000000000
+      const balanceNumber = BigNumber(Number(web3.utils.hexToNumberString(bigValue)))
+      const balanceFormatString = balanceNumber.div(decimalsNumber).toFixed(2,1) || 0.00
+      return balanceFormatString
+    },
     async dealVoteList(data) {
       let dealData = []
       let currentUserAddress = getConnectedUserAddress()
-      const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
+      
       this.yesBalance = 0
       this.noBalance = 0
       for (var i = 0; i < data.length; i++) {
@@ -393,11 +412,7 @@ export default {
             }
             
             const voteBalance = data[i].args.votes
-            const decimals = await GovernanceTokenContract.decimals() 
-            const decimalsIsBigNumber = web3.utils.isBigNumber(decimals)||web3.utils.isHexStrict(decimals)||!_.isFinite(decimals)
-            const decimalsNumber = BigNumber(10).pow((decimalsIsBigNumber?decimals.toNumber():decimals)) // .toNumber() 1000000000000000000
-            const balanceNumber = BigNumber(Number(web3.utils.hexToNumberString(voteBalance)))
-            const balanceFormatString = balanceNumber.div(decimalsNumber).toFixed(2,1) || 0.00
+            const balanceFormatString = await this.dealBigNumber(voteBalance)
 
             if (data[i].args.support) {
               this.resetVoteBalance(balanceFormatString, 'add')
