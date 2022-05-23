@@ -223,7 +223,7 @@ export default {
       console.log(proposalThreshold)
       if (balance < proposalThreshold) {
         this.showLoading = false
-        Toast('Insufficient Funds')
+        Toast('You need at least 100000000 GovernanceToken to initiate')
         return
       }
       

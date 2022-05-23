@@ -43,7 +43,24 @@
         margin-right: 5px;
         font-size: 0.86rem;
       }
-
+      
+    }
+    .proposal-result {
+      font-size: 1.06rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      .el-icon {
+         font-size: 1.38rem;
+         margin-right: 5px;
+      }
+      .el-icon-success {
+        color: #67c23a;
+      }
+      .el-icon-error {
+        color: red;
+      }
     }
     .proposal-des-content {
       line-height: 20px;
@@ -81,6 +98,9 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+    }
+    .right-block-1-top {
+      cursor: pointer;
     }
     .proposal-detail-right {
       margin-left: 30px;

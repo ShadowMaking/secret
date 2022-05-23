@@ -7,8 +7,8 @@
           <div class="proposal-col-left">Samurai v2 [Implementation]</div>
           <div class="proposal-col-right">
             <el-tag type="warn" v-if="proposalStatus == 0">Pending</el-tag>
-            <el-tag type="success" v-else-if="proposalStatus == 1">Active</el-tag>
             <el-tag v-else-if="proposalStatus == 2">Closed</el-tag>
+            <el-tag type="success" v-else>Active</el-tag>
           </div>
         </div>
         <div class="proposal-row proposal-address-box">
@@ -34,17 +34,34 @@
         <div class="proposal-vote-list block-container">
           <v-loading v-if="listLoading" />
           <div v-else>
-            <div class="proposal-vote-list" v-if="isVote">
+            <div class="proposal-vote-btn-container" v-if="!isVote && proposalStatus == 1">
+              <div class="proposal-vote-title">Cast your vote</div>
+              <div class="proposal-vote-opration">
+                <div class="proposal-vote-item">
+                  <el-button type="primary" class="common-form-btn" :loading="agreeLoading" @click="allBtnSubmit('agree', 'agreeLoading')">Yes</el-button>
+                </div>
+                <div class="proposal-vote-item">
+                  <el-button plain type="info" class="common-reject-btn" :loading="rejectLoading" @click="allBtnSubmit('reject', 'rejectLoading')">No</el-button>
+                </div>
+              </div>
+            </div>
+            <div class="proposal-vote-list" v-else>
+              <div class="proposal-result" v-if="resultTxtVisible">
+                <i :class="[resultIconStatus, 'el-icon']"></i>
+                <span>{{proposalResultTxt}}</span>
+              </div>
               <div class="proposal-vote-title">{{voteList.length}} Votes</div>
               <el-row class="list-header">
                 <el-col :span="8" class="list-header-item">Address</el-col>
                 <el-col :span="8" class="list-header-item">Opinion</el-col>
                 <el-col :span="8" class="list-header-item">Share</el-col>
               </el-row>
+              <div v-if="voteList.length > 0">
               <el-row 
                 class="list-content" 
                 v-for="(item, index) in voteList"
-                :key="index">
+                :key="index"
+                >
                  <el-col :span="8" class="list-item">
                    <img src="~@/assets/help.png" class="proposal-user-image">
                    {{`${item.voter.slice(0,10)}...${item.voter.slice(-4)}`}}
@@ -52,18 +69,10 @@
                  <el-col :span="8" class="list-item">{{item.support}}</el-col>
                  <el-col :span="8" class="list-item">{{item.value}}</el-col>
               </el-row>
-            </div>
-            <div class="proposal-vote-btn-container" v-else>
-              <div class="proposal-vote-title">Cast your vote</div>
-              <div class="proposal-vote-opration">
-                <div class="proposal-vote-item">
-                  <el-button type="primary" class="common-form-btn" :loading="agreeLoading" @click="agreeSubmit" :disabled="proposalStatus !== 1">Yes</el-button>
-                </div>
-                <div class="proposal-vote-item">
-                  <el-button plain type="info" class="common-reject-btn" :loading="rejectLoading" @click="rejectSubmit" :disabled="proposalStatus !== 1">No</el-button>
-                </div>
               </div>
+              <el-row v-else><el-col :span="24" class="list-item">no data</el-col></el-row>
             </div>
+            <el-button type="primary" class="common-form-btn" :loading="formBtnLoading" @click="formBtnSubmit" v-if="fotmBtnVisible" :disabled="formBtnDisabled">{{formBtnTxt}}</el-button>
           </div>
         </div>
       </div>
@@ -71,7 +80,10 @@
         <div class="block-container right-block-1">
           <div class="row-item" v-for="(item, index) in rightBlock1" :key="index">
             <div>{{item.name}}</div>
-            <div>{{item.value}}</div>
+            <div v-if="index == 0" class="right-block-1-top" @click="toPageDetail(item.value)">
+              {{`${item.value.slice(0,10)}...${item.value.slice(-4)}`}}
+            </div>
+            <div v-else>{{item.value}}</div>
           </div>
         </div>
         <div class="block-container right-block-2">
@@ -130,7 +142,7 @@ import { GovernorAlphaRouter, GovernanceTokenRouter } from '@/utils/global';
 
 import { getInfoFromStorageByKey, getFromStorage } from '@/utils/storage';
 
-import { getContractAt, getDecryptPrivateKeyFromStore, isLogin, getEncryptKeyByAddressFromStore, getConnectedUserAddress, getConnectedAddress, getBalanceByAddress, getSupportNet, getEstimateGas, addTransHistory, getConnectedNet, initWeb3Provider } from '@/utils/dashBoardTools';
+import { getContractAt, getDecryptPrivateKeyFromStore, isLogin, getEncryptKeyByAddressFromStore, getConnectedUserAddress, getConnectedAddress, getBalanceByAddress, getSupportNet, getEstimateGas, addTransHistory, getConnectedNet, initWeb3Provider, initRPCProvider } from '@/utils/dashBoardTools';
 
 import { Toast, Dialog} from 'vant'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
@@ -150,7 +162,7 @@ export default {
     return {
       voteList: [],
       rightBlock1: [
-        {name: 'Strategie(s)', value: 'ox6e9s...3244'},
+        {name: 'Strategie(s)', value: GovernorAlphaRouter},
         {name: 'IPFS', value: '#qMBz6cY'},
         {name: 'Voting system', value: 'Single choice voting'},
         {name: 'Start date', value: '--'},
@@ -180,6 +192,16 @@ export default {
       quorumVotes: 0,
       quorumPercent: 0,
 
+      formBtnLoading: false,
+      formBtnTxt: 'Queue',
+      fotmBtnVisible: false,
+      formBtnDisabled: false,
+
+      resultIconStatus: 'el-icon-success',
+      proposalResultTxt: '--',
+      resultTxtVisible: false,
+
+
       overrides: {
         gasLimit: 8000000,
         gasPrice: 20000000000,//wei
@@ -193,7 +215,7 @@ export default {
       showResultModal: false,
       resuletContent: 'Submitted Success',
       needResultColse: false,
-      currentOptType: 'agree',//agree reject
+      currentOptType: 'agree',//agree reject queue
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -222,15 +244,23 @@ export default {
         Toast.success('Copied');
       }
     },
-    async agreeSubmit() {
-      this.currentOptType = 'agree'
-      this.agreeLoading = true
+    toPageDetail(address) {
+      let currentNetInfo = getConnectedNet()
+      let blockExplorerUrls = currentNetInfo.blockExplorerUrls[0]
+      const url = `${blockExplorerUrls}/address/${address}`
+      window.open(url, '_blank')
+    },
+    allBtnSubmit(optType, loading) {
+      this.currentOptType = optType
+      this[loading]= true
       this.isHasBalance()
     },
-    async rejectSubmit() {
-      this.currentOptType = 'reject'
-      this.rejectLoading = true
-      this.isHasBalance()
+    formBtnSubmit() {
+      if (this.proposalStatus == 4) {//queue
+        this.allBtnSubmit('queue', 'formBtnLoading')
+      } else if (this.proposalStatus == 5){//execute
+        this.allBtnSubmit('execute', 'formBtnLoading')
+      }
     },
     async isHasBalance() {
       const selectedConnectAddress = getConnectedAddress()
@@ -239,13 +269,29 @@ export default {
         Toast('Insufficient Funds')
         this.agreeLoading = false
         this.rejectLoading = false
+        this.formBtnLoading = false
         return
       }
       this.openDialog()
     },
     openDialog() {
+      let messageTxt = ''
+      switch(this.currentOptType) {
+        case 'agree':
+        case 'reject':
+          messageTxt = 'Are you sure you want to cast this vote? This action cannot be undone'
+          break;
+        case 'queue':
+          messageTxt = 'Are you sure you want to queue? This action cannot be undone'
+          break;
+        case 'execute':
+          messageTxt = 'Are you sure you want to execute? This action cannot be undone'
+          break;
+        default:
+          break;
+      }
       Dialog.confirm({
-        message: 'Are you sure you want to cast this vote? This action cannot be undone',
+        message: messageTxt,
         confirmButtonText: 'Confirm',
         confirmButtonColor: '#4375f1',
         cancelButtonText: 'Cancel'
@@ -256,6 +302,7 @@ export default {
       .catch((error) => {
         this.rejectLoading = false
         this.agreeLoading = false
+        this.formBtnLoading = false
         console.log(error)
       });
     },
@@ -263,6 +310,7 @@ export default {
       if (!getSupportNet()) {
         this.agreeLoading = false
         this.rejectLoading = false
+        this.formBtnLoading = false
         return
       }
       const selectedConnectAddress = getConnectedAddress()
@@ -273,6 +321,7 @@ export default {
         Toast('Insufficient Funds')
         this.agreeLoading = false
         this.rejectLoading = false
+        this.formBtnLoading = false
         return
       }
       let thisGasPrice = this.overrides.gasPrice.toString()
@@ -292,6 +341,7 @@ export default {
       this.showTradeConfirm = true
       this.agreeLoading = false
       this.rejectLoading = false
+      this.formBtnLoading = false
     },
     formatProgress(percentage) {
       return '';
@@ -307,6 +357,10 @@ export default {
         this.dealDataAgreeContract()
       } else if (this.currentOptType == 'reject') {
         this.dealDataRejectContract()
+      } else if (this.currentOptType == 'queue') {
+        this.dealDataQueueContract()
+      } else if (this.currentOptType == 'execute') {
+        this.dealDataExcuteContract()
       }
     },
     dealDataAgreeContract() {
@@ -315,24 +369,62 @@ export default {
     dealDataRejectContract() {
       this.castVoteByContract(false, 'Reject Vote')
     },
-    async castVoteByContract(oprType, hisrotyText) {
+    dealDataQueueContract() {
       this.showLoading = true
-      const proposalId = this.$route.query.id
-      this.GovernorAlphaContract.castVote(proposalId, oprType, this.overrides).then(async tx=> {
-          console.log(tx)
-          this.showLoading = false
-          this.showResultModal = true
-          this.getProposalInfo()
-          addTransHistory(tx, hisrotyText, this)
+      this.GovernorAlphaContract.queue(this.proposalId, this.overrides).then(async tx=> {
+          this.successResultByContract(tx, 'Proposal Queue')
           tx.wait().then(async res => {
-            console.log('Agree Vote:', res)
+            console.log('Queue:', res)
           })
       }).catch(error => {
-          console.log(error)
-          this.showLoading = false
-          let errorValue = formatErrorContarct(error)
-          Toast.fail(errorValue)
+          this.errorResultByContract(error)
       })
+    },
+    dealDataExcuteContract() {
+      this.showLoading = true
+      this.GovernorAlphaContract.execute(this.proposalId, this.overrides).then(async tx=> {
+          this.successResultByContract(tx, 'Proposal Execute')
+          tx.wait().then(async res => {
+            console.log('Queue:', res)
+          })
+      }).catch(error => {
+          this.errorResultByContract(error)
+      })
+    },
+    async castVoteByContract(oprType, hisrotyText) {
+      this.showLoading = true
+      const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
+      const currentAddress = getConnectedAddress()
+      const balance = await GovernanceTokenContract.balanceOf(currentAddress)
+      console.log(balance)
+      if (balance == 0) {
+        this.showLoading = false
+        Toast('You have no GovernanceToken')
+        return
+      }
+
+      const proposalId = this.$route.query.id
+      this.GovernorAlphaContract.castVote(proposalId, oprType, this.overrides).then(async tx=> {
+          this.successResultByContract(tx, hisrotyText)
+          tx.wait().then(async res => {
+            console.log('Vote:', res)
+          })
+      }).catch(error => {
+          this.errorResultByContract(error)
+      })
+    },
+    successResultByContract(tx, hisrotyText) {
+      console.log(tx)
+      this.showLoading = false
+      this.showResultModal = true
+      this.getProposalInfo()
+      addTransHistory(tx, hisrotyText, this)
+    },
+    errorResultByContract(error) {
+      console.log(error)
+      this.showLoading = false
+      let errorValue = formatErrorContarct(error)
+      Toast.fail(errorValue)
     },
     cancelResultModal() {
       this.showResultModal = false
@@ -353,8 +445,9 @@ export default {
       const proposalItem = getInfoFromStorageByKey('proposalItem')
       const calldata = (proposalItem.args[5])[0]
       this.newContractAddress = calldata.slice(0,2) + calldata.slice(26)
-      this.proposalStatus = proposalItem.status
+      this.proposalStatus = await this.GovernorAlphaContract.state(this.proposalId)
       this.proposalInfoDes = proposalItem.args[8]
+      this.dealProposalStatus()
       
       const voteCastInfo = await this.GovernorAlphaContract.queryFilter(
                     this.GovernorAlphaContract.filters.VoteCast()
@@ -367,6 +460,59 @@ export default {
       if (quorumVotesBalance>0) {
         this.quorumPercent = (this.yesBalance/quorumVotesBalance)*100
       }
+    },
+    dealProposalStatus() {
+      switch(this.proposalStatus) {
+        case 2:
+        case 3:
+          this.fotmBtnVisible = false
+          this.resultTxtVisible = true
+          this.resultIconStatus = 'el-icon-error'
+          this.proposalResultTxt = 'This proposal is Failed'
+          break;
+        case 4:
+          this.formBtnTxt = 'Queue'
+          this.fotmBtnVisible = true
+          this.formBtnDisabled = false
+          this.resultTxtVisible = false
+          break;
+        case 5:
+          this.formBtnTxt = 'Queued'
+          this.fotmBtnVisible = true
+          this.formBtnDisabled = true
+          this.resultTxtVisible = false
+          this.isCanExecute()
+          break;
+        case 6:
+          this.fotmBtnVisible = false
+          this.resultTxtVisible = true
+          this.resultIconStatus = 'el-icon-error'
+          this.proposalResultTxt = 'This proposal is Expired'
+          break;
+        case 7:
+          this.fotmBtnVisible = false
+          this.resultTxtVisible = true
+          this.resultIconStatus = 'el-icon-success'
+          this.proposalResultTxt = 'This proposal is Executed'
+          break;
+        default:
+          this.fotmBtnVisible = false
+          this.resultTxtVisible = false
+          break;
+      }
+      console.log(this.resultTxtVisible)
+    },
+    async isCanExecute() {
+      const etaInfo = await this.GovernorAlphaContract.queryFilter(
+                    this.GovernorAlphaContract.filters.ProposalQueued()
+                )
+      console.log(etaInfo)
+      const network = getConnectedNet()
+      const rpcUrl = network['rpcUrls'][0]
+      const currentProvider = initRPCProvider(rpcUrl)
+      const { number: mostNewBlockNumber } = await currentProvider.getBlock()
+      console.log(mostNewBlockNumber)
+
     },
     async resetDate(dateBlock, type) {
       const network = getConnectedNet()
@@ -410,7 +556,6 @@ export default {
             if (voter == currentUserAddress) {
               this.isVote = true
             }
-            
             const voteBalance = data[i].args.votes
             const balanceFormatString = await this.dealBigNumber(voteBalance)
 
