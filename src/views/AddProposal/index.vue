@@ -68,8 +68,8 @@ export default {
   data() {
     return {
       moduleList: [
-       {title: 'TransactionModule', id: 1, proxyAddress: transactionModuleProxyRouter},
-       {title: 'SecurityModule', id: 2, proxyAddress: securityModuleProxyRouter}
+       {title: 'TransactionModule-' + transactionModuleProxyRouter, id: 1, proxyAddress: transactionModuleProxyRouter},
+       {title: 'SecurityModule-' + securityModuleProxyRouter, id: 2, proxyAddress: securityModuleProxyRouter}
       ],
       selectModal: '',
       proposalNewContract: '',
