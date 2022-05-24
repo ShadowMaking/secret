@@ -15,10 +15,11 @@
         </el-select>
       </div>
       <div class="proposal-title">Please enter new contract address:</div>
-      <el-input v-model="proposalNewContract"></el-input>
+      <el-input v-model="proposalNewContract" placeholder="Please enter"></el-input>
       <div class="proposal-title">Proposal Voting Period <span style="font-weight: bold">7</span> days</div>
       <div class="proposal-title">Description:</div>
-      <el-input type="textarea" v-model="proposalDes"></el-input>
+      <el-input type="textarea" v-model="proposalDes" :autosize="{ minRows: 6, maxRows: 8}"
+        placeholder="Please enter a description of the proposal"></el-input>
       <div class="add-proposal-btn">
         <el-button type="primary" class="common-form-btn" :loading="addBtnLoading" @click="addSubmit">Submit</el-button>
       </div>
@@ -38,7 +39,7 @@
 <script>
 import Vue from 'vue';
 import _ from 'lodash';
-import { ethers } from 'ethers'
+import { ethers, utils } from 'ethers'
 import navTitle from '@/components/NavTitle/index'
 import { Toast, Dialog} from 'vant'
 import { getContractAt, getConnectedAddress, getBalanceByAddress, getDecryptPrivateKeyFromStore, isLogin, getEstimateGas, getConnectedUserAddress, getEncryptKeyByAddressFromStore, getSupportNet, addTransHistory } from '@/utils/dashBoardTools';
@@ -149,6 +150,14 @@ export default {
       }
       if (!this.proposalNewContract) {
         Toast.fail('Please enter new contract address')
+        return false
+      }
+      if (!utils.isAddress(this.proposalNewContract)) {
+        Toast.fail(`Wrong Address`);
+        return false;
+      }
+      if (!this.proposalDes) {
+        Toast.fail('Please enter a description of the proposal')
         return false
       }
       return true

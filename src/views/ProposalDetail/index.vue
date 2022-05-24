@@ -15,11 +15,11 @@
           <div class="proposal-col-left">
             <span>By</span>
             <img src="~@/assets/help.png" class="proposal-user-image">
-            <span v-if="proposalInfo && proposalInfo.proposer" @click="copyAddress(proposalInfo.proposer)">{{`${proposalInfo.proposer.slice(0,10)}...${proposalInfo.proposer.slice(-4)}`}}</span>
+            <span v-if="proposalInfo && proposalInfo.proposer" class="cursor-box" @click="toPageDetail(proposalInfo.proposer)">{{`${proposalInfo.proposer.slice(0,10)}...${proposalInfo.proposer.slice(-4)}`}}</span>
           </div>
           <div class="proposal-col-right">
             <span class="contant-address">new contract address</span>
-            <span class="grey-color" v-if="newContractAddress" @click="copyAddress(newContractAddress)">
+            <span class="grey-color cursor-box" v-if="newContractAddress" @click="toPageDetail(newContractAddress)">
             {{`${newContractAddress.slice(0,10)}...${newContractAddress.slice(-4)}`}}
             </span>
             <span class="grey-color" v-else>--</span>
@@ -80,7 +80,7 @@
         <div class="block-container right-block-1">
           <div class="row-item" v-for="(item, index) in rightBlock1" :key="index">
             <div>{{item.name}}</div>
-            <div v-if="index == 0" class="right-block-1-top" @click="toPageDetail(item.value)">
+            <div v-if="index == 0" class="cursor-box" @click="toPageDetail(item.value)">
               {{`${item.value.slice(0,10)}...${item.value.slice(-4)}`}}
             </div>
             <div v-else>{{item.value}}</div>
@@ -163,7 +163,7 @@ export default {
       voteList: [],
       rightBlock1: [
         {name: 'Strategie(s)', value: GovernorAlphaRouter},
-        {name: 'IPFS', value: '#qMBz6cY'},
+        {name: 'IPFS', value: '--'},
         {name: 'Voting system', value: 'Single choice voting'},
         {name: 'Start date', value: '--'},
         {name: 'End date', value: '--'},
@@ -364,10 +364,10 @@ export default {
       }
     },
     dealDataAgreeContract() {
-      this.castVoteByContract(true, 'Agree Vote')
+      this.castVoteByContract(true, 'Cast Vote')
     },
     dealDataRejectContract() {
-      this.castVoteByContract(false, 'Reject Vote')
+      this.castVoteByContract(false, 'Cast Vote')
     },
     dealDataQueueContract() {
       this.showLoading = true
