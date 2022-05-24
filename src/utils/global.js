@@ -25,13 +25,13 @@ const supportNetContractRouter = [
   {
     chainId: 3,
     name: 'Ropsten',
-    securityModuleRouter: '0xFAC488D62fFf39D9ac0D5ee69515c1B96E9Fbf5e',//0x3b5Ad456e8B9118331A2FD0D6a09A592E0F6651F
-    proxyRouter: '0x3DAA80E3682e932C8300CDd7cbEf35EfB7B3e680',//0x20E14B268Cd763d286536EF100eFf433C5f0E43E
+    securityModuleRouter: '0xfE4681d6cd57605AD17583424c28f7d46eB6d9ab',//0x3b5Ad456e8B9118331A2FD0D6a09A592E0F6651F
+    proxyRouter: '0xc8D8e7f6E4d61abeC233e9835cF57D7A33f7b33B',//0x20E14B268Cd763d286536EF100eFf433C5f0E43E
     walletTransactionRouter: '0x190eec581fd4b4fAd36BE913C5F79f8A858F90e7',//0xa0861f705Cf3996fB6993810A82D5053de8ED3a9
-    GovernanceTokenRouter: '0xb1a6511aC393886074b3DF012F4aa41b55DAc51a',
-    GovernorAlphaRouter: '0xD3E438A314d9C283d92eAA0D5F7745b620777aA6',
-    securityModuleProxyRouter: '0x61FD4fC15cF6c98aBB0Fc7062D9038Db9FbceF6F',
-    transactionModuleProxyRouter: '0x22DC64bC07Abb6C170CD7eAe70251a0B55Dbc6F2',
+    GovernanceTokenRouter: '0xC91ecf9581701707658e21D3b04dc5E6c67575bD',
+    GovernorAlphaRouter: '0xb9e341Fb309A6E642e3630E47bE5A26159c648C4',
+    securityModuleProxyRouter: '0xe85a74792E5Cb240E258559aa21BD00323571dfC',//The proxy of SecurityModule is set wi
+    transactionModuleProxyRouter: '0x6927eEce1e17ed0397b761939D69c850A69F1De5',
   },
   {
     chainId: 588,

@@ -19,7 +19,7 @@ export const TOKENMAP_NETWORK = {
       "symbol": "WETH",
       "decimals": 18
     },
-    "0xb1a6511aC393886074b3DF012F4aa41b55DAc51a": {
+    "0xC91ecf9581701707658e21D3b04dc5E6c67575bD": {
       "name": "GT",
       "logo": "EIGEN.png",
       "erc20": true,
