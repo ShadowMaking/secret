@@ -268,7 +268,7 @@ export default {
       }
     },
     toExplorer() {
-      window.open(`//explorer.ieigen.com/#/address?adr=${this.currentshowAddress}`)
+      window.open(`//explorer.eigen.cash/#/address?adr=${this.currentshowAddress}`)
     },
     async disconnect() {
       await this.$store.dispatch("WalletAccountsAddress", {accounts:[]})

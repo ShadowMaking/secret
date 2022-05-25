@@ -202,10 +202,10 @@ export default {
       return 'bottom';
     },
     toBroswer(record) {
-      let openUrl = '//explorer.ieigen.com';
+      let openUrl = '//explorer.eigen.cash';
       if (record) {
         const { type, txid } = record.info
-        openUrl = `//explorer.ieigen.com/#/tx?tstr=${txid}`
+        openUrl = `//explorer.eigen.cash/#/tx?tstr=${txid}`
         if (type === TRANSACTION_TYPE['L1ToL2'] || type === TRANSACTION_TYPE['L1ToL1']) {
           Toast('Coming Soon')
           return;
