@@ -279,13 +279,13 @@ export default {
       switch(this.currentOptType) {
         case 'agree':
         case 'reject':
-          messageTxt = 'Are you sure you want to cast this vote? This action cannot be undone'
+          messageTxt = 'Are you sure you want to cast this vote? This action cannot be undo'
           break;
         case 'queue':
-          messageTxt = 'Are you sure you want to queue? This action cannot be undone'
+          messageTxt = 'Are you sure you want to queue? This action cannot be undo'
           break;
         case 'execute':
-          messageTxt = 'Are you sure you want to execute? This action cannot be undone'
+          messageTxt = 'Are you sure you want to execute? This action cannot be undo'
           break;
         default:
           break;
@@ -395,7 +395,7 @@ export default {
       this.showLoading = true
       const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
       const currentAddress = getConnectedAddress()
-      const balance = await GovernanceTokenContract.balanceOf(currentAddress)
+      const balance = await GovernanceTokenContract.getCurrentVotes(currentAddress)
       console.log(balance)
       if (balance == 0) {
         this.showLoading = false
@@ -506,15 +506,23 @@ export default {
       console.log(this.resultTxtVisible)
     },
     async isCanExecute() {
-      const etaInfo = await this.GovernorAlphaContract.queryFilter(
-                    this.GovernorAlphaContract.filters.ProposalQueued()
-                )
-      console.log(etaInfo)
       const network = getConnectedNet()
       const rpcUrl = network['rpcUrls'][0]
       const currentProvider = initRPCProvider(rpcUrl)
       const { number: mostNewBlockNumber } = await currentProvider.getBlock()
       console.log(mostNewBlockNumber)
+      const etaInfo = await this.GovernorAlphaContract.queryFilter(
+                    this.GovernorAlphaContract.filters.ProposalQueued()
+                )
+      console.log('etaInfo:', etaInfo)
+      for (var i = 0; i < etaInfo.length; i++) {
+        const etaItem = etaInfo[i].args
+        const etaBLockNumber = web3.utils.hexToNumberString(etaItem.eta)
+        if (etaItem.id == this.proposalId && etaBLockNumber > mostNewBlockNumber) {
+           this.formBtnDisabled = false
+           this.formBtnTxt = 'Execute'
+        }
+      }
 
     },
     async resetDate(dateBlock, type) {

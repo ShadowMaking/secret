@@ -18,8 +18,8 @@
             </div>
             <div class="proposal-item-top-right">
               <el-tag type="warn" v-if="item.status == 0">Pending</el-tag>
-              <el-tag type="success" v-else-if="item.status == 1">Active</el-tag>
               <el-tag v-else-if="item.status == 2">Closed</el-tag>
+              <el-tag type="success" v-else>Active</el-tag>
             </div>
           </div>
           <!-- <div class="proposal-item-name">{{item.args.calldatas[0]}}</div> -->

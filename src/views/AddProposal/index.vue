@@ -258,6 +258,15 @@ export default {
           Toast.fail(errorValue)
       })
     },
+    async getIsHasProposal() {
+      const selectedConnectAddress = getConnectedAddress()
+      const GovernorAlphaContract = await getContractAt({ tokenAddress: this.GovernorAlphaRouter, abi: GovernorAlpha.abi }, this)
+      if (!GovernorAlphaContract) {return}
+      // const proposalList = await GovernorAlphaContract.queryFilter(
+      //               GovernorAlphaContract.filters.ProposalCreated(null, selectedConnectAddress),
+      //           )
+      // console.log(proposalList)
+    },
     async confirmPswOk({ show, psw }) {
       this.userPsw = psw; // password of user input for encrypt privateKey
       this.confirmPswBtnLoading = true
@@ -322,6 +331,7 @@ export default {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
     this.overrides.gasPrice = await getEstimateGas('gasPrice', 5000000000)
+    this.getIsHasProposal()
     // const GovernorAlphaContract = await getContractAt({ tokenAddress: this.GovernorAlphaRouter, abi: GovernorAlpha.abi }, this)
     // const df = await GovernorAlphaContract.timelock()
     // console.log(web3.utils.hexToNumberString(df))
