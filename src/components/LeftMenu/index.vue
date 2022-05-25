@@ -189,7 +189,6 @@ export default {
   watch: {
     screenWidth: {
       handler: function(val, oldVal) {
-        console.log(val)
         if (val < 769) {
           this.iconVisible = true
           this.menuVisible = false

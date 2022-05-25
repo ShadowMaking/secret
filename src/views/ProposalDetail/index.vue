@@ -452,16 +452,19 @@ export default {
       const voteCastInfo = await this.GovernorAlphaContract.queryFilter(
                     this.GovernorAlphaContract.filters.VoteCast()
                 )
-      this.dealVoteList(voteCastInfo)
-
+      await this.dealVoteList(voteCastInfo)
+      
       const quorumVotesBig = await this.GovernorAlphaContract.quorumVotes()
       const quorumVotesBalance = await this.dealBigNumber(quorumVotesBig)
       this.quorumVotes = this.dealShowVoteNum(quorumVotesBalance)
       if (quorumVotesBalance>0) {
         this.quorumPercent = (this.yesBalance/quorumVotesBalance)*100
       }
+      // const sdd = await this.GovernorAlphaContract.getReceipt(this.proposalId, '0x4f5fd0ea6724dfbf825714c2742a37e0c0d6d7d9')
+      // console.log(sdd)
     },
     dealProposalStatus() {
+      console.log(this.proposalStatus)
       switch(this.proposalStatus) {
         case 2:
         case 3:
@@ -544,6 +547,7 @@ export default {
       return balanceFormatString
     },
     async dealVoteList(data) {
+      console.log(data)
       let dealData = []
       let currentUserAddress = getConnectedUserAddress()
       
@@ -558,7 +562,6 @@ export default {
             }
             const voteBalance = data[i].args.votes
             const balanceFormatString = await this.dealBigNumber(voteBalance)
-
             if (data[i].args.support) {
               this.resetVoteBalance(balanceFormatString, 'add')
             } else {
@@ -672,6 +675,7 @@ export default {
     }
     this.overrides.gasPrice = await getEstimateGas('gasPrice')
     this.isShowPwdModal()
+    // console.log(web3.utils.hexToNumberString('0xbb99b0'))
   },
   async mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)

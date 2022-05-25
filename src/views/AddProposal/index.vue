@@ -322,8 +322,9 @@ export default {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
     this.overrides.gasPrice = await getEstimateGas('gasPrice', 5000000000)
-    // console.log(web3.utils.hexToNumberString('0x0422ca8b0a00a425000000'))
     // const GovernorAlphaContract = await getContractAt({ tokenAddress: this.GovernorAlphaRouter, abi: GovernorAlpha.abi }, this)
+    // const df = await GovernorAlphaContract.timelock()
+    // console.log(web3.utils.hexToNumberString(df))
     // console.log(GovernorAlphaContract)
     // const tx = await GovernorAlphaContract.cancel(1, this.overrides)
     // console.log(tx)
