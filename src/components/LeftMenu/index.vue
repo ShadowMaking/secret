@@ -151,6 +151,7 @@ export default {
           // {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
           {icon: 'el-icon-document', name: 'Proposals', route: '/proposalList'},
           {icon: 'el-icon-s-custom', name: 'New proposal', route: '/addProposal'},
+          {icon: 'el-icon-s-custom', name: 'Delegate', route: '/proposalDelegate'},
         ]},
       ],
       screenWidth: null,

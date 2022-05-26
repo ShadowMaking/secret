@@ -34,6 +34,7 @@
         <div class="proposal-vote-list block-container">
           <v-loading v-if="listLoading" />
           <div v-else>
+            <div class="proposal-vote-title" style="text-align: right;">your banlance: {{yourSelfBalance}}</div>
             <div class="proposal-vote-btn-container" v-if="!isVote && proposalStatus == 1">
               <div class="proposal-vote-title">Cast your vote</div>
               <div class="proposal-vote-opration">
@@ -191,6 +192,7 @@ export default {
 
       quorumVotes: 0,
       quorumPercent: 0,
+      yourSelfBalance: '--',
 
       formBtnLoading: false,
       formBtnTxt: 'Queue',
@@ -395,14 +397,24 @@ export default {
       this.showLoading = true
       const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
       const currentAddress = getConnectedAddress()
-      const balance = await GovernanceTokenContract.getCurrentVotes(currentAddress)
-      console.log(balance)
-      if (balance == 0) {
+
+      const isDelegates = await GovernanceTokenContract.delegates(currentAddress)
+      console.log(isDelegates)
+      if (isDelegates == '0x0000000000000000000000000000000000000000') {
+        this.showLoading = false
+        Toast('You need to delegate first')
+        setTimeout(() =>{
+          this.$router.push({ path: '/proposalDelegate' })
+        }, 2000)
+        return false
+      }
+
+      if (this.yourSelfBalance == 0) {
         this.showLoading = false
         Toast('You have no GovernanceToken')
         return
       }
-
+      
       const proposalId = this.$route.query.id
       this.GovernorAlphaContract.castVote(proposalId, oprType, this.overrides).then(async tx=> {
           this.successResultByContract(tx, hisrotyText)
@@ -460,6 +472,11 @@ export default {
       if (quorumVotesBalance>0) {
         this.quorumPercent = (this.yesBalance/quorumVotesBalance)*100
       }
+
+      const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
+      const currentAddress = getConnectedAddress()
+      const yourselfBig = await GovernanceTokenContract.getCurrentVotes(currentAddress)
+      this.yourSelfBalance = await this.dealBigNumber(yourselfBig)
       // const sdd = await this.GovernorAlphaContract.getReceipt(this.proposalId, '0x4f5fd0ea6724dfbf825714c2742a37e0c0d6d7d9')
       // console.log(sdd)
     },
@@ -683,7 +700,7 @@ export default {
     }
     this.overrides.gasPrice = await getEstimateGas('gasPrice')
     this.isShowPwdModal()
-    // console.log(web3.utils.hexToNumberString('0xbb99b0'))
+    // console.log(web3.utils.hexToNumberString('0x0de0b6b3a7640000'))
   },
   async mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)

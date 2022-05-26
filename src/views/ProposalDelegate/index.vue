@@ -1,27 +1,26 @@
 <template>
-  <div class="add-proposal-page content-box">
-    <v-navTitle title="New proposal" helpUrl="docs/usage/Send"></v-navTitle >
-    <div class="add-proposal-content content-page">
-      <p class="proposal-des">You need to have a minimum of 1 governance token in order to submit a proposal.</p>
-      <div class="proposal-title">Please select the module proposal to be upgraded:</div>
-      <div class="module-list">
-        <el-select v-model="selectModal" placeholder="Please choose" class="module-select">
-          <el-option
-            v-for="item in moduleList"
-            :key="item.id"
-            :label="item.title"
-            :value="item.proxyAddress">
-          </el-option>
-        </el-select>
+  <div class="delegate-proposal-page content-box">
+    <v-navTitle title="Delegate" helpUrl="docs/usage/Send"></v-navTitle >
+    <div class="delegate-proposal-content content-page">
+      <div class="proposal-title">Governance token</div>
+      <p class="proposal-des">Governance tokens represent voting shares in Eigen governance. You can vote on each proposal yourself or delegate your votes to a third party.</p>
+      <div class="proposal-title">Unlock Votes</div>
+      <div class="delegate-type-content">
+        <div class="delegate-type-select">
+          <a  
+            v-for="(item, index) in delegateTypeList"
+            :key="index"
+            :class="['delegate-item', delegateTypeAcite == index ? 'active' : '']"
+            @click="changeDelegateType(index)"
+            >{{item}}</a>
+        </div>
+        <div class="delete-address-box" v-show="delegateTypeAcite == 1">
+          <label class="address-label">Recipient Address</label>
+          <el-input v-model="delegateOther" placeholder="Please enter"></el-input>
+        </div>
       </div>
-      <div class="proposal-title">Please enter new contract address:</div>
-      <el-input v-model="proposalNewContract" placeholder="Please enter"></el-input>
-      <div class="proposal-title">Proposal Voting Period <span style="font-weight: bold">7</span> days</div>
-      <div class="proposal-title">Description:</div>
-      <el-input type="textarea" v-model="proposalDes" :autosize="{ minRows: 6, maxRows: 8}"
-        placeholder="Please enter a description of the proposal"></el-input>
       <div class="add-proposal-btn">
-        <el-button type="primary" class="common-form-btn" :loading="addBtnLoading" @click="addSubmit">Submit</el-button>
+        <el-button type="primary" class="common-form-btn" :loading="delegateBtnLoading" @click="delegateSubmit">Submit</el-button>
       </div>
     </div>
     <v-loadingPopup :show="showLoading" :showSpinner="false" />
@@ -30,8 +29,8 @@
       type="New Proposal"
       :metadata="sendMetadata"
       @close="showTradeConfirm=false"
-      @reject="cancelCreate"
-      @confirm="confirmCreate" />
+      @reject="cancelDelegate"
+      @confirm="confirmDelegate" />
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
     <v-resultModal :show="showResultModal" :content="resuletContent" :needColse="needResultColse" @confirm="confirmResultModal" @close="cancelResultModal"></v-resultModal>
   </div>
@@ -64,21 +63,13 @@ Vue.use(Toast);
 Vue.use(Dialog);
 
 export default {
-  name: 'addProposal',
+  name: 'delegateProposal',
   data() {
     return {
-      moduleList: [
-       {title: 'TransactionModule-' + transactionModuleProxyRouter, id: 1, proxyAddress: transactionModuleProxyRouter},
-       {title: 'SecurityModule-' + securityModuleProxyRouter, id: 2, proxyAddress: securityModuleProxyRouter}
-      ],
-      selectModal: '',
-      proposalNewContract: '',
-      proposalDes: '',
-      addBtnLoading: false,
-      showLoading: false,
-
       GovernanceTokenRouter,
       GovernorAlphaRouter,
+      delegateBtnLoading: false,
+      showLoading: false,
 
       overrides: {
         gasLimit: 8000000,
@@ -94,6 +85,11 @@ export default {
       resuletContent: 'Submitted Success',
       needResultColse: false,
 
+      delegateTypeAcite: 0,
+      delegateTypeList: ['Self Delegate', 'Add Delegate'],
+      delegateOther: '',
+      delegateAddress: '',
+      
       // ***************** inputPsw start ***************** //
       userPsw: '',
       publicKey: '',
@@ -115,18 +111,21 @@ export default {
   },
   
   methods: {
-    async addSubmit() {
-      console.log(this.selectModal)
-      this.addBtnLoading = true
+    changeDelegateType(index) {
+      this.delegateTypeAcite = index
+    },
+    async delegateSubmit() {
+      this.delegateBtnLoading = true
       const selectedConnectAddress = getConnectedAddress()
       const connectBalance = await getBalanceByAddress(selectedConnectAddress)
       if (connectBalance < 0) {
         Toast('Insufficient Funds')
-        this.addBtnLoading = false
+        this.delegateBtnLoading = false
         return
       }
+      this.delegateAddress = (this.delegateTypeAcite == 0 ? selectedConnectAddress : this.delegateOther)
       if (!this.checkData()) { 
-        this.addBtnLoading = false
+        this.delegateBtnLoading = false
         return 
       }
       // check privateKey whether is existed
@@ -144,21 +143,9 @@ export default {
         Toast.fail('Please Login')
         return false
       }
-      if (!this.selectModal) {
-        Toast.fail('Please select the module')
-        return false
-      }
-      if (!this.proposalNewContract) {
-        Toast.fail('Please enter new contract address')
-        return false
-      }
-      if (!utils.isAddress(this.proposalNewContract)) {
-        Toast.fail(`Wrong Address`);
+      if (!utils.isAddress(this.delegateAddress)) {
+        Toast.fail(`Recipient address is wrong`);
         return false;
-      }
-      if (!this.proposalDes) {
-        Toast.fail('Please enter a description of the proposal')
-        return false
       }
       return true
     },
@@ -167,7 +154,7 @@ export default {
     },
     confirmResultModal() {
       this.showResultModal = false
-      this.$router.push({ path: '/proposalList' })
+      this.$router.push({ path: '/overview' })
     },
     async showConfirmModal() {
       const isCanSubmit = await this.isCaSubmit()
@@ -177,10 +164,9 @@ export default {
       let thisGasPrice = this.overrides.gasPrice.toString()
       let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
       let estimatedGasFee = await getEstimateGas('gasUsed')
-
       this.sendMetadata = {
         from: getConnectedAddress(),
-        to: this.GovernorAlphaRouter,
+        to: this.GovernanceTokenRouter,
         gas: this.overrides.gasLimit,
         gasPrice: gasPrice,
         value: 0,
@@ -190,96 +176,62 @@ export default {
         estimatedGasFee: estimatedGasFee
       }
       this.showTradeConfirm = true
-      this.addBtnLoading = false
+      this.delegateBtnLoading = false
     },
     async isCaSubmit() {
       if (!getSupportNet()) {
-        this.addBtnLoading = false
+        this.delegateBtnLoading = false
         return false
       }
+      const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
       const selectedConnectAddress = getConnectedAddress()
+
+      // const isDelegates = await GovernanceTokenContract.delegates(selectedConnectAddress)
+      // console.log(isDelegates)
+      // if (isDelegates !== '0x0000000000000000000000000000000000000000') {
+      //   this.delegateBtnLoading = false
+      //   Toast('You has delegated')
+      //   return false
+      // }
+
       
       const connectBalance = await getBalanceByAddress(selectedConnectAddress)
-      let estimatedGasFee = await getEstimateGas('gasUsed', 5000000000)
+      let estimatedGasFee = await getEstimateGas('gasUsed')
       console.log(connectBalance)
       if (connectBalance < estimatedGasFee) {
         Toast('Insufficient Funds')
-        this.addBtnLoading = false
+        this.delegateBtnLoading = false
         return false
       }
 
-      const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
-      
       const balance = await GovernanceTokenContract.balanceOf(selectedConnectAddress)
       if (balance <= 0) {
-        this.addBtnLoading = false
-        Toast('You need at least 100000000 GovernanceToken to initiate')
-        return false
-      }
-
-      const isDelegates = await GovernanceTokenContract.delegates(selectedConnectAddress)
-      if (isDelegates == '0x0000000000000000000000000000000000000000') {
-        this.addBtnLoading = false
-        Toast('You need to delegate first')
-        setTimeout(() =>{
-          this.$router.push({ path: '/proposalDelegate' })
-        }, 2000)
-        return false
-      }
-
-      const currentVotes = await GovernanceTokenContract.getCurrentVotes(selectedConnectAddress)
-      const GovernorAlphaContract = await getContractAt({ tokenAddress: this.GovernorAlphaRouter, abi: GovernorAlpha.abi }, this)
-      const proposalThreshold = await GovernorAlphaContract.proposalThreshold()
-      if (currentVotes < proposalThreshold) {
-        this.addBtnLoading = false
-        Toast('You need at least 100000000 GovernanceToken to initiate')
+        this.delegateBtnLoading = false
+        Toast('You need no GovernanceToken to delegate')
         return false
       }
 
       return true
     },
-    cancelCreate() {
+    cancelDelegate() {
       this.showTradeConfirm = false
       Toast('Cancel')
     },
-    confirmCreate({ overrides }) {
+    confirmDelegate({ overrides }) {
       this.overrides.gasLimit = overrides.gasLimit
       this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
-      this.dealDataAddContract()
+      this.dealDataDelegatedContract()
     },
-    async dealDataAddContract() {
+    async dealDataDelegatedContract() {
       this.showLoading = true;
-      const target = this.selectModal
-      const value = 0
-      const signature = 'setImplementation(address)'
-      const description = this.proposalDes
-      const calldata = ethers.utils.defaultAbiCoder.encode( 
-       ['address'],
-       [this.proposalNewContract]
-      )
-      // const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
-      // const currentAddress = getConnectedAddress()
-      // await GovernanceTokenContract.delegate(currentAddress)
-      
-      
-      const GovernorAlphaContract = await getContractAt({ tokenAddress: this.GovernorAlphaRouter, abi: GovernorAlpha.abi }, this)
-      console.log(GovernorAlphaContract)
-      
-      
-      GovernorAlphaContract.propose(
-            [target],
-            [value],
-            [signature],
-            [calldata],
-            description,
-            this.overrides
-      ).then(async tx=> {
+      const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
+      GovernanceTokenContract.delegate(this.delegateAddress).then(async tx=> {
           console.log(tx)
           this.showLoading = false
           this.showResultModal = true
-          addTransHistory(tx, 'New Propose', this)
+          addTransHistory(tx, 'Delegate', this)
           tx.wait().then(async res => {
-            console.log('New Propose:', res)
+            console.log('Delegate:', res)
           })
       }).catch(error => {
           console.log(error)
@@ -287,15 +239,6 @@ export default {
           let errorValue = formatErrorContarct(error)
           Toast.fail(errorValue)
       })
-    },
-    async getIsHasProposal() {
-      const selectedConnectAddress = getConnectedAddress()
-      const GovernorAlphaContract = await getContractAt({ tokenAddress: this.GovernorAlphaRouter, abi: GovernorAlpha.abi }, this)
-      if (!GovernorAlphaContract) {return}
-      // const proposalList = await GovernorAlphaContract.queryFilter(
-      //               GovernorAlphaContract.filters.ProposalCreated(null, selectedConnectAddress),
-      //           )
-      // console.log(proposalList)
     },
     async confirmPswOk({ show, psw }) {
       this.userPsw = psw; // password of user input for encrypt privateKey
@@ -360,14 +303,7 @@ export default {
     } else {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
-    this.overrides.gasPrice = await getEstimateGas('gasPrice', 5000000000)
-    this.getIsHasProposal()
-    // const GovernorAlphaContract = await getContractAt({ tokenAddress: this.GovernorAlphaRouter, abi: GovernorAlpha.abi }, this)
-    // const df = await GovernorAlphaContract.timelock()
-    // console.log(web3.utils.hexToNumberString(df))
-    // console.log(GovernorAlphaContract)
-    // const tx = await GovernorAlphaContract.cancel(1, this.overrides)
-    // console.log(tx)
+    this.overrides.gasPrice = await getEstimateGas('gasPrice')
   },
   async mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)

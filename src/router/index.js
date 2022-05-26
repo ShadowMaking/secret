@@ -29,6 +29,7 @@ const NcWalletSigner = () => import('../views/NcWalletSigner/index')
 const ProposalList = () => import('../views/ProposalList/index')
 const AddProposal = () => import('../views/AddProposal/index')
 const ProposalDetail = () => import('../views/ProposalDetail/index')
+const ProposalDelegate = () => import('../views/ProposalDelegate/index')
 
 //old page not use
 const Test = () => import('../views/Test')
@@ -337,6 +338,14 @@ const routes = [
       title: "proposalDetail",
     },
     component: ProposalDetail,
+  },
+  {
+    path: '/proposalDelegate',
+    name: 'proposalDelegate',
+    meta: {
+      title: "proposalDelegate",
+    },
+    component: ProposalDelegate,
   },
 ];
 
