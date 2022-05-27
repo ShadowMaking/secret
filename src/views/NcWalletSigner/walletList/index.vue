@@ -52,7 +52,7 @@
           </div>
         </div>
         <div class="detail-top-right">
-          <el-button type="primary" @click="LockClick" v-if="lockVisible">{{isLocked ? 'Unlock' : 'Freeze'}}</el-button>
+          <el-button type="primary" @click="LockClick" v-if="lockVisible">{{isLocked ? 'Unlock' : 'Lock'}}</el-button>
         </div>
       </div>
       <div class="detail-middle">
@@ -190,7 +190,7 @@ export default {
       this.getIsSupport()
     },
     LockClick() {
-      const lockName = this.isLocked ? 'Unlock' : 'Freeze'
+      const lockName = this.isLocked ? 'Unlock' : 'Lock'
       Dialog.confirm({
         message: `Are you confirm to ${lockName} ${this.detailDataSource.owner_name}'s wallet?`,
         confirmButtonText: 'Confirm',
@@ -359,9 +359,9 @@ export default {
           this.detailDataSource.wallet_address,
           this.overrides
         ).then(async tx=> {
-          this.changeWalletSuccess(tx, 'Freezing', 'Freeze')
+          this.changeWalletSuccess(tx, 'Freezing', 'Lock')
           tx.wait().then(async res => {
-            console.log('Freeze:', res)
+            console.log('Lock:', res)
           })
       }).catch(error => {
         console.log(error)
