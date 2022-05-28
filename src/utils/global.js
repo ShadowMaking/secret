@@ -60,6 +60,10 @@ const supportNetContractRouter = [
     securityModuleRouter: '0x3cf158E9ae76be833EB36340191245778fD84A03',
     proxyRouter: '0xbC8b63F0720CB087A8EC8f71145cAE4b2dCEFAb5',
     walletTransactionRouter: '0xc33f3eE638Ac2C8ac24B3E76c1FA2BBfAa60F962',
+    GovernanceTokenRouter: '0xd1b79d74CC6d9aD1bC3c6FBDe3E09f4e5b25c920',
+    GovernorAlphaRouter: '0x0fAFB71cda268De764BEf6E12e93ccA3715F92e3',
+    securityModuleProxyRouter: '0xd5322B054b6B1DfEc9D53257261E1BA601b99fc2',//The proxy of SecurityModule is set wi
+    transactionModuleProxyRouter: '0x2f39456B84c998DA9197cB5333a595aE0d5650A9',
   },
 ]
 let securityModuleRouter = supportNetContractRouter[0].securityModuleRouter;
