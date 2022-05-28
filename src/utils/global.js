@@ -79,6 +79,10 @@ for (let i = 0; i < supportNetContractRouter.length; i++) {
     securityModuleRouter = supportNetContractRouter[i].securityModuleRouter
     proxyRouter = supportNetContractRouter[i].proxyRouter
     walletTransactionRouter = supportNetContractRouter[i].walletTransactionRouter
+    GovernanceTokenRouter = supportNetContractRouter[i].GovernanceTokenRouter
+    GovernorAlphaRouter = supportNetContractRouter[i].GovernorAlphaRouter
+    securityModuleProxyRouter = supportNetContractRouter[i].securityModuleProxyRouter
+    transactionModuleProxyRouter = supportNetContractRouter[i].transactionModuleProxyRouter
   }
 }
 
