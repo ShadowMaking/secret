@@ -143,7 +143,7 @@ export default {
           "chainId": L2ChainID,
           "chainName": "SecretL2",
           "rpcUrls": [ arbRPC ],
-          "blockExplorerUrls": ["https://explorer.ieigen.com"]
+          "blockExplorerUrls": ["https://explorer.eigen.cash"]
         })
       }
       ethereum.request({

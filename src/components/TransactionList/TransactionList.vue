@@ -175,7 +175,7 @@ export default {
       for(let k in routerInfo.query) {
         paramsStr += `&${k}=${routerInfo.query[k]}`
       }
-      // const url = `https://explorer.ieigen.com/#/${routerInfo.name}?${paramsStr}`
+      // const url = `https://explorer.eigen.cash/#/${routerInfo.name}?${paramsStr}`
       let paramsValue = this.getRouteValue(type, record)
       const url = `${blockExplorerUrls}/${routerInfo.name}/${paramsValue}`
       window.open(url, '_blank')

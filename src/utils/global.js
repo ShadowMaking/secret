@@ -57,9 +57,9 @@ const supportNetContractRouter = [
   {
     chainId: 10,
     name: 'Eigen',//Eigen Test
-    securityModuleRouter: '0x5fe46790aE8c6Af364C2f715AB6594A370089B35',
-    proxyRouter: '0x1aA8B292adAC035194716C4caA2aeE313b9111Ff',
-    walletTransactionRouter: '0x71D99A0f8F609Ef484D1E99314e44a54CFFe01c4',
+    securityModuleRouter: '0x3cf158E9ae76be833EB36340191245778fD84A03',
+    proxyRouter: '0xbC8b63F0720CB087A8EC8f71145cAE4b2dCEFAb5',
+    walletTransactionRouter: '0xc33f3eE638Ac2C8ac24B3E76c1FA2BBfAa60F962',
   },
 ]
 let securityModuleRouter = supportNetContractRouter[0].securityModuleRouter;

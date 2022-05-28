@@ -5,8 +5,8 @@ const ADDRESS = {
   "arbTokenBridge": "0x5fe46790aE8c6Af364C2f715AB6594A370089B35",
 };
 
-const ethRPC = `https://rpc.ieigen.com/eth/`;
-const arbRPC = `https://rpc.ieigen.com/eig/`;
+const ethRPC = `https://rpc.eigen.cash/eth/`;
+const arbRPC = `https://rpc.eigen.cash/eig/`;
 
 const l1l2Bridge = {
   l1Address: ADDRESS.ethERC20Bridge,

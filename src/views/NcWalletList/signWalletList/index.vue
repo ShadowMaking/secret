@@ -70,14 +70,14 @@
           label="Operation">
             <template slot-scope="scope">
               <div v-if="scope.row.wallet_status == walletStatus['Creating']">
-                <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
+                <el-button @click="handleClick(scope.row, 'Lock')" type="text" size="small" class="sign-operate freeze-btn">Lock</el-button>
               </div>
               <div v-else-if="scope.row.wallet_status == walletStatus['Active'] || scope.row.wallet_status == walletStatus['Recovering']">
                 <div v-if="scope.row.isLocked">
                   <el-button @click="handleClick(scope.row, 'Unlock')" type="text" size="small" class="sign-operate agree-btn">Unlock</el-button>
                 </div>
                 <div v-else>
-                  <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
+                  <el-button @click="handleClick(scope.row, 'Lock')" type="text" size="small" class="sign-operate freeze-btn">Lock</el-button>
                 </div>
                 <div v-if="scope.row.isInRecovery">
                   <div v-if="scope.row.status == signerStatus['startRecover']">
@@ -99,7 +99,7 @@
                 <el-tag type="danger">Fail</el-tag>
               </div>
               <div v-else>
-                <el-button @click="handleClick(scope.row, 'Freeze')" type="text" size="small" class="sign-operate freeze-btn">Freeze</el-button>
+                <el-button @click="handleClick(scope.row, 'Lock')" type="text" size="small" class="sign-operate freeze-btn">Lock</el-button>
               </div>
               <!-- old data -->
               <!-- <div v-else-if="scope.row.wallet_status == walletStatus['Freezing']">
@@ -255,8 +255,8 @@ export default {
         case 'Reject':
           this.openDialog('Are you sure to reject?', this.signerStatus['rejected'])
           break;
-        case 'Freeze':
-          this.openDialog('Are you sure to freeze?', this.signerStatus['freeze'], true)
+        case 'Lock':
+          this.openDialog('Are you sure to lock?', this.signerStatus['freeze'], true)
           break;
         case 'Recover':
           this.openDialog('Are you sure to Recover?', this.signerStatus['agreeRecover'], true)
@@ -589,9 +589,9 @@ export default {
           this.signRow.wallet_address,
           this.overrides
         ).then(async tx=> {
-          this.changeWalletSuccess(tx, 'Freezing', 'Freeze')
+          this.changeWalletSuccess(tx, 'Freezing', 'Lock')
           tx.wait().then(async res => {
-            console.log('Freeze:', res)
+            console.log('Lock:', res)
           })
       }).catch(error => {
         console.log(error)

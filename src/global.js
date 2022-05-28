@@ -1,8 +1,8 @@
 
 /*
 dev：dev-deliver-secret.eigen.com
-test：test.ieigen.com
-prod：rpc.ieigen.com
+test：test.eigen.cash
+prod：rpc.eigen.cash
 */
 
 let protocol = location.protocol;
