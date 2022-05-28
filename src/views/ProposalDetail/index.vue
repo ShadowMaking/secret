@@ -34,9 +34,15 @@
         <div class="proposal-vote-list block-container">
           <v-loading v-if="listLoading" />
           <div v-else>
-            <div class="proposal-vote-title" style="text-align: right;">your banlance: {{yourSelfBalance}}</div>
             <div class="proposal-vote-btn-container" v-if="!isVote && proposalStatus == 1">
-              <div class="proposal-vote-title">Cast your vote</div>
+              
+              <div class="proposal-cast-top">
+                <div class="proposal-vote-title">Cast your vote</div>
+                <div class="proposal-vote-info">
+                  {{yourSelfBalance}} Votes
+                  <span v-if="delegateAddress">, Delegate to <a @click="toPageDetail(delegateAddress)" style="color: #495ABE">{{delegateAddress}}</a></span>
+                </div>
+              </div>
               <div class="proposal-vote-opration">
                 <div class="proposal-vote-item">
                   <el-button type="primary" class="common-form-btn" :loading="agreeLoading" @click="allBtnSubmit('agree', 'agreeLoading')">Yes</el-button>
@@ -59,9 +65,9 @@
               </el-row>
               <div v-if="voteList.length > 0">
               <el-row 
-                class="list-content" 
                 v-for="(item, index) in voteList"
                 :key="index"
+                :class="['list-content', index==0 && 'active-color']"
                 >
                  <el-col :span="8" class="list-item">
                    <img src="~@/assets/help.png" class="proposal-user-image">
@@ -193,6 +199,7 @@ export default {
       quorumVotes: 0,
       quorumPercent: 0,
       yourSelfBalance: '--',
+      delegateAddress: '',
 
       formBtnLoading: false,
       formBtnTxt: 'Queue',
@@ -475,8 +482,14 @@ export default {
 
       const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
       const currentAddress = getConnectedAddress()
-      const yourselfBig = await GovernanceTokenContract.getCurrentVotes(currentAddress)
+      const yourselfBig = await GovernanceTokenContract.getPriorVotes(currentAddress, proposalInfo.startBlock)
       this.yourSelfBalance = await this.dealBigNumber(yourselfBig)
+      const isDelegates = await GovernanceTokenContract.delegates(currentAddress)
+      if (isDelegates == '0x0000000000000000000000000000000000000000') {
+        this.delegateAddress = ''
+      } else {
+        this.delegateAddress = isDelegates.slice(0,6) + '...' + isDelegates.slice(-4)
+      }
       // const sdd = await this.GovernorAlphaContract.getReceipt(this.proposalId, '0x4f5fd0ea6724dfbf825714c2742a37e0c0d6d7d9')
       // console.log(sdd)
     },
@@ -582,9 +595,6 @@ export default {
         const voter = data[i].args.voter.toLocaleLowerCase()
         let itemProposalId = web3.utils.hexToNumberString(data[i].args.proposalId)
         if (itemProposalId == this.proposalId) {//fiter
-            if (voter == currentUserAddress) {
-              this.isVote = true
-            }
             const voteBalance = data[i].args.votes
             const balanceFormatString = await this.dealBigNumber(voteBalance)
             if (data[i].args.support) {
@@ -592,12 +602,21 @@ export default {
             } else {
               this.resetVoteBalance(balanceFormatString, 'reduce')
             }
-            
-            dealData.push({
-              voter: voter,
-              support: data[i].args.support ? 'Yes' : 'No',
-              value: balanceFormatString,
-            })
+
+            if (voter == currentUserAddress) {
+              this.isVote = true
+              dealData.unshift({
+                voter: voter,
+                support: data[i].args.support ? 'Yes' : 'No',
+                value: balanceFormatString,
+              })
+            } else {
+              dealData.push({
+                voter: voter,
+                support: data[i].args.support ? 'Yes' : 'No',
+                value: balanceFormatString,
+              })
+            }
         }
       }
       let voteTotal = this.yesBalance + this.noBalance

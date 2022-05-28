@@ -3,25 +3,41 @@
     <v-navTitle title="Delegate" helpUrl="docs/usage/Send"></v-navTitle >
     <div class="delegate-proposal-content content-page">
       <div class="proposal-title">Governance token</div>
-      <p class="proposal-des">Governance tokens represent voting shares in Eigen governance. You can vote on each proposal yourself or delegate your votes to a third party.</p>
-      <div class="proposal-title">Unlock Votes</div>
-      <div class="delegate-type-content">
-        <div class="delegate-type-select">
-          <a  
-            v-for="(item, index) in delegateTypeList"
-            :key="index"
-            :class="['delegate-item', delegateTypeAcite == index ? 'active' : '']"
-            @click="changeDelegateType(index)"
-            >{{item}}</a>
+      <p class="proposal-des">Governance tokens represent voting shares in Eigen governance. You can vote on each proposal yourself or delegate your votes to other address or cancel delegation.</p>
+      <div class="proposal-vote-info" v-if="!initPageLoading && currentDelegateType !== 'add'">
+        <div class="proposal-title">You have {{currentVotes}} votes, delegated to 
+          <span v-if="delegateIsSelf">self</span>
+          <span style="color: #495ABE" v-else>{{`${currentDelegateAddress.slice(0,6)}...${currentDelegateAddress.slice(-4)}`}}</span>
         </div>
-        <div class="delete-address-box" v-show="delegateTypeAcite == 1">
+        <el-button class="common-form-btn edit-btn" @click="editSubmit">Edit</el-button>
+      </div>
+      <div class="delegate-opr-content" v-if="!initPageLoading && currentDelegateType !== 'view'">
+        <div class="proposal-title">{{delegateTitle}}</div>
+        <div class="delegate-type-content" v-if ="currentDelegateType == 'add'">
+          <div class="delegate-type-select">
+            <a  
+              v-for="(item, index) in delegateTypeList"
+              :key="index"
+              :class="['delegate-item', delegateTypeAcite == index ? 'active' : '']"
+              @click="changeDelegateType(index)"
+              >{{item}}</a>
+          </div>
+          <div class="delete-address-box" v-show="delegateTypeAcite == 1">
+            <label class="address-label">Recipient Address</label>
+            <el-input v-model="delegateOther" placeholder="Please enter" :disabled="addressDiabled"></el-input>
+          </div>
+        </div>
+        <div class="delegate-update-content" v-else>
           <label class="address-label">Recipient Address</label>
-          <el-input v-model="delegateOther" placeholder="Please enter"></el-input>
+          <el-input v-model="updateNewAddress" placeholder="Please enter" :disabled="addressDiabled" class="update-input"></el-input>
+          <a class="update-fast-btn" @click="updateSelf">Self</a>
+          <a class="update-fast-btn" @click="updateCancelDele">Cancel</a>
+        </div>
+        <div class="add-proposal-btn">
+          <el-button type="primary" class="common-form-btn" :loading="delegateBtnLoading" @click="delegateSubmit">Submit</el-button>
         </div>
       </div>
-      <div class="add-proposal-btn">
-        <el-button type="primary" class="common-form-btn" :loading="delegateBtnLoading" @click="delegateSubmit">Submit</el-button>
-      </div>
+      <v-loading v-if="initPageLoading" />
     </div>
     <v-loadingPopup :show="showLoading" :showSpinner="false" />
     <v-confirmModal
@@ -53,11 +69,13 @@ import InputPswModal from '@/components/InputPswModal'
 import ConfirmModal from '@/components/ConfirmModal';
 import LoadingPopup from '@/components/LoadingPopup';
 import resultModal from '@/components/ResultModal';
+import Loading from '@/components/Loading'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import web3 from 'web3'
 import { CHAINMAP } from '@/utils/netWorkForToken';
 
 import { formatErrorContarct } from '@/utils/index'
+import { BigNumber } from "bignumber.js";
 
 Vue.use(Toast);
 Vue.use(Dialog);
@@ -70,6 +88,7 @@ export default {
       GovernorAlphaRouter,
       delegateBtnLoading: false,
       showLoading: false,
+      initPageLoading: true,
 
       overrides: {
         gasLimit: 8000000,
@@ -89,6 +108,13 @@ export default {
       delegateTypeList: ['Self Delegate', 'Add Delegate'],
       delegateOther: '',
       delegateAddress: '',
+      delegateTitle: 'Unlock Votes',
+      currentDelegateType: 'add',//add, view, edit
+      currentDelegateAddress: '',
+      delegateIsSelf: false,
+      addressDiabled: false,
+      updateNewAddress: '',
+      currentVotes: '',
       
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -108,6 +134,7 @@ export default {
     'v-confirmModal': ConfirmModal,
     'v-loadingPopup': LoadingPopup,
     'v-resultModal': resultModal,
+    'v-loading': Loading,
   },
   
   methods: {
@@ -128,14 +155,23 @@ export default {
         this.delegateBtnLoading = false
         return 
       }
-      // check privateKey whether is existed
-      const privateKey = await getDecryptPrivateKeyFromStore(this)
-      if (!privateKey) {
-        this.showInputPswModal = true;
-        return
-      }
-      await this.showConfirmModal()
+      
+      this.showConfirmModal()
 
+    },
+    editSubmit() {
+      if (this.currentDelegateType == 'edit') {
+        this.currentDelegateType = 'view'
+      } else {
+        this.currentDelegateType = 'edit'
+        this.delegateTitle = 'Update Delegation'
+      }
+    },
+    updateSelf() {
+      this.updateNewAddress = getConnectedAddress()
+    },
+    updateCancelDele() {
+      this.updateNewAddress = 0
     },
     checkData() {
       const userId = getInfoFromStorageByKey('gUID')
@@ -143,7 +179,7 @@ export default {
         Toast.fail('Please Login')
         return false
       }
-      if (!utils.isAddress(this.delegateAddress)) {
+      if (!(utils.isAddress(this.delegateAddress) || this.delegateAddress == 0) ) {
         Toast.fail(`Recipient address is wrong`);
         return false;
       }
@@ -186,15 +222,6 @@ export default {
       const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
       const selectedConnectAddress = getConnectedAddress()
 
-      // const isDelegates = await GovernanceTokenContract.delegates(selectedConnectAddress)
-      // console.log(isDelegates)
-      // if (isDelegates !== '0x0000000000000000000000000000000000000000') {
-      //   this.delegateBtnLoading = false
-      //   Toast('You has delegated')
-      //   return false
-      // }
-
-      
       const connectBalance = await getBalanceByAddress(selectedConnectAddress)
       let estimatedGasFee = await getEstimateGas('gasUsed')
       console.log(connectBalance)
@@ -204,11 +231,13 @@ export default {
         return false
       }
 
-      const balance = await GovernanceTokenContract.balanceOf(selectedConnectAddress)
-      if (balance <= 0) {
-        this.delegateBtnLoading = false
-        Toast('You need no GovernanceToken to delegate')
-        return false
+      if (this.currentDelegateType !== 'edit' && this.updateNewAddress !== 0) {//not cancel
+        const balance = await GovernanceTokenContract.balanceOf(selectedConnectAddress)
+        if (balance <= 0) {
+          this.delegateBtnLoading = false
+          Toast('You need no GovernanceToken to delegate')
+          return false
+        }
       }
 
       return true
@@ -220,12 +249,20 @@ export default {
     confirmDelegate({ overrides }) {
       this.overrides.gasLimit = overrides.gasLimit
       this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
-      this.dealDataDelegatedContract()
+      if (this.currentDelegateType == 'add') {
+        this.dealDataDelegatedContract(this.delegateAddress)
+      } else {
+        this.dealDataDelegatedContract(this.updateNewAddress)
+      }
+      
     },
-    async dealDataDelegatedContract() {
+    async dealDataDelegatedContract(address) {
       this.showLoading = true;
       const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
-      GovernanceTokenContract.delegate(this.delegateAddress).then(async tx=> {
+      if (address == 0) {
+        address = '0x0000000000000000000000000000000000000000'
+      }
+      GovernanceTokenContract.delegate(address).then(async tx=> {
           console.log(tx)
           this.showLoading = false
           this.showResultModal = true
@@ -239,6 +276,31 @@ export default {
           let errorValue = formatErrorContarct(error)
           Toast.fail(errorValue)
       })
+    },
+    async getIsCanDelegate() {
+      this.initPageLoading = true
+      const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
+      const selectedConnectAddress = getConnectedAddress()
+      const isDelegates = await GovernanceTokenContract.delegates(selectedConnectAddress)
+      if (isDelegates == '0x0000000000000000000000000000000000000000') {
+        this.currentDelegateType = 'add'
+      } else {
+        this.currentDelegateType = 'view'
+        this.currentDelegateAddress = isDelegates.toLocaleLowerCase()
+        this.delegateIsSelf = (this.currentDelegateAddress == selectedConnectAddress ? true : false)
+        const yourselfBig = await GovernanceTokenContract.getCurrentVotes(selectedConnectAddress)
+        this.currentVotes = await this.dealBigNumber(yourselfBig)
+      }
+      this.initPageLoading = false
+    },
+    async dealBigNumber(bigValue) {
+      const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
+      const decimals = await GovernanceTokenContract.decimals() 
+      const decimalsIsBigNumber = web3.utils.isBigNumber(decimals)||web3.utils.isHexStrict(decimals)||!_.isFinite(decimals)
+      const decimalsNumber = BigNumber(10).pow((decimalsIsBigNumber?decimals.toNumber():decimals)) // .toNumber() 1000000000000000000
+      const balanceNumber = BigNumber(Number(web3.utils.hexToNumberString(bigValue)))
+      const balanceFormatString = balanceNumber.div(decimalsNumber).toFixed(0,1) || 0.00
+      return balanceFormatString
     },
     async confirmPswOk({ show, psw }) {
       this.userPsw = psw; // password of user input for encrypt privateKey
@@ -277,7 +339,16 @@ export default {
 
       this.confirmPswBtnLoading = false
       this.showInputPswModal = false
-      await this.showConfirmModal()
+      await this.getIsCanDelegate()
+    },
+    async getIsHasPwd() {
+      // check privateKey whether is existed
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      this.getIsCanDelegate()
     },
     _handleNetworkChange({ chainInfo, from }) {
       console.log(chainInfo)
@@ -304,6 +375,8 @@ export default {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
     this.overrides.gasPrice = await getEstimateGas('gasPrice')
+
+    this.getIsHasPwd()
   },
   async mounted() {
     this.$eventBus.$on('networkChange', this._handleNetworkChange)

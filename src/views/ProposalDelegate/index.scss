@@ -11,6 +11,33 @@
     margin-bottom: 15px;
     font-weight: bold;
   }
+  .proposal-vote-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .edit-btn, .cancel-btn {
+    width: 80px;
+    height: 40px;
+    color: #fff;
+  }
+  .delegate-update-content {
+    display: flex;
+    align-items: center;
+  }
+  .update-fast-btn {
+    padding: 10px 10px;
+    border-radius: 10px;
+    margin-left: 10px;
+    border: 1px solid #495ABE;
+  }
+  .update-fast-btn.active {
+    background-color: #495ABE;
+    color: #fff;
+  }
+  .update-input {
+    width: 230px;
+  }
   .delegate-type-select {
     margin-bottom: 40px;
   }

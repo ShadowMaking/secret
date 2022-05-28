@@ -75,6 +75,11 @@
       margin-top: 20px;
       line-height: 30px;
       margin-bottom: 20px;
+      .proposal-cast-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
       .proposal-vote-title {
         font-size: 0.96rem;
         font-weight: bold;
@@ -87,6 +92,10 @@
         display: flex;
         align-items: center;
         justify-content: center;
+      }
+      .active-color {
+        color: #495ABE;
+        font-weight: bold;
       }
     }
     .block-container {
