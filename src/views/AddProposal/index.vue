@@ -2,10 +2,10 @@
 	<div class="add-proposal-page content-box">
 		<v-navTitle title="New proposal" helpUrl="docs/usage/Send"></v-navTitle >
 		<div class="add-proposal-content content-page">
-			<p class="proposal-des">You need to have a minimum of 1 governance token in order to submit a proposal.</p>
+			<p class="proposal-des">You need to have a minimum of {{voteThreshold}} governance token in order to submit a proposal.</p>
 			<div class="warnging-tip">
 				<el-tag type="warning"><i class="el-icon-warning"></i>
-				  <span v-if="addSubmitDisabled">Your current token is insufficient, so you can't submit it temporarily.</span>
+				  <span v-if="addSubmitDisabled">{{errorTip}}, so you can't submit it temporarily.</span>
 					<span>{{currentVotes}} Vote(s)</span>
 					<span v-if="delegateTo">, Delegate to {{delegateTo}}</span>
 				</el-tag>
@@ -106,6 +106,9 @@ export default {
 			currentVotes: '--',
 			delegateTo: '',
 			votePeriod: '--',
+			voteThreshold: '--',
+			hasIngProposal: false,
+			errorTip: '--',
 
 			// ***************** inputPsw start ***************** //
 			userPsw: '',
@@ -304,10 +307,26 @@ export default {
 			const GovernorAlphaContract = await getContractAt({ tokenAddress: this.GovernorAlphaRouter, abi: GovernorAlpha.abi }, this)
 			if (!GovernanceTokenContract) {return}
 
+			const proposalList = await GovernorAlphaContract.queryFilter(
+                    GovernorAlphaContract.filters.ProposalCreated(),
+      )
+		  for(let i=0; i<proposalList.length;i+=1) {
+        if (selectedConnectAddress == proposalList[i].args.proposer.toLocaleLowerCase()) {
+        	const proposalStatus = await GovernorAlphaContract.state(proposalList[i].args.id)
+        	if (proposalStatus == 0 || proposalStatus == 1 || proposalStatus == 4 || proposalStatus == 5) {
+        		this.hasIngProposal = true
+        		this.addSubmitDisabled = true
+        		this.errorTip = 'You already have an proposal'
+        	}
+        }
+      }
+
 			const balance = await GovernanceTokenContract.getCurrentVotes(selectedConnectAddress)
 		  const proposalThreshold = await GovernorAlphaContract.proposalThreshold()
+		  this.voteThreshold = await this.dealBigNumber(proposalThreshold)
 		  if (balance < proposalThreshold) {
 				this.addSubmitDisabled = true
+				this.errorTip = 'Your current token is insufficient'
 			}
 		  this.currentVotes = await this.dealBigNumber(balance)
 		  const isDelegates = await GovernanceTokenContract.delegates(selectedConnectAddress)

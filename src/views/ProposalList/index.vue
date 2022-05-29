@@ -3,10 +3,7 @@
     <v-navTitle title="Proposals" helpUrl="docs/usage/Send"></v-navTitle >
     <div class="proposal-list-content">
       <van-tabs color="#4375f1" title-active-color="#4375f1" @click="onTabClick">
-        <van-tab title="All" title-style="font-weight: bold;"></van-tab>
-        <van-tab title="Active" title-style="font-weight: bold;"></van-tab>
-        <van-tab title="Pending" title-style="font-weight: bold;"></van-tab>
-        <van-tab title="Closed" title-style="font-weight: bold;"></van-tab>
+        <van-tab  title-style="font-weight: bold;" v-for="(item, index) in allStatusList" :key="index" :title="item"></van-tab>
       </van-tabs>
       <div class="proposal-list">
         <div class="proposal-item" v-for="(item, index) in dataList" :key="index" @click="goDetail(item)">
@@ -18,8 +15,8 @@
             </div>
             <div class="proposal-item-top-right">
               <el-tag type="warn" v-if="item.status == 0">Pending</el-tag>
-              <el-tag v-else-if="item.status == 2">Closed</el-tag>
-              <el-tag type="success" v-else>Active</el-tag>
+              <el-tag v-else-if="item.status == 2 || item.status == 3 || item.status == 6">{{proposalStatus[item.status]}}</el-tag>
+              <el-tag type="success" v-else>{{proposalStatus[item.status]}}</el-tag>
             </div>
           </div>
           <!-- <div class="proposal-item-name">{{item.args.calldatas[0]}}</div> -->
@@ -59,7 +56,7 @@ import { getContractAt,  getDecryptPrivateKeyFromStore, isLogin, getEncryptKeyBy
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
 import GovernorAlpha from "@/assets/contractJSON/GovernorAlpha.json";
-import { GovernorAlphaRouter } from '@/utils/global';
+import { GovernorAlphaRouter, proposalStatus } from '@/utils/global';
 
 Vue.use(Toast);
 Vue.use(Dialog);
@@ -70,11 +67,12 @@ export default {
   name: 'proposalList',
   data() {
     return {
+      allStatusList: ['All','Active','Pending','Canceled','Defeated','Succeeded','Queued','Expired','Executed'],
       dataList: [],
       allDataList: [],
       GovernorAlphaRouter,
       showLoading: true,
-      proposalStatus: 0,//0-pengding 1-active 2-closed
+      proposalStatus,//0-pengding 1-active 2-closed
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -111,6 +109,21 @@ export default {
           break;
         case 3:
           this.fiterProposal(2)
+          break;
+        case 4:
+          this.fiterProposal(3)
+          break;
+        case 5:
+          this.fiterProposal(4)
+          break;
+        case 6:
+          this.fiterProposal(5)
+          break;
+        case 7:
+          this.fiterProposal(6)
+          break;
+        case 8:
+          this.fiterProposal(7)
           break;
         default:
           break;
@@ -214,6 +227,7 @@ export default {
 <style lang="scss" scoped>
   @import 'index.scss';
   ::v-deep .van-tabs__nav--line {
-    width: 300px;
+    width: 100%;
+    max-width: 800px;
   }
 </style>

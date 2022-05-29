@@ -4,11 +4,11 @@
     <div class="proposal-detail-content">
       <div class="proposal-detail-left">
         <div class="proposal-row">
-          <div class="proposal-col-left">Samurai v2 [Implementation]</div>
+          <div class="proposal-col-left">{{updateContractName}}</div>
           <div class="proposal-col-right">
-            <el-tag type="warn" v-if="proposalStatus == 0">Pending</el-tag>
-            <el-tag v-else-if="proposalStatus == 2">Closed</el-tag>
-            <el-tag type="success" v-else>Active</el-tag>
+            <el-tag type="warn" v-if="currentProposalStatus == 0">Pending</el-tag>
+            <el-tag v-else-if="currentProposalStatus == 2 || currentProposalStatus == 3 || currentProposalStatus == 6">{{proposalStatus[currentProposalStatus]}}</el-tag>
+            <el-tag type="success" v-else>{{proposalStatus[currentProposalStatus]}}</el-tag>
           </div>
         </div>
         <div class="proposal-row proposal-address-box">
@@ -34,7 +34,7 @@
         <div class="proposal-vote-list block-container">
           <v-loading v-if="listLoading" />
           <div v-else>
-            <div class="proposal-vote-btn-container" v-if="!isVote && proposalStatus == 1">
+            <div class="proposal-vote-btn-container" v-if="!isVote && currentProposalStatus == 1">
               
               <div class="proposal-cast-top">
                 <div class="proposal-vote-title">Cast your vote</div>
@@ -115,7 +115,7 @@
             <div>{{yesShowBalance}} / {{quorumVotes}} </div>
             <div>{{quorumPercent}}% </div>
           </div>
-          <el-progress :percentage="50" :format="formatProgress"></el-progress>
+          <el-progress :percentage="quorumPercent < 100 ? quorumPercent : 100" :format="formatProgress"></el-progress>
         </div>
       </div>
     </div>
@@ -145,7 +145,7 @@ import Loading from '@/components/Loading'
 
 import GovernorAlpha from "@/assets/contractJSON/GovernorAlpha.json";
 import GovernanceToken from "@/assets/contractJSON/GovernanceToken.json";
-import { GovernorAlphaRouter, GovernanceTokenRouter } from '@/utils/global';
+import { GovernorAlphaRouter, GovernanceTokenRouter, proposalStatus, securityModuleRouter, walletTransactionRouter } from '@/utils/global';
 
 import { getInfoFromStorageByKey, getFromStorage } from '@/utils/storage';
 
@@ -184,10 +184,13 @@ export default {
       proposalInfo: null,
       showLoading: false,
       newContractAddress: '',
-      proposalStatus: '',
+      currentProposalStatus: '',
       proposalInfoDes: '--',
       isVote: false,
       listLoading: true,
+      proposalStatus,
+      securityModuleRouter,
+      walletTransactionRouter,
 
       yesPercent: 0,
       noPercent: 0,
@@ -209,6 +212,8 @@ export default {
       resultIconStatus: 'el-icon-success',
       proposalResultTxt: '--',
       resultTxtVisible: false,
+
+      updateContractName: '--',
 
 
       overrides: {
@@ -265,9 +270,9 @@ export default {
       this.isHasBalance()
     },
     formBtnSubmit() {
-      if (this.proposalStatus == 4) {//queue
+      if (this.currentProposalStatus == 4) {//queue
         this.allBtnSubmit('queue', 'formBtnLoading')
-      } else if (this.proposalStatus == 5){//execute
+      } else if (this.currentProposalStatus == 5){//execute
         this.allBtnSubmit('execute', 'formBtnLoading')
       }
     },
@@ -462,9 +467,12 @@ export default {
       this.rightBlock1[4].value = await this.getEndDate(proposalInfo.endBlock, 'end', proposalInfo.startBlock)
       
       const proposalItem = getInfoFromStorageByKey('proposalItem')
+      console.log("proposalItem:", proposalItem)
+      const updateContractAddress = (proposalItem.args[2])[0]
+      this.getContractName(updateContractAddress)
       const calldata = (proposalItem.args[5])[0]
       this.newContractAddress = calldata.slice(0,2) + calldata.slice(26)
-      this.proposalStatus = await this.GovernorAlphaContract.state(this.proposalId)
+      this.currentProposalStatus = await this.GovernorAlphaContract.state(this.proposalId)
       this.proposalInfoDes = proposalItem.args[8]
       this.dealProposalStatus()
       
@@ -493,9 +501,18 @@ export default {
       // const sdd = await this.GovernorAlphaContract.getReceipt(this.proposalId, '0x4f5fd0ea6724dfbf825714c2742a37e0c0d6d7d9')
       // console.log(sdd)
     },
+    getContractName(address) {
+      if (address == securityModuleRouter) {
+        this.updateContractName = 'SecurityModule'
+      } else if (address == walletTransactionRouter) {
+        this.updateContractName = 'TransactionModule'
+      } else {
+        this.updateContractName = 'Samurai v2 [Implementation]'
+      }
+    },
     dealProposalStatus() {
-      console.log(this.proposalStatus)
-      switch(this.proposalStatus) {
+      console.log(this.currentProposalStatus)
+      switch(this.currentProposalStatus) {
         case 2:
         case 3:
           this.fotmBtnVisible = false
