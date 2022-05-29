@@ -387,7 +387,7 @@ export default {
           })
           .catch(err=>{
             this.transactionDetailVisible = false;
-            Toast.fail(`Refresh success，but error whenupdate history`);
+            Toast(`Refresh success，but error whenupdate history`);
           })
         }
       })

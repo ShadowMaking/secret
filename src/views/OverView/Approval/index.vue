@@ -231,7 +231,7 @@ export default {
       .catch(err => {
         this.showLoadingModal = false
         let errorValue = formatErrorContarct(err)
-        Toast.fail(errorValue)
+        Toast(errorValue)
         console.log(`Decline error: `, err);
       })
     },

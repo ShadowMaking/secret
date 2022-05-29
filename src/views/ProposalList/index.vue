@@ -142,6 +142,7 @@ export default {
                     GovernorAlphaContract.filters.ProposalCreated(),
                     ...blockRange
                 )
+      console.log(proposalList)
       this.dataList = proposalList
       this.showLoading = false
       for(let i=0; i<proposalList.length;i+=1) {

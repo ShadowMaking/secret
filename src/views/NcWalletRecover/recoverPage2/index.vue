@@ -349,7 +349,7 @@ export default {
         console.log(error)
         this.showLoading = false
         let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
+        Toast(errorValue)
       })
     },
     resetSignStatus() {
@@ -541,7 +541,7 @@ export default {
         console.log(error)
         this.showLoading = false
         let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
+        Toast(errorValue)
       })
     },
     async cancelRecoverySubmit(txid) {

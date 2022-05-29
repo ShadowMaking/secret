@@ -334,7 +334,7 @@ export default {
         this.showLoading = false
         console.log(error)
         let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
+        Toast(errorValue)
       })
     },
     async dealDataBeforeFreezeWalletSubmit() {
@@ -367,7 +367,7 @@ export default {
         console.log(error)
         this.showLoading = false
         let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
+        Toast(errorValue)
       })
     },
     async dealDataBeforeUnlockWalletSubmit() {
@@ -393,7 +393,7 @@ export default {
         console.log(error)
         this.showLoading = false
         let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
+        Toast(errorValue)
       })
     },
     changeWalletSuccess(res, status, operateType, isToast) {
@@ -462,7 +462,7 @@ export default {
       const { hasError, totalSignMessage } = await this.$store.dispatch('addSignerMultMessages', {...data});
       this.showLoading = false;
       if (hasError) {
-        Toast.fail('Confirm Recover Failed')
+        Toast('Confirm Recover Failed')
       } else {
         this.updateSignerStatus(this.signerStatus['agreeRecover'], false)
         this.getIsCanRecovery()
@@ -484,7 +484,7 @@ export default {
       const { hasError } = await this.$store.dispatch('updateSigner', {...data});
       this.showLoading = false;
       if (hasError) {
-        isToast && Toast.fail('Update Failed')
+        isToast && Toast('Update Failed')
       } else {
         if (isToast) {
           this.$emit('signChild');

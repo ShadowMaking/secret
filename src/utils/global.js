@@ -25,13 +25,11 @@ const supportNetContractRouter = [
   {
     chainId: 3,
     name: 'Ropsten',
-    securityModuleRouter: '0xfE4681d6cd57605AD17583424c28f7d46eB6d9ab',//0x3b5Ad456e8B9118331A2FD0D6a09A592E0F6651F
-    proxyRouter: '0xc8D8e7f6E4d61abeC233e9835cF57D7A33f7b33B',//0x20E14B268Cd763d286536EF100eFf433C5f0E43E
-    walletTransactionRouter: '0x190eec581fd4b4fAd36BE913C5F79f8A858F90e7',//0xa0861f705Cf3996fB6993810A82D5053de8ED3a9
+    securityModuleRouter: '0x362E683315D64B4511952aDE8632EC14DAaBA5a5',//0x3b5Ad456e8B9118331A2FD0D6a09A592E0F6651F
+    proxyRouter: '0xC8E68F41a7097CB65CCf319D788c1BDeD47476B3',//0x20E14B268Cd763d286536EF100eFf433C5f0E43E
+    walletTransactionRouter: '0xE1e38d51068CF6D2a16a86B266c6E14CBAA7319A',//0xa0861f705Cf3996fB6993810A82D5053de8ED3a9
     GovernanceTokenRouter: '0xC91ecf9581701707658e21D3b04dc5E6c67575bD',
     GovernorAlphaRouter: '0xb9e341Fb309A6E642e3630E47bE5A26159c648C4',
-    securityModuleProxyRouter: '0xe85a74792E5Cb240E258559aa21BD00323571dfC',//The proxy of SecurityModule is set wi
-    transactionModuleProxyRouter: '0x6927eEce1e17ed0397b761939D69c850A69F1De5',
   },
   {
     chainId: 588,
@@ -62,8 +60,6 @@ const supportNetContractRouter = [
     walletTransactionRouter: '0xc33f3eE638Ac2C8ac24B3E76c1FA2BBfAa60F962',
     GovernanceTokenRouter: '0xd1b79d74CC6d9aD1bC3c6FBDe3E09f4e5b25c920',
     GovernorAlphaRouter: '0x0fAFB71cda268De764BEf6E12e93ccA3715F92e3',
-    securityModuleProxyRouter: '0xd5322B054b6B1DfEc9D53257261E1BA601b99fc2',//The proxy of SecurityModule is set wi
-    transactionModuleProxyRouter: '0x2f39456B84c998DA9197cB5333a595aE0d5650A9',
   },
 ]
 let securityModuleRouter = supportNetContractRouter[0].securityModuleRouter;
@@ -71,8 +67,7 @@ let proxyRouter = supportNetContractRouter[0].proxyRouter;
 let walletTransactionRouter = supportNetContractRouter[0].walletTransactionRouter;
 let GovernanceTokenRouter = supportNetContractRouter[0].GovernanceTokenRouter;
 let GovernorAlphaRouter = supportNetContractRouter[0].GovernorAlphaRouter;
-let securityModuleProxyRouter = supportNetContractRouter[0].securityModuleProxyRouter;
-let transactionModuleProxyRouter = supportNetContractRouter[0].transactionModuleProxyRouter;
+
 let currentChainId = getConnectedNet().id
 for (let i = 0; i < supportNetContractRouter.length; i++) {
   if (currentChainId == supportNetContractRouter[i].chainId) {
@@ -81,8 +76,6 @@ for (let i = 0; i < supportNetContractRouter.length; i++) {
     walletTransactionRouter = supportNetContractRouter[i].walletTransactionRouter
     GovernanceTokenRouter = supportNetContractRouter[i].GovernanceTokenRouter
     GovernorAlphaRouter = supportNetContractRouter[i].GovernorAlphaRouter
-    securityModuleProxyRouter = supportNetContractRouter[i].securityModuleProxyRouter
-    transactionModuleProxyRouter = supportNetContractRouter[i].transactionModuleProxyRouter
   }
 }
 
@@ -156,7 +149,5 @@ export {
   lockType,
   GovernanceTokenRouter,
   GovernorAlphaRouter,
-  securityModuleProxyRouter,
-  transactionModuleProxyRouter,
   proposalStatus,
 }

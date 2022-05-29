@@ -61,7 +61,7 @@ import { getContractAt, getConnectedAddress, getBalanceByAddress, getDecryptPriv
 
 import GovernanceToken from "@/assets/contractJSON/GovernanceToken.json";
 import GovernorAlpha from "@/assets/contractJSON/GovernorAlpha.json";
-import { GovernanceTokenRouter, GovernorAlphaRouter, securityModuleProxyRouter, transactionModuleProxyRouter } from '@/utils/global';
+import { GovernanceTokenRouter, GovernorAlphaRouter } from '@/utils/global';
 
 import { getInfoFromStorageByKey } from '@/utils/storage';
 
@@ -171,16 +171,16 @@ export default {
       this.updateNewAddress = getConnectedAddress()
     },
     updateCancelDele() {
-      this.updateNewAddress = 0
+      this.updateNewAddress = '0x0000000000000000000000000000000000000000'
     },
     checkData() {
       const userId = getInfoFromStorageByKey('gUID')
       if (!userId) {
-        Toast.fail('Please Login')
+        Toast('Please Login')
         return false
       }
       if (!(utils.isAddress(this.delegateAddress) || this.delegateAddress == 0) ) {
-        Toast.fail(`Recipient address is wrong`);
+        Toast(`Recipient address is wrong`);
         return false;
       }
       return true
@@ -231,7 +231,7 @@ export default {
         return false
       }
 
-      if (this.currentDelegateType !== 'edit' && this.updateNewAddress !== 0) {//not cancel
+      if (this.currentDelegateType !== 'edit' && this.updateNewAddress !== '0x0000000000000000000000000000000000000000') {//not cancel
         const balance = await GovernanceTokenContract.balanceOf(selectedConnectAddress)
         if (balance <= 0) {
           this.delegateBtnLoading = false
@@ -259,9 +259,6 @@ export default {
     async dealDataDelegatedContract(address) {
       this.showLoading = true;
       const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
-      if (address == 0) {
-        address = '0x0000000000000000000000000000000000000000'
-      }
       GovernanceTokenContract.delegate(address).then(async tx=> {
           console.log(tx)
           this.showLoading = false
@@ -274,7 +271,7 @@ export default {
           console.log(error)
           this.showLoading = false
           let errorValue = formatErrorContarct(error)
-          Toast.fail(errorValue)
+          Toast(errorValue)
       })
     },
     async getIsCanDelegate() {

@@ -57,7 +57,7 @@
                 <i :class="[resultIconStatus, 'el-icon']"></i>
                 <span>{{proposalResultTxt}}</span>
               </div>
-              <div class="proposal-vote-title">{{voteList.length}} Votes</div>
+              <div class="proposal-vote-title">{{voteList.length}} Voter(s)</div>
               <el-row class="list-header">
                 <el-col :span="8" class="list-header-item">Address</el-col>
                 <el-col :span="8" class="list-header-item">Opinion</el-col>
@@ -443,7 +443,7 @@ export default {
       console.log(error)
       this.showLoading = false
       let errorValue = formatErrorContarct(error)
-      Toast.fail(errorValue)
+      Toast(errorValue)
     },
     cancelResultModal() {
       this.showResultModal = false
