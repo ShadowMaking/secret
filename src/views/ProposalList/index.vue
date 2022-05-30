@@ -215,6 +215,9 @@ export default {
       }
       await this.getProposalList()
     },
+    _handleNetworkChange({ chainInfo, from }) {
+      this.isShowPwdModal()
+    },
   },
   created() {
     if (!isLogin()) {
@@ -222,6 +225,9 @@ export default {
       return
     }
     this.isShowPwdModal()
+  },
+  async mounted() {
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
   },
 }
 </script>

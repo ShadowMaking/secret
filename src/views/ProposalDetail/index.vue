@@ -726,10 +726,11 @@ export default {
       return info && info['id'] || 1
     },
     _handleNetworkChange({ chainInfo, from }) {
-      console.log(chainInfo)
+      this.currentChainInfo = chainInfo
+      this.isShowPwdModal()
     },
     handleAccountChange(addressInfo) {
-      console.log(addressInfo)
+      this.isShowPwdModal()
     },
   },
   async created() {

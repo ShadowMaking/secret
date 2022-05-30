@@ -348,10 +348,11 @@ export default {
       this.getIsCanDelegate()
     },
     _handleNetworkChange({ chainInfo, from }) {
-      console.log(chainInfo)
+      this.currentChainInfo = chainInfo
+      this.getIsHasPwd()
     },
     handleAccountChange(addressInfo) {
-      console.log(addressInfo)
+      this.getIsHasPwd()
     },
     getDefaultNetWork() {
       const info = getInfoFromStorageByKey('netInfo')

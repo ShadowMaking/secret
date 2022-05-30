@@ -333,6 +333,8 @@ export default {
 			console.log(isDelegates)
       if (isDelegates == '0x0000000000000000000000000000000000000000') {
         this.delegateTo = ''
+      } else if (isDelegates.toLocaleLowerCase() == selectedConnectAddress) {
+        this.delegateTo = 'Self'
       } else {
         this.delegateTo = isDelegates.slice(0,6) + '...' + isDelegates.slice(-4)
       }
@@ -402,10 +404,11 @@ export default {
 			await this.getIsHasProposal()
 		},
 		_handleNetworkChange({ chainInfo, from }) {
-			console.log(chainInfo)
+			this.currentChainInfo = chainInfo
+			this.getIsShowPwd()
 		},
 		handleAccountChange(addressInfo) {
-			console.log(addressInfo)
+			this.getIsShowPwd()
 		},
 		getDefaultNetWork() {
 			const info = getInfoFromStorageByKey('netInfo')
