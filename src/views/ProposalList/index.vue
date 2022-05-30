@@ -151,10 +151,11 @@ export default {
       const blockRange = [0, latestBlock.number]
       console.log(blockRange)
       const GovernorAlphaContract = await getContractAt({ tokenAddress: this.GovernorAlphaRouter, abi: GovernorAlpha.abi }, this)
-      const proposalList = await GovernorAlphaContract.queryFilter(
+      let proposalList = await GovernorAlphaContract.queryFilter(
                     GovernorAlphaContract.filters.ProposalCreated(),
                     ...blockRange
                 )
+      proposalList = proposalList.reverse()
       console.log(proposalList)
       this.dataList = proposalList
       this.showLoading = false

@@ -40,7 +40,7 @@
                 <div class="proposal-vote-title">Cast your vote</div>
                 <div class="proposal-vote-info">
                   {{yourSelfBalance}} Votes
-                  <span v-if="delegateAddress">, Delegate to <a @click="toPageDetail(delegateAddress)" style="color: #495ABE">{{delegateAddress}}</a></span>
+                  <span v-if="delegateAddress">, Delegate to <a @click="toPageDetail(delegateAddress)" style="color: #495ABE">{{delegateAddress == currentAddress ? 'self' : (delegateAddress.slice(0,6) + '...' + delegateAddress.slice(-4)) }}</a></span>
                 </div>
               </div>
               <div class="proposal-vote-opration">
@@ -214,6 +214,7 @@ export default {
       resultTxtVisible: false,
 
       updateContractName: '--',
+      currentAddress: getConnectedAddress(),
 
 
       overrides: {
@@ -230,6 +231,8 @@ export default {
       resuletContent: 'Submitted Success',
       needResultColse: false,
       currentOptType: 'agree',//agree reject queue
+
+      excuteTime: '',
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -496,7 +499,7 @@ export default {
       if (isDelegates == '0x0000000000000000000000000000000000000000') {
         this.delegateAddress = ''
       } else {
-        this.delegateAddress = isDelegates.slice(0,6) + '...' + isDelegates.slice(-4)
+        this.delegateAddress = isDelegates.toLocaleLowerCase()
       }
       // const sdd = await this.GovernorAlphaContract.getReceipt(this.proposalId, '0x4f5fd0ea6724dfbf825714c2742a37e0c0d6d7d9')
       // console.log(sdd)
@@ -527,7 +530,7 @@ export default {
           this.resultTxtVisible = false
           break;
         case 5:
-          this.formBtnTxt = 'Queued'
+          this.formBtnTxt = 'Execute'
           this.fotmBtnVisible = true
           this.formBtnDisabled = true
           this.resultTxtVisible = false
@@ -567,9 +570,15 @@ export default {
         const etaBLockNumber = web3.utils.hexToNumberString(etaItem.eta)
         console.log(etaBLockNumber)
         console.log(mostNewBlockTimestamp)
-        if (etaItem.id == this.proposalId && etaBLockNumber < mostNewBlockTimestamp) {
-           this.formBtnDisabled = false
-           this.formBtnTxt = 'Execute'
+        if (etaItem.id == this.proposalId) {
+          if (etaBLockNumber < mostNewBlockTimestamp) {
+            this.formBtnDisabled = false
+            this.formBtnTxt = 'Execute'
+          } else {
+            this.excuteTime = timeFormat(etaBLockNumber*1000, 'yyyy/MM/dd hh:mm:ss')
+            this.formBtnTxt = 'Execute (after ' + this.excuteTime + ')'
+          } 
+           
         }
       }
 
