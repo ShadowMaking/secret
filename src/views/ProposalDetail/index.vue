@@ -556,8 +556,8 @@ export default {
       const network = getConnectedNet()
       const rpcUrl = network['rpcUrls'][0]
       const currentProvider = initRPCProvider(rpcUrl)
-      const { number: mostNewBlockNumber } = await currentProvider.getBlock()
-      console.log(mostNewBlockNumber)
+      const { timestamp: mostNewBlockTimestamp } = await currentProvider.getBlock('latest')
+      console.log(mostNewBlockTimestamp)
       const etaInfo = await this.GovernorAlphaContract.queryFilter(
                     this.GovernorAlphaContract.filters.ProposalQueued()
                 )
@@ -565,7 +565,9 @@ export default {
       for (var i = 0; i < etaInfo.length; i++) {
         const etaItem = etaInfo[i].args
         const etaBLockNumber = web3.utils.hexToNumberString(etaItem.eta)
-        if (etaItem.id == this.proposalId && etaBLockNumber > mostNewBlockNumber) {
+        console.log(etaBLockNumber)
+        console.log(mostNewBlockTimestamp)
+        if (etaItem.id == this.proposalId && etaBLockNumber < mostNewBlockTimestamp) {
            this.formBtnDisabled = false
            this.formBtnTxt = 'Execute'
         }
