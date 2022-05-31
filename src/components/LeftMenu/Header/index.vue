@@ -114,6 +114,12 @@
                       <span>Import Account</span>
                     </router-link>
                   </div>
+                  <div class="opt-item van-hairline--bottom" @click="toPage('importAccount')">
+                    <router-link to="/exportAccount">
+                      <van-icon name="down" class="opt-icon" />
+                      <span>Export Account</span>
+                    </router-link>
+                  </div>
                   <div class="opt-item van-hairline--bottom" @click="disconnect" v-show="currentUserAddress">
                     <van-icon name="peer-pay" class="opt-icon redColor"/>
                     <span class="redColor">Logout</span>
