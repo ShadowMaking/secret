@@ -13,7 +13,7 @@
           <div class="confirm-step-left">
             <div class="step-left-title">Step 1: <i :class="this.signerAgreeNum >= this.signerNeedTotal ? 'el-icon-circle-check' : 'el-icon-remove-outline'"></i></div>
             <div class="step-left-content">
-              Please ask at least <span class="address-blue">{{signerNeedTotal}}</span> guardians below to help you recover wallet and ask them to login Eigen to confirm your request
+              Please ask at least <span class="address-blue">{{signerNeedTotal}}</span> signer(s) to help confirm the recovery request
             </div>
           </div>
         </div>
