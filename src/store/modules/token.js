@@ -182,7 +182,7 @@ const token = {
             const _tokenList = []
             for(let i = 0; i<tokenAddressList_ropsten.length; i+=1) {
               const tokenAddress = tokenAddressList_ropsten[i]
-              const { name, logo, erc20, symbol, decimals } = tokenListMap_ropsten[tokenAddress]
+              const { name, logo, erc20, symbol, decimals, localAbiJson } = tokenListMap_ropsten[tokenAddress]
               const { hasError, data } = await store.dispatch('GetTokenABIByTokenAddress', { tokenAddress })
               _tokenList.push({
                 id: name,
@@ -190,7 +190,8 @@ const token = {
                 tokenAddress,
                 erc20, symbol, decimals,
                 icon: `token/tokenImages/${logo}`, // TODO
-                abiJson: data
+                abiJson: data,
+                localAbiJson: localAbiJson
               })
             }
             tokenList = [].concat(_tokenList)

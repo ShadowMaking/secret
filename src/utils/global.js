@@ -25,9 +25,11 @@ const supportNetContractRouter = [
   {
     chainId: 3,
     name: 'Ropsten',
-    securityModuleRouter: '0x3b5Ad456e8B9118331A2FD0D6a09A592E0F6651F',
-    proxyRouter: '0x20E14B268Cd763d286536EF100eFf433C5f0E43E',
-    walletTransactionRouter: '0xa0861f705Cf3996fB6993810A82D5053de8ED3a9',
+    securityModuleRouter: '0x6BdCA537E94D16104986C18ae6BE3743d0132714',//0x3b5Ad456e8B9118331A2FD0D6a09A592E0F6651F
+    proxyRouter: '0xD0EA32AdF3E1AAADfDc30c54578faD3B4f428aB9',//0x20E14B268Cd763d286536EF100eFf433C5f0E43E
+    walletTransactionRouter: '0x72A4aa6E1D85EcDe749753fbE03b87aDEC11a9A9',//0xa0861f705Cf3996fB6993810A82D5053de8ED3a9
+    GovernanceTokenRouter: '0xC91ecf9581701707658e21D3b04dc5E6c67575bD',
+    GovernorAlphaRouter: '0xb9e341Fb309A6E642e3630E47bE5A26159c648C4',
   },
   {
     chainId: 588,
@@ -56,17 +58,24 @@ const supportNetContractRouter = [
     securityModuleRouter: '0x3cf158E9ae76be833EB36340191245778fD84A03',
     proxyRouter: '0xbC8b63F0720CB087A8EC8f71145cAE4b2dCEFAb5',
     walletTransactionRouter: '0xc33f3eE638Ac2C8ac24B3E76c1FA2BBfAa60F962',
+    GovernanceTokenRouter: '0xd1b79d74CC6d9aD1bC3c6FBDe3E09f4e5b25c920',
+    GovernorAlphaRouter: '0x0fAFB71cda268De764BEf6E12e93ccA3715F92e3',
   },
 ]
 let securityModuleRouter = supportNetContractRouter[0].securityModuleRouter;
 let proxyRouter = supportNetContractRouter[0].proxyRouter;
 let walletTransactionRouter = supportNetContractRouter[0].walletTransactionRouter;
+let GovernanceTokenRouter = supportNetContractRouter[0].GovernanceTokenRouter;
+let GovernorAlphaRouter = supportNetContractRouter[0].GovernorAlphaRouter;
+
 let currentChainId = getConnectedNet().id
 for (let i = 0; i < supportNetContractRouter.length; i++) {
   if (currentChainId == supportNetContractRouter[i].chainId) {
     securityModuleRouter = supportNetContractRouter[i].securityModuleRouter
     proxyRouter = supportNetContractRouter[i].proxyRouter
     walletTransactionRouter = supportNetContractRouter[i].walletTransactionRouter
+    GovernanceTokenRouter = supportNetContractRouter[i].GovernanceTokenRouter
+    GovernorAlphaRouter = supportNetContractRouter[i].GovernorAlphaRouter
   }
 }
 
@@ -110,6 +119,18 @@ const lockType = {
   'GlobalAndSigner': 3, //can unlock
 }
 
+const proposalStatus = {
+  '0': 'Pending',
+  '1': 'Active',
+  '2': 'Canceled',
+  '3': 'Defeated',
+  '4': 'Succeeded',
+  '5': 'Queued',
+  '6': 'Expired',
+  '7': 'Executed',
+}
+
+
 export {
   DEFAULTIMG,
   RECHAERGE_TIP,
@@ -127,4 +148,7 @@ export {
   walletStatus,
   multOperation,
   lockType,
+  GovernanceTokenRouter,
+  GovernorAlphaRouter,
+  proposalStatus,
 }

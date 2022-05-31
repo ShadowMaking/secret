@@ -290,14 +290,14 @@ export default {
               console.log(error)
               this.showLoading = false
               let errorValue = formatErrorContarct(error)
-              Toast.fail(errorValue)
+              Toast(errorValue)
             })
           })
       }).catch(error => {
         console.log(error)
         this.showLoading = false
         let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
+        Toast(errorValue)
         return
       })
       
@@ -323,27 +323,27 @@ export default {
       const { hasError } = await this.$store.dispatch('addWallet', {...data});
       this.showLoading = false;
       if (hasError) {
-        Toast.fail('Create Failed')
+        Toast('Create Failed')
       } else {
         this.showStatusPop = true
       }
     },
     checkData() {
       if (!this.createWalletName) {
-        Toast.fail('Need Input Name')
+        Toast('Need Input Name')
         return false
       }
       if (!this.userId) {
-        Toast.fail('Please Login')
+        Toast('Please Login')
         return false
       }
       if (this.createSignerSubmit.length == 0) {
-        Toast.fail('Set Signer')
+        Toast('Set Signer')
         return false
       }
       let currentUser = getConnectedAddress()
       if (this.createSignerSubmit.indexOf(currentUser) > -1) {
-        Toast.fail('This Owner Can Not To Be This Signer')
+        Toast('This Owner Can Not To Be This Signer')
         this.createSignerSubmit = []
        this.createSignerList = []
         return false

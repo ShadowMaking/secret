@@ -370,7 +370,7 @@ export default {
       const { hasError, list } = await this.$store.dispatch('updateTransTx', {...updateData});
       this.showLoading = false
       if (hasError) {
-        Toast.fail('fail')
+        Toast('fail')
       } else {
         this.addMultTransHistory(tx)
         Toast('Execute success')
@@ -448,7 +448,7 @@ export default {
       //   console.log(error)
       //   this.showLoading = false
       //   let errorValue = formatErrorContarct(error)
-      //   Toast.fail(errorValue)
+      //   Toast(errorValue)
       // })
     },
     async setMaxPerParametarExecute() {
@@ -483,7 +483,7 @@ export default {
         console.log(error)
         this.showLoading = false
         let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
+        Toast(errorValue)
       })
     },
     async confirmPswOk({ show, psw }) {
@@ -554,7 +554,7 @@ export default {
       const { hasError, totalSignMessage } = await this.$store.dispatch('addSignerMultMessages', {...data});
       this.showLoading = false;
       if (hasError) {
-        Toast.fail(`${optreateType} Failed`)
+        Toast(`${optreateType} Failed`)
       } else {
         Toast(`${optreateType} success`)
         this.getSigerMessages()

@@ -1,0 +1,36 @@
+.add-proposal-page {
+  .proposal-des {
+    font-size: 0.96rem;
+    line-height: 25px;
+    color: #9E9E9E;
+  }
+  .proposal-title {
+    color: #2C3E50;
+    font-size: 0.96rem;
+    margin-top: 20px;
+    margin-bottom: 15px;
+  }
+  .module-select {
+    width: 100%;
+  }
+  .add-proposal-btn {
+    margin-top: 20px;
+    a {
+      color: #fff;
+    }
+  }
+  .el-icon-warning {
+    margin-right: 5px;
+    font-size: 1.08rem;
+    line-height: 20px;
+  }
+  .warnging-tip {
+    margin-top: 10px;
+    .el-tag {
+      display: inline;
+      white-space: normal;
+      padding: 10px;
+      line-height: 45px;
+    }
+  }
+}

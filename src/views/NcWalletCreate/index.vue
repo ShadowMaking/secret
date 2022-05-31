@@ -252,7 +252,7 @@ export default {
         this.showResultModal = false
         let errorValue = formatErrorContarct(error)
         this.showSetpFail(errorValue)
-        // Toast.fail(errorValue)
+        // Toast(errorValue)
         return
       })
     },
@@ -402,7 +402,7 @@ export default {
       this.showLoading = false;
       if (hasError) {
         this.showSetpFail('Create Failed')
-        // Toast.fail('Create Failed')
+        // Toast('Create Failed')
       } else {
         this.showSetp2Success()
       }
@@ -440,17 +440,17 @@ export default {
     checkData() {
       if (this.currentClickType == 'setName') {
         if (!this.createWalletName) {
-          Toast.fail('Need Input Name')
+          Toast('Need Input Name')
           return false
         }
       } else {
         if (this.createSignerSubmit.length == 0) {
-          Toast.fail('Set Signer')
+          Toast('Set Signer')
           return false
         }
         let currentUser = getConnectedAddress()
         if (this.createSignerSubmit.indexOf(currentUser) > -1) {
-          Toast.fail('This owner can not to be this signer')
+          Toast('This owner can not to be this signer')
           this.createSignerSubmit = []
           this.createSignerList = []
           return false

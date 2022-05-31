@@ -27,6 +27,11 @@ export const generateTokenList = async (list, self, isDefault, connectAddress) =
       abiTokenAddress = list[i]['abiTokenAddress']
     }
 
+    if (list[i]['localAbiJson']) {
+      const jsonFile = require("@/assets/token/Ropsten/ABIJSON/" + list[i].localAbiJson + ".json")
+      list[i]['abiJson'] = jsonFile.abi
+    }
+
     let abi = list[i].abiJson || []
     if (!isDefault || abi.length === 0) {
       const { hasError: abiResError, data } = await self.$store.dispatch('GetTokenABIByTokenAddress', {tokenAddress: abiTokenAddress?abiTokenAddress:tokenAddress});
@@ -39,6 +44,7 @@ export const generateTokenList = async (list, self, isDefault, connectAddress) =
     });
     const changeType = `${list[i]['symbol']}/USDT`
     const {hasError: USResError, forUsdt: exchangeForUS} = await self.$store.dispatch('GetTokenAxchangeForUS', {tokenAddress, changeType});
+    
     list[i]['abiJson'] = _.cloneDeep(abi)
     list[i]['balance'] = balance
     list[i]['balanceNumberString'] = balanceFormatString

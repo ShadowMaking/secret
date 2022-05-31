@@ -288,20 +288,20 @@ export default {
     checkData(data) {
       console.log('checkData')
       if (!utils.isAddress(data.toAddress)) {
-        Toast.fail(`Wrong Address`);
+        Toast(`Invalid Address`);
         return false;
       }
       if (!data.selectedToken) {
-        Toast.fail(`Choose Token`);
+        Toast(`Choose Token`);
         return false;
       }
       if (!data.type1Value) {
-        Toast.fail(`input amount`);
+        Toast(`input amount`);
         return false;
       }
       if (new BigNumber(data.selectedToken.balanceNumberString).lt(new BigNumber(data.type1Value)) ||
       new BigNumber(data.selectedToken.balanceNumberString).eq(new BigNumber(0))) {
-        Toast.fail(`Insufficient Balance`);
+        Toast(`Insufficient Balance`);
         return false;
       }
       return true

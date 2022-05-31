@@ -19,6 +19,14 @@ export const TOKENMAP_NETWORK = {
       "symbol": "WETH",
       "decimals": 18
     },
+    "0xC91ecf9581701707658e21D3b04dc5E6c67575bD": {
+      "name": "GT",
+      "logo": "EIGEN.png",
+      "erc20": true,
+      "symbol": "GovernanceToken",
+      "decimals": 18,
+      // "localAbiJson": "GovernanceToken"
+    },
   },
   // Stardust
   [CHAINIDMAP['STARDUST']]: {

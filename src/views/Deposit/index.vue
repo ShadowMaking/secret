@@ -251,7 +251,7 @@ export default {
 
       const connectAddress = getConnectedAddress();
       if (!utils.isAddress(connectAddress)) {
-        Toast.fail(`Wrong Address`);
+        Toast(`Wrong Address`);
         return;
       }
 

@@ -285,7 +285,7 @@ export default {
         console.log(error)
         this.showLoading = false
         let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
+        Toast(errorValue)
       })
       
     },
@@ -364,7 +364,7 @@ export default {
       }).catch(async error => {
         this.showLoading = false
         let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
+        Toast(errorValue)
         console.log(error)
       })
     },
@@ -401,7 +401,7 @@ export default {
       }
     },
     submitFailed(type) {
-      Toast.fail(`${type} Failed`)
+      Toast(`${type} Failed`)
       this.showLoading = false
     },
     submitSuccess(type) {

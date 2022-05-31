@@ -281,24 +281,24 @@ export default {
     },
     checkData(data) {
       /* if (!data.tokenFrom && this.exchangeFromToken) {
-        Toast.fail('Nonsupport ETH')
+        Toast('Nonsupport ETH')
         return false
       } */
       if (!data.tokenFrom && this.exchangeFromToken && !data.tokenTo && this.exchangeToToken) {
-        Toast.fail('No support')
+        Toast('No support')
         return false
       }
       if (!this.exchangeFromToken || !this.exchangeToToken) {
-        Toast.fail('Choose Token')
+        Toast('Choose Token')
         return false
       }
       if (!data.amountin) {
-        Toast.fail('Need Input Amountin')
+        Toast('Need Input Amountin')
         return false
       }
       if (new BigNumber(this.exchangeFromToken.balanceNumberString).lt(new BigNumber(data.amountin)) ||
       new BigNumber(this.exchangeFromToken.balanceNumberString).eq(new BigNumber(0))) {
-        Toast.fail(`Insufficient Balance`);
+        Toast(`Insufficient Balance`);
         return false;
       }
       return true
@@ -425,7 +425,7 @@ export default {
       .catch(error=>{
         this.showLoading = false
         let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
+        Toast(errorValue)
         console.log(error)
       })
     },
@@ -479,7 +479,7 @@ export default {
       .catch(error=>{
         this.showLoading = false
         let errorValue = formatErrorContarct(error)
-        Toast.fail(errorValue)
+        Toast(errorValue)
         console.log(error)
       })
     },
@@ -590,7 +590,7 @@ export default {
         .catch(error=>{
           this.showLoading = false
           let errorValue = formatErrorContarct(error)
-          Toast.fail(errorValue)
+          Toast(errorValue)
           console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", error);
         })
       } else {
@@ -628,7 +628,7 @@ export default {
         .catch(error=>{
           this.showLoading = false
           let errorValue = formatErrorContarct(error)
-          Toast.fail(errorValue)
+          Toast(errorValue)
           console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", error);
         })
         
@@ -1150,7 +1150,7 @@ export default {
       .catch(err => {
         this.showLoading = false
         let errorValue = formatErrorContarct(err)
-        Toast.fail(errorValue)
+        Toast(errorValue)
         console.log(`Approve Token-${token.tokenName} error: `, err);
       })
 
