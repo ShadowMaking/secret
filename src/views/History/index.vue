@@ -59,14 +59,15 @@ export default {
       fromType: 0, //0-user address 1-wallet address
 
       isNc: false,
+      defaultNetWork:'',
     }
   },
-  computed: {
-    defaultNetWork() {
-      const info = getInfoFromStorageByKey('netInfo')
-      return info && info['id'] || 1
-    },
-  },
+  // computed: {
+  //   defaultNetWork() {
+  //     const info = getInfoFromStorageByKey('netInfo')
+  //     return info && info['id'] || 1
+  //   },
+  // },
   methods: {
     selectNC() {
       this.isNc = !(this.isNc)
@@ -99,6 +100,7 @@ export default {
         this.showLoading = false;
         this.totalPage = totalPage;
         this.transactionList = [].concat(this.transactionList, generateTransactionList(_.cloneDeep(list)));
+        console.log(this.transactionList)
       })
     },
     onScroll() {
@@ -145,8 +147,19 @@ export default {
       this.currentPage = 1
       this.searchAllTrasanctionList()
     },
+    _handleNetworkChange({ chainInfo, from }) {
+      this.transactionList = []
+      this.currentPage = 1
+      this.defaultNetWork = chainInfo.id
+      this.searchAllTrasanctionList()
+    },
+    getDefaultNetWork() {
+      const info = getInfoFromStorageByKey('netInfo')
+      return info && info['id'] || 1
+    },
   },
   async created (){
+    this.defaultNetWork = this.getDefaultNetWork()
     // window.onscroll = _.throttle(this.onScroll)
     window.addEventListener('scroll', this.onScroll, true)
     const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
@@ -163,7 +176,7 @@ export default {
       return
     }
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
-    this.$eventBus.$on('networkChange', this.handleAccountChange)
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
     this.$eventBus.$on('transactionStatusChange', this.transactionStatusChange)
   },
   beforeDestroy() {

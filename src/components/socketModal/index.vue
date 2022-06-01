@@ -126,8 +126,7 @@
       },
       goHistory() {
         this.$router.push({
-          path: `/overview`,
-          query: {tabActive: 1},
+          path: `/history`,
         })
       },
       transactionChange() {

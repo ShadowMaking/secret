@@ -205,8 +205,7 @@ export default {
     },
     backHistory() {
       this.$router.push({
-        path: `/overview`,
-        query: {tabActive: 1},
+        path: `/history`,
       })
     },
     async getMultTxInfo() {

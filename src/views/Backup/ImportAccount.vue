@@ -284,7 +284,7 @@ export default {
       this.confirmPswBtnLoading = true
       const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
       if (hasError||!publicKey) {
-        Toast('Get PublickKey fasiled! Retry')
+        Toast('Get PublicKey failed! Retry')
         this.confirmPswBtnLoading = false
         return
       }

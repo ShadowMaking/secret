@@ -64,7 +64,7 @@
           <span>{{detailDataSource.owner_email}}</span>
         </div>
         <div class="detail-item">
-          <label>Address:</label>
+          <label>Owner Address:</label>
           <span>
           {{detailDataSource.owner_address ? `${detailDataSource.owner_address.slice(0,16)}...${detailDataSource.owner_address.slice(-4)}` : `${detailDataSource.new_owner_address.slice(0,16)}...${detailDataSource.new_owner_address.slice(-4)}`}}
           </span>
