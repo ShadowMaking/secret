@@ -57,8 +57,8 @@
             </div>
             <div class="path-item-bottom" v-if="item.signer_address == currentUserAddress">
               <div class="path-item-bottom-btn">
-                <el-button type="primary" @click="signerConfirmTrans()" :disabled="mtxInfo.operation == multOperation['Recovery']">Confirm</el-button>
-                <el-button @click="signerRefuseTrans()" :disabled="mtxInfo.operation == multOperation['Recovery']">Refuse</el-button>
+                <el-button type="primary" @click="signerConfirmTrans()" :disabled="operationType == 'Recovery'">Confirm</el-button>
+                <el-button @click="signerRefuseTrans()" :disabled="operationType == 'Recovery'">Refuse</el-button>
               </div>
             </div>
             <div class="path-item-bottom" v-else>
@@ -75,7 +75,7 @@
 
         <div class="trans-path-item">
           
-          <div class="path-item-top" v-if="(currentUserAddress == currenntOwnerAddress) && this.transStatus == 2">
+          <div class="path-item-top" v-if="(currentUserAddress == currenntOwnerAddress || currentUserAddress == currentWalletAddress) && this.transStatus == 2">
              <span class="path-item-icon active">{{this.signerLength + 2}}</span>
             <el-button type="primary" :disabled="!isCanExcute" @click="ownerExecutedTrans">Execute</el-button>
           </div>
@@ -154,6 +154,8 @@ export default {
       isCanExcute: false,//more than 1/2 signer sign is true
       currentUserAddress: getConnectedAddress(),
       currenntOwnerAddress: '',
+      currentWalletAddress: '',
+
       amountMulti: 0,
       allSignMessageHash: '',
       multOperation,
@@ -212,11 +214,12 @@ export default {
       const { hasError, list } = await this.$store.dispatch('getMultTxInfo', this.mtxid)
       if (hasError) {return}
       this.mtxInfo = _.cloneDeep(list)
-      
+      this.getSigerMessages()
       this.txHash = list.txid
       this.txCreated = timeSericeFormat(list.createdAt)
       this.currenntOwnerAddress = list.owner_address
       this.transStatus = list.status
+      this.currentWalletAddress = list.wallet_address
       this.operationType = this.getOperationType()
       if (this.txHash.indexOf('-') == -1) {//hash is real
         const network = getConnectedNet()
@@ -253,7 +256,6 @@ export default {
       }
       this.signerList = list
       this.signerLength = this.signerList.length
-      console.log(this.operationType)
       if (hasSignLength/this.signerLength >= 1/2 && this.mtxInfo.operation !== multOperation['Recovery']) {
         this.isCanExcute = true
       }
@@ -563,6 +565,9 @@ export default {
       const info = getInfoFromStorageByKey('netInfo')
       return info && info['id'] || 1
     },
+    handleAccountChange(addressInfo) {
+      this.getMultTxInfo()
+    },
   },
   async created() {
     this.defaultNetWork = this.getDefaultNetWork()
@@ -577,9 +582,11 @@ export default {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
     this.getMultTxInfo()
-    this.getSigerMessages()
     this.overrides.gasPrice = await getEstimateGas('gasPrice', 5000000000)
    },
+  mounted() {
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
+  },
 }
 </script>
 <style lang="scss" scoped>

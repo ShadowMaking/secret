@@ -50,6 +50,7 @@ export default {
   name: 'SearchSignerModal',
   props: {
     'dataSource': { type: Array, default: null },
+    'addBefore': { type: Function},
   },
   data() {
     return {
@@ -79,7 +80,11 @@ export default {
     remoteMethod(query) {
       this.$emit('confirm', query)
     },
-    addSignerBtn() {
+    async addSignerBtn() {
+      if (this.addBefore) {
+        const isCanDeal = await this.addBefore()
+        if (!isCanDeal) {return}
+      }
       this.signListoptions = []
       this.searchInput = ''
       this.showPopup = true

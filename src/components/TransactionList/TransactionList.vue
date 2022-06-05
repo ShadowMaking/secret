@@ -16,9 +16,13 @@
             <i></i>{{ item.status }}
           </el-col>
           <el-col :span="4" class="transaction-list-item">
-            <div>
+            <div class="opre-type-item">
               <a>{{ item.operation }}</a>
               <p><a class="trans-detail-btn" v-if="item.mtxid" @click="goTransDetail(item)">View transaction details</a></p>
+              <p v-if="item.status=='pending' && item.operation=='Send'" class="speed-box">
+                <a class="up-btn speed-common">Speed Up</a>
+                <a class="cancel-btn speed-common" @click="cancelTrans(item)">Cancel</a>
+              </p>
             </div>
           </el-col>
           <el-col :span="3" :class="['transaction-list-item', `address`]">
@@ -94,6 +98,15 @@
     </div>
     <v-loading v-show="showLoading" />
     <div v-show="_showNoMore" class="no-more">no more</div>
+    <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
+    <v-confirmModal
+      :show="showTradeConfirm"
+      :type="modalTitle"
+      :metadata="sendMetadata"
+      @close="showTradeConfirm=false"
+      @reject="cancelModal"
+      @confirm="confirmModal" />
+    <v-loadingPopup :show="showSubmitLoading" :showSpinner="false" />
   </div>
 </template>
 <script>
@@ -106,6 +119,20 @@ import Empty from '@/components/Empty/index';
 import { getCurrentProvider } from '@/utils/web3';
 import { copyTxt } from '@/utils/index';
 import {  getConnectedNet } from '@/utils/dashBoardTools'
+
+/****speed and cancel start****/
+import {
+  generateTokenList, getDefaultETHAssets, getConnectedAddress,
+  getContractWallet, isLogin, getDATACode, getContractAt, 
+  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas, getConnectedUserAddress, getSupportNet, getBalanceByAddress } from '@/utils/dashBoardTools';
+import InputPswModal from '@/components/InputPswModal'
+import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
+import { getInfoFromStorageByKey, getFromStorage } from '@/utils/storage';
+import ConfirmModal from '@/components/ConfirmModal';
+import web3 from 'web3'
+import LoadingPopup from '@/components/LoadingPopup';
+import { CHAINMAP } from '@/utils/netWorkForToken';
+import { ethers, utils } from 'ethers'
 
 Vue.use(Toast)
 
@@ -139,7 +166,33 @@ export default {
   },
   data() {
     return {
-      newtransactionList: this.transactionList
+      newtransactionList: this.transactionList,
+
+      sendMetadata: null,
+      defaultNetWork: '',
+      showTradeConfirm: false,
+      modalTitle: 'cancel',
+      currentChainInfo: null,
+
+      showSubmitLoading: false,
+
+      overrides: {
+        gasLimit: 8000000,
+        gasPrice: 20000000000,//wei
+      },
+
+
+      currentTransItem: null,
+      // ***************** inputPsw start ***************** //
+      userPsw: '',
+      publicKey: '',
+      aesKey: '', // every decrypt has the same aesKey
+      encryptPsw: '',
+      encryptPrivateKeyPublicKey: '',
+      encryptCr1: '',
+      confirmPswBtnLoading: false,
+      showInputPswModal: false,
+      // ***************** inputPsw end ***************** //
     }
   },
   watch: {
@@ -151,7 +204,10 @@ export default {
   components: {
     'v-none': None,
     'v-loading': Loading,
-    'v-empty': Empty
+    'v-empty': Empty,
+    'v-inputPsw': InputPswModal,
+    'v-confirmModal': ConfirmModal,
+    'v-loadingPopup': LoadingPopup,
   },
   computed: {
     _showNoMore() {
@@ -182,11 +238,12 @@ export default {
     },
     async dealTransactionList() {
       const currentProvider = getCurrentProvider()
+      console.log('newtransactionList:', this.newtransactionList)
       this.newtransactionList.map(async (item ,index)=> {
         let fromens = await currentProvider.lookupAddress(item.from)
         let toens = await currentProvider.lookupAddress(item.to)
-        this.newtransactionList[index].from = (fromens ? fromens : item.from)
-        this.newtransactionList[index].to = (toens ? toens : item.to)
+        item.from = fromens || item.from
+        item.to = toens || item.to
       })
     },
     getRouteValue(type, record) {
@@ -216,9 +273,152 @@ export default {
         path: `/transDetail/${row.mtxid}`
       })
     },
+    /****speed and cancel start****/
+    cancelTrans(item) {
+      console.log(item)
+      this.currentTransItem = item
+      this.showSubmitLoading = true
+      switch(item.operation) {
+        case 'Send':
+          this.cancelSend()
+          break;
+        default:
+          break;
+      }
+    },
+    async dealDataCancelContract() {
+      const contractWallet = await getContractWallet(this)
+      const transferAmount = utils.parseEther('0');
+      console.log(transferAmount)
+      const sendData = {
+        from: this.currentTransItem.from,
+        to: this.currentTransItem.from,
+        gasLimit: this.overrides.gasLimit,
+        gasPrice: web3.utils.toHex(this.overrides.gasPrice),
+        value: transferAmount,
+        chainId: this.currentChainInfo['id'],
+        nonce: 57,
+        // nonce: transactionCount + 1,
+      }
+      console.log(sendData)
+      contractWallet.sendTransaction({...sendData})
+      .then(async tx=>{
+        console.log('cancel tx:', tx)
+        tx.wait()
+        .then(async res => {
+          console.log('cancel tx wait res:', res)
+          this.showLoading = false
+        })
+      })
+      .catch(error=>{
+        console.log(error)
+        this.showLoading = false
+      })
+    },
+    async cancelSend() {
+     // check privateKey whether is existed
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      await this.showConfirmModal()
+    },
+    async showConfirmModal() {
+      const isCanSubmit = await this.isCaSubmit()
+      if (!isCanSubmit) {
+        return
+      }
+      let thisGasPrice = this.overrides.gasPrice.toString()
+      let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
+      let estimatedGasFee = await getEstimateGas('gasUsed')
+      this.sendMetadata = {
+        from: this.currentTransItem.from,
+        to: this.currentTransItem.from,
+        gas: this.overrides.gasLimit,
+        gasPrice: gasPrice,
+        value: 0,
+        symbolName: 'ETH',
+        netInfo: this.currentChainInfo,
+        DATA: '0x',
+        estimatedGasFee: estimatedGasFee
+      }
+      console.log(this.sendMetadata)
+      this.showTradeConfirm = true
+      this.showSubmitLoading = false
+    },
+    async isCaSubmit() {
+      const selectedConnectAddress = getConnectedAddress()
+      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      let estimatedGasFee = await getEstimateGas('gasUsed')
+      if (connectBalance < estimatedGasFee) {
+        Toast('Insufficient Funds')
+        this.showSubmitLoading = false
+        return false
+      }
+      return true
+    },
+    cancelModal() {
+      this.showTradeConfirm = false
+      Toast('Cancel')
+    },
+    confirmModal({ overrides }) {
+      this.overrides.gasLimit = overrides.gasLimit
+      this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
+      this.showSubmitLoading = true
+      if (this.modalTitle == 'cancel') {
+        this.dealDataCancelContract()
+      }
+    },
+    async confirmPswOk({ show, psw }) {
+      this.userPsw = psw; // password of user input for encrypt privateKey
+      this.confirmPswBtnLoading = true
+      const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
+      if (hasError) {
+        Toast('Get PublickKey Failed! Retry')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      this.publicKey = publicKey;
+      // console.log(`GetPublicKey result is: ${publicKey}`)
+      
+      // const password = ecies.crypto.randomBytes(16).toString("base64");
+      const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
+      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      // console.log('aesKey:', aesKey)
+      this.aesKey = aesKey
+      this.encryptPsw = encryptPsw
+      this.encryptCr1 = encryptCr1
+      // console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+
+      // to decrypt privatekey
+      const userId = getInfoFromStorageByKey('gUID')
+      const address = getConnectedUserAddress()
+      const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
+      const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
+      if(decryptInfo.hasError) {
+        Toast('DecryptPrivateKeyByEcies failed! Retry!')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      const decryptedPrivateKey = decryptInfo.data
+      const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
+      privateKey && (await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey, privateKey }))
+
+      this.confirmPswBtnLoading = false
+      this.showInputPswModal = false
+      await this.showConfirmModal()
+    },
+    /****speed and cancel end****/
   },
-  created(){
-    console.log(getConnectedNet())
+  async created(){
+    if (!isLogin()) {
+      Toast('Please Login')
+      return
+    }
+    const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
+    this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
+    this.overrides.gasPrice = await getEstimateGas('gasPrice')
   },
 }
 </script>

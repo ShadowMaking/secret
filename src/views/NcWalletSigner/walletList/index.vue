@@ -1,7 +1,7 @@
 <template>
   <div class="wallet-list-page" >
     <div class="tab-des">
-      We show the people you protect, you can help me lock, recover etc.
+      The multisig wallets you own or protect, click detail for specific actions you can do.
     </div>
     <div class="tab-content-list">
       <div class="tab-content-item" v-for="(item, index) in dataList" :key="index">
@@ -11,7 +11,17 @@
               <img :src="item.owner_picture">
             </div>
             <div class="tab-item-left-info">
-              <p class="tab-item-left-name">{{item.name}}</p>
+              <p class="tab-item-left-name">
+                <span class="tab-item-left-text">{{item.name}}</span>
+                
+                <img src="~@/assets/walletStatus/creating.png" class="status-icon" v-if="item.wallet_status == walletStatus['Creating']">
+                <img src="~@/assets/walletStatus/failed.png" class="status-icon" v-else-if="item.wallet_status == walletStatus['Fail']">
+                <img src="~@/assets/walletStatus/active.png" class="status-icon" v-else-if="item.wallet_status == walletStatus['Active']">
+                <img src="~@/assets/walletStatus/Lock.png" class="status-icon" v-else-if="item.wallet_status == 6">
+                
+                <span class="item-tag" v-if="item.owner_address == item.address">Owner: me</span>
+                <span class="item-tag" v-else @click="copyAddress(item.owner_address)">Owner: {{`${item.owner_address.slice(0,6)}...${item.owner_address.slice(-5)}`}}</span>
+              </p>
               <p class="tab-item-left-address" @click="copyAddress(item.wallet_address)">{{item.wallet_address}}</p>
             </div>
           </div>

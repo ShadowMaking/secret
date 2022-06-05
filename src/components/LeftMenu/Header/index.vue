@@ -469,6 +469,7 @@ export default {
       if (hasError) {
         Toast('Get wallet Error')
       }
+      // this.restWalletIsLock(list)
       this.resetBalance(list, 'wallet_address', 'ownWalletList')
     },
     async resetBalance(list, itemName, dataName) {
@@ -477,6 +478,16 @@ export default {
         this.$set(list[i], 'balance', itemBalance)
       }
       this[dataName] = list
+    },
+    async restWalletIsLock(list) {
+      for(let i=0; i<list.length;i+=1) {
+        let itemBalance = await this.getIsLock(list[i]['wallet_address'])
+        this.$set(list[i], 'isLocked', itemBalance)
+      }
+      this[dataName] = list
+    },
+    async getIsLock(walletAddress) {
+
     },
     accountMore(address) {
       this.moreActiveAddress = address

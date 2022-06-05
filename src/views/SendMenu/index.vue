@@ -215,10 +215,12 @@ export default {
     },
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
-      this.$router.push({
-          path: `/overview`,
-          query: {tabActive: 1},
-      })
+      if (this.popStatus == 'success') {
+        this.$router.push({
+          path: `/history`,
+          // query: {tabActive: 1},
+        })
+      }
     },
     async gasBtn() {
       this.loadingGas = true;
@@ -591,12 +593,11 @@ export default {
         operation: multOperation['LargeTransaction']
       }
       const res = await this.$store.dispatch('addMultTx', submitData);
+      this.showLoading = false
       if (res.hasError) {
         this.showStatusPop = false;
         console.log('Transaction success，but error when add history')
       } else  {
-        this.showLoading = false
-
         this.showStatusPop = true;
         this.statusPopTitle = 'Please waiting for another signer to confirm the transaction in "Overview-History-Multisig Wallt"'
         this.popStatus = 'success';
@@ -644,12 +645,11 @@ export default {
         return ;
       }
       const res = await this.$store.dispatch('AddTransactionHistory', {...submitData});
+      this.showLoading = false
       if (res.hasError) {
         this.showStatusPop = false;
         console.log('Transaction success，but error when add history')
       } else  {
-        this.showLoading = false
-
         this.showStatusPop = true;
         this.statusPopTitle = 'Submitted'
         this.popStatus = 'success';
