@@ -19,8 +19,8 @@
                 <img src="~@/assets/walletStatus/active.png" class="status-icon" v-else-if="item.wallet_status == walletStatus['Active']">
                 <img src="~@/assets/walletStatus/Lock.png" class="status-icon" v-else-if="item.wallet_status == 6">
                 
-                <span class="item-tag" v-if="item.owner_address == item.address">Owner: me</span>
-                <span class="item-tag" v-else @click="copyAddress(item.owner_address)">Owner: {{`${item.owner_address.slice(0,6)}...${item.owner_address.slice(-5)}`}}</span>
+                <el-tag size="small" type="warning" class="item-tag" v-if="item.owner_address == item.address">owner</el-tag>
+                <el-tag size="small" class="item-tag" v-else @click="copyAddress(item.owner_address)">signer</el-tag>
               </p>
               <p class="tab-item-left-address" @click="copyAddress(item.wallet_address)">{{item.wallet_address}}</p>
             </div>
@@ -242,7 +242,7 @@ export default {
         return
       }
 
-      if (this.detailDataSource['wallet_status'] == walletStatus['Active'] || this.detailDataSource['wallet_status'] == walletStatus['Recovering']) {
+      if (this.detailDataSource['wallet_status'] == walletStatus['Active'] || this.detailDataSource['wallet_status'] == walletStatus['Recovering'] || this.detailDataSource['wallet_status'] == 6) {
         this.lockVisible = true
       }
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
