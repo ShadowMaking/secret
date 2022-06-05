@@ -130,12 +130,16 @@ export default {
       const currentChainInfo = getConnectedNet()
       for(var i=0; i<list.length; i++) {
         if (list[i].wallet_status == walletStatus['Active']) {
-          let lockStatus = await securityModuleContract.isLocked(list[i].wallet_address)
-          let isLocked = (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) ? true : false
-          isLocked && this.$set(list[i], 'wallet_status', 6)
+          var walletTime = new Date(list[i]['createdAt']).getTime()
+          var canTime = new Date('2022-03-12 07:50:40.092 +00:00').getTime()
+          if (walletTime > canTime) {
+            let lockStatus = await securityModuleContract.isLocked(list[i].wallet_address)
+            let isLocked = (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) ? true : false
+            isLocked && this.$set(list[i], 'wallet_status', 6)
+          }
+          
         }
         if (list[i].status == signerStatus['agreeRecover']) {
-          console.log(list[i])
           let isInRecovery = await securityModuleContract.isInRecovery(list[i].wallet_address)
           console.log("isInRecovery:" + isInRecovery)
           let thisIsInRecovery = isInRecovery ? isInRecovery : false
