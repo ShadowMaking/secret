@@ -245,10 +245,12 @@ export default {
     },
     changeVisible(eventInfo) {
       this.showStatusPop = eventInfo.show;
-      this.$router.push({
-        path: `/overview`,
-        query: {tabActive: 1},
-      })
+      if (this.popStatus == 'success') {
+        this.$router.push({
+          path: `/history`,
+          // query: {tabActive: 1},
+        })
+      }
     },
     gasPriceValue(type) {
       return this.gasPriceInfo && this.gasPriceInfo[type].gasPrice;
@@ -425,7 +427,9 @@ export default {
       .catch(error=>{
         this.showLoading = false
         let errorValue = formatErrorContarct(error)
-        Toast(errorValue)
+        this.statusPopTitle = errorValue
+        this.popStatus = 'fail'
+        // Toast(errorValue)
         console.log(error)
       })
     },
@@ -479,7 +483,9 @@ export default {
       .catch(error=>{
         this.showLoading = false
         let errorValue = formatErrorContarct(error)
-        Toast(errorValue)
+        this.statusPopTitle = errorValue
+        this.popStatus = 'fail'
+        // Toast(errorValue)
         console.log(error)
       })
     },
@@ -590,7 +596,9 @@ export default {
         .catch(error=>{
           this.showLoading = false
           let errorValue = formatErrorContarct(error)
-          Toast(errorValue)
+          this.statusPopTitle = errorValue
+          this.popStatus = 'fail'
+          // Toast(errorValue)
           console.log("swapExactTokensForTokensSupportingFeeOnTransferTokens: ", error);
         })
       } else {
@@ -628,7 +636,9 @@ export default {
         .catch(error=>{
           this.showLoading = false
           let errorValue = formatErrorContarct(error)
-          Toast(errorValue)
+          this.statusPopTitle = errorValue
+          this.popStatus = 'fail'
+          // Toast(errorValue)
           console.log("swapExactETHForTokensSupportingFeeOnTransferTokens: ", error);
         })
         
@@ -1150,7 +1160,9 @@ export default {
       .catch(err => {
         this.showLoading = false
         let errorValue = formatErrorContarct(err)
-        Toast(errorValue)
+        this.statusPopTitle = errorValue
+        this.popStatus = 'fail'
+        // Toast(errorValue)
         console.log(`Approve Token-${token.tokenName} error: `, err);
       })
 

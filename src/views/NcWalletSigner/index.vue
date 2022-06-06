@@ -1,9 +1,9 @@
 <template>
   <div class="ncWallet-signer-page">
-    <v-navTitle title="Signers" helpUrl="docs/usage/MultisigWallet"></v-navTitle>
+    <v-navTitle :title="currentTitle" helpUrl="docs/usage/MultisigWallet"></v-navTitle>
     <div class="page-section-border">
-      <van-tabs color="#4375f1" title-active-color="#4375f1" line-width="50%" :before-change="beforeChange">
-        <van-tab :title="tabTitle" title-style="font-weight: bold; border-bottom: 2px solid #dfdfdf;">
+      <!-- <van-tabs color="#4375f1" title-active-color="#4375f1" line-width="50%" :before-change="beforeChange">
+        <van-tab :title="tabTitle" title-style="font-weight: bold; border-bottom: 2px solid #dfdfdf;"> -->
           <v-signerList v-if="currentAccountType=='wallet'" :dataList="dataList" :signerPercent="signerPercent" @signerChange="getSignerList"></v-signerList>
           <v-walletList v-if="currentAccountType=='normal'" :dataList="dataList" @signChild="getWalletAsSigner"></v-walletList>
           
@@ -11,9 +11,9 @@
             <v-none />
           </div>
           <v-loading v-show="initShowLoading" />
-        </van-tab>
+        <!-- </van-tab>
         <van-tab title="" title-style="border-bottom: 2px solid #dfdfdf;"></van-tab>
-      </van-tabs>
+      </van-tabs> -->
     </div>
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
@@ -34,7 +34,7 @@ import InputPswModal from '@/components/InputPswModal'
 
 import { isLogin, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore, getConnectedAccountType, getConnectedNet,
   getConnectedAddress, getContractAt, getSupportNet, getConnectedUserAddress } from '@/utils/dashBoardTools';
-import { signerStatus, securityModuleRouter, lockType } from '@/utils/global';
+import { signerStatus, securityModuleRouter, lockType, walletStatus } from '@/utils/global';
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { getFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import { CHAINMAP } from '@/utils/netWorkForToken';
@@ -62,6 +62,7 @@ export default {
       
       tabTitle: 'who I protect',
       currentAccountType: 'normal',
+      currentTitle: 'Wallets',
 
       securityModuleRouter,
       signerStatus,
@@ -128,8 +129,17 @@ export default {
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       const currentChainInfo = getConnectedNet()
       for(var i=0; i<list.length; i++) {
+        if (list[i].wallet_status == walletStatus['Active']) {
+          var walletTime = new Date(list[i]['createdAt']).getTime()
+          var canTime = new Date('2022-03-12 07:50:40.092 +00:00').getTime()
+          if (walletTime > canTime) {
+            let lockStatus = await securityModuleContract.isLocked(list[i].wallet_address)
+            let isLocked = (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) ? true : false
+            isLocked && this.$set(list[i], 'wallet_status', 6)
+          }
+          
+        }
         if (list[i].status == signerStatus['agreeRecover']) {
-          console.log(list[i])
           let isInRecovery = await securityModuleContract.isInRecovery(list[i].wallet_address)
           console.log("isInRecovery:" + isInRecovery)
           let thisIsInRecovery = isInRecovery ? isInRecovery : false
@@ -151,8 +161,10 @@ export default {
       this.dataList = []
       this.currentAccountType = getConnectedAccountType()
       if (this.currentAccountType == 'wallet') {
+        this.currentTitle = 'Signers'
         this.getInitWalltInfo()
       } else if (this.currentAccountType == 'normal') {
+        this.currentTitle = 'Wallets'
         this.getInitNormalData()
       }
     },

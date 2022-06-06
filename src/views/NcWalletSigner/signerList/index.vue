@@ -51,6 +51,7 @@
     <div class="add-signer-box">
       <v-searchSignerModal
         :dataSource="searchSignerList"
+        :addBefore="addBeforeSearch"
         @confirm="confirmSearchSigner"
         @addConfirm="confirmAddSigner" 
         />
@@ -197,12 +198,16 @@ export default {
       }
       this.showDetailDialog = true
     },
-    DeleteClick() {
+    async DeleteClick() {
       let totalSigner = this.dataList.length
       if (totalSigner < 2) {
         Toast('Please keep at least one signer')
         return
       }
+      this.showLoading = true
+      const isCanChange = await this.getIsSupport()
+      this.showLoading = false
+      if (!isCanChange) {return}
       Dialog.confirm({
         message: 'Are you sure to delete this signer?',
         confirmButtonText: 'Confirm',
@@ -219,7 +224,13 @@ export default {
     async confirmDeleteSigner() {
       this.currentOptType = 'deleteSigner'
       this.showDetailDialog = false
-      this.getIsSupport()
+      this.getConfirmModalData()
+    },
+    async addBeforeSearch() {
+      this.showLoading = true
+      const isCanChange = await this.getIsSupport()
+      this.showLoading = false
+      return isCanChange
     },
     async confirmSearchSigner(value) {
       var searchData = {
@@ -236,18 +247,11 @@ export default {
       }
       this.currentRecord = signerInfo
       this.currentOptType = 'addSigner'
-      this.getIsSupport()
+      this.getConfirmModalData()
     }, 
     async getConfirmModalData() {
       this.showLoading = true
-      const selectedConnectAddress = getConnectedAddress()
-      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
       let estimatedGasFee = await getEstimateGas('gasUsed')
-      console.log(connectBalance)
-      if (connectBalance < estimatedGasFee) {
-        Toast('Not Enough ETH')
-        return
-      }
       let thisGasPrice = this.overrides.gasPrice.toString()
       let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
       this.sendMetadata = {
@@ -283,32 +287,14 @@ export default {
       const addSigneraddress = this.currentRecord && this.currentRecord.address
       
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-      if (!this.currentWalltInfo) {
-        this.showAccountChangeModal()
-        return
-      }
-      const thisWalletTime = this.currentWalltInfo['createdAt']
-      const thisWalletAddress = this.currentWalltInfo['wallet_address']
-      var walletTime = new Date(thisWalletTime).getTime()
-      var canTime = new Date('2022-03-12 07:50:40').getTime()//todo
-      if (walletTime < canTime) {
-        Toast('Invalid wallet')
-        return
-      }
-
+      
       if (addSigneraddress.toLocaleLowerCase() == getConnectedUserAddress()) {
         Toast('This owner can not to be this signer')
         return
       }
+
+      const thisWalletAddress = this.currentWalltInfo['wallet_address']
       
-      let lockStatus = await securityModuleContract.isLocked(thisWalletAddress)
-      if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner'] ) {
-        Toast('Wallet is locked')
-        return
-      } else if (lockStatus == lockType['signerChangeLock']) {
-        Toast('The signer cannot be changed frequently')
-        return
-      }
       this.showLoading = true
       securityModuleContract.addSigner(
         thisWalletAddress, addSigneraddress, this.overrides).then(async tx=> {
@@ -350,29 +336,16 @@ export default {
       console.log(row)
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
       
-      if (!this.currentWalltInfo) {
-        this.showAccountChangeModal()
-        return
-      }
-
-      const thisWalletTime = this.currentWalltInfo['createdAt']
       const thisWalletAddress = this.currentWalltInfo['wallet_address']
       
-      var walletTime = new Date(thisWalletTime).getTime()
-      var canTime = new Date('2022-03-12 07:50:40').getTime()//todo
-      if (walletTime < canTime) {
-        Toast('Invalid wallet')
-        return
-      }
-
-      let lockStatus = await securityModuleContract.isLocked(thisWalletAddress)
-      if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
-        Toast('Wallet is locked')
-        return
-      } else if (lockStatus == lockType['signerChangeLock']) {
-        Toast('The signer cannot be changed frequently')
-        return
-      }
+      // let lockStatus = await securityModuleContract.isLocked(thisWalletAddress)
+      // if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
+      //   Toast('Wallet is locked')
+      //   return
+      // } else if (lockStatus == lockType['signerChangeLock']) {
+      //   Toast('The signer cannot be changed frequently')
+      //   return
+      // }
       this.showLoading = true
       securityModuleContract.removeSigner(
         thisWalletAddress, row.address, this.overrides).then(async tx=> {
@@ -417,14 +390,57 @@ export default {
     },
     async getIsSupport() {
       if (!getSupportNet()) {
-        return
+        return false
       }
+      if (!this.currentWalltInfo) {
+        this.showAccountChangeModal()
+        return false
+      }
+
+      const thisWalletTime = this.currentWalltInfo['createdAt']
+      var walletTime = new Date(thisWalletTime).getTime()
+      var canTime = new Date('2022-03-12 07:50:40').getTime()//todo
+      if (walletTime < canTime) {
+        Toast('Invalid wallet')
+        return false
+      }
+
       const privateKey = await getDecryptPrivateKeyFromStore(this)
       if (!privateKey) {
         this.showInputPswModal = true;
-        return
+        return false
       }
-      this.getConfirmModalData()
+
+      const isLock = await this.getIsLockByContract()
+      if (isLock) {
+        return false
+      }
+
+      const selectedConnectAddress = getConnectedAddress()
+      const connectBalance = await getBalanceByAddress(selectedConnectAddress)
+      let estimatedGasFee = await getEstimateGas('gasUsed')
+      if (connectBalance < estimatedGasFee) {
+        Toast('Not Enough ETH')
+        return false
+      }
+      return true
+      // this.getConfirmModalData()
+    },
+    async getIsLockByContract() {
+      const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      
+      const thisWalletAddress = this.currentWalltInfo['wallet_address']
+      
+      let lockStatus = await securityModuleContract.isLocked(thisWalletAddress)
+      if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
+        Toast('Wallet is locked')
+        return true
+      } else if (lockStatus == lockType['signerChangeLock']) {
+        Toast('The signer cannot be changed frequently')
+        return true
+      } else {
+        return false
+      }
     },
     async confirmPswOk({ show, psw }) {
       this.userPsw = psw; // password of user input for encrypt privateKey
@@ -470,10 +486,14 @@ export default {
 
       this.confirmPswBtnLoading = false
       this.showInputPswModal = false
-
-      await this.getConfirmModalData()
       
-    },
+      const isLock = await this.getIsLockByContract()
+      if (isLock) {
+        return false
+      } else {
+        await this.getConfirmModalData()
+      }
+     },
     confirmResultModal() {
       if (this.currentTip == 'accountChangeWarn') {
         this.$router.push({

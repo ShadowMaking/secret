@@ -1,7 +1,7 @@
 <template>
   <div class="wallet-list-page" >
     <div class="tab-des">
-      We show the people you protect, you can help me lock, recover etc.
+      The multisig wallets you own or protect, click detail for specific actions you can do.
     </div>
     <div class="tab-content-list">
       <div class="tab-content-item" v-for="(item, index) in dataList" :key="index">
@@ -11,7 +11,17 @@
               <img :src="item.owner_picture">
             </div>
             <div class="tab-item-left-info">
-              <p class="tab-item-left-name">{{item.name}}</p>
+              <p class="tab-item-left-name">
+                <span class="tab-item-left-text">{{item.name}}</span>
+                
+                <img src="~@/assets/walletStatus/creating.png" class="status-icon" v-if="item.wallet_status == walletStatus['Creating']">
+                <img src="~@/assets/walletStatus/failed.png" class="status-icon" v-else-if="item.wallet_status == walletStatus['Fail']">
+                <img src="~@/assets/walletStatus/active.png" class="status-icon" v-else-if="item.wallet_status == walletStatus['Active']">
+                <img src="~@/assets/walletStatus/Lock.png" class="status-icon" v-else-if="item.wallet_status == 6">
+                
+                <el-tag size="small" type="warning" class="item-tag" v-if="item.owner_address == item.address">owner</el-tag>
+                <el-tag size="small" class="item-tag" v-else @click="copyAddress(item.owner_address)">signer</el-tag>
+              </p>
               <p class="tab-item-left-address" @click="copyAddress(item.wallet_address)">{{item.wallet_address}}</p>
             </div>
           </div>
@@ -48,7 +58,7 @@
           </div>
           <div class="tab-item-left-info">
             <p class="tab-item-left-name">{{detailDataSource.name}}</p>
-            <p class="tab-item-left-address">{{`${detailDataSource.wallet_address.slice(0,8)}...${detailDataSource.wallet_address.slice(-4)}`}}</p>
+            <p class="tab-item-left-address" v-if="detailDataSource.wallet_address">{{`${detailDataSource.wallet_address.slice(0,8)}...${detailDataSource.wallet_address.slice(-4)}`}}</p>
           </div>
         </div>
         <div class="detail-top-right">
@@ -64,7 +74,7 @@
           <span>{{detailDataSource.owner_email}}</span>
         </div>
         <div class="detail-item">
-          <label>Address:</label>
+          <label>Owner Address:</label>
           <span>
           {{detailDataSource.owner_address ? `${detailDataSource.owner_address.slice(0,16)}...${detailDataSource.owner_address.slice(-4)}` : `${detailDataSource.new_owner_address.slice(0,16)}...${detailDataSource.new_owner_address.slice(-4)}`}}
           </span>
@@ -232,7 +242,7 @@ export default {
         return
       }
 
-      if (this.detailDataSource['wallet_status'] == walletStatus['Active'] || this.detailDataSource['wallet_status'] == walletStatus['Recovering']) {
+      if (this.detailDataSource['wallet_status'] == walletStatus['Active'] || this.detailDataSource['wallet_status'] == walletStatus['Recovering'] || this.detailDataSource['wallet_status'] == 6) {
         this.lockVisible = true
       }
       const securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)

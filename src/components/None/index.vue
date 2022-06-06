@@ -1,12 +1,14 @@
 <template>
   <div class="none">
     <i></i>
-    <span>none data</span>
+    <span v-if="title">{{title}}</span>
+     <span v-else>none data</span>
   </div>
 </template>
 <script>
 export default {
   name: 'None',
+  props: ['title'],
 }
 </script>
 <style lang="scss" scoped>

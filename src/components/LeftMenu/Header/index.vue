@@ -114,6 +114,12 @@
                       <span>Import Account</span>
                     </router-link>
                   </div>
+                  <div class="opt-item van-hairline--bottom" @click="toPage('importAccount')">
+                    <router-link to="/exportAccount">
+                      <van-icon name="down" class="opt-icon" />
+                      <span>Export Account</span>
+                    </router-link>
+                  </div>
                   <div class="opt-item van-hairline--bottom" @click="disconnect" v-show="currentUserAddress">
                     <van-icon name="peer-pay" class="opt-icon redColor"/>
                     <span class="redColor">Logout</span>
@@ -405,7 +411,7 @@ export default {
       this.confirmPswBtnLoading = true
       const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
       if (hasError||!publicKey) {
-        Toast('Get PublickKey fasiled! Retry')
+        Toast('Get PublicKey failed! Retry')
         this.confirmPswBtnLoading = false
         return
       }
@@ -463,6 +469,7 @@ export default {
       if (hasError) {
         Toast('Get wallet Error')
       }
+      // this.restWalletIsLock(list)
       this.resetBalance(list, 'wallet_address', 'ownWalletList')
     },
     async resetBalance(list, itemName, dataName) {
@@ -471,6 +478,16 @@ export default {
         this.$set(list[i], 'balance', itemBalance)
       }
       this[dataName] = list
+    },
+    async restWalletIsLock(list) {
+      for(let i=0; i<list.length;i+=1) {
+        let itemBalance = await this.getIsLock(list[i]['wallet_address'])
+        this.$set(list[i], 'isLocked', itemBalance)
+      }
+      this[dataName] = list
+    },
+    async getIsLock(walletAddress) {
+
     },
     accountMore(address) {
       this.moreActiveAddress = address
@@ -485,8 +502,7 @@ export default {
       return balanceString
     },
     _handleNetworkChange({ chainInfo, from }) {
-      const userId  = getInfoFromStorageByKey('gUID')
-      this.getWalletAsOwner(userId)
+      this.setInitData()
     },
   },
   async mounted() {

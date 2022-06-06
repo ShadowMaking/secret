@@ -71,8 +71,22 @@
     margin-right: 10px;
   }
   .tab-item-left-name {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+  }
+  .status-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 20px;
+  }
+  .tab-item-left-text {
+    margin-right: 10px;
     font-size: 0.96rem;
     font-weight: bold;
+  }
+  .item-tag {
+    font-size: 0.84rem;
   }
   .tab-item-left-address {
     color: #6a737d;

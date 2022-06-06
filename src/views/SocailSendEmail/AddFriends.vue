@@ -75,8 +75,8 @@
           <div class="status">
             <!-- 1:mutual  2:waiting 3:confirming -->
             <van-icon name="checked" size="25" color="#61D375" v-if="item.status===1" />
-            <van-icon name="clock" size="25" color="#61D375" v-else-if="item.status===2" />
-            <van-icon name="clear" size="25" color="#61D375" v-else-if="item.status===3" @click="OpenConfirmDialog(item)"/>
+            <van-icon name="clear" size="25" color="#ee0a24" v-else-if="item.status===2" />
+            <van-icon name="clock" size="25" color="#c8c9cc" v-else-if="item.status===3" @click="OpenConfirmDialog(item)"/>
             <!-- <van-button
               v-else
               icon="plus"
@@ -89,7 +89,7 @@
         </div>
       </van-list>
       <!-- no-friends -->
-      <div class="no-friends" v-else><v-none /></div>
+      <div class="no-friends" v-else><v-none title="You must add at least two co-workers to back up"/></div>
     </div>
     <v-thirdlogintip
       key="thirdlogintip"
@@ -97,14 +97,14 @@
       @childEvent="closeThirdLoginTip" />
     <van-dialog
       v-model="showConfirmDialog"
-      title="Tip"
+      title=""
       show-cancel-button
       confirm-button-text="Confirm"
       cancel-button-text="Reject"
       close-on-click-overlay
       @confirm="dealRequet('confirm')"
       @cancel="dealRequet('reject')" >
-      <div class="flex flex-center" style="margin: 10px 0 20px">Friend’s Information</div>
+      <div class="flex flex-center" style="margin: 10px 0 20px">{{currentFriendData.name}}</div>
     </van-dialog>
   </div>
 </template>

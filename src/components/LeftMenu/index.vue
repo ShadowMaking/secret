@@ -25,7 +25,7 @@
           <van-collapse-item :name="item.name" class="item" v-if="!(currentAccountType == 2 && item.name == 'Tools')">
             <template #title><div><label style="font-size: 20px"><i :class="item.icon" size="60px"></i></label>{{ item.name }}</div></template>
             <div v-for="(_item, index) in item.subMenu" :key="index" :class="['item-menu', {'active': `${index}-${_item.route}` == activeKey}]"  @click="_changeMenu(index, _item.route, 'activeKey')">
-              <router-link :to="_item.route" v-if="!(currentAccountType == 1 && _item.name == 'Security Setting' || (currentAccountType == 2 && _item.name == 'Recover Wallet'))"><span>{{ _item.name }}</span></router-link>
+              <router-link :to="_item.route" v-if="(_item.showType == 0 || _item.showType == currentAccountType)"><span>{{ _item.name }}</span></router-link>
             </div>
           </van-collapse-item>
         </van-collapse>
@@ -118,16 +118,16 @@ export default {
         //   }]
         // },
       ],
-      multiMenuData: [
+      multiMenuData: [//showType 0-all 1-normal account 2-wallet
         {icon: 'el-icon-suitcase-1', name: 'Tools', subMenu: [
           // {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
-          {icon: 'el-icon-document', name: 'Recover Account', route: '/srecovery'},
-          {icon: 'el-icon-s-custom', name: 'Co-workers', route: '/addfriends'},
+          {icon: 'el-icon-document', name: 'Recover Account', route: '/srecovery', showType: 1},
+          {icon: 'el-icon-s-custom', name: 'Co-workers', route: '/addfriends', showType: 1},
         ]},
         {icon: 'el-icon-news', name: 'Activity', subMenu: [
           // {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
-          {icon: 'el-icon-document', name: 'History', route: '/history'},
-          {icon: 'el-icon-s-custom', name: 'Approval', route: '/approval'},
+          {icon: 'el-icon-document', name: 'History', route: '/history', showType: 0},
+          {icon: 'el-icon-s-custom', name: 'Approval', route: '/approval', showType: 0},
         ]},
         {
           icon: 'el-icon-collection', 
@@ -137,21 +137,29 @@ export default {
             icon: 'el-icon-bank-card', 
             name: 'Signers', 
             route: '/NcWalletSigner',
+            showType: 2,
+          },{
+            icon: 'el-icon-bank-card', 
+            name: 'Wallets', 
+            route: '/NcWalletSigner',
+            showType: 1,
           },{
             icon: 'el-icon-document-add', 
             name: 'Security Setting', 
             route: '/ncWalletSetting',
+            showType: 2,
           },{
             icon: 'el-icon-sell', 
             name: 'Recover Wallet', 
             route: '/ncWalletRecover',
+            showType: 1,
           }]
         },
         {icon: 'el-icon-odometer', name: 'Governance', subMenu: [
           // {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
-          {icon: 'el-icon-document', name: 'Proposals', route: '/proposalList'},
-          {icon: 'el-icon-s-custom', name: 'New proposal', route: '/addProposal'},
-          {icon: 'el-icon-s-custom', name: 'Delegate', route: '/proposalDelegate'},
+          {icon: 'el-icon-document', name: 'Proposals', route: '/proposalList',showType: 0,},
+          {icon: 'el-icon-s-custom', name: 'New proposal', route: '/addProposal',showType: 0,},
+          {icon: 'el-icon-s-custom', name: 'Delegate', route: '/proposalDelegate',showType: 0,},
         ]},
       ],
       screenWidth: null,

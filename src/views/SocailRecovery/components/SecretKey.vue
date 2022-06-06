@@ -16,7 +16,7 @@
             :formatter="formatterTrim"
             class="split-input"
             :value="friendsInputValsMap[`${[item.id]}-inputVal`]"
-            placeholder="Please enter the account share"
+            placeholder="Please enter the sercet share"
             @input="(val)=>{changeInputVal(val, item)}" />
         </div>
       </div>
@@ -133,7 +133,7 @@ export default {
       // 80389adcbabace1bd66b0539971bf38ac6f77f6e8c8e5ca4561dda8188cbd4f6dbd5af7ec8730df8f1035e34d8c618d5bb7863e175fb21ed3b57c96ac57bfd91234d8d814c143523dfb65a3b6c57fa05eb15dd1208fcc1f6ea14ca96ac55d6d81ac
       const splits = Object.values(this.friendsInputValsMap).filter(i=>!!i)
       if (splits.length < this.recoveryNumber) {
-        Toast(`At least${this.recoveryNumber}secret share`)
+        Toast(`At least ${this.recoveryNumber} secret share`)
         return
       }
       const combineStr = combine(splits)

@@ -29,6 +29,27 @@
       color: #4375f1;
       font-size: 0.84rem;
     }
+    .opre-type-item {
+      text-align: center;
+      min-width: 120px;
+    }
+    .speed-common {
+      padding: 5px;
+      border: 1px solid #495ABE;
+      font-size: 0.72rem;
+      border-radius: 10px;
+      
+    }
+    .speed-box {
+      margin-top: 10px;
+    }
+    .up-btn {
+      background-color: #495ABE;
+      color: #fff;
+    }
+    .speed-common+.speed-common{
+      margin-left: 5px;
+    }
     .transaction-list-item {
       padding: 0 15px;
       display: flex;

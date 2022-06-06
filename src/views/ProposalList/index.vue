@@ -67,7 +67,7 @@ export default {
   name: 'proposalList',
   data() {
     return {
-      allStatusList: ['All','Active','Pending','Canceled','Defeated','Succeeded','Queued','Expired','Executed'],
+      allStatusList: ['All','Active','Queued','Successed','Executed','Others'],
       dataList: [],
       allDataList: [],
       GovernorAlphaRouter,
@@ -97,7 +97,7 @@ export default {
     onTabClick(index) {
       this.showLoading = false
       this.dataList = []
-      switch(index) {
+      switch(index) {//0,2,3,6
         case 0:
           this.dataList = this.allDataList
           break;
@@ -105,35 +105,36 @@ export default {
           this.fiterProposal(1)
           break;
         case 2:
-          this.fiterProposal(0)
-          break;
-        case 3:
-          this.fiterProposal(2)
-          break;
-        case 4:
-          this.fiterProposal(3)
-          break;
-        case 5:
-          this.fiterProposal(4)
-          break;
-        case 6:
           this.fiterProposal(5)
           break;
-        case 7:
-          this.fiterProposal(6)
+        case 3:
+          this.fiterProposal(4)
           break;
-        case 8:
+        case 4:
           this.fiterProposal(7)
+          break;
+        case 5:
+          this.fiterOtherProposal([0,2,3,6])
           break;
         default:
           break;
       }
     },
+    fiterOtherProposal(statusArray) {
+      let otherArray = []
+      for (var i = 0; i < statusArray.length; i++) {
+        otherArray = otherArray.concat(this.fiterStatus(statusArray[i]))
+      }
+      this.dataList = otherArray
+    },
     fiterProposal(status) {
+      this.dataList = this.fiterStatus(status)
+    },
+    fiterStatus(status) {
       let fiterProposal = this.allDataList.filter((item, index)=>{
         return item.status == status
       })
-      this.dataList = fiterProposal
+      return fiterProposal
     },
     goDetail(param) {
       saveToStorage({'proposalItem': param})
