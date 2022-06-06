@@ -19,10 +19,10 @@
             <div class="opre-type-item">
               <a>{{ item.operation }}</a>
               <p><a class="trans-detail-btn" v-if="item.mtxid" @click="goTransDetail(item)">View transaction details</a></p>
-              <p v-if="item.status=='pending' && item.operation=='Send'" class="speed-box">
+              <!-- <p v-if="item.status=='pending' && item.operation=='Send'" class="speed-box">
                 <a class="up-btn speed-common">Speed Up</a>
                 <a class="cancel-btn speed-common" @click="cancelTrans(item)">Cancel</a>
-              </p>
+              </p> -->
             </div>
           </el-col>
           <el-col :span="3" :class="['transaction-list-item', `address`]">

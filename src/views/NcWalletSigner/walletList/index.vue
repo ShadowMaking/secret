@@ -58,7 +58,7 @@
           </div>
           <div class="tab-item-left-info">
             <p class="tab-item-left-name">{{detailDataSource.name}}</p>
-            <p class="tab-item-left-address">{{`${detailDataSource.wallet_address.slice(0,8)}...${detailDataSource.wallet_address.slice(-4)}`}}</p>
+            <p class="tab-item-left-address" v-if="detailDataSource.wallet_address">{{`${detailDataSource.wallet_address.slice(0,8)}...${detailDataSource.wallet_address.slice(-4)}`}}</p>
           </div>
         </div>
         <div class="detail-top-right">
