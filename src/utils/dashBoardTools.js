@@ -188,8 +188,13 @@ export const getContractWallet = async (self) => {
     return wallet
   }
   return null
+}
 
-  
+export const getThisProvider = async () => {
+  const network = getConnectedNet()
+  const rpcUrl = network['rpcUrls'][0]
+  const provider = initRPCProvider(rpcUrl)
+  return provider
 }
 
 export const getContractAt = async ({ tokenAddress, abi }, self) => {

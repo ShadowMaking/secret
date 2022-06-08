@@ -1,0 +1,70 @@
+.speed-modal-content {
+  border: 1px solid #ececec;
+  border-radius: 5px;
+  width: 300px;
+  font-size: 0.9rem;
+  .speed-title {
+    font-weight: bold;
+    font-size: 0.96rem;
+    margin-top: 20px;
+    padding-left: 10px;
+  }
+  .speed-tip {
+    background-color: #fdf6ec;
+    border-color: #faecd8;
+    color: #e6a23c;
+    padding: 10px;
+    margin-top: 15px;
+    font-size: 0.86rem;
+    line-height: 20px;
+  }
+  .speed-name  {
+    font-size: 0.86rem;
+    margin: 10px auto;
+  }
+  .speed-new-fee-value {
+    font-size: 1.5rem;
+  }
+  .speed-top-text {
+    font-weight: bold;
+    text-align: center;
+  }
+  .speed-new-fee-value+.speed-new-fee-value {
+    margin-top: 10px;
+  }
+  .speed-time {
+    color: #1EA262;
+  }
+  .advanced-options-box {
+    margin-top: 10px;
+    .advances-title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .advance-text {
+      margin-right: 5px;
+      color: #495ABE;
+      font-weight: bold;
+    }
+    .advance-input-box {
+      padding: 0 10px;
+      margin-top: 20px;
+    }
+    .advance-input-item label {
+      font-weight: bold;
+      font-size: 0.86rem;
+    }
+    .advance-input {
+      border: 1px solid #dfdfdf;
+      height: 30px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+    }
+    .submit-box {
+      margin: 20px 10px;
+    }
+  }
+}
