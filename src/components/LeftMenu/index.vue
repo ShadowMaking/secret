@@ -119,11 +119,11 @@ export default {
         // },
       ],
       multiMenuData: [//showType 0-all 1-normal account 2-wallet
-        {icon: 'el-icon-suitcase-1', name: 'Tools', subMenu: [
-          // {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
-          {icon: 'el-icon-document', name: 'Recover Account', route: '/srecovery', showType: 1},
-          {icon: 'el-icon-s-custom', name: 'Co-workers', route: '/addfriends', showType: 1},
-        ]},
+        // {icon: 'el-icon-suitcase-1', name: 'Tools', subMenu: [
+        //   // {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
+        //   {icon: 'el-icon-document', name: 'Recover Account', route: '/srecovery', showType: 1},
+        //   {icon: 'el-icon-s-custom', name: 'Co-workers', route: '/addfriends', showType: 1},
+        // ]},
         {icon: 'el-icon-news', name: 'Activity', subMenu: [
           // {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},
           {icon: 'el-icon-document', name: 'History', route: '/history', showType: 0},

@@ -10,7 +10,7 @@
     </div>
     <div class="opt-wrapper">
       <van-button color="#909399" @click="backStep">Skip</van-button>
-      <van-button color="#495ABE" @click="nextStep">Backup by email</van-button>
+      <!-- <van-button color="#495ABE" @click="nextStep">Backup by email</van-button> -->
     </div>
 
   </div>
