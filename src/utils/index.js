@@ -65,6 +65,9 @@ export const getStatusTxt = (record) => {
     case 2:
       statusTxt = 'creating'
       break;
+    case 3:
+      statusTxt = 'cancel'
+      break;
     case -1:
       statusTxt = 'fail'
       break;

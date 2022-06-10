@@ -5,13 +5,46 @@
       <div class="speed-tip">Network is busy, Gas Prices are high and estimates are less accounrate.</div>
       <div class="speed-top-text">
         <div class="speed-name">New gas fee</div>
-        <div class="speed-new-fee-value">0.001765</div>
+        <div class="speed-new-fee-value">{{estimatedGasFee}}</div>
         <div class="speed-new-fee-value">ETH</div>
-        <div class="speed-name">Max fee: (0.0023423ETH)</div>
-        <div class="speed-time">Very likely in&lt;15 seconds</div>
+        <div class="speed-name">Max fee: {{estimatedGasFee}}</div>
+        <div class="speed-time red-color" v-if="fastValue == 'Low'">likely in&lt;30 seconds</div>
+        <div class="speed-time" v-else-if="fastValue == 'Average'">Very likely in&lt;30 seconds</div>
+        <div class="speed-time" v-else>Very likely in&lt;15 seconds</div>
       </div>
-      <div class="speed-fast-box"></div>
-        <div class="advanced-options-box">
+      <div class="speed-fast-box">
+        <div class="radio-group">
+          <div class="radio-group_column">
+            <label class="radio-group_column-inner">
+              <div class="radio-group__column-radio">
+                <input type="radio" name="gas-recommendation" value="Low" v-model='fastValue' @change="changeFast">
+              </div>
+              <div class="radio-group__column-start-connector"></div>
+              <h6 class="fast-h6">低</h6>
+            </label>
+          </div>
+          <div class="radio-group_column">
+            <label class="radio-group_column-inner">
+              <div class="radio-group__column-radio">
+                <input type="radio" name="gas-recommendation" value="Average" v-model='fastValue' @change="changeFast">
+              </div>
+              <div class="radio-group__column-vertical-line"></div>
+              <div class="radio-group__column-horizontal-line"></div>
+              <h6 class="fast-h6">中</h6>
+            </label>
+          </div>
+          <div class="radio-group_column">
+            <label class="radio-group_column-inner">
+              <div class="radio-group__column-radio">
+                <input type="radio" name="gas-recommendation" value="Fast" v-model='fastValue' @change="changeFast">
+              </div>
+              <div class="radio-group__column-end-connector"></div>
+              <h6 class="fast-h6">高</h6>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="advanced-options-box">
           <div class="advances-title" @click="showAdvance">
             <span class="advance-text">Advanced Options</span>
             <van-icon name="arrow-down" v-show="advanceVisible"/>
@@ -20,19 +53,19 @@
           <div class="advance-input-box" v-show="advanceVisible">
             <div class="advance-input-item">
               <label>Gas Limit</label>
-              <van-field v-model="gasLimit" class="advance-input"/>
+              <van-field v-model="gasLimit" type="number" class="advance-input"/>
             </div>
             <div class="advance-input-item">
               <label>Max priority fee (GWEI)</label>
-              <van-field v-model="maxPriorityFee" class="advance-input" />
+              <van-field v-model="maxPriorityFee" type="number" class="advance-input" @input="feeChange"/>
             </div>
-            <div class="advance-input-item">
+            <!-- <div class="advance-input-item">
               <label>Max fee (GWEI)</label>
-              <van-field v-model="maxFee" class="advance-input" />
-            </div>
+              <van-field v-model="maxFee" type="number" class="advance-input" error-message=""/>
+            </div> -->
           </div>
           <div class="submit-box">
-            <el-button type="primary" class="common-form-btn">Save</el-button>
+            <el-button type="primary" class="common-form-btn" @click="saveSubmit">Save</el-button>
           </div>
         </div>
     </div>
@@ -42,10 +75,11 @@
 import Vue from 'vue';
 import { Popup, Button, Tab, Tabs, Toast, Field  } from 'vant';
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
-import { getTokenIsValid } from '@/utils/dashBoardTools';
+import { getTokenIsValid, getEstimateGas, getEstimateGasUsedByPrice } from '@/utils/dashBoardTools';
 
 import { LOCATION_HREF } from '../../global'
 import { logout } from '@/utils/auth'
+import web3 from 'web3'
 
 Vue.use(Popup);
 Vue.use(Button);
@@ -56,30 +90,25 @@ export default {
   name: 'ConfirmModal',
   props: {
     'show': { type: Boolean, },
-    'type': { type: String, },
-    'metadata': { type: Object, default: null },
     'needColse': {
       type: Boolean,
       default: true
     },
-    'buttonTxt': {
-      type: String,
-      default: 'OK'
-    },
   },
   data() {
     return {
-      showPopup: false,
-      tabActive: 'detail',
       gasPriceVal: '',
       gasLimitVal: '',
-      showGasPrice: false,
-      showGasLimit: false,
+      showPopup: false,
       advanceVisible: false,
 
-      gasLimit: '',
+      gasLimit: 8000000,
       maxPriorityFee: '',
       maxFee: '',
+      fastValue: '',
+      estimatedGasFee: '--',
+      
+      fastPriceData: null,
     }
   },
   watch: {
@@ -89,38 +118,16 @@ export default {
       }
       this.showPopup = this.show
     },
-    metadata: {
-      handler(newV, oldV) {
-        this.setInitData()
-      },
-      deep: true
-    }
+    
   },
   methods: {
     showAdvance() {
       this.advanceVisible = !this.advanceVisible
     },
-    cancelModal() {
-      this.showPopup = false;
-      this.$emit('reject',{show: false, submit: false});
-    },
-    confirm() {
-      this.showPopup = false;
-      this.$emit('confirm',{show: false, overrides: { gasPrice: this.gasPriceVal, gasLimit: this.gasLimitVal }});
-    },
     closeModal() {
       this.showPopup = false;
       this.$emit('close',{show: false, submit: false});
     },
-    setInitData() {
-      if (this.metadata) {
-        const gasPrice = this.metadata['gasPrice']
-        const gasLimit = this.metadata['gas']
-        this.gasPriceVal = gasPrice
-        this.gasLimitVal = gasLimit
-      }
-    },
-    
     getTokenIsValid() {
       if(!getTokenIsValid(this)){
         Toast('Please Login')
@@ -129,9 +136,38 @@ export default {
         return false
       }
     },
+    async feeChange(event) {
+      this.estimatedGasFee = await getEstimateGasUsedByPrice(this.maxPriorityFee.toString())
+    },
+    async getFastGasPrice() {
+      const { hasError, data } = await this.$store.dispatch('GetGasPriceByEtherscan');
+      if (data) {
+        this.fastPriceData = data 
+        // this.lowPrice = data.Low.gasPrice
+        // this.highPrice = data.Fast.gasPrice
+        // this.mediumPrice = data.Average.gasPrice
+      }
+    },
+    async changeFast(e) {
+      if(!this.fastPriceData){return}
+      this.maxPriorityFee = this.fastPriceData[`${this.fastValue}`].gasPrice
+      this.estimatedGasFee = await getEstimateGasUsedByPrice(this.maxPriorityFee)
+    },
+    saveSubmit() {
+      this.showPopup = false;
+      this.$emit('confirm',{show: false, overrides: { gasPrice: this.maxPriorityFee.toString(), gasLimit: this.gasLimit }});
+    },
+    async getMaxFee() {
+      const estimateGas = await getEstimateGas('gasPrice')
+      let thisGasPrice = estimateGas.toString()
+      this.maxPriorityFee = web3.utils.fromWei(thisGasPrice, 'gwei')
+      this.estimatedGasFee = await getEstimateGas('gasUsed')
+    },
   },
-  created() {
+  async created() {
     this.getTokenIsValid()
+    this.getFastGasPrice()
+    this.getMaxFee()
   },
 }
 </script>

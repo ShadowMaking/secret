@@ -116,11 +116,8 @@
       @childEvent="changeVisible" />
     <v-speedModal
     :show.sync="showSpeedModal"
-    :type="operateType"
-    :metadata="sendMetadata"
-    @close="showTradeConfirm=false"
-    @reject="cancelModal"
-    @confirm="confirmModal" />
+    @close="showSpeedModal=false"
+    @confirm="confirmSpeedModal" />
   </div>
 </template>
 <script>
@@ -313,7 +310,7 @@ export default {
       this.operateType = operateType
       if (operateType == 'cancel') {
         if (item.value == 0) {
-          Toast('Can not cancal this transaction')
+          Toast('Can not cancel this transaction')
           return
         }
         this.showDialogConfirm()
@@ -344,7 +341,20 @@ export default {
         this.showInputPswModal = true;
         return
       }
-      await this.showConfirmModal()
+      if (this.operateType == 'cancel') {
+        this.showConfirmModal()
+      } else {
+        this.showConfirmModal()
+        // this.showSpeedModalBefore()
+      }
+    },
+    async showSpeedModalBefore() {
+      const isCanSubmit = await this.isCaSubmit()
+      if (!isCanSubmit) {
+        return
+      }
+      this.showSubmitLoading = false
+      this.showSpeedModal = true
     },
     async showConfirmModal() {
       const isCanSubmit = await this.isCaSubmit()
@@ -366,12 +376,12 @@ export default {
         DATA: '0x',
         estimatedGasFee: estimatedGasFee
       }
-      console.log(this.sendMetadata)
       this.showTradeConfirm = true
       this.showSubmitLoading = false
     },
     async getNewGasPrice() {
       const txResult = await this.getCurrentTxHash()
+      if (!txResult) {return}
       const oldGasLimit = web3.utils.hexToNumber(txResult.gasLimit)
       const oldGasPrice = web3.utils.hexToNumber(txResult.gasPrice)
       console.log(oldGasPrice)
@@ -416,7 +426,7 @@ export default {
       contractWallet.sendTransaction({...sendData})
       .then(async tx=>{
         console.log('cancel tx:', tx)
-        this.sendSuccess(tx)
+        this.updateHistoryStatus(this.currentTransItem.hash)
         tx.wait()
         .then(async res => {
           console.log('cancel tx wait res:', res)
@@ -424,13 +434,22 @@ export default {
       })
       .catch(error=>{
         console.log(error)
-        this.sendFailed(error)
+        let errorValue = formatErrorContarct(error)
+        this.sendFailed(errorValue)
       })
     },
     async dealDataSpeedContract() {
       const txResult = await this.getCurrentTxHash()
       console.log(txResult)
+      if (!txResult) {
+        this.showSubmitLoading = false
+        return 
+      }
       const contractWallet = await getContractWallet(this)
+      console.log(typeof(this.overrides.gasPrice))
+      console.log(typeof(this.overrides.gasLimit))
+      console.log(this.overrides.gasPrice)
+      console.log(this.overrides.gasLimit)
       const sendData = {
         from: txResult.from,
         to: txResult.to,
@@ -443,30 +462,68 @@ export default {
       }
       contractWallet.sendTransaction({...sendData})
       .then(async tx=>{
-        console.log('cancel tx:', tx)
-        this.sendSuccess(tx)
+        console.log('Speed tx:', tx)
+        this.addHistory(tx)
         tx.wait()
         .then(async res => {
-          console.log('cancel tx wait res:', res)
+          console.log('Speed tx wait res:', res)
         })
       })
       .catch(error=>{
         console.log(error)
-        this.sendFailed(error)
+        let errorValue = formatErrorContarct(error)
+        this.sendFailed(errorValue)
       })
+    },
+    async addHistory(tx) {
+      console.log(this.currentTransItem)
+      const submitData = {
+        txid: tx.hash,
+        old_txid: this.currentTransItem.txid,
+        from: this.currentTransItem.from,
+        to: this.currentTransItem.to,
+        type: this.currentTransItem.type,
+        status: 0,
+        value: this.currentTransItem.value,
+        name: this.currentTransItem.name,
+        operation: this.currentTransItem.operation,
+        network_id: this.currentTransItem.network_id,
+        from_type: this.currentTransItem.from_type,
+      }
+      const res = await this.$store.dispatch('AddTransactionHistory', {...submitData});
+      this.showSubmitLoading = false
+      if (res.hasError) {
+        this.sendFailed(`Transaction success，but error when add history`)
+      } else  {
+        this.sendSuccess()
+        this.$eventBus.$emit('transactionStatusChange')
+        // this.$eventBus.$emit('addTransactionHistory')
+      }
     },
     sendFailed(error) {
       this.showSubmitLoading = false
-      let errorValue = formatErrorContarct(error)
-      this.statusPopTitle = errorValue
+      this.statusPopTitle = error
       this.popStatus = 'fail'
       this.showStatusPop = true
     },
-    sendSuccess(tx) {
+    sendSuccess() {
       this.showSubmitLoading = false
       this.statusPopTitle = 'Submitted Success'
       this.popStatus = 'success'
       this.showStatusPop = true
+    },
+    updateHistoryStatus(tx) {
+      this.$store.dispatch('UpdateTransactionHistory', {
+        txid: tx,
+        status: 3,//3-cancel
+      })
+      .then(res=>{
+        this.sendSuccess()
+        this.$eventBus.$emit('transactionStatusChange');
+      })
+      .catch(err=>{
+        this.sendFailed(`Cancel success，but error when update history`);
+      })
     },
     cancelModal() {
       this.showTradeConfirm = false
@@ -481,6 +538,13 @@ export default {
       } else if (this.operateType == 'speed') {
         this.dealDataSpeedContract()
       }
+    },
+    confirmSpeedModal({ overrides }) {
+      console.log(overrides)
+      this.overrides.gasLimit = overrides.gasLimit
+      this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
+      this.showSubmitLoading = true
+      this.dealDataSpeedContract()
     },
     async confirmPswOk({ show, psw }) {
       this.userPsw = psw; // password of user input for encrypt privateKey

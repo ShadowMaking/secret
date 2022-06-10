@@ -373,8 +373,11 @@ const token = {
             const getFastTime = await store.dispatch('GetGasPriceConfirmationTimeByEtherscan', { gasprice: fastGasPrice })
             const averageGasPrice = res.data['ProposeGasPrice']  // GWEI
             const getAverageTime = await store.dispatch('GetGasPriceConfirmationTimeByEtherscan', { gasprice: averageGasPrice })
+            const lowGasPrice = res.data['SafeGasPrice']  // GWEI
+            const getLowTime = await store.dispatch('GetGasPriceConfirmationTimeByEtherscan', { gasprice: lowGasPrice })
             list['Fast'] = { gasPrice: fastGasPrice, confirmationTime: getFastTime.data }
             list['Average'] = { gasPrice: averageGasPrice, confirmationTime: getAverageTime.data }
+            list['Low'] = { gasPrice: lowGasPrice, confirmationTime: getLowTime.data }
           }
           resolve({ hasError: false, data: list })
         })

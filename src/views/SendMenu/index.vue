@@ -642,7 +642,7 @@ export default {
       const submitData = data || this.addHistoryData;
       if (!submitData) {
         Toast('Params Error');
-        return ;
+        return;
       }
       const res = await this.$store.dispatch('AddTransactionHistory', {...submitData});
       this.showLoading = false

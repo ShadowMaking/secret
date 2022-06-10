@@ -362,7 +362,7 @@ export const addTransHistory = async (txInfo, taransType, self, value, name, isW
     from: getConnectedAddress(),
     to: (txInfo.to).toLocaleLowerCase(),
     type: TRANSACTION_TYPE['L2ToL2'],
-    status: 0,//0-tobeconfirm 1-success 2-confirming -1-fail
+    status: 0,//0-tobeconfirm 1-success 2-confirming -1-fail 3-cancel
     value: value ? value : 0,
     operation: taransType,
     network_id: chainId,
@@ -403,6 +403,17 @@ export const getEstimateGas = async (type, addPrice) => {//type-gasPrice, gasUse
     const currentGasUsed = web3.utils.fromWei(gasUsedByTx.toString(), 'ether')
     return currentGasUsed
   }
+}
+
+export const getEstimateGasUsedByPrice = async (price) => {
+  const network = getConnectedNet()
+  const rpcUrl = network['rpcUrls'][0]
+  const provider = initRPCProvider(rpcUrl)
+  const currentGasHex = await provider.estimateGas({})
+  const currentGas = web3.utils.hexToNumber(currentGasHex)
+  const gasUsedByTx = currentGas * price
+  const currentGasUsed = web3.utils.fromWei(gasUsedByTx.toString(), 'ether')
+  return currentGasUsed
 }
 
 export const getIsCanTransaction = async (transactionValue, transactionAddPrice) => {//type-gasPrice, gasUsed
