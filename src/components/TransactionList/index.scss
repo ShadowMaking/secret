@@ -163,4 +163,11 @@
       background-size: 100% 100%;
     }
   }
+  .status-cancel{
+    color: #DE4F42;
+    i{
+      background: url('~@/assets/icon_fail.png') center center;
+      background-size: 100% 100%;
+    }
+  }
 }

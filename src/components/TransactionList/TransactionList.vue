@@ -19,10 +19,10 @@
             <div class="opre-type-item">
               <a>{{ item.operation }}</a>
               <p><a class="trans-detail-btn" v-if="item.mtxid" @click="goTransDetail(item)">View transaction details</a></p>
-              <!-- <p v-if="item.status=='pending' && item.operation=='Send'" class="speed-box">
-                <a class="up-btn speed-common">Speed Up</a>
-                <a class="cancel-btn speed-common" @click="cancelTrans(item)">Cancel</a>
-              </p> -->
+              <p v-if="item.status=='pending'" class="speed-box">
+                <a class="up-btn speed-common" @click="changeTransClick(item, 'speed')">Speed Up</a>
+                <a class="cancel-btn speed-common" v-if="item.value !==0" @click="changeTransClick(item, 'cancel')">Cancel</a>
+              </p>
             </div>
           </el-col>
           <el-col :span="3" :class="['transaction-list-item', `address`]">
@@ -101,22 +101,33 @@
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
     <v-confirmModal
       :show="showTradeConfirm"
-      :type="modalTitle"
+      :type="operateType"
       :metadata="sendMetadata"
       @close="showTradeConfirm=false"
       @reject="cancelModal"
       @confirm="confirmModal" />
     <v-loadingPopup :show="showSubmitLoading" :showSpinner="false" />
+    <v-statusPop
+      :status="popStatus"
+      :title="statusPopTitle"
+      :timeTxt="timeTxt"
+      tip=""
+      :show="showStatusPop"
+      @childEvent="changeVisible" />
+    <v-speedModal
+    :show.sync="showSpeedModal"
+    @close="showSpeedModal=false"
+    @confirm="confirmSpeedModal" />
   </div>
 </template>
 <script>
 import Vue from 'vue';
-import { Toast } from 'vant';
+import { Toast, Dialog } from 'vant';
 import { subStrAddress, getRouteNameAndQuery  } from '@/utils/index';
 import None from '@/components/None/index';
 import Loading from '@/components/Loading';
 import Empty from '@/components/Empty/index';
-import { getCurrentProvider } from '@/utils/web3';
+// import { getCurrentProvider } from '@/utils/web3';
 import { copyTxt } from '@/utils/index';
 import {  getConnectedNet } from '@/utils/dashBoardTools'
 
@@ -124,7 +135,7 @@ import {  getConnectedNet } from '@/utils/dashBoardTools'
 import {
   generateTokenList, getDefaultETHAssets, getConnectedAddress,
   getContractWallet, isLogin, getDATACode, getContractAt, 
-  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas, getConnectedUserAddress, getSupportNet, getBalanceByAddress } from '@/utils/dashBoardTools';
+  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas, getConnectedUserAddress, getSupportNet, getBalanceByAddress, getThisProvider } from '@/utils/dashBoardTools';
 import InputPswModal from '@/components/InputPswModal'
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import { getInfoFromStorageByKey, getFromStorage } from '@/utils/storage';
@@ -133,8 +144,12 @@ import web3 from 'web3'
 import LoadingPopup from '@/components/LoadingPopup';
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import { ethers, utils } from 'ethers'
+import StatusPop from '@/components/StatusPop';
+import { formatErrorContarct } from '@/utils/index'
+import SpeedModal from '@/components/SpeedModal';
 
 Vue.use(Toast)
+Vue.use(Dialog)
 
 export default {
   name: 'TransactionList',
@@ -171,15 +186,22 @@ export default {
       sendMetadata: null,
       defaultNetWork: '',
       showTradeConfirm: false,
-      modalTitle: 'cancel',
       currentChainInfo: null,
 
       showSubmitLoading: false,
+      operateType: 'speed',
 
       overrides: {
         gasLimit: 8000000,
         gasPrice: 20000000000,//wei
       },
+
+      popStatus: "success",
+      statusPopTitle: 'Submitted Success',
+      timeTxt: 'Will take effect in one minute',
+      showStatusPop: false,
+
+      showSpeedModal: false,
 
 
       currentTransItem: null,
@@ -208,6 +230,8 @@ export default {
     'v-inputPsw': InputPswModal,
     'v-confirmModal': ConfirmModal,
     'v-loadingPopup': LoadingPopup,
+    'v-statusPop': StatusPop,
+    'v-speedModal': SpeedModal,
   },
   computed: {
     _showNoMore() {
@@ -236,15 +260,21 @@ export default {
       const url = `${blockExplorerUrls}/${routerInfo.name}/${paramsValue}`
       window.open(url, '_blank')
     },
-    async dealTransactionList() {
-      const currentProvider = getCurrentProvider()
-      console.log('newtransactionList:', this.newtransactionList)
-      this.newtransactionList.map(async (item ,index)=> {
-        let fromens = await currentProvider.lookupAddress(item.from)
-        let toens = await currentProvider.lookupAddress(item.to)
-        item.from = fromens || item.from
-        item.to = toens || item.to
+    changeVisible(eventInfo) {
+      this.showStatusPop = eventInfo.show;
+      this.$router.push({
+        path: `/history`,
       })
+    },
+    async dealTransactionList() {
+      // const currentProvider = getCurrentProvider()
+      // console.log('newtransactionList:', this.newtransactionList)
+      // this.newtransactionList.map(async (item ,index)=> {
+      //   let fromens = await currentProvider.lookupAddress(item.from)
+      //   let toens = await currentProvider.lookupAddress(item.to)
+      //   item.from = fromens || item.from
+      //   item.to = toens || item.to
+      // })
     },
     getRouteValue(type, record) {
       let paramsValue;
@@ -274,78 +304,91 @@ export default {
       })
     },
     /****speed and cancel start****/
-    cancelTrans(item) {
+    changeTransClick(item, operateType) {
       console.log(item)
       this.currentTransItem = item
-      this.showSubmitLoading = true
-      switch(item.operation) {
-        case 'Send':
-          this.cancelSend()
-          break;
-        default:
-          break;
+      this.operateType = operateType
+      if (operateType == 'cancel') {
+        if (item.value == 0) {
+          Toast('Can not cancel this transaction')
+          return
+        }
+        this.showDialogConfirm()
+      } else {
+        this.showSubmitLoading = true
+        this.getIsHasPwd()
       }
     },
-    async dealDataCancelContract() {
-      const contractWallet = await getContractWallet(this)
-      const transferAmount = utils.parseEther('0');
-      console.log(transferAmount)
-      const sendData = {
-        from: this.currentTransItem.from,
-        to: this.currentTransItem.from,
-        gasLimit: this.overrides.gasLimit,
-        gasPrice: web3.utils.toHex(this.overrides.gasPrice),
-        value: transferAmount,
-        chainId: this.currentChainInfo['id'],
-        nonce: 57,
-        // nonce: transactionCount + 1,
-      }
-      console.log(sendData)
-      contractWallet.sendTransaction({...sendData})
-      .then(async tx=>{
-        console.log('cancel tx:', tx)
-        tx.wait()
-        .then(async res => {
-          console.log('cancel tx wait res:', res)
-          this.showLoading = false
-        })
+    showDialogConfirm() {
+      Dialog.confirm({
+        message: 'Are you sure to cancel?',
+        confirmButtonText: 'Yes',
+        confirmButtonColor: '#4375f1',
+        cancelButtonText: 'Cancel'
       })
-      .catch(error=>{
-        console.log(error)
-        this.showLoading = false
+      .then(() => {
+        this.showSubmitLoading = true
+        this.getIsHasPwd()
       })
+      .catch(() => {
+        console.log('cancel')
+      });
     },
-    async cancelSend() {
-     // check privateKey whether is existed
+    async getIsHasPwd() {
+      // check privateKey whether is existed
       const privateKey = await getDecryptPrivateKeyFromStore(this)
       if (!privateKey) {
         this.showInputPswModal = true;
         return
       }
-      await this.showConfirmModal()
+      if (this.operateType == 'cancel') {
+        this.showConfirmModal()
+      } else {
+        this.showConfirmModal()
+        // this.showSpeedModalBefore()
+      }
+    },
+    async showSpeedModalBefore() {
+      const isCanSubmit = await this.isCaSubmit()
+      if (!isCanSubmit) {
+        return
+      }
+      this.showSubmitLoading = false
+      this.showSpeedModal = true
     },
     async showConfirmModal() {
       const isCanSubmit = await this.isCaSubmit()
       if (!isCanSubmit) {
         return
       }
+      await this.getNewGasPrice()
       let thisGasPrice = this.overrides.gasPrice.toString()
       let gasPrice = web3.utils.fromWei(thisGasPrice, 'gwei')
       let estimatedGasFee = await getEstimateGas('gasUsed')
       this.sendMetadata = {
         from: this.currentTransItem.from,
-        to: this.currentTransItem.from,
+        to: this.currentTransItem.to,
         gas: this.overrides.gasLimit,
         gasPrice: gasPrice,
-        value: 0,
+        value: this.operateType == 'cancel' ? 0 : this.currentTransItem.value,
         symbolName: 'ETH',
         netInfo: this.currentChainInfo,
         DATA: '0x',
         estimatedGasFee: estimatedGasFee
       }
-      console.log(this.sendMetadata)
       this.showTradeConfirm = true
       this.showSubmitLoading = false
+    },
+    async getNewGasPrice() {
+      const txResult = await this.getCurrentTxHash()
+      if (!txResult) {return}
+      const oldGasLimit = web3.utils.hexToNumber(txResult.gasLimit)
+      const oldGasPrice = web3.utils.hexToNumber(txResult.gasPrice)
+      console.log(oldGasPrice)
+      if (this.overrides.gasPrice <= oldGasPrice) {
+        this.overrides.gasPrice = oldGasPrice + 1000000000
+      }
+
     },
     async isCaSubmit() {
       const selectedConnectAddress = getConnectedAddress()
@@ -358,6 +401,126 @@ export default {
       }
       return true
     },
+    async getCurrentTxHash() {
+      const thisHash = this.currentTransItem.hash
+      const contractProvider = await getThisProvider()
+      const txResult = await contractProvider.getTransaction(thisHash)
+      return txResult
+    },
+    async dealDataCancelContract() {
+      const txResult = await this.getCurrentTxHash()
+
+      const contractWallet = await getContractWallet(this)
+      const transferAmount = utils.parseEther('0');
+      console.log(transferAmount)
+      const sendData = {
+        from: txResult.from,
+        to: txResult.from,
+        gasLimit: this.overrides.gasLimit,
+        gasPrice: web3.utils.toHex(this.overrides.gasPrice),
+        value: transferAmount,
+        chainId: txResult.chainId,
+        nonce: txResult.nonce,
+      }
+      console.log(sendData)
+      contractWallet.sendTransaction({...sendData})
+      .then(async tx=>{
+        console.log('cancel tx:', tx)
+        this.updateHistoryStatus(this.currentTransItem.hash)
+        tx.wait()
+        .then(async res => {
+          console.log('cancel tx wait res:', res)
+        })
+      })
+      .catch(error=>{
+        console.log(error)
+        let errorValue = formatErrorContarct(error)
+        this.sendFailed(errorValue)
+      })
+    },
+    async dealDataSpeedContract() {
+      const txResult = await this.getCurrentTxHash()
+      console.log(txResult)
+      if (!txResult) {
+        this.showSubmitLoading = false
+        return 
+      }
+      const contractWallet = await getContractWallet(this)
+      const sendData = {
+        from: txResult.from,
+        to: txResult.to,
+        gasLimit: this.overrides.gasLimit,
+        gasPrice: web3.utils.toHex(this.overrides.gasPrice),
+        value: txResult.value,
+        chainId: txResult.chainId,
+        nonce: txResult.nonce,
+        data: txResult.data,
+      }
+      contractWallet.sendTransaction({...sendData})
+      .then(async tx=>{
+        console.log('Speed tx:', tx)
+        this.addHistory(tx)
+        tx.wait()
+        .then(async res => {
+          console.log('Speed tx wait res:', res)
+        })
+      })
+      .catch(error=>{
+        console.log(error)
+        let errorValue = formatErrorContarct(error)
+        this.sendFailed(errorValue)
+      })
+    },
+    async addHistory(tx) {
+      console.log(this.currentTransItem)
+      const submitData = {
+        txid: tx.hash,
+        old_txid: this.currentTransItem.txid,
+        from: this.currentTransItem.from,
+        to: this.currentTransItem.to,
+        type: this.currentTransItem.type,
+        status: 0,
+        value: this.currentTransItem.value,
+        name: this.currentTransItem.name,
+        operation: this.currentTransItem.operation,
+        network_id: this.currentTransItem.network_id,
+        from_type: this.currentTransItem.from_type,
+      }
+      const res = await this.$store.dispatch('AddTransactionHistory', {...submitData});
+      this.showSubmitLoading = false
+      if (res.hasError) {
+        this.sendFailed(`Transaction success，but error when add history`)
+      } else  {
+        this.sendSuccess()
+        this.$eventBus.$emit('transactionStatusChange')
+        // this.$eventBus.$emit('addTransactionHistory')
+      }
+    },
+    sendFailed(error) {
+      this.showSubmitLoading = false
+      this.statusPopTitle = error
+      this.popStatus = 'fail'
+      this.showStatusPop = true
+    },
+    sendSuccess() {
+      this.showSubmitLoading = false
+      this.statusPopTitle = 'Submitted Success'
+      this.popStatus = 'success'
+      this.showStatusPop = true
+    },
+    updateHistoryStatus(tx) {
+      this.$store.dispatch('UpdateTransactionHistory', {
+        txid: tx,
+        status: 3,//3-cancel
+      })
+      .then(res=>{
+        this.sendSuccess()
+        this.$eventBus.$emit('transactionStatusChange');
+      })
+      .catch(err=>{
+        this.sendFailed(`Cancel success，but error when update history`);
+      })
+    },
     cancelModal() {
       this.showTradeConfirm = false
       Toast('Cancel')
@@ -366,9 +529,18 @@ export default {
       this.overrides.gasLimit = overrides.gasLimit
       this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
       this.showSubmitLoading = true
-      if (this.modalTitle == 'cancel') {
+      if (this.operateType == 'cancel') {
         this.dealDataCancelContract()
+      } else if (this.operateType == 'speed') {
+        this.dealDataSpeedContract()
       }
+    },
+    confirmSpeedModal({ overrides }) {
+      console.log(overrides)
+      this.overrides.gasLimit = Number(overrides.gasLimit)
+      this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
+      this.showSubmitLoading = true
+      this.dealDataSpeedContract()
     },
     async confirmPswOk({ show, psw }) {
       this.userPsw = psw; // password of user input for encrypt privateKey

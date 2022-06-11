@@ -249,6 +249,7 @@ export default {
     confirmDelegate({ overrides }) {
       this.overrides.gasLimit = overrides.gasLimit
       this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
+      console.log(this.overrides)
       if (this.currentDelegateType == 'add') {
         this.dealDataDelegatedContract(this.delegateAddress)
       } else {
@@ -259,7 +260,7 @@ export default {
     async dealDataDelegatedContract(address) {
       this.showLoading = true;
       const GovernanceTokenContract = await getContractAt({ tokenAddress: this.GovernanceTokenRouter, abi: GovernanceToken.abi }, this)
-      GovernanceTokenContract.delegate(address).then(async tx=> {
+      GovernanceTokenContract.delegate(address, this.overrides).then(async tx=> {
           console.log(tx)
           this.showLoading = false
           this.showResultModal = true
@@ -372,8 +373,9 @@ export default {
     } else {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
-    this.overrides.gasPrice = await getEstimateGas('gasPrice')
-
+    // this.overrides.gasPrice = await getEstimateGas('gasPrice')
+    this.overrides.gasPrice = 1
+    
     this.getIsHasPwd()
   },
   async mounted() {
