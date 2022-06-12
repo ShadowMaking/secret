@@ -19,7 +19,7 @@
         <v-transFrom @transFromChange="transFromChange"></v-transFrom>
       </div> -->
       <!-- <v-formInput label="Recipient" placeholder="Address or Google account" :isSearch="true" @inputChange="handleAddressInputChange" /> -->
-      <v-InputSelect label="Recipient" placeholder="Address or Google account" :isSearch="true" @inputChange="handleAddressInputChange" />
+      <v-InputSelect :label="recipientLable" :placeholder="recipientPlaceholder" :isSearch="true" :isSupportHide="true" @inputChange="handleAddressInputChange" @hideChange="addressHideChange" />
       <v-formSelect 
         label="Token"
         :labelShow="false" 
@@ -163,6 +163,9 @@ export default {
 
       multOperation,
       securityModuleRouter,
+
+      recipientLable: 'Recipient',
+      recipientPlaceholder: 'Address or Google account',
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -718,6 +721,15 @@ export default {
         this.transFromType = 1
       }
     },
+    addressHideChange(isHide) {
+      if (isHide) {
+        this.recipientLable = 'Receiver Public Key'
+        this.recipientPlaceholder = 'Public key only'
+      } else {
+        this.recipientLable = 'Recipient'
+        this.recipientPlaceholder = 'Address or Google account'
+      }
+    }
   },
   async created() {
     this.defaultNetWork = this.getDefaultNetWork()

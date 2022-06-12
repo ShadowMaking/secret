@@ -183,6 +183,7 @@ export const getContractWallet = async (self) => {
   const rpcUrl = network['rpcUrls'][0]
   const provider = initRPCProvider(rpcUrl)
   const privateKey = await getDecryptPrivateKeyFromStore(self)
+  console.log(privateKey)
   if (privateKey) {
     const wallet = new ethers.Wallet(privateKey, provider);
     return wallet

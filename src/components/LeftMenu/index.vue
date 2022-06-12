@@ -153,6 +153,11 @@ export default {
             name: 'Recover Wallet', 
             route: '/ncWalletRecover',
             showType: 1,
+          },{
+            icon: 'el-icon-sell', 
+            name: 'Stealth Address', 
+            route: '/stealthAddress',
+            showType: 1,
           }]
         },
         {icon: 'el-icon-odometer', name: 'Governance', subMenu: [
