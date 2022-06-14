@@ -13,7 +13,7 @@
         :defaultValue="defaultNetWork"
         :leftIcon="defaultIcon" 
         :dataSource="netWorkList"
-        placeholder="chose network"
+        placeholder="choose network"
         @change="handleNetworkChange" />
       <!-- <div class="send-from-box">
         <v-transFrom @transFromChange="transFromChange"></v-transFrom>
@@ -104,12 +104,14 @@ import { getInfoFromStorageByKey, getFromStorage } from '@/utils/storage';
 import {
   generateTokenList, getDefaultETHAssets, getConnectedAddress,
   getContractWallet, isLogin, getDATACode, getContractAt, 
-  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas, getConnectedUserAddress } from '@/utils/dashBoardTools';
+  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas, getConnectedUserAddress, getThisProvider, PublickeyToAddress } from '@/utils/dashBoardTools';
 import WalletTransaction from "@/assets/contractJSON/TransactionModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import { promiseValue, formatErrorContarct } from '@/utils/index'
+import { PublicKey, Message } from '@/utils/anonymousAddress'
+import { Buffer } from 'buffer'
 
 Vue.use(Popup);
 Vue.use(Toast)
@@ -166,6 +168,7 @@ export default {
 
       recipientLable: 'Recipient',
       recipientPlaceholder: 'Address or Google account',
+      isHideAddress: false,
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -271,10 +274,11 @@ export default {
       this.showLoading = true
       this.showTradeConfirm = false
       const sendType = this.sendType
+      const toSendAddress = await this.getToSendAddress()
       const data = {
         gasPrice: overrides.gasPrice || this.sendMetadata.gasPrice,
         gasLimit: overrides.gasLimit || this.sendMetadata.gas,
-        toAddress: this.addressForRecipient,
+        toAddress: toSendAddress,//address or publickey
         selectedToken: this.selectedToken,
         type1Value: this.type1Value,
         type2Value: this.type2Value,
@@ -290,9 +294,29 @@ export default {
         this.walletTrans(data)
       }
     },
+    async getToSendAddress() {
+      let thisComputeAddress = this.addressForRecipient
+      if (this.isHideAddress) {
+        const receivePubKey = this.addressForRecipient
+        const selectedConnectAddress = getConnectedAddress()
+        const contractProvider = await getThisProvider()
+        const nonce = await contractProvider.getTransactionCount(selectedConnectAddress)
+        const senderPrivateKeyHex = await getDecryptPrivateKeyFromStore(this)
+        
+        const currentWallet = await getContractWallet(this)
+        const senderPublicKey = currentWallet.publicKey
+        
+        const message = await Message(nonce, senderPublicKey, receivePubKey, 10)//this.type1Value
+        const generatePublicKey = PublicKey(receivePubKey, message, nonce, senderPrivateKeyHex)
+        console.log(generatePublicKey)
+        thisComputeAddress = PublickeyToAddress(generatePublicKey)
+        console.log(thisComputeAddress)
+      }
+      return thisComputeAddress
+    },
     checkData(data) {
       console.log('checkData')
-      if (!utils.isAddress(data.toAddress)) {
+      if (!utils.isAddress(data.toAddress) && !this.isHideAddress) {
         Toast(`Invalid Address`);
         return false;
       }
@@ -627,6 +651,9 @@ export default {
       this.addHistoryData = _.cloneDeep(submitData);
       console.log(submitData)
       await this.addHistory(submitData);
+      if (this.isHideAddress) {
+        await this.addStealHistory(res, address);
+      }
     },
     sendFailed(error) {
       if (error.code == '4001') {
@@ -640,6 +667,20 @@ export default {
       let errorValue = formatErrorContarct(error)
       this.statusPopTitle = errorValue
       this.popStatus = 'fail';
+    },
+    async addStealHistory(res, address) {
+      const { selectedConnectAddress, toAddress } = address
+      const currentWallet = await getContractWallet(this)
+      const senderPublicKey = currentWallet.publicKey
+      const submitData = {
+        sender_public_key: senderPublicKey,
+        sender_address: selectedConnectAddress,
+        receiver_address: toAddress,
+        message: res.hash,
+        nonce: res.nonce,
+      }
+      const result = await this.$store.dispatch('addStealth', {...submitData})
+      console.log(result)
     },
     async addHistory(data) {
       const submitData = data || this.addHistoryData;
@@ -722,6 +763,7 @@ export default {
       }
     },
     addressHideChange(isHide) {
+      this.isHideAddress = isHide
       if (isHide) {
         this.recipientLable = 'Receiver Public Key'
         this.recipientPlaceholder = 'Public key only'

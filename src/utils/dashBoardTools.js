@@ -183,7 +183,6 @@ export const getContractWallet = async (self) => {
   const rpcUrl = network['rpcUrls'][0]
   const provider = initRPCProvider(rpcUrl)
   const privateKey = await getDecryptPrivateKeyFromStore(self)
-  console.log(privateKey)
   if (privateKey) {
     const wallet = new ethers.Wallet(privateKey, provider);
     return wallet
@@ -444,4 +443,12 @@ export const getMultSignMessage = async (destinationAddr, value, data, nonce) =>
       ethers.utils.hexZeroPad(ethers.utils.hexlify(nonce), 32),
   ].map((hex) => hex.slice(2)).join("")}`;
   return ethers.utils.keccak256(input)
+}
+
+export const PublickeyToAddress = (pubkeyHex) => {
+  if (pubkeyHex.slice(0,2) != "0x") {
+    pubkeyHex = "0x" + pubkeyHex;
+  }
+  let address = ethers.utils.computeAddress(pubkeyHex)
+  return address;
 }

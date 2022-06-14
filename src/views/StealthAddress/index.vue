@@ -14,11 +14,11 @@
         class="list-content" 
         v-for="(item, index) in addressList"
         :key="index">
-        <el-col :span="4" class="list-item">{{item.address}}</el-col>
-        <el-col :span="4" class="list-item">{{item.address}}</el-col>
-        <el-col :span="4" class="list-item">{{item.time}}</el-col>
-        <el-col :span="4" class="list-item list-detail">{{item.address}}</el-col>
-        <el-col :span="4" class="list-item">{{item.amount}}</el-col>
+        <el-col :span="4" class="list-item">{{ `${item.sender_address.slice(0,6)}...${item.sender_address.slice(-4)}`}}</el-col>
+        <el-col :span="4" class="list-item">{{`${item.receiver_address.slice(0,6)}...${item.receiver_address.slice(-4)}`}}</el-col>
+        <el-col :span="4" class="list-item">{{formatterTime(item.createdAt)}}</el-col>
+        <el-col :span="4" class="list-item list-detail">{{`${item.message.slice(0,6)}...${item.message.slice(-4)}`}}</el-col>
+        <el-col :span="4" class="list-item">{{item.amount || 0}}</el-col>
         <el-col :span="4" class="list-item item-contract">
           <div class="item-con-right"><a @click="unHideClick(item)">Unhide</a></div>
         </el-col>
@@ -46,9 +46,11 @@ import InputPswModal from '@/components/InputPswModal'
 import navTitle from '@/components/NavTitle/index'
 import { Popup, Toast, Loading } from 'vant';
 import { TRANSACTION_TYPE } from '@/api/transaction'
-import { generateTokenList, getConnectedAddress, getContractAt, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getIsCanTransaction, getEstimateGas, getConnectedUserAddress } from '@/utils/dashBoardTools';
+import { generateTokenList, getConnectedAddress, getContractAt, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getIsCanTransaction, getEstimateGas, getConnectedUserAddress, getContractWallet  } from '@/utils/dashBoardTools';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import { formatErrorContarct } from '@/utils/index'
+import { Verify, PrivateKey } from '@/utils/anonymousAddress'
+import { timeSericeFormat } from '@/utils/str'
 
 Vue.use(Toast)
 Vue.use(Popup)
@@ -73,6 +75,8 @@ export default {
         gasPrice: 20000000000,//wei
       },
 
+      currentClickItem: null,
+
       // ***************** inputPsw start ***************** //
       userPsw: '',
       publicKey: '',
@@ -93,10 +97,15 @@ export default {
   },
   
   methods: {
+    formatterTime(time) {
+      return timeSericeFormat(time)
+    },
     async dealDataBeforeUnHide() {
-      
+      this.showLoadingModal = true
+
     },
     async unHideClick(item) {
+      this.currentClickItem = item
       // transaction need privateKey
       const privateKey = await getDecryptPrivateKeyFromStore(this)
       if (!privateKey) {
@@ -108,11 +117,24 @@ export default {
     
     async getAddressList() {
       this.showLoading = false
-      this.addressList = [{
-        address: 'oxfsdfsdf',
-        time: '2018-2-12',
-        amount: 0,
-      }]
+      const currentWallet = await getContractWallet(this)
+      const senderPublicKey = currentWallet.publicKey
+      let currentUserAddress = getConnectedAddress()
+      let dataParams = {
+        sender_public_key: senderPublicKey,
+        // sender_address: currentUserAddress,
+      }
+      const { hasError, list} = await this.$store.dispatch('getStealthList', {...dataParams})
+      console.log(list)
+      this.addressList = list
+      // this.addressList = [{
+      //   sendAddress: '0x28ef362ba842842df918bae66ee02ab47185e358',
+      //   stealthAddress: '0x4b6dd9326302a880fca4c048a3e8d98b5172ecbf',
+      //   message: '0x1ae421c45bc9f3fb5603ec3aa1e5da5179bd62b3a24ba2c4ab5b5e633150d67c',
+      //   time: '2018-2-12',
+      //   amount: '0.01',
+      //   none: 116,
+      // }]
     },
 
     async handleAccountChange(addressInfo) {
