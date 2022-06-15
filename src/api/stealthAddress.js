@@ -37,6 +37,6 @@ import request from '@/utils/request';
   return request({
     url: `/api/user/stealth_address`,
     method: 'put',
-    params: data,
+    data: data,
   })
 }

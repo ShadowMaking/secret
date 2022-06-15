@@ -15,12 +15,15 @@
         v-for="(item, index) in addressList"
         :key="index">
         <el-col :span="4" class="list-item">{{ `${item.sender_address.slice(0,6)}...${item.sender_address.slice(-4)}`}}</el-col>
-        <el-col :span="4" class="list-item">{{`${item.receiver_address.slice(0,6)}...${item.receiver_address.slice(-4)}`}}</el-col>
+        <el-col :span="4" class="list-item">{{`${item.stealth_address.slice(0,6)}...${item.stealth_address.slice(-4)}`}}</el-col>
         <el-col :span="4" class="list-item">{{formatterTime(item.createdAt)}}</el-col>
-        <el-col :span="4" class="list-item list-detail">{{`${item.message.slice(0,6)}...${item.message.slice(-4)}`}}</el-col>
+        <el-col :span="4" class="list-item">{{`${item.message.slice(0,6)}...${item.message.slice(-4)}`}}</el-col>
         <el-col :span="4" class="list-item">{{item.amount || 0}}</el-col>
         <el-col :span="4" class="list-item item-contract">
-          <div class="item-con-right"><a @click="unHideClick(item)">Unhide</a></div>
+          <div class="item-con-right">
+            <a @click="unHideClick(item)" v-if="item.status !==2">Unhide</a>
+            <span v-else>UnHided</span>
+          </div>
         </el-col>
       </el-row>
       <van-popup v-model="showLoadingModal" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
@@ -160,17 +163,18 @@ export default {
         Toast('Unhide Account Failed', 5)
       } else {
         Toast('Unhide Account Successfully', 5)
+        this.getAddressList()
       }
     },
     async verifyAddress() {
       const currentUserPrivateKey = await getDecryptPrivateKeyFromStore(this)
       const receicePublickey = this.currentClickItem.receiver_address
-      const isVerify = Verify(this.currentClickItem.receiver_public_key, currentUserPrivateKey, Buffer.from(this.currentClickItem.message), this.currentClickItem.none, this.currentClickItem.sender_public_key)
+      const isVerify = Verify(this.currentClickItem.stealth_public_key, currentUserPrivateKey, Buffer.from(this.currentClickItem.message), this.currentClickItem.nonce, this.currentClickItem.sender_public_key)
       return isVerify
     },
     async getStealPrivateKey() {
       const currentUserPrivateKey = await getDecryptPrivateKeyFromStore(this)
-      const stealPrivateSk = PrivateKey(currentUserPrivateKey, Buffer.from(this.currentClickItem.message), this.currentClickItem.none, this.currentClickItem.sender_public_key)
+      const stealPrivateSk = PrivateKey(currentUserPrivateKey, Buffer.from(this.currentClickItem.message), this.currentClickItem.nonce, this.currentClickItem.sender_public_key)
       const stealPrivate = stealPrivateSk.getPrivate().toString("hex")
       return stealPrivate
     },
@@ -182,35 +186,9 @@ export default {
     
     async getAddressList() {
       this.showLoading = false
-      // const currentWallet = await getContractWallet(this)
-      // const senderPublicKey = currentWallet.publicKey
-      // let currentUserAddress = getConnectedAddress()
-      // let dataParams = {
-      //   sender_public_key: senderPublicKey,
-      //   // sender_address: currentUserAddress,
-      // }
       const { hasError, list} = await this.$store.dispatch('getStealthList')
       console.log(list)
       this.addressList = list
-      // this.addressList = [{
-      //   receiver_public_key: '04347fea747191eab9e3c7bd7d01399114ccb3e1eea063a76111c550797aadf56b5d572650d373e83bb7febfe840b391f66703d9cf5f8a28c2700acade6a56125c',
-      //   sender_address: '0x28ef362ba842842df918bae66ee02ab47185e358',
-      //   sender_public_key: '0x04c653f4f110ea8429290dad6e4478da647eedf08c8150415d98afa99da78d7356f09d282312d7d770a836d10e97f9b5f083783541f1856b28855a98dcbc9f2d32',
-      //   receiver_address: '0xc9B7cF0268d75b5bFFaB4B9F7EeeD847BfFa8640',
-      //   message: 'cb909318580b243490ee18e47c4ffa7af9ba97f198092c1bbbd2314c4ac9d2be',
-      //   createdAt: '2018-2-12',
-      //   amount: '0.02',
-      //   none: 120,
-      // },{
-      //   receiver_public_key: '04f30f98d2307bb68ccafc8dda9013511fe4f6f23748efd67cfadfbaffaa03b436205637beae3c7a1eb71b415f06846142c86c9e624c6cbf107e66c67567a80275',
-      //   sender_address: '0x28ef362ba842842df918bae66ee02ab47185e358',
-      //   sender_public_key: '0x04c653f4f110ea8429290dad6e4478da647eedf08c8150415d98afa99da78d7356f09d282312d7d770a836d10e97f9b5f083783541f1856b28855a98dcbc9f2d32',
-      //   receiver_address: '0x6a83f33334Ce1Fdb1e9ecBd022118e1AC83D17e8',
-      //   message: '660d277a06711b60715cae09671056cc947a99e2ef887768583f9783dd1b29c6',
-      //   createdAt: '2018-2-12',
-      //   amount: '0.01',
-      //   none: 122,
-      // }]
     },
 
     async handleAccountChange(addressInfo) {
