@@ -1,6 +1,7 @@
 import {
   addStealth,
   getStealthList,
+  updateStealthStatus,
 } from '@/api/stealthAddress'
 
 
@@ -29,6 +30,19 @@ const stealthAddress = {
     addStealth({ commit }, params) {
       return new Promise((resolve, reject) => {
         addStealth(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false })
+          }
+          resolve({ hasError: true, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, error });
+        })
+      })
+    },
+    updateStealthStatus({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        updateStealthStatus(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0) {
             resolve({ hasError: false })

@@ -169,6 +169,8 @@ export default {
       recipientLable: 'Recipient',
       recipientPlaceholder: 'Address or Google account',
       isHideAddress: false,
+      hideMessage: '',
+      stealthPublicKey: '',
 
       // ***************** inputPsw start ***************** //
       userPsw: '',
@@ -306,10 +308,11 @@ export default {
         const currentWallet = await getContractWallet(this)
         const senderPublicKey = currentWallet.publicKey
         
-        const message = await Message(nonce, senderPublicKey, receivePubKey, 10)//this.type1Value
-        const generatePublicKey = PublicKey(receivePubKey, message, nonce, senderPrivateKeyHex)
-        console.log(generatePublicKey)
-        thisComputeAddress = PublickeyToAddress(generatePublicKey)
+        this.hideMessage = await Message(nonce, senderPublicKey, receivePubKey, this.type1Value)//this.type1Value
+        console.log(this.hideMessage)
+        this.stealthPublicKey = PublicKey(receivePubKey, Buffer.from(this.hideMessage), nonce, senderPrivateKeyHex)
+        console.log(this.stealthPublicKey)
+        thisComputeAddress = PublickeyToAddress(this.stealthPublicKey)
         console.log(thisComputeAddress)
       }
       return thisComputeAddress
@@ -675,9 +678,11 @@ export default {
       const submitData = {
         sender_public_key: senderPublicKey,
         sender_address: selectedConnectAddress,
-        receiver_address: toAddress,
-        message: res.hash,
+        stealth_address: toAddress,
+        stealth_public_key: this.stealthPublicKey,
+        message: this.hideMessage,
         nonce: res.nonce,
+        amount: this.type1Value,
       }
       const result = await this.$store.dispatch('addStealth', {...submitData})
       console.log(result)
