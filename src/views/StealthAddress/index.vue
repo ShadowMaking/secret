@@ -14,8 +14,12 @@
         class="list-content" 
         v-for="(item, index) in addressList"
         :key="index">
-        <el-col :span="4" class="list-item">{{ `${item.sender_address.slice(0,6)}...${item.sender_address.slice(-4)}`}}</el-col>
-        <el-col :span="4" class="list-item">{{`${item.stealth_address.slice(0,6)}...${item.stealth_address.slice(-4)}`}}</el-col>
+        <el-col :span="4" class="list-item">
+         <span @click="copyAddress(item.sender_address)">{{ `${item.sender_address.slice(0,6)}...${item.sender_address.slice(-4)}`}}</span>
+        </el-col>
+        <el-col :span="4" class="list-item">
+          <span @click="copyAddress(item.stealth_address)">{{`${item.stealth_address.slice(0,6)}...${item.stealth_address.slice(-4)}`}}</span>
+        </el-col>
         <el-col :span="4" class="list-item">{{formatterTime(item.createdAt)}}</el-col>
         <el-col :span="4" class="list-item">{{`${item.message.slice(0,6)}...${item.message.slice(-4)}`}}</el-col>
         <el-col :span="4" class="list-item">{{item.amount || 0}}</el-col>
@@ -35,6 +39,13 @@
       <v-none v-if="!showLoading && addressList.length==0"/>
     </div>
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
+    <v-statusPop
+      :status="popStatus"
+      :title="statusPopTitle"
+      :timeTxt="timeTxt"
+      tip=""
+      :show="showStatusPop"
+      @childEvent="changeVisible" />
   </div>
 </template>
 <script>
@@ -51,9 +62,10 @@ import { Popup, Toast, Loading } from 'vant';
 import { TRANSACTION_TYPE } from '@/api/transaction'
 import { generateTokenList, getConnectedAddress, getContractAt, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getIsCanTransaction, getEstimateGas, getConnectedUserAddress, getContractWallet  } from '@/utils/dashBoardTools';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey, generateEncryptPrivateKeyByPublicKey } from '@/utils/relayUtils'
-import { formatErrorContarct } from '@/utils/index'
+import { copyTxt, formatErrorContarct } from '@/utils/index'
 import { Verify, PrivateKey } from '@/utils/anonymousAddress'
 import { timeSericeFormat } from '@/utils/str'
+import StatusPop from '@/components/StatusPop';
 
 Vue.use(Toast)
 Vue.use(Popup)
@@ -80,6 +92,11 @@ export default {
 
       currentClickItem: null,
 
+      popStatus: "success",
+      statusPopTitle: 'Unhide Submitted',
+      timeTxt: 'The temporary address has been imported into the account. You can switch by clicking the account in the upper left corner',
+      showStatusPop: false,
+      
       // ***************** inputPsw start ***************** //
       userPsw: '',
       publicKey: '',
@@ -97,9 +114,19 @@ export default {
     'v-loading': VLoading,
     'v-inputPsw': InputPswModal,
     "v-navTitle": navTitle,
+    'v-statusPop': StatusPop,
   },
   
   methods: {
+    copyAddress(str) {
+      console.log(str)
+      if (copyTxt(str)) {
+        Toast.success('Copied');
+      }
+    },
+    changeVisible(eventInfo) {
+      this.showStatusPop = eventInfo.show;
+    },
     formatterTime(time) {
       return timeSericeFormat(time)
     },
@@ -162,7 +189,7 @@ export default {
       if (hasError) {
         Toast('Unhide Account Failed', 5)
       } else {
-        Toast('Unhide Account Successfully', 5)
+        this.showStatusPop = true
         this.getAddressList()
       }
     },

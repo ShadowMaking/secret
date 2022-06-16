@@ -19,7 +19,7 @@
           title=""
           width="200"
           trigger="hover"
-          content="Complete the  transfer to the hidden address by entering the public key of the receiver, The recipient can view this transaction in Security-Stealth Address">
+          content="Complete the  transfer to the hidden address by entering the public key of the receiver, The recipient can view this transaction in Privacy-Stealth Address">
           <van-icon name="question-o" slot="reference"/>
         </el-popover>
         
