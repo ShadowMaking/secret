@@ -373,8 +373,8 @@ export default {
     } else {
       this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
     }
-    this.overrides.gasPrice = await getEstimateGas('gasPrice')
-    // this.overrides.gasPrice = 1
+    // this.overrides.gasPrice = await getEstimateGas('gasPrice')
+    this.overrides.gasPrice = 1
     
     this.getIsHasPwd()
   },

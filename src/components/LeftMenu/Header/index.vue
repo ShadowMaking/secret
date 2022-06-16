@@ -82,6 +82,9 @@
                             <li @click.stop="copyAddress(item.address)">
                               <i class="el-icon-document-copy more-pop-icon"></i>Copy Address
                             </li>
+                            <li @click.stop="copyPublicKey(item, 'user')" v-if="item.address===currentshowAddress">
+                              <i class="el-icon-document-copy more-pop-icon"></i>Copy Public Key
+                            </li>
                             <!-- <li class="redColor">
                               <i class="el-icon-remove-outline more-pop-icon"></i>断开
                             </li> -->
@@ -173,7 +176,7 @@ import { initTokenTime, updateLoginTime, removeTokens, tokenIsExpires, logout, c
 import { saveToStorage, getFromStorage, removeFromStorage, getInfoFromStorageByKey } from '@/utils/storage';
 import { generateEncryptPrivateKeyByPublicKey, generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 
-import { getConnectedAddress, getConnectedNet, getBalanceByAddress } from '@/utils/dashBoardTools';
+import { getConnectedAddress, getConnectedNet, getBalanceByAddress, getContractWallet, getDecryptPrivateKeyFromStore } from '@/utils/dashBoardTools';
 
 Vue.use(Popup);
 Vue.use(VanButton);
@@ -211,6 +214,7 @@ export default {
 
       copyAddressTxt: 'Copy Address',
       showAccountInfo: false,
+      currentOprType: '',
 
       ownWalletList: [],
       currentshowAddress: '',//user address or wallet address
@@ -241,6 +245,28 @@ export default {
     }
   },
   methods: {
+    async copyPublicKey(record, type) {
+      this.currentOprType = 'publicKey'
+      this.currentAccountType = type
+      this.changeTargetAccountInfo  = _.cloneDeep(record)
+      // check privateKey whether is existed
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      this.getPublicKey()
+    },
+    async getPublicKey() {
+      const currentWallet = await getContractWallet(this)
+      const currentPublicKey = currentWallet.publicKey
+      if (currentPublicKey) {
+        this.copyAddress(currentPublicKey)
+      } else {
+        Toast('Failed to get public key')
+      }
+      console.log(currentPublicKey)
+    },
     loginIn() {
       this.$router.push({ path: '/loginIn' })
     },
@@ -379,10 +405,10 @@ export default {
     async handleChangeAccount(record, privateKey) {
       const address = record.address
       const showAddress = (this.currentAccountType == 'user' ? record.address : record.wallet_address)
-      if (this.currentshowAddress.toLocaleLowerCase() === showAddress.toLocaleLowerCase()) {
-        this.showAccountSetPopover = false
-        return
-      }
+      // if (this.currentshowAddress.toLocaleLowerCase() === showAddress.toLocaleLowerCase()) {
+      //   this.showAccountSetPopover = false
+      //   return
+      // }
       this.currentshowAddress = showAddress
       this.currentUserAddress = address
       this.getCurrentBalance()
@@ -399,9 +425,14 @@ export default {
       }
       await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey: encryptPrivateKey, privateKey })
       this.$eventBus.$emit('changeAccout', addressInfo)
-      this.showAccountSetPopover = false
+      if (this.currentOprType == 'publicKey') {
+        this.getPublicKey()
+      } else {
+        this.showAccountSetPopover = false
+      }
     },
     async changeAccount(record, type) {
+      this.currentOprType = 'changeAccount'
       this.currentAccountType = type
       this.changeTargetAccountInfo  = _.cloneDeep(record)
       this.showInputPswModal = true

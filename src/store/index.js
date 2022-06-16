@@ -10,6 +10,7 @@ import socailRecovery from './modules/socailRecovery';
 import ncWallet from './modules/ncWallet';
 import relay from './modules/relay';
 import getters from './getters'
+import stealthAddress from './modules/stealthAddress';
 
 Vue.use(Vuex);
 
@@ -33,6 +34,7 @@ const store = new Vuex.Store({
     token,
     ncWallet,
     relay,
+    stealthAddress,
 },
   getters,
   // plugins: [persistedState()]

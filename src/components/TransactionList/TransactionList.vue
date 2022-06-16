@@ -446,10 +446,6 @@ export default {
         return 
       }
       const contractWallet = await getContractWallet(this)
-      console.log(typeof(this.overrides.gasPrice))
-      console.log(typeof(this.overrides.gasLimit))
-      console.log(this.overrides.gasPrice)
-      console.log(this.overrides.gasLimit)
       const sendData = {
         from: txResult.from,
         to: txResult.to,
@@ -541,7 +537,7 @@ export default {
     },
     confirmSpeedModal({ overrides }) {
       console.log(overrides)
-      this.overrides.gasLimit = overrides.gasLimit
+      this.overrides.gasLimit = Number(overrides.gasLimit)
       this.overrides.gasPrice = web3.utils.toWei(overrides.gasPrice, 'gwei')
       this.showSubmitLoading = true
       this.dealDataSpeedContract()

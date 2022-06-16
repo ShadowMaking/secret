@@ -444,3 +444,11 @@ export const getMultSignMessage = async (destinationAddr, value, data, nonce) =>
   ].map((hex) => hex.slice(2)).join("")}`;
   return ethers.utils.keccak256(input)
 }
+
+export const PublickeyToAddress = (pubkeyHex) => {
+  if (pubkeyHex.slice(0,2) != "0x") {
+    pubkeyHex = "0x" + pubkeyHex;
+  }
+  let address = ethers.utils.computeAddress(pubkeyHex)
+  return address;
+}

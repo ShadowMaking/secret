@@ -30,6 +30,7 @@ const ProposalList = () => import('../views/ProposalList/index')
 const AddProposal = () => import('../views/AddProposal/index')
 const ProposalDetail = () => import('../views/ProposalDetail/index')
 const ProposalDelegate = () => import('../views/ProposalDelegate/index')
+const StealthAddress = () => import('../views/StealthAddress/index')
 
 //old page not use
 const Test = () => import('../views/Test')
@@ -346,6 +347,14 @@ const routes = [
       title: "proposalDelegate",
     },
     component: ProposalDelegate,
+  },
+  {
+    path: '/stealthAddress',
+    name: 'stealthAddress',
+    meta: {
+      title: "stealthAddress",
+    },
+    component: StealthAddress,
   },
 ];
 
