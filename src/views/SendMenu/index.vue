@@ -348,8 +348,9 @@ export default {
           return
         }
       }
+      const toSendAddress = await this.getToSendAddress()
       const sendData = {
-        toAddress: this.addressForRecipient,
+        toAddress: toSendAddress,
         selectedToken: this.selectedToken,
         type1Value: this.type1Value,
         type2Value: this.type2Value,
