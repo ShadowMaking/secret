@@ -6,7 +6,7 @@
         <el-col :span="4" class="list-header-item">Sender Address</el-col>
         <el-col :span="4" class="list-header-item">Stealth Address</el-col>
         <el-col :span="4" class="list-header-item">Time</el-col>
-        <el-col :span="4" class="list-header-item">Detail</el-col>
+        <el-col :span="4" class="list-header-item">Token</el-col>
         <el-col :span="4" class="list-header-item">Amount</el-col>
         <el-col :span="4" class="list-header-item">Operation</el-col>
       </el-row>
@@ -21,7 +21,7 @@
           <span @click="copyAddress(item.stealth_address)">{{`${item.stealth_address.slice(0,6)}...${item.stealth_address.slice(-4)}`}}</span>
         </el-col>
         <el-col :span="4" class="list-item">{{formatterTime(item.createdAt)}}</el-col>
-        <el-col :span="4" class="list-item">{{`${item.message.slice(0,6)}...${item.message.slice(-4)}`}}</el-col>
+        <el-col :span="4" class="list-item">{{item.token_name || 'ETH'}}</el-col>
         <el-col :span="4" class="list-item">{{item.amount || 0}}</el-col>
         <el-col :span="4" class="list-item item-contract">
           <div class="item-con-right">
@@ -213,7 +213,8 @@ export default {
     
     async getAddressList() {
       this.showLoading = false
-      const { hasError, list} = await this.$store.dispatch('getStealthList')
+      const userId = getInfoFromStorageByKey('gUID')
+      const { hasError, list} = await this.$store.dispatch('getStealthList',{user_id: userId})
       console.log(list)
       this.addressList = list
     },

@@ -4,7 +4,7 @@ import request from '@/utils/request';
 
 /**
  * @description: Add a hide transaction history
- * @param {"sender_public_key":,"sender_address", "stealth_public_key", "stealth_address", "message", "nonce" ,"amount"}
+ * @param {"sender_public_key":,"sender_address", "stealth_public_key", "stealth_address", "message", "nonce" ,"amount","user_id","token_name"}
  * @return {*}
  */
  export const addStealth = (data) => {
@@ -17,7 +17,7 @@ import request from '@/utils/request';
 
 /**
  * @description: Get Stealth list
- * @param {"userPublick", "sender_public_key", message, none}
+ * @param {"user_id"}
  * @return {*}
  */
  export const getStealthList = (data) => {

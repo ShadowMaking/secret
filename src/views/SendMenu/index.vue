@@ -656,7 +656,7 @@ export default {
       console.log(submitData)
       await this.addHistory(submitData);
       if (this.isHideAddress) {
-        await this.addStealHistory(res, address);
+        await this.addStealHistory(res, address, symbolName);
       }
     },
     sendFailed(error) {
@@ -672,10 +672,11 @@ export default {
       this.statusPopTitle = errorValue
       this.popStatus = 'fail';
     },
-    async addStealHistory(res, address) {
+    async addStealHistory(res, address, symbolName) {
       const { selectedConnectAddress, toAddress } = address
       const currentWallet = await getContractWallet(this)
       const senderPublicKey = currentWallet.publicKey
+      const userId = getFromStorage('gUID')
       const submitData = {
         sender_public_key: senderPublicKey,
         sender_address: selectedConnectAddress,
@@ -684,6 +685,8 @@ export default {
         message: this.hideMessage,
         nonce: res.nonce,
         amount: this.type1Value,
+        user_id: userId,
+        token_name: symbolName,
       }
       const result = await this.$store.dispatch('addStealth', {...submitData})
       console.log(result)
