@@ -132,21 +132,22 @@ export default {
     },
     async dealDataBeforeUnHide() {
       this.showLoadingModal = true
-      if (!this.verifyAddress()) {
+      const isVerify = await this.verifyAddress()
+      if (!isVerify) {
         this.showLoadingModal = false
         Toast('Verify Failed')
         return
       }
       const newPrivateKey = await this.getStealPrivateKey()
+      console.log(newPrivateKey)
       if (!newPrivateKey) {
         this.showLoadingModal = false
         Toast('Get PrivateKey Failed')
         return
       }
-      this.importAccount(newPrivateKey)
+      // this.importAccount(newPrivateKey)
     },
     async importAccount(newPrivateKey) {
-      console.log(newPrivateKey)
       const newWallet = new ethers.Wallet(newPrivateKey);
       const address = newWallet.address
       const encryptPrivateKeyPublicKey = generateEncryptPrivateKeyByPublicKey(this.publicKey, newPrivateKey)
@@ -193,13 +194,15 @@ export default {
         this.getAddressList()
       }
     },
-    async verifyAddress() {
+   async verifyAddress() {
       const currentUserPrivateKey = await getDecryptPrivateKeyFromStore(this)
-      const receicePublickey = this.currentClickItem.receiver_address
       const isVerify = Verify(this.currentClickItem.stealth_public_key, currentUserPrivateKey, Buffer.from(this.currentClickItem.message), this.currentClickItem.nonce, this.currentClickItem.sender_public_key)
+      console.log(isVerify)
       return isVerify
     },
     async getStealPrivateKey() {
+      const currentWallet = await getContractWallet(this)
+      const currentPublicKey = currentWallet.publicKey
       const currentUserPrivateKey = await getDecryptPrivateKeyFromStore(this)
       const stealPrivateSk = PrivateKey(currentUserPrivateKey, Buffer.from(this.currentClickItem.message), this.currentClickItem.nonce, this.currentClickItem.sender_public_key)
       const stealPrivate = stealPrivateSk.getPrivate().toString("hex")
