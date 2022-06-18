@@ -1,0 +1,32 @@
+.stealth-box {
+    .stealth-list {
+      text-align: left;
+      .list-header {
+        font-size: 0.84rem;
+        font-weight: bold;
+        .list-header-item {
+          border-bottom: 1px solid #dfdfdf;
+        }
+        line-height: 40px;
+      }
+      .list-item {
+        border-bottom: 1px solid #dfdfdf;
+        line-height: 50px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        .item-con-right {
+          a {
+            padding: 4px 20px;
+            background-color: #4375f1;
+            color: #fff;
+            border-radius: 5px;
+          }
+        }
+      }
+      .list-detail {
+        color: #4375f1;
+        cursor: pointer;
+      }
+    }
+  }

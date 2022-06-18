@@ -237,6 +237,7 @@ export default {
       }
       const { hasError } = await this.$store.dispatch('UploadEncrpytKeyByAddress', { userId, address, encryptKey: encryptPrivateKey })
       if (hasError) {
+        this.showLoading = false
         console.log('Upload EncrpytKey Failed')
         Toast('Import Failed', 5)
         return
