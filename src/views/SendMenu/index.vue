@@ -677,6 +677,7 @@ export default {
       const currentWallet = await getContractWallet(this)
       const senderPublicKey = currentWallet.publicKey
       const userId = getFromStorage('gUID')
+      const receiverAddress = PublickeyToAddress(this.addressForRecipient)
       const submitData = {
         sender_public_key: senderPublicKey,
         sender_address: selectedConnectAddress,
@@ -687,6 +688,7 @@ export default {
         amount: this.type1Value,
         user_id: userId,
         token_name: symbolName,
+        receiver_address: receiverAddress.toLocaleLowerCase(),
       }
       const result = await this.$store.dispatch('addStealth', {...submitData})
       console.log(result)

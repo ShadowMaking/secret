@@ -17,7 +17,7 @@ import request from '@/utils/request';
 
 /**
  * @description: Get Stealth list
- * @param {"user_id"}
+ * @param {"user_id",receiver_address}
  * @return {*}
  */
  export const getStealthList = (data) => {
