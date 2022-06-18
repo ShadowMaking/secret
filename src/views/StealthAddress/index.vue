@@ -145,7 +145,7 @@ export default {
         Toast('Get PrivateKey Failed')
         return
       }
-      // this.importAccount(newPrivateKey)
+      this.importAccount(newPrivateKey)
     },
     async importAccount(newPrivateKey) {
       const newWallet = new ethers.Wallet(newPrivateKey);
@@ -217,7 +217,10 @@ export default {
     async getAddressList() {
       this.showLoading = false
       const userId = getInfoFromStorageByKey('gUID')
-      const { hasError, list} = await this.$store.dispatch('getStealthList',{user_id: userId})
+      const currentAddress = getConnectedAddress()
+      const { hasError, list} = await this.$store.dispatch('getStealthList',{user_id: userId,
+        receiver_address: currentAddress
+      })
       console.log(list)
       this.addressList = list
     },
