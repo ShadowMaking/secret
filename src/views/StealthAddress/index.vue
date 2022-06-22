@@ -66,6 +66,9 @@ import { copyTxt, formatErrorContarct } from '@/utils/index'
 import { Verify, PrivateKey } from '@/utils/anonymousAddress'
 import { timeSericeFormat } from '@/utils/str'
 import StatusPop from '@/components/StatusPop';
+const {
+    accountHelper,
+} = require("@ieigen/zkzru")
 
 Vue.use(Toast)
 Vue.use(Popup)
@@ -276,6 +279,12 @@ export default {
       this.addressList = []
       await this.getAddressList()
     },
+    async test() {
+      let zeroAccountUser = ethers.Wallet.createRandom()
+      const zeroAccountPrvkey = zeroAccountUser.privateKey;
+      const zeroAccountPubkey = await accountHelper.generatePubkey(zeroAccountPrvkey)
+      console.log(zeroAccountPubkey)
+    },
   },
   async created (){
     this.$eventBus.$on('changeAccout', this.handleAccountChange)
@@ -292,6 +301,7 @@ export default {
     this.overrides.gasPrice = await getEstimateGas('gasPrice', 3000000000)
 
     await this.getAddressList()
+    this.test()
   }
 }
 </script>

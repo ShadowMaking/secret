@@ -1,54 +1,51 @@
 <template>
   <div class="deposit-page content-box">
-    <div class="deposit-toL2-tip flex">
-      <div><i class="info_icon"></i></div>
-      <div class="flex flex-column">
-        <p>Deposit to L2</p>
-        <div class="expand">
-          <span class="expand-tip">{{ RECHAERGE_TIP }}</span>
+    <v-navTitle :title="navTtile" helpUrl="docs/usage/Send"></v-navTitle >
+    <div class="deposit-des">{{navDes}}</div>
+    <div class="send-menu content-page">
+      <v-InputSelect :label="recipientLable" :placeholder="recipientPlaceholder" :isSearch="true" @inputChange="handleAddressInputChange" v-if="currentModule !== 'dp'"/>
+      <v-formSelect 
+        label="Token"
+        :labelShow="false" 
+        placeholder="chose token"
+        leftIcon="https://s3.amazonaws.com/token-icons/0x6b175474e89094c44da98b954eedeac495271d0f.png" 
+        :dataSource="assetsTokenList"
+        @change="handleTokenChange"
+        ref="tokenSelect">
+      </v-formSelect>
+      <div class="send-value-box">
+        <div class="send-value-item">
+          <v-formInput :label="selectedToken && `${selectedToken.tokenName}`||'ETH'" placeholder="0" :value="type1Value" @inputChange="e=>handleExchangeInputChange(e,'type1')" :limitInput="true"/>
+          <label class="blueColor">{{ selectedToken && `${selectedToken.balanceNumberString} ${selectedToken.tokenName}` || "0 ETH"}}</label>
+        </div>
+        <div class="send-value-item">
+          <v-formInput label="USD" placeholder="0" :value="type2Value" @inputChange="e=>handleExchangeInputChange(e,'type2')" :limitInput="true" />
+          <label>Max US${{ exchangeUSForSelectedToken }}</label>
         </div>
       </div>
-    </div>
-    <div class="deposit-opt-area">
-      <van-tabs v-model="activeName">
-        <van-tab title="Deposit From L1" name="fromL1">
-          <v-tokenAmount
-            key="tokenAmount-deposit"
-            type="deposit"
-            @childEvent="submitRecharge" />
-        </van-tab>
-        <van-tab title="Deposit From L2" name="fromL2">
-          <div class="deposit-amount-wrap">
-            <div class="flex flex-center">
-              <div class="img-QR" v-if="defaultAddress!=='' && !walletIsLock">
-                <div ref="qrCodeUrl"></div>
-              </div>
-              <div v-else class="unlock-wallet-button-wrapper">
-                <v-unlockwallet key="unlockWalletButton" expectNetType="l1" />
-              </div>
-            </div>
-            <div class="deposit-address-wrapper" v-if="!walletIsLock">
-              <h3>Deposit Address</h3>
-              <div class="address">{{ defaultAddress }}</div>
-              <van-button color="#ECEEF8" class="copy-address" @click="copyAddress">
-                <span slots="default" style="color:#495ABE">{{ copyButtonTxt}}</span>
-              </van-button>
-              <span>
-                <span>EigenSecret supported assets only.</span>
-                <span>Do not send other assets to this address.</span>
-              </span>
-            </div>
-          </div>
-        </van-tab>
-      </van-tabs>
-    </div>
-    <v-exchangeList key="comon-exchangeList" type="L1ToL2" v-show="activeName=='fromL1'&&!walletIsLock" />
-    <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-      <div class="inner-wrapper">
-        <i class="confirm_icon"></i>
-        <span class="tip">{{ tipTxt }}</span>
+      <div class="gas-price-box">
+        <div>Gas Price</div>
+        <div class="gas-price-setting">
+          <span class="blueColor">{{ selectedGasType }}</span>
+          <a class="blueColor" id="gasSetting" @click="gasBtn"><i class="gasPriceSetting"></i></a>
+        </div>
       </div>
-    </van-popup>
+      <div class="send-btn-box">
+        <a class="common-form-btn" @click="sendSubmit">{{submitTxt}}</a>
+      </div>
+      <van-popup v-model="gasPopupVisible" round :style="{ width: '260px' }">
+        <div v-if="loadingGas" :style="{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }"><van-loading type="spinner" /></div>
+        <div class="gas-popup-box" v-else>
+          <div class="header"><h3>Gas Price</h3></div>
+          <ul class="gas-price-list">
+            <v-selectItem :rightVal="gasPriceValue('Fast')" labelShow=true leftTitle="Fast" :leftDes="gasPriceConfirmTime('Fast')" :icon="require('@/assets/form/gasFast.png')" @childevent="selectChagne('Fast')"></v-selectItem>
+            <v-selectItem :rightVal="gasPriceValue('Average')" labelShow=true leftTitle="Average" :leftDes="gasPriceConfirmTime('Average')" :icon="require('@/assets/form/gasAverag.png')" @childevent="selectChagne('Average')"></v-selectItem>
+            <v-selectItem :rightVal="gasPriceValue('Average')" labelShow=true leftTitle="Custom"  :icon="require('@/assets/form/gasCustom.png')" @inputChange="inputGasChange" :showInput="true"></v-selectItem>
+          </ul>
+        </div>
+      </van-popup>
+    </div>
+    <v-loadingPopup :show="showLoading" :showSpinner="false" />
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
@@ -56,291 +53,690 @@
       tip=""
       :show="showStatusPop"
       @childEvent="changeVisible" />
-    <van-popup v-model="showRefresh" class="status-popUp-refresh flex flex-center flex-column">
-      <i class="icon icon-failed"></i>
-      <span class="main-txt">No Transactions</span>
-      <span class="supplement-txt">Refresh to get history</span>
-      <van-button block color="#495ABF" class="button" @click="retryAddHistory">{{ refreshing?"Refresh...":"Refresh"}}</van-button>
-    </van-popup>
-    <v-netTipPopup :show="showNetTip" key="netTipModal" showType="l1"/>
+    <v-confirmModal
+      :show="showTradeConfirm"
+      :type="transactionType"
+      :metadata="sendMetadata"
+      @close="showTradeConfirm=false"
+      @reject="cancelSend"
+      @confirm="confirmSend" />
+    <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
+
 <script>
+import _ from 'lodash'
 import Vue from 'vue';
-import _ from 'lodash';
-import { RECHAERGE_TIP } from '@/utils/global';
-import ExchangeList from '@/components/ExchangeList';
-import TokenAmount from '@/components/TokenAmount';
+import { Popup, Toast, Loading } from 'vant';
+import navTitle from '@/components/NavTitle/index';
+import formInput from '@/components/Input/index';
+import selectItem from '@/components/SelectItem/index';
+import formSelect from '@/components/Select/index';
 import StatusPop from '@/components/StatusPop';
-import NetTipModal from '@/components/NetTipModal';
-import UnlockWallet from '@/components/UnlockWallet';
-import { wait, prettyLog } from '@/utils/index'
-import { Tab, Tabs, Button, Col, Row, Toast, Popup, CountDown, Dialog } from 'vant';
-import { getNetMode, getSelectedChainID, initBrideByNetType } from '@/utils/web3'
-import { utils, ethers, BigNumber as ethBigNumber } from 'ethers'
-import { DEFAULTIMG } from '@/utils/global';
-import { NETWORKS } from '@/utils/netWork'
-// import { NETWORKS } from '@/utils/netWork_arb'
-import { Bridge } from 'arb-ts';
-import { TRANSACTION_TYPE } from '@/api/transaction';
-import { copyTxt } from '@/utils/index';
-import { getTokenAddress } from '@/utils/token';
-import QRCode from 'qrcodejs2'
+import ConfirmModal from '@/components/ConfirmModal';
+import LoadingPopup from '@/components/LoadingPopup';
+import InputPswModal from '@/components/InputPswModal'
+import InputSelect from '@/components/InputSelect/index';
+import { ethers, utils } from 'ethers'
+import web3 from 'web3'
+import { walletTransactionRouter, multOperation, securityModuleRouter, lockType } from '@/utils/global';
 import { BigNumber } from "bignumber.js";
-import web3, { utils as web3utils } from 'web3';
-import { getConnectedAddress } from '@/utils/dashBoardTools';
+import { TRANSACTION_TYPE } from '@/api/transaction';
+import { CHAINMAP } from '@/utils/netWorkForToken';
+import { getInfoFromStorageByKey, getFromStorage } from '@/utils/storage';
+import {
+  generateTokenList, getDefaultETHAssets, getConnectedAddress,
+  getContractWallet, isLogin, getDATACode, getContractAt, 
+  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas, getConnectedUserAddress } from '@/utils/dashBoardTools';
+import WalletTransaction from "@/assets/contractJSON/TransactionModule.json";
+import WalletJson from "@/assets/contractJSON/Wallet.json";
+import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
+import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
+import { promiseValue, formatErrorContarct } from '@/utils/index'
 
-const { parseEther } = utils;
-
-
-Vue.use(Tab);
-Vue.use(Tabs);
-Vue.use(Button);
-Vue.use(Col);
-Vue.use(Row);
-Vue.use(Toast);
 Vue.use(Popup);
-Vue.use(CountDown);
-Vue.use(Dialog);
+Vue.use(Toast)
+Vue.use(Loading)
 
 export default {
-  name: "Deposit",
-  components: {
-    'v-exchangeList': ExchangeList,
-    'v-tokenAmount': TokenAmount,
-    'v-statusPop': StatusPop,
-    "v-netTipPopup": NetTipModal,
-    "v-unlockwallet": UnlockWallet,
-  },
+  name: 'SendMenu',
   data() {
     return {
-      DEFAULTIMG,
-      RECHAERGE_TIP,
-      activeName: 'fromL1', // fromL1 | fromL2
-      show: false,
-      tipTxt: 'Confirm On The Wallet',
-      showStatusPop: false,
+      gasPopupVisible: false,
+      addressForRecipient: '',
+      assetsTokenList: [],
+      selectedToken: null,
+      type1Value: '',
+      type2Value: '',
+      showLoading: false,
       popStatus: "success",
-      statusPopTitle: 'Transfer Submitted',
-      // timeTxt: 'It is expected to take effect within 1 minute',
-      // tip: 'You can check the transaction details in the transaction record',
+      statusPopTitle: 'Send Submitted',
       timeTxt: 'Will take effect in one minute',
-      showNetTip: false,
-      bridge: null,
-      addHistoryData: null,
-      showRefresh: false,
-      refreshing: false,
-      defaultAddress: this.$store.state.metamask.accountsArr[0] || "",
-      copyButtonTxt: 'Copy Address',
+      showStatusPop: false,
+      gasPriceInfo: null,
+      selectedGasType: '',
+      loadingGas: false,
+      currentChainInfo: null,
+      defaultNetWork: '',
+    
+      sendType: '', // eth||token
+      sendMetadata: null,
+      showTradeConfirm: false,
+
+      transFromType: 1, //1-account address ,2-wallet address
+      transFromAddress: getConnectedAddress(),
+      walletTransactionRouter,
+      modelData: '',
+
+      multOperation,
+      securityModuleRouter,
+
+      recipientLable: 'Recipient',
+      recipientPlaceholder: 'Address or Google account',
+
+      navTtile: 'Deposit to L2',
+      navDes: 'Pledge the money from main network to L2.',
+      submitTxt: 'Deposit',
+      currentModule: 'dp',
+
+      
+      // ***************** inputPsw start ***************** //
+      userPsw: '',
+      publicKey: '',
+      aesKey: '', // every decrypt has the same aesKey
+      encryptPsw: '',
+      encryptPrivateKeyPublicKey: '',
+      encryptCr1: '',
+      confirmPswBtnLoading: false,
+      showInputPswModal: false,
+      // ***************** inputPsw end ***************** //
     }
   },
+  components: {
+    "v-navTitle": navTitle,
+    "v-formInput": formInput,
+    "v-selectItem": selectItem,
+    "v-formSelect": formSelect,
+    'v-statusPop': StatusPop,
+    'v-confirmModal': ConfirmModal,
+    'v-loadingPopup': LoadingPopup,
+    'v-inputPsw': InputPswModal,
+    'v-InputSelect': InputSelect,
+  },
   watch: {
-    activeName(newValue, oldValue) {
-      if (newValue === 'fromL2') {
-        window.setTimeout(()=>{
-          this.creatQrCode();
-        },0)
-      }
-    },
-    '$store.state.metamask.walletIsLock': function (res) {
-      if (!this.walletIsLock) {
-        window.setTimeout(()=>{
-          this.creatQrCode();
-        },800)
-      }
+    "$route": function(to, from) {
+      this.currentModule = this.$route.query.type;
+      this.getCurrentModuleTxt()
     }
   },
   computed: {
-    walletIsLock() {
-      return this.$store.state.metamask.walletIsLock;
+    exchangeUSForSelectedToken() {
+      const selectedToken = this.selectedToken
+      if (!selectedToken) { return 0 }
+      
+      const value = ethers.utils.formatUnits(selectedToken.balance, selectedToken.decimals)
+      return selectedToken && (value * selectedToken.exchangeForUS).toFixed(2)
+      // return selectedToken && (selectedToken.balance * selectedToken.exchangeForUS).toFixed(2)
     },
-    metamaskInstall() {
-      return this.$store.state.metamask.metamaskInstall;
+    // Send for ETH ; Transfer for token
+    transactionType() {
+      return this.sendType === 'eth' ? 'Send' : 'Transfer'
     },
   },
   methods: {
-    copyAddress() {
-      if (this.walletIsLock) { return; }
-      copyTxt(this.defaultAddress)
-      this.copyButtonTxt = 'Address Copied'
-      window.setTimeout(()=>{
-        this.copyButtonTxt = 'Copy Address'
-      },800)
+    getCurrentModuleTxt() {
+      switch(this.currentModule) {
+        case 'dp'://Deposit
+          this.navTtile = 'Deposit to L2'
+          this.navDes = 'Pledge the money from main network to L2.'
+          this.submitTxt = 'Deposit'
+          break;
+        case 'wd'://Withdraw
+          this.navTtile = 'Withdraw to L1'
+          this.navDes = 'Transfer funds from L2 to main network.'
+          this.submitTxt = 'Withdraw'
+          break;
+        case 'sd'://send
+          this.navTtile = 'Send in L2'
+          this.navDes = 'Transfer between L2 networks, support plaintext and ciphertext transfer.'
+          this.submitTxt = 'Send'
+          break;
+        default:
+          break;
+      }
     },
-    async getWalletBalance() {
-      const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
-      const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
-      console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString())
+    getDefaultNetWork() {
+      const info = getInfoFromStorageByKey('netInfo')
+      return info && info['id'] || 1
     },
-    depositFailed(error) {
-      this.show = false;
+    gasPriceValue(type) {
+      return this.gasPriceInfo && this.gasPriceInfo[type].gasPrice;
+    },
+    gasPriceConfirmTime(type) {
+      return `${this.gasPriceInfo && this.gasPriceInfo[type].confirmationTime}sec`
+    },
+    changeVisible(eventInfo) {
+      this.showStatusPop = eventInfo.show;
+      if (this.popStatus == 'success') {
+        this.$router.push({
+          path: `/history`,
+          // query: {tabActive: 1},
+        })
+      }
+    },
+    async gasBtn() {
+      this.loadingGas = true;
+      this.gasPopupVisible = true
+      await this.getGasPrice()
+      this.loadingGas = false;
+    },
+    selectChagne(type) {
+      this.gasPopupVisible = false
+      console.log(type)
+      this.selectedGasType = type;
+    },
+    inputGasChange(value) {
+      this.selectedGasType = 'Custom';
+      this.gasPriceInfo['Custom'] = { gasPrice: value.value }
+    },
+    handleAddressInputChange(data) {
+      this.addressForRecipient = data.value
+    },
+    async getTokenAssetsForAccount() {
+      this.assetsTokenList = []
+      const selectedConnectAddress = this.transFromAddress ? this.transFromAddress : getConnectedAddress()
+      console.log(selectedConnectAddress)
+      if (!selectedConnectAddress) { return }
+      const currentChainId = this.currentChainInfo && this.currentChainInfo['id']
+      const hexChainId = currentChainId && web3.utils.numberToHex(currentChainId)
+      const rpcUrl = hexChainId && CHAINMAP[hexChainId]['rpcUrls'][0]
+      const ETHAssets = await getDefaultETHAssets(this, rpcUrl, selectedConnectAddress);
+      const tokenListRes = await this.$store.dispatch('GetAvailableTokenAssets', { selectedConnectAddress, chainInfo: this.currentChainInfo });
+      const { hasError, list } = tokenListRes
+      const tokenList = await generateTokenList(_.cloneDeep(list), this, true, selectedConnectAddress)
+      console.log('tokenList', tokenList)
+      this.assetsTokenList = [].concat([ETHAssets], tokenList)
+    },
+    handleTokenChange(data) {
+      this.selectedToken = data.value;
+      this.type1Value = ''
+      this.type2Value = ''
+    },
+    cancelSend() {
+      this.showTradeConfirm = false
+      Toast('Cancel Transaction')
+    },
+    async confirmSend({ overrides }) {
+      this.showLoading = true
+      this.showTradeConfirm = false
+      const sendType = this.sendType
+      const toSendAddress = this.addressForRecipient
+      const data = {
+        gasPrice: overrides.gasPrice || this.sendMetadata.gasPrice,
+        gasLimit: overrides.gasLimit || this.sendMetadata.gas,
+        toAddress: toSendAddress,//address or publickey
+        selectedToken: this.selectedToken,
+        type1Value: this.type1Value,
+        type2Value: this.type2Value,
+      }
+      if (this.transFromType == 1) {//from is account address
+        if (sendType === 'eth') {
+          await this.sendETH(data)
+        } else {
+          console.log('token')
+          await this.sendToken(data)
+        }
+      } else {//from is transfrom wallet
+        this.walletTrans(data)
+      }
+    },
+    checkData(data) {
+      console.log('checkData')
+      if (!utils.isAddress(data.toAddress)) {
+        Toast(`Invalid Address`);
+        return false;
+      }
+      if (!data.selectedToken) {
+        Toast(`Choose Token`);
+        return false;
+      }
+      if (!data.type1Value) {
+        Toast(`input amount`);
+        return false;
+      }
+      if (new BigNumber(data.selectedToken.balanceNumberString).lt(new BigNumber(data.type1Value)) ||
+      new BigNumber(data.selectedToken.balanceNumberString).eq(new BigNumber(0))) {
+        Toast(`Insufficient Balance`);
+        return false;
+      }
+      return true
+    },
+    async dealDataBeforeSend() {
+      if (this.transFromType == 2) {
+        let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+        let lockStatus = await securityModuleContract.isLocked(this.transFromAddress)
+        console.log('lockstatus:' + lockStatus)
+        if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
+          Toast('Wallet is locked')
+          return
+        }
+      }
+      const toSendAddress = this.addressForRecipient
+      const sendData = {
+        toAddress: toSendAddress,
+        selectedToken: this.selectedToken,
+        type1Value: this.type1Value,
+        type2Value: this.type2Value,
+      }
+
+      const ETHToken = _.find(this.assetsTokenList, {tokenName: 'ETH'})
+      if (ETHToken && ETHToken.balance.lte(0)) {
+        Toast('Not Enough ETH')
+        return
+      }
+      
+      if (!this.checkData(sendData)) { return }
+      this.showLoading = true
+
+      let gasPrice = '20' // 20 Gwei
+      if (this.selectedGasType) {
+        gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.selectedGasType].gasPrice
+      } else {
+        let gasPriceWei = await getEstimateGas('gasPrice')
+        gasPrice = web3.utils.fromWei(gasPriceWei.toString(), 'gwei')
+      }
+
+      const tokenName = this.selectedToken.tokenName
+      this.sendType = tokenName === 'ETH' ? 'eth':'token'
+
+      let datacode = '0x'; // transaction DATA
+      let tempgasfixlimit = '0'; // transaction estimate gas fee
+      if (this.sendType !== 'eth') {
+        const abi = this.selectedToken.abiJson
+        const decimals = BigNumber(10).pow(this.selectedToken.decimals).toNumber() // 1000000000000000000
+        const amount = this.web3.utils.toHex(BigNumber(Number(sendData.type1Value*decimals)).toFixed())
+        // const params = [sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') }]
+        const params = [sendData.toAddress, amount]
+        datacode = getDATACode(abi, 'transfer', params)
+
+        const contractWithSigner = await getContractAt({ tokenAddress: this.selectedToken.tokenAddress, abi: this.selectedToken.abiJson }, this)
+        console.log(contractWithSigner)
+        // tempgasfixlimit = await contractWithSigner.estimateGas.transfer(sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
+        const { hasError,res } = await promiseValue(contractWithSigner.estimateGas['transfer'](
+            sendData.toAddress, amount, { gasLimit: 600000, gasPrice: web3.utils.toWei(gasPrice, 'gwei') }
+          ))
+        hasError && console.log(res)
+        !hasError && res && (tempgasfixlimit = res)
+      }
+      console.log('datacode', datacode)
+      console.log('tempgasfixlimit', tempgasfixlimit)
+      
+      this.modelData = datacode
+      this.sendMetadata = {
+        from: this.transFromAddress,
+        to: this.addressForRecipient,
+        gas: this.sendType !== 'eth' ? 600000 : 462693, // gasLimit default is 21000
+        gasPrice,
+        value: this.type1Value,
+        symbolName: tokenName,
+        netInfo: this.currentChainInfo,
+        DATA: datacode,
+        estimatedGasFee: utils.formatEther(tempgasfixlimit) // todo
+      }
+      this.showLoading = false
+      this.showTradeConfirm = true
+    },
+    async sendSubmit() {
+      /* if (!window.ethereum) {
+        Toast('need install metamask')
+        return
+      }
+      if (!window.ethereum.selectedAddress) {
+        Toast('need connect metamask')
+        return
+      } */
+
+      const selectedConnectAddress = getConnectedAddress()
+      if (!selectedConnectAddress) {
+        Toast('Please Login')
+        return
+      }
+
+      // check privateKey whether is existed
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      await this.dealDataBeforeSend()
+    },
+    async confirmPswOk({ show, psw }) {
+      this.userPsw = psw; // password of user input for encrypt privateKey
+      this.confirmPswBtnLoading = true
+      const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
+      if (hasError) {
+        Toast('Get PublickKey Failed! Retry')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      this.publicKey = publicKey;
+      // console.log(`GetPublicKey result is: ${publicKey}`)
+      
+      // const password = ecies.crypto.randomBytes(16).toString("base64");
+      const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
+      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      // console.log('aesKey:', aesKey)
+      this.aesKey = aesKey
+      this.encryptPsw = encryptPsw
+      this.encryptCr1 = encryptCr1
+      // console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+
+      // to decrypt privatekey
+      const userId = getInfoFromStorageByKey('gUID')
+      const address = getConnectedUserAddress()
+      const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
+      const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
+      if(decryptInfo.hasError) {
+        Toast('DecryptPrivateKeyByEcies failed! Retry!')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      const decryptedPrivateKey = decryptInfo.data
+      const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
+      privateKey && (await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey, privateKey }))
+
+      this.confirmPswBtnLoading = false
+      this.showInputPswModal = false
+      await this.dealDataBeforeSend()
+    },
+    async sendETH(data) {
+      const contractWallet = await getContractWallet(this)
+      // const transactionCount = await contractWallet.getTransactionCount()
+      // console.log('transactionCount', transactionCount)
+      
+      const selectedConnectAddress = getConnectedAddress()
+      const transferAmount = utils.parseEther(data.type1Value);
+      const sendData = {
+        from: selectedConnectAddress,
+        to: data.toAddress,
+        gasLimit: web3.utils.toHex(data.gasLimit),
+        gasPrice: web3.utils.toHex(web3.utils.toWei(data.gasPrice, 'gwei')),
+        value: transferAmount.toHexString(),
+        chainId: this.currentChainInfo['id'],
+        // nonce: transactionCount + 1,
+      }
+      console.log('sendData', sendData)
+      contractWallet.sendTransaction({...sendData})
+      .then(async tx=>{
+        console.log('sendETH tx:', tx)
+        await this.sendSuccess(tx, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress, toAddress: data.toAddress})
+        tx.wait()
+        .then(async res => {
+          console.log('sendETH tx wait res:', res)
+          
+          this.showLoading = false
+        })
+      })
+      .catch(error=>{
+        this.sendFailed(error)
+        this.showLoading = false
+      })
+    },
+    async sendToken(data) {
+      const { gasPrice, gasLimit, ...sendData } = data
+      const selectedConnectAddress = getConnectedAddress()
+      const address = {
+        selectedConnectAddress,
+        toAddress: sendData.toAddress
+      }
+
+      const decimals = BigNumber(10).pow(this.selectedToken.decimals).toNumber() // 1000000000000000000
+      // const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(sendData.type1Value*1000000000000000000)).toFixed())
+      const tokenWithdrawAmount = this.web3.utils.toHex(BigNumber(Number(sendData.type1Value*decimals)).toFixed())
+      
+
+      this.showLoading = true
+      const contractWallet = await getContractWallet(this)
+      let contractWithSigner = new ethers.Contract(this.selectedToken.tokenAddress, this.selectedToken.abiJson, contractWallet)
+      const logData = {
+        1: sendData.toAddress,
+        2: tokenWithdrawAmount,
+        ...{ gasLimit, gasPrice: web3.utils.toWei(gasPrice, 'gwei') }
+      }
+      console.log('sendData', logData)
+      // address, uint256
+      contractWithSigner.transfer(sendData.toAddress, tokenWithdrawAmount, { gasLimit, gasPrice: web3.utils.toWei(gasPrice, 'gwei') })
+      .then(async tx=>{
+        console.log('sendToken tx:', tx)
+        await this.sendSuccess(tx, {...this.selectedToken, amount: sendData.type1Value}, address)
+        tx.wait()
+        .then(async res => {
+          console.log('sendToken tx wait res:', res)
+          
+          this.showLoading = false
+        })
+      })
+      .catch(error => {
+        console.log(error)
+        this.sendFailed(error)
+        this.showLoading = false
+      })
+    },
+    async walletTrans(data) {
+      let thisWalletAddress = this.transFromAddress
+      let inputValue = data.type1Value
+      const walletTransactionContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: WalletTransaction.abi }, this)
+      walletTransactionContract.getLargeAmountPayment(thisWalletAddress).then(res => {
+        let perTransWei =  web3.utils.toBN(res).toString()
+        let maxPerTransaction = web3.utils.fromWei(perTransWei, 'ether')
+        if (inputValue >= maxPerTransaction && this.sendType == 'eth') {//large transaction need multicall
+          this.walletLargeTrans(data)
+        } else {//litte transaction
+          this.walletSamllTrans(data)
+        }
+      }).catch(error => {
+        console.log(error)
+      }) 
+    },
+    async walletSamllTrans(data) {
+      console.log(data)
+      const expireTime = Math.floor((new Date().getTime()) / 1000) + 1800; // 60 seconds
+      
+      let txData = '0x'
+      let thisWalletAddress = this.transFromAddress
+      let amount = ethers.utils.parseEther(data.type1Value)
+      let transTo = data.toAddress
+      let transAmount = amount
+      
+      if (this.sendType !== 'eth') {
+        let iface = new ethers.utils.Interface(data.selectedToken.abiJson)
+        txData = iface.encodeFunctionData("transfer", [data.toAddress, amount])
+        transTo = data.selectedToken.tokenAddress
+        transAmount = 0
+      }
+      console.log(txData)
+
+      const walletContract = await getContractAt({ tokenAddress: this.transFromAddress, abi: WalletJson.abi }, this)
+      let sequenceId = await walletContract.getNextSequenceId()
+      
+      const walletTransactionContract = await getContractAt({ tokenAddress: this.walletTransactionRouter, abi: WalletTransaction.abi }, this)
+      console.log(walletTransactionContract)
+      
+      
+      walletTransactionContract.executeTransaction(
+            thisWalletAddress,
+            [transTo, transAmount, txData, sequenceId, expireTime], {gasLimit: data.gasLimit, gasPrice: web3.utils.toWei(data.gasPrice, 'gwei')}
+      ).then(async tx=>{
+        console.log(tx)
+        await this.sendSuccess(tx, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress: this.transFromAddress, toAddress: data.toAddress}, true)
+        tx.wait().then(async res=>{
+          console.log(res)
+          this.showLoading = false
+        }).catch(error => {
+          this.sendFailed(error)
+          this.showLoading = false
+        })
+      }).catch(error => {
+        this.sendFailed(error)
+        this.showLoading = false
+      })
+    },
+    async walletLargeTrans(data) {
+      // let tx ={
+      //   hash: null
+      // }
+      // await this.sendSuccess(tx, {...this.selectedToken, amount: data.type1Value}, {selectedConnectAddress: this.transFromAddress, toAddress: data.toAddress}, true)
+      let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      const submitData = {
+        user_id: getFromStorage('gUID'),
+        wallet_address: this.transFromAddress,
+        to: data.toAddress,
+        value: data.type1Value,
+        network_id: web3.utils.hexToNumber(this.currentChainInfo['id']),
+        data: this.modelData,
+        operation: multOperation['LargeTransaction']
+      }
+      const res = await this.$store.dispatch('addMultTx', submitData);
+      this.showLoading = false
+      if (res.hasError) {
+        this.showStatusPop = false;
+        console.log('Transaction success，but error when add history')
+      } else  {
+        this.showStatusPop = true;
+        this.statusPopTitle = 'Please waiting for another signer to confirm the transaction in "Overview-History-Multisig Wallt"'
+        this.popStatus = 'success';
+        this.$eventBus.$emit('addTransactionHistory')
+      }
+    },
+    async sendSuccess(res, info, address, isWallet) {
+      const { selectedConnectAddress, toAddress } = address;
+      const symbolName = info.tokenName || 'ETH'
+      this.tipTxt = 'In progress, waitting';
+      const submitData = {
+        txid: res.hash,
+        // block_num: res.blockNumber,
+        from: isWallet ? selectedConnectAddress : (res.from || selectedConnectAddress),
+        to: toAddress || res.to, // res.to is diffrent from toAddress wthen sendToken by contract
+        type: TRANSACTION_TYPE['L2ToL2'],
+        status: 0,
+        value: info.amount,
+        name: symbolName,
+        operation: symbolName === 'ETH' ? 'Send' : 'Transfer', // send、transfer、approve、swap ……
+        network_id: web3.utils.hexToNumber(this.currentChainInfo['id']),
+        from_type: isWallet ? 1 : 0,
+      }
+      this.addHistoryData = _.cloneDeep(submitData);
+      console.log(submitData)
+      await this.addHistory(submitData);
+    },
+    sendFailed(error) {
       if (error.code == '4001') {
         Toast('Cancel Transaction')
         return
       }
       console.log(error)
+      this.showLoading = false
+
       this.showStatusPop = true;
-      this.statusPopTitle = 'Deposit Failed'
+      let errorValue = formatErrorContarct(error)
+      this.statusPopTitle = errorValue
       this.popStatus = 'fail';
-    },
-    async depositSuccess(depositRes, info) {
-      const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
-      let currentChainId = netInfo && netInfo.id
-      
-      this.tipTxt = 'In progress, waitting';
-      const txHash = depositRes.hash;
-      const transactionWaitRes = await depositRes.wait();
-      const { confirmations, from, to, transactionHash, status } = transactionWaitRes
-      console.log('transaction success! res:',depositRes,'waitRes:',transactionWaitRes)
-      const submitData = {
-        txid: txHash,
-        from: depositRes.from,
-        to: depositRes.to,
-        type: TRANSACTION_TYPE['L1ToL2'],
-        status,
-        value: info.amount,
-        block_num: transactionWaitRes.blockNumber,
-        name: info.tokenInfo.symbol,
-        operation: 'Deposit',
-        network_id: web3.utils.hexToNumber(currentChainId)
-      }
-      this.addHistoryData = _.cloneDeep(submitData);
-      await this.addHistory(submitData);
-    },
-    async ethDeposit(info) {
-      const bridge = initBrideByNetType('l1')['bridge'];
-      const ethToL2DepositAmount = parseEther(info.amount);
-      bridge.depositETH(ethToL2DepositAmount) // bridge.depositETH(ethToL2DepositAmount, {gas: web3utils.toHex('21000')})
-      .then(async res=>{
-        await this.depositSuccess(res, info)
-      })
-      .catch(error => {
-        this.depositFailed(error)
-      })
-    },
-    async tokenDeposit(info) {
-      const connectAddress = getConnectedAddress();
-      const bridge = initBrideByNetType('l1')['bridge'];
-      const { symbol } = info.tokenInfo
-      const tokenAddress = getTokenAddress(symbol)
-      // bridge.deposit(tokenAddress, BigNumber.from('800'))
-      const depositTokenNum = this.web3.utils.toHex(BigNumber(Number(info.amount*1000000000000000000)).toFixed())
-      const l1GasPrice = 1;
-      const gasLimit = 594949;
-      const maxGas = 9646610;
-      console.log('depositTokenNum', depositTokenNum)
-      bridge.deposit(tokenAddress, depositTokenNum,
-      {
-        maxGas: ethBigNumber.from(maxGas),
-        gasPriceBid:ethBigNumber.from(1),
-        maxSubmissionPrice: ethBigNumber.from(1)
-      },
-      connectAddress, // l1TestWallet.address,
-      { gasLimit, gasPrice: l1GasPrice })
-      .then(async res=>{
-        await this.depositSuccess(res, info)
-      })
-      .catch(error => {
-        this.depositFailed(error)
-      })
-    },
-    async submitRecharge(info) {
-      this.showStatusPop = false;
-      this.tipTxt = 'Confirm On The Wallet';
-      this.show = true;
-
-      const connectAddress = getConnectedAddress();
-      if (!utils.isAddress(connectAddress)) {
-        Toast(`Wrong Address`);
-        return;
-      }
-
-      const { symbol, isToken } = info.tokenInfo
-      switch (symbol) {
-        case 'ETH':
-          await this.ethDeposit(info)
-          break;
-        case 'EIG':
-          await this.tokenDeposit(info)
-          break;
-      }
     },
     async addHistory(data) {
       const submitData = data || this.addHistoryData;
       if (!submitData) {
         Toast('Params Error');
-        return ;
+        return;
       }
       const res = await this.$store.dispatch('AddTransactionHistory', {...submitData});
-      this.show = false;
+      this.showLoading = false
       if (res.hasError) {
-        this.showRefresh = true;
         this.showStatusPop = false;
-        this.show = false;
-        // this.$router.push({ name: 'home' });
         console.log('Transaction success，but error when add history')
-      } else {
+      } else  {
         this.showStatusPop = true;
-        this.statusPopTitle = 'Transfer Submitted'
+        this.statusPopTitle = 'Submitted'
         this.popStatus = 'success';
-        // prettyLog('transaction is in progress，waiting fro 10s....')
-        await wait();
-        this.showStatusPop = false;
-        // this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L1ToL2'});
-        this.$router.push({ name: 'home' });
+        this.$eventBus.$emit('addTransactionHistory')
       }
       return { hasError: res.hasError };
     },
-    async retryAddHistory() {
-      this.refreshing = true;
-      const res = await this.addHistory();
-      if (!res.hasError) {
-        this.showRefresh = false;
+    async handleExchangeInputChange(data, type) {
+      console.log(type, data)
+      const value = data.value
+      this[`${type}Value`] = value
+      if (type === 'type1') {
+        this.type2Value = !this.selectedToken ? value * this.ETHFORUS : value * this.selectedToken.exchangeForUS
+      }
+      if (type === 'type2') {
+        this.type1Value = !this.selectedToken ? value * this.ETHFORUS : value * this.selectedToken.exchangeForUS
+      }
+    },
+    async getGasPrice() {
+      const { hasError, data } = await this.$store.dispatch('GetGasPriceByEtherscan');
+      console.log(data)
+      if (data) { this.gasPriceInfo = data }
+    },
+    async transFromChange(data) {
+      let dataArray = data.split('-')
+      this.transFromType = dataArray[0]
+      this.transFromAddress = dataArray[1]
+      await this.getTokenAssetsForAccount()
+      console.log(this.transFromAddress)
+    },
+    async handleAccountChange(addressInfo) {
+      this.showLoading = true;
+      this.transFromAddress = getConnectedAddress()
+      await this.getCurrentAccountType()
+      await this.getTokenAssetsForAccount()
+      this.showLoading = false;
+    },
+    _handleNetworkChange({ chainInfo, from }) {
+      if (from === 'sendMenu') { return }
+      this.defaultNetWork = chainInfo.id
+    },
+    getCurrentAccountType() {
+      const userId = getFromStorage('gUID')
+      if (userId) {
+        const userMap = getInfoFromStorageByKey('userMap');
+        const userData = userMap && userMap[userId]
+        if (userData['walletAddress']) {
+          this.transFromType = 2
+        } else {
+          this.transFromType = 1
+        }
       } else {
-        this.refreshing = false;
-        Toast('Faild, can retry')
+        this.transFromType = 1
       }
-    },
-    async handleChainChanged({netId, showTip}) {
-      if (showTip) {
-        this.showNetTip = false;
-        return
-      }
-      const mode = getNetMode(netId)
-      if (mode !== 'l1') {
-        this.showNetTip = true;
-        await this.$store.dispatch('WalletLockStatus', {isLock: true});
-      } else {
-        this.showNetTip = false;
-      }
-    },
-    changeVisible(eventInfo) {
-      if (!eventInfo.submit) { return }
-      if (this.popStatus === 'success') {
-        this.$router.push({ name: 'home' });
-      }
-    },
-    creatQrCode() {
-      const refNode = this.$refs.qrCodeUrl  // childNodes(array)  childElementCount(as same as elemnt.children.length)
-      if (this.walletIsLock || !refNode || !this.defaultAddress || refNode && refNode.childElementCount >0) {
-        return;
-      }
-      new QRCode(this.$refs.qrCodeUrl, {
-        text: this.defaultAddress,
-        width: 120,
-        height: 120,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H,
-      })
     },
   },
-  mounted() {
-    this.$eventBus.$on('chainChanged', this.handleChainChanged);
-    this.$eventBus.$on('updateAddress', (info)=>{ this.defaultAddress = info.address; });
+  async created() {
+    this.defaultNetWork = this.getDefaultNetWork()
+    
+    const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
+    console.log(netInfo)
+    if (netInfo) {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
+    } else {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
+    }
+    this.getCurrentAccountType()
+    await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
   },
-}
+  async mounted() {
+    if (!isLogin()) {
+      Toast('Please Login')
+      return
+    }
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
+    await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
+    const { hasError, forUsdt } = await this.$store.dispatch('GetTokenAxchangeForUS', { changeType: 'ETH/USDT' });
+    this.ETHFORUS = forUsdt
+    await this.getTokenAssetsForAccount()
+  }
+};
 </script>
 <style lang="scss" scoped>
-  @import 'index';
+  @import "index";
 </style>
