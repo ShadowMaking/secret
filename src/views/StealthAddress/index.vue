@@ -1,6 +1,6 @@
 <template>
   <div class="stealth-box">
-    <v-navTitle title="Stealth Address" helpUrl="docs/usage/Overview"></v-navTitle >
+    <v-navTitle title="Stealth Address" helpUrl="docs/usage/StealthAddress"></v-navTitle >
     <div class="stealth-list">
       <el-row class="list-header">
         <el-col :span="4" class="list-header-item">Sender Address</el-col>
@@ -301,7 +301,7 @@ export default {
     this.overrides.gasPrice = await getEstimateGas('gasPrice', 3000000000)
 
     await this.getAddressList()
-    this.test()
+    // this.test()
   }
 }
 </script>
