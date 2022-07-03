@@ -30,7 +30,7 @@ const supportNetContractRouter = [
     walletTransactionRouter: '0xaE7f9267632e24294fAD4E4DC32173309Edb0Ee0',//0xa0861f705Cf3996fB6993810A82D5053de8ED3a9
     GovernanceTokenRouter: '0xC91ecf9581701707658e21D3b04dc5E6c67575bD',
     GovernorAlphaRouter: '0xb9e341Fb309A6E642e3630E47bE5A26159c648C4',
-    rollupNCRouter: '0xE5C705F096aDB3b19B9eefBabF6664DeFa5Dc3F8',
+    rollupNCRouter: '0xDCdcB59df205c7e5aeee38Bb79a374bD2AEf5e33',
   },
   {
     chainId: 588,

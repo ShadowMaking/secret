@@ -78,3 +78,28 @@ import request from '@/utils/request';
     method: 'get',
   })
 }
+
+/**
+ * @description: Get tx info
+ * @param 
+ * @return {*}
+ */
+ export const getZkzruTxStatus = (txid) => {
+  return request({
+    url: `/api/zkzru/tx/${txid}`,
+    method: 'get',
+  })
+}
+
+/**
+ * @description: Get withdraw info
+ * @param 
+ * @return {*}
+ */
+ export const getWithdrawInfo = (data) => {
+  return request({
+    url: `/api/zkzru/proveWithdraw`,
+    method: 'post',
+    data: data,
+  })
+}

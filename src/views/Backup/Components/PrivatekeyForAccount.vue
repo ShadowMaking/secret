@@ -195,7 +195,7 @@ export default {
       }
     },
     handleInputChange(value) {
-      console.log(value)
+      // console.log(value)
     },
     handlesnputFocus() {},
     confirmImportPrivatekey() {

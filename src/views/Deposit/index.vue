@@ -83,7 +83,7 @@ import { walletTransactionRouter, multOperation, securityModuleRouter, lockType,
 import { BigNumber } from "bignumber.js";
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { CHAINMAP } from '@/utils/netWorkForToken';
-import { getInfoFromStorageByKey, getFromStorage } from '@/utils/storage';
+import { getInfoFromStorageByKey, getFromStorage, saveToStorage } from '@/utils/storage';
 import {
   generateTokenList, getDefaultETHAssets, getConnectedAddress,
   getContractWallet, isLogin, getDATACode, getContractAt, 
@@ -92,6 +92,7 @@ import WalletTransaction from "@/assets/contractJSON/TransactionModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
 import RollupNC from "@/assets/contractJSON/RollupNC.json";
+import proof from "@/assets/contractJSON/proof.json";
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
 import { promiseValue, formatErrorContarct } from '@/utils/index'
 import { Account, accountHelper, Transaction } from '@ieigen/zkzru'
@@ -334,7 +335,7 @@ export default {
         return
       }
       
-      if (!this.checkData(sendData)) { return }
+      // if (!this.checkData(sendData)) { return }
       this.showLoading = true
       if (this.currentModule == 'sd') {
         this.sendSubmit()
@@ -389,7 +390,10 @@ export default {
       await this.dealDataBeforeSend()
     },
     getTokenType() {
-      const tokenType = this.sendType == 'eth' ? 1 : 2
+      // const tokenName = this.selectedToken.tokenName
+      // console.log(tokenName)
+      // const tokenType = tokenName == 'ETH' ? 1 : 2
+      const tokenType = 1
       return tokenType
     },
     getAmount() {
@@ -400,6 +404,7 @@ export default {
     },
     async getL2Pubkey() {
       const privateKey = await getDecryptPrivateKeyFromStore(this)
+      // const coordinatorPrvkey = this.generatePrvkey(privateKey)
       const l2Pubkey = await accountHelper.generatePubkey(privateKey)
       return l2Pubkey
     },
@@ -416,83 +421,238 @@ export default {
     },
     async sendInitTx(type) {
       const selectedConnectAddress = getConnectedAddress()
+      const receiveAddress = this.addressForRecipient
       const tokenType = this.getTokenType()
       const aomuntGwei = this.getAmount()
       const l2Pubkey = await this.getL2Pubkey()
-      const fromIndex = await this.getNonce(selectedConnectAddress)
-      const toIndex = await this.getNonce(this.addressForRecipient)
-      const receiveInfo = await this.getAccountInfo(this.addressForRecipient)
+      const sendInfo = await this.getAccountInfo(selectedConnectAddress)
+      const receiveInfo = await this.getAccountInfo(receiveAddress)
       const fromPrivateKey = await getDecryptPrivateKeyFromStore(this)
+      
       console.log(receiveInfo)
       if (!receiveInfo || receiveInfo.length == 0) {
         this.showLoading = false
-        Toast('No Recipient Info')
+        this.sendFailed('No Recipient Info')
         return
       }
-      const receivePubKey = await accountHelper.generatePubkey(receiveInfo[0].prvkey)
+      if (!sendInfo || sendInfo.length == 0) {
+        this.showLoading = false
+        this.sendFailed('No Send Info')
+        return
+      }
+      const sendIndex = sendInfo[(sendInfo.length-1)].index
+      //todo
+      // const sendNonce = sendInfo[(sendInfo.length-1)].nonce//send nonce
+      const sendNonce = 356
       
-      var tx = new Transaction(l2Pubkey[0], l2Pubkey[1], fromIndex, receivePubKey[0], receivePubKey[1], toIndex, aomuntGwei, tokenType)
+      const receivePubKey = this.fromHexString(receiveInfo[0].pubkey)
+      let receivePubKeyX = receivePubKey.slice(2, 34)
+      let receivePubKeyY = receivePubKey.slice(34, 66)
+      // const receivePubKey = await accountHelper.generatePubkey('0xbe4d5c448c9f0dda137ea10e78475fe9febcde93c4e75ab4fda41b1fee94de29')
+      console.log("sendpukey1:", l2Pubkey[0])
+      console.log("sendpukey2:", l2Pubkey[1])
+      console.log("sendIndex:", sendIndex)
+      console.log(typeof(sendIndex))
+      console.log("sendNonce:", sendNonce)
+      console.log("aomuntGwei:", aomuntGwei)
+      console.log("tokenType:", tokenType)
+      if (type == 'withdraw') { 
+        receivePubKeyX = 0
+        receivePubKeyY = 0
+      }
+      console.log("receivepubkey1:", receivePubKeyX)
+      console.log("receivepubkey2:", receivePubKeyY)
+      var tx = new Transaction(l2Pubkey[0], l2Pubkey[1], sendIndex, receivePubKeyX, receivePubKeyY, sendNonce, aomuntGwei, tokenType)
       
       //SIGN
       await tx.initialize()
       tx.hashTx();
       tx.signTxHash(fromPrivateKey);
-      tx.checkSignature()
-      this.addZkzruTx(tx, type)
-    },
-    async addZkzruTx(tx, type) {
       console.log(tx)
-      const r8x = await this.toHexString(tx.R8x)
-      const r8y = await this.toHexString(tx.R8y)
+      console.log("tx hash:", tx.hash)
+      const fdfd = await this.toDecString(tx.hash)
+      console.log("tx hash decString", fdfd)
+      console.log("tx r8x:", tx.R8x)
+      console.log("tx r8x hexString:", this.toHexString(tx.R8x))
+      console.log("tx r8y:", tx.R8y)
+      console.log("tx r8y hexString:", this.toHexString(tx.R8y))
+      console.log("tx sig:", tx.S)
+      console.log("tx sig string", ffjavascript.utils.stringifyBigInts(tx.S))
+      if (type == 'withdraw') {
+        const withdrawData = await this.withDrawSign(fromPrivateKey, sendNonce, receiveAddress)
+        console.log(withdrawData)
+        tx.checkSignature()
+        this.addZkzruTx(tx, type, sendIndex, sendNonce, aomuntGwei, tokenType, withdrawData)
+      } else {//send
+        console.log(tx)
+        tx.checkSignature()
+        console.log(tx)
+        this.addZkzruTx(tx, type, sendIndex, sendNonce, aomuntGwei, tokenType)
+      }
+      
+    },
+    async withDrawSign(fromPrivateKey, sendNonce, receiveAddress) {
+      const buildEddsa = cls.buildEddsa
+      const buildMimc7 = cls.buildMimc7
+      const buildBabyjub = cls.buildBabyjub
+      const mimcjs = await buildMimc7()
+      const eddsa = await buildEddsa()
+      const babyJub = await buildBabyjub()
+      let F = mimcjs.F
+      var pubKey = eddsa.prv2pub(fromPrivateKey)
+      var m = mimcjs.multiHash([sendNonce, receiveAddress])
+      const msg = F.e(m);
+      var signature = eddsa.signMiMC(fromPrivateKey, msg);
+      var verify = eddsa.verifyMiMC(msg, signature, pubKey)
+      const inputs = {
+        Ax: F.toString(pubKey[0]),
+        Ay: F.toString(pubKey[1]),
+        R8x: F.toString(signature.R8[0]),
+        R8y: F.toString(signature.R8[1]),
+        S: signature.S.toString(),
+        M: F.toString(msg)
+      }
+      return inputs
+
+    },
+    async addZkzruTx(tx, type, sendIndex, sendNonce, aomuntGwei, tokenType, withdrawData) {
+      console.log(tx)
+      const r8x = this.toHexString(tx.R8x)
+      const r8y = this.toHexString(tx.R8y)
       const s = ffjavascript.utils.stringifyBigInts(tx.S)
-      const tokenType = this.getTokenType()
-      const aomuntGwei = this.getAmount()
-      const selectedConnectAddress = getConnectedAddress()
-      const fromIndex = await this.getNonce(selectedConnectAddress)
       let receiverPubkey
       let senderPubkey
       if (tx.toX == 0 && tx.toY == 0 || type == 'withdraw') {
         receiverPubkey = '0'
       } else {
-        let toX = await this.toHexString(tx.toX)
-        let toY = await this.toHexString(tx.toY)
+        let toX = this.toHexString(tx.toX)
+        let toY = this.toHexString(tx.toY)
         receiverPubkey = '0x' + '04' + toX + toY
       }
       if (tx.fromX == 0 && tx.fromY == 0) {
         senderPubkey = '0'
       } else {
-        let fromX = await this.toHexString(tx.fromX)
-        let fromY = await this.toHexString(tx.fromY)
+        let fromX = this.toHexString(tx.fromX)
+        let fromY = this.toHexString(tx.fromY)
         senderPubkey = '0x' + '04' + fromX + fromY
       }
       let submitData = {
         network_id: this.currentChainInfo['id'].toString(),
-        from_index: fromIndex,
+        from_index: sendIndex,
         senderPubkey: senderPubkey,
         r8x: r8x,
         r8y: r8y,
         s: s,
-        receiverPubkey: 0,
+        receiverPubkey: receiverPubkey,
         tokenTypeFrom: tokenType,
         amount: aomuntGwei,
-        nonce: fromIndex,
+        nonce: sendNonce,
         status: 0,
       }
+      if (type == 'withdraw') {//txid=9
+        console.log(withdrawData)
+        submitData.withdraw_r8x = withdrawData.R8x
+        submitData.withdraw_r8y = withdrawData.R8y
+        submitData.withdraw_s = withdrawData.S
+        submitData.withdraw_msg = withdrawData.M
+      }
+      console.log("addtx:", submitData)
       const { hasError, data} = await this.$store.dispatch('zkzruTx', submitData)
       if (hasError) {
-        this.sendFailed('failed')
+        this.sendFailed('Add tx failed')
       } else {
         this.sendSuccess()
+        if (type == 'withdraw') {
+          this.saveTxInfo(data)
+        }
       }
     },
+    saveTxInfo(data) {
+      console.log(data)
+      let withdrawTxList = getInfoFromStorageByKey('withdrawTx') || []
+      withdrawTxList.push(data.tx_id)
+      saveToStorage({'withdrawTx': withdrawTxList})
+      this.listenUpdateState()
+    },
     async listenUpdateState() {
+      console.log('Deposit')
+      // let rollupNCContract = await getContractAt({ tokenAddress: this.rollupNCRouter, abi: RollupNC.abi }, this)
+      // console.log(rollupNCContract)
+      // let queueNumber = await rollupNCContract.queueNumber()
+      // queueNumber = web3.utils.hexToNumber(queueNumber)
+      // console.log(queueNumber)
+      // rollupNCContract.on('RequestDeposit', (author, oldValue, newValue, event) => {
+      //   console.log(event)
+      // })
+      const withdrawTxList = getInfoFromStorageByKey('withdrawTx') || []
+      withdrawTxList.map(item => {
+        this.getWithdrawTx(item)
+      })
+    },
+    async getWithdrawTx(txid) {
+      console.log(txid)
+      const { hasError, data} = await this.$store.dispatch('getZkzruTxStatus', txid)
+      console.log(data)
+      const txStatus = data[0] && data[0].status
+      if (txStatus == 1) {//0-confirming 1-confirmed
+        this.getWithdrawInfo(txid)
+      }
+    },
+    async getWithdrawInfo(txid) {
+      const { hasError, data} = await this.$store.dispatch('getWithdrawInfo', {txid})
+      console.log(data)
+      if (data.length == 0) {
+        this.sendFailed('No withdraw info')
+        return
+      }
+      this.withdrawContrant(data)
+    },
+    async withdrawContrant(data) {
+      const withdrawTxInfo = data[0]
       let rollupNCContract = await getContractAt({ tokenAddress: this.rollupNCRouter, abi: RollupNC.abi }, this)
       console.log(rollupNCContract)
-      let queueNumber = await rollupNCContract.queueNumber()
-      queueNumber = web3.utils.hexToNumber(queueNumber)
-      console.log(queueNumber)
-      rollupNCContract.on('RequestDeposit', (author, oldValue, newValue, event) => {
-        console.log(event)
+      const selectedConnectAddress = getConnectedAddress()
+      const pubkey_from = [
+        "1490516688743074134051356933225925590384196958316705484247698997141718773914",
+        "18202685495984068498143988518836859608946904107634495463490807754016543014696"
+      ]
+      const index = 4;
+      const nonce = 0;
+      const amount = 200;
+      const token_type_from = 2;
+      const position = [1, 0]
+      const txRoot =
+        "11104599065074864544861425585000276813461567861239463907298857663432015403888"
+      const proof1 = [
+        "923732209247106967839161264110052797174320966153955281208442788790069671618",
+        "7964815910787619688596922151009426619451026939393880799897520778748707002824"
+      ]
+      const txInfo = {
+        pubkeyX: pubkey_from[0],
+        pubkeyY: pubkey_from[1],
+        index: withdrawTxInfo.from_index,
+        toX: new BigNumber(0),
+        toY: new BigNumber(0),
+        nonce: withdrawTxInfo.nonce,
+        amount: withdrawTxInfo.amount,
+        token_type_from: withdrawTxInfo.tokenTypeFrom,
+        txRoot: txRoot,
+        position: position,
+        proof: proof1,
+      }
+      rollupNCContract.withdraw(txInfo, this.addressForRecipient, proof, { from: selectedConnectAddress, ...this.overrides }).then(async tx=> {
+          console.log(tx)
+          tx.wait().then(async res => {
+            console.log('withdraw:', res)
+          }).catch(error => {
+          console.log(error)
+          let errorValue = formatErrorContarct(error)
+          this.sendFailed(errorValue)
+         })
+      }).catch(error => {
+        console.log(error)
+        let errorValue = formatErrorContarct(error)
+        this.sendFailed(errorValue)
       })
     },
     async getAccountInfo(address) {
@@ -502,13 +662,19 @@ export default {
     async depositSubmit() {
       const currentUserAds = getConnectedAddress()
       let rollupNCContract = await getContractAt({ tokenAddress: this.rollupNCRouter, abi: RollupNC.abi }, this)
-      console.log(rollupNCContract)
       const privateKey = await getDecryptPrivateKeyFromStore(this)
+      // const coordinatorPrvkey = this.generatePrvkey(privateKey)
       const l2Pubkey = await accountHelper.generatePubkey(privateKey)
-      const l2PubkeyX = await this.toHexString(l2Pubkey[0])
-      const l2PubkeyY = await this.toHexString(l2Pubkey[1])
-      let pubkey = [l2PubkeyX, l2PubkeyY]
-      console.log(pubkey)
+      console.log('l2Pubkey:', l2Pubkey)
+      const decPubkeyX = await this.toDecString(l2Pubkey[0])
+      const decPubkeyY = await this.toDecString(l2Pubkey[1])
+      let decPubkey = [decPubkeyX, decPubkeyY]
+      console.log("decpubkey:", decPubkey)
+
+      const hexPubkeyX = this.toHexString(l2Pubkey[0])
+      const hexPubkeyY = this.toHexString(l2Pubkey[1])
+      let hexPubkey = [hexPubkeyX, hexPubkeyY]
+      console.log("hexPubkey:", hexPubkey)
       const tokenType = this.getTokenType()
       const aomuntGwei = this.getAmount()//value: aomuntGwei, 
       let transData
@@ -522,74 +688,94 @@ export default {
           from: currentUserAds
         }
       }
-      rollupNCContract.deposit(pubkey, aomuntGwei, tokenType, { ...transData, ...this.overrides }).then(async tx=> {
+      rollupNCContract.deposit(decPubkey, aomuntGwei, tokenType, { ...transData, ...this.overrides }).then(async tx=> {
           console.log(tx)
           tx.wait().then(async res => {
-            this.addDeposit(privateKey, pubkey, tokenType, aomuntGwei, res)
+            this.addDeposit(privateKey, hexPubkey, tokenType, aomuntGwei, res)
             console.log('Deposit:', res)
           }).catch(error => {
            console.log(error)
-          this.sendFailed(error)
-      })
+           let errorValue = formatErrorContarct(error)
+           this.sendFailed(errorValue)
+          })
       }).catch(error => {
         console.log(error)
-          this.sendFailed(error)
+        let errorValue = formatErrorContarct(error)
+        this.sendFailed(errorValue)
       })
     },
-    async processDepositSubmit() {
-      const currentUserAds = getConnectedAddress()
-      let rollupNCContract = await getContractAt({ tokenAddress: this.rollupNCRouter, abi: RollupNC.abi }, this)
-      let queueNumber = await rollupNCContract.queueNumber()
-      queueNumber = web3.utils.hexToNumber(queueNumber)
-      console.log(queueNumber)
-      let first4Hash = await rollupNCContract.pendingDeposits(0)
-      console.log(first4Hash)
-      let first4HashPosition
-      let first4HashProof
-      if (queueNumber/4 == 1) {
-        first4HashPosition = [0, 0]
-      } else if (queueNumber/4 == 2) {
-        first4HashPosition = [1, 0]
-      }
-      first4HashProof = [
-            '10979797660762940206903140898034771814264102460382043487394926534432430816033',
-            '4067275915489912528025923491934308489645306370025757488413758815967311850978'
-      ]
-      rollupNCContract.processDeposits(2, first4HashPosition, first4HashProof, { from: currentUserAds, ...this.overrides }).then(async tx=> {
-            console.log(tx)
-            tx.wait().then(async res => {
-              this.showLoading = false
-              console.log('Deposit:', res)
-            })
-        }).catch(error => {
-            this.sendFailed(error)
-      })
+    // async processDepositSubmit() {
+    //   const currentUserAds = getConnectedAddress()
+    //   let rollupNCContract = await getContractAt({ tokenAddress: this.rollupNCRouter, abi: RollupNC.abi }, this)
+    //   let queueNumber = await rollupNCContract.queueNumber()
+    //   queueNumber = web3.utils.hexToNumber(queueNumber)
+    //   console.log(queueNumber)
+    //   let first4Hash = await rollupNCContract.pendingDeposits(0)
+    //   console.log(first4Hash)
+    //   let first4HashPosition
+    //   let first4HashProof
+    //   if (queueNumber/4 == 1) {
+    //     first4HashPosition = [0, 0]
+    //   } else if (queueNumber/4 == 2) {
+    //     first4HashPosition = [1, 0]
+    //   }
+    //   first4HashProof = [
+    //         '10979797660762940206903140898034771814264102460382043487394926534432430816033',
+    //         '4067275915489912528025923491934308489645306370025757488413758815967311850978'
+    //   ]
+    //   rollupNCContract.processDeposits(2, first4HashPosition, first4HashProof, { from: currentUserAds, ...this.overrides }).then(async tx=> {
+    //         console.log(tx)
+    //         tx.wait().then(async res => {
+    //           this.showLoading = false
+    //           console.log('Deposit:', res)
+    //         }).catch(error => {
+    //           console.log(error)
+    //           let errorValue = formatErrorContarct(error)
+    //           this.sendFailed(errorValue)
+    //        })
+    //     }).catch(error => {
+    //       let errorValue = formatErrorContarct(error)
+    //       this.sendFailed(errorValue)
+    //   })
+    // },
+    toHexString(bytes) {
+      // const buildMimc7 = cls.buildMimc7
+      // let mimcjs = await buildMimc7()
+      // let F = mimcjs.F
+      // let pubkey = F.toString(bytes)
+      // return pubkey
+      // return bytes.reduce((str, byte) => str + byte.toString().padStart(2, '0').substr(0,2), '')
+      return bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '')
     },
-    async toHexString(bytes) {
+    async toDecString(bytes) {
       const buildMimc7 = cls.buildMimc7
       let mimcjs = await buildMimc7()
       let F = mimcjs.F
       let pubkey = F.toString(bytes)
       return pubkey
-      // return bytes.reduce((str, byte) => str + byte.toString().padStart(2, '0').substr(0,2), '')
     },
-    async addDeposit(privateKey, l2Pubkey, tokenType, aomuntGwei, tx) {
+
+    fromHexString(hexString) {
+      return Uint8Array.from(hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)))
+    },
+
+    async addDeposit(privateKey, hexPubkey, tokenType, aomuntGwei, tx) {
       const selectedConnectAddress = getConnectedAddress()
-      const fromIndex = await this.getNonce(selectedConnectAddress)
-      const coordinatorPubkeyUncompressed = '0x' + '04' + l2Pubkey[0] + l2Pubkey[1]
+      const fromNonce = await this.getNonce(selectedConnectAddress)
+      const coordinatorPubkeyUncompressed = '0x' + '04' + hexPubkey[0] + hexPubkey[1]
       let submitData = {
         network_id: this.currentChainInfo['id'].toString(),
-        index: fromIndex,
+        // index: fromNonce,
         pubkey: coordinatorPubkeyUncompressed,
         tokenType: tokenType,
         balance: aomuntGwei,
-        nonce: fromIndex,
-        prvkey: privateKey,
+        nonce: fromNonce,
+        // prvkey: privateKey,
         address: selectedConnectAddress,
       }
       const { hasError, data} = await this.$store.dispatch('zkzruAccout', submitData)
       if (hasError) {
-        this.sendFailed('failed')
+        this.sendFailed('Add account failed')
       } else {
         this.sendSuccess()
         tx.hash = tx.transactionHash
@@ -645,8 +831,7 @@ export default {
     sendFailed(error) {
       this.showLoading = false
       this.showStatusPop = true;
-      let errorValue = formatErrorContarct(error)
-      this.statusPopTitle = errorValue
+      this.statusPopTitle = error
       this.popStatus = 'fail';
     },
     async handleExchangeInputChange(data, type) {
@@ -697,6 +882,26 @@ export default {
         this.transFromType = 1
       }
     },
+    async testcode() {
+      const i='8489afa9c89a871eec3480dfa1d8f28b3720cc8a4bf77370a4fd8b5f090b7af6'
+      let coordinatorPrvkey = Buffer.from(i.toString().padStart(64,'0'), "hex")
+      console.log(coordinatorPrvkey)
+      console.log(coordinatorPrvkey.toString())
+      const coordinatorPubkey = await accountHelper.generatePubkey(coordinatorPrvkey)
+      console.log(coordinatorPubkey)
+      const coordinator = new Account(
+        1, coordinatorPubkey[0], coordinatorPubkey[1],
+        0, 0, 0, coordinatorPrvkey
+      );
+      const coordinatorPubkeyUncompressed = '0x' + '04' + this.toHexString(coordinatorPubkey[0]) + this.toHexString(coordinatorPubkey[1])
+      await coordinator.initialize()
+      console.log(coordinator)
+      console.log(ethers.utils.computeAddress(coordinatorPubkeyUncompressed))
+    },
+    generatePrvkey(privateKey) {
+      let prvkey = Buffer.from(privateKey.toString().padStart(64,'0'), "hex");
+      return prvkey
+    },
   },
   async created() {
     this.defaultNetWork = this.getDefaultNetWork()
@@ -711,8 +916,19 @@ export default {
     this.getCurrentAccountType()
     this.getCurrentModuleTxt()
     await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
-    this.listenUpdateState()
-    //0x042138355332171388669072779098177692344111262722927337443825921942919869773028418805252161353404306228419690492340923427190861765654624534181261840928173492
+   // console.log(ethers.utils.computeAddress('0x04fb31711201464adcc4623d4a86cf11a6275f5e4b6fb47541e01420d4bc7cf101e85fab8385dd77e2a27cf8a4dce1f64836d40de13a31c040f1be4b978882aa19'))
+    // const privateKey = await getDecryptPrivateKeyFromStore(this)
+    // console.log(privateKey)
+    // const l2Pubkey = await accountHelper.generatePubkey(privateKey)
+    // console.log(l2Pubkey)
+    // const privateBuffer = Buffer.from(privateKey.toString().padStart(64,'0'), "hex")
+    // const l2Pubkey1 = await accountHelper.generatePubkey(privateBuffer)
+    // console.log(l2Pubkey1)
+    // const hexPubkeyX = this.toHexString(l2Pubkey1[0])
+    // const hexPubkeyY = this.toHexString(l2Pubkey1[1])
+    // const condf = '0x' + '04' + hexPubkeyX + hexPubkeyY
+    // console.log(condf)
+    // console.log(ethers.utils.computeAddress(condf))
   },
   async mounted() {
     if (!isLogin()) {
