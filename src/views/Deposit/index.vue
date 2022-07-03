@@ -1,54 +1,51 @@
 <template>
   <div class="deposit-page content-box">
-    <div class="deposit-toL2-tip flex">
-      <div><i class="info_icon"></i></div>
-      <div class="flex flex-column">
-        <p>Deposit to L2</p>
-        <div class="expand">
-          <span class="expand-tip">{{ RECHAERGE_TIP }}</span>
+    <v-navTitle :title="navTtile" helpUrl="docs/usage/Send"></v-navTitle >
+    <div class="deposit-des">{{navDes}}</div>
+    <div class="send-menu content-page">
+      <v-InputSelect :label="recipientLable" :placeholder="recipientPlaceholder" :isSearch="true" @inputChange="handleAddressInputChange" v-if="currentModule !== 'dp'"/>
+      <v-formSelect 
+        label="Token"
+        :labelShow="false" 
+        placeholder="chose token"
+        leftIcon="https://s3.amazonaws.com/token-icons/0x6b175474e89094c44da98b954eedeac495271d0f.png" 
+        :dataSource="assetsTokenList"
+        @change="handleTokenChange"
+        ref="tokenSelect">
+      </v-formSelect>
+      <div class="send-value-box">
+        <div class="send-value-item">
+          <v-formInput :label="selectedToken && `${selectedToken.tokenName}`||'ETH'" placeholder="0" :value="type1Value" @inputChange="e=>handleExchangeInputChange(e,'type1')" :limitInput="true"/>
+          <label class="blueColor">{{ selectedToken && `${selectedToken.balanceNumberString} ${selectedToken.tokenName}` || "0 ETH"}}</label>
+        </div>
+        <div class="send-value-item">
+          <v-formInput label="USD" placeholder="0" :value="type2Value" @inputChange="e=>handleExchangeInputChange(e,'type2')" :limitInput="true" />
+          <label>Max US${{ exchangeUSForSelectedToken }}</label>
         </div>
       </div>
-    </div>
-    <div class="deposit-opt-area">
-      <van-tabs v-model="activeName">
-        <van-tab title="Deposit From L1" name="fromL1">
-          <v-tokenAmount
-            key="tokenAmount-deposit"
-            type="deposit"
-            @childEvent="submitRecharge" />
-        </van-tab>
-        <van-tab title="Deposit From L2" name="fromL2">
-          <div class="deposit-amount-wrap">
-            <div class="flex flex-center">
-              <div class="img-QR" v-if="defaultAddress!=='' && !walletIsLock">
-                <div ref="qrCodeUrl"></div>
-              </div>
-              <div v-else class="unlock-wallet-button-wrapper">
-                <v-unlockwallet key="unlockWalletButton" expectNetType="l1" />
-              </div>
-            </div>
-            <div class="deposit-address-wrapper" v-if="!walletIsLock">
-              <h3>Deposit Address</h3>
-              <div class="address">{{ defaultAddress }}</div>
-              <van-button color="#ECEEF8" class="copy-address" @click="copyAddress">
-                <span slots="default" style="color:#495ABE">{{ copyButtonTxt}}</span>
-              </van-button>
-              <span>
-                <span>EigenSecret supported assets only.</span>
-                <span>Do not send other assets to this address.</span>
-              </span>
-            </div>
-          </div>
-        </van-tab>
-      </van-tabs>
-    </div>
-    <v-exchangeList key="comon-exchangeList" type="L1ToL2" v-show="activeName=='fromL1'&&!walletIsLock" />
-    <van-popup v-model="show" round :close-on-click-overlay="false" class="waiting-modal flex flex-center flex-column">
-      <div class="inner-wrapper">
-        <i class="confirm_icon"></i>
-        <span class="tip">{{ tipTxt }}</span>
+      <div class="gas-price-box">
+        <div>Gas Price</div>
+        <div class="gas-price-setting">
+          <span class="blueColor">{{ selectedGasType }}</span>
+          <a class="blueColor" id="gasSetting" @click="gasBtn"><i class="gasPriceSetting"></i></a>
+        </div>
       </div>
-    </van-popup>
+      <div class="send-btn-box">
+        <a class="common-form-btn" @click="sendBtnClick">{{submitTxt}}</a>
+      </div>
+      <van-popup v-model="gasPopupVisible" round :style="{ width: '260px' }">
+        <div v-if="loadingGas" :style="{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }"><van-loading type="spinner" /></div>
+        <div class="gas-popup-box" v-else>
+          <div class="header"><h3>Gas Price</h3></div>
+          <ul class="gas-price-list">
+            <v-selectItem :rightVal="gasPriceValue('Fast')" labelShow=true leftTitle="Fast" :leftDes="gasPriceConfirmTime('Fast')" :icon="require('@/assets/form/gasFast.png')" @childevent="selectChagne('Fast')"></v-selectItem>
+            <v-selectItem :rightVal="gasPriceValue('Average')" labelShow=true leftTitle="Average" :leftDes="gasPriceConfirmTime('Average')" :icon="require('@/assets/form/gasAverag.png')" @childevent="selectChagne('Average')"></v-selectItem>
+            <v-selectItem :rightVal="gasPriceValue('Average')" labelShow=true leftTitle="Custom"  :icon="require('@/assets/form/gasCustom.png')" @inputChange="inputGasChange" :showInput="true"></v-selectItem>
+          </ul>
+        </div>
+      </van-popup>
+    </div>
+    <v-loadingPopup :show="showLoading" :showSpinner="false" />
     <v-statusPop
       :status="popStatus"
       :title="statusPopTitle"
@@ -56,291 +53,897 @@
       tip=""
       :show="showStatusPop"
       @childEvent="changeVisible" />
-    <van-popup v-model="showRefresh" class="status-popUp-refresh flex flex-center flex-column">
-      <i class="icon icon-failed"></i>
-      <span class="main-txt">No Transactions</span>
-      <span class="supplement-txt">Refresh to get history</span>
-      <van-button block color="#495ABF" class="button" @click="retryAddHistory">{{ refreshing?"Refresh...":"Refresh"}}</van-button>
-    </van-popup>
-    <v-netTipPopup :show="showNetTip" key="netTipModal" showType="l1"/>
+    <v-confirmModal
+      :show="showTradeConfirm"
+      :type="transactionType"
+      :metadata="sendMetadata"
+      @close="showTradeConfirm=false"
+      @reject="cancelSend"
+      @confirm="confirmSend" />
+    <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>
+
 <script>
+import _ from 'lodash'
 import Vue from 'vue';
-import _ from 'lodash';
-import { RECHAERGE_TIP } from '@/utils/global';
-import ExchangeList from '@/components/ExchangeList';
-import TokenAmount from '@/components/TokenAmount';
+import { Popup, Toast, Loading } from 'vant';
+import navTitle from '@/components/NavTitle/index';
+import formInput from '@/components/Input/index';
+import selectItem from '@/components/SelectItem/index';
+import formSelect from '@/components/Select/index';
 import StatusPop from '@/components/StatusPop';
-import NetTipModal from '@/components/NetTipModal';
-import UnlockWallet from '@/components/UnlockWallet';
-import { wait, prettyLog } from '@/utils/index'
-import { Tab, Tabs, Button, Col, Row, Toast, Popup, CountDown, Dialog } from 'vant';
-import { getNetMode, getSelectedChainID, initBrideByNetType } from '@/utils/web3'
-import { utils, ethers, BigNumber as ethBigNumber } from 'ethers'
-import { DEFAULTIMG } from '@/utils/global';
-import { NETWORKS } from '@/utils/netWork'
-// import { NETWORKS } from '@/utils/netWork_arb'
-import { Bridge } from 'arb-ts';
-import { TRANSACTION_TYPE } from '@/api/transaction';
-import { copyTxt } from '@/utils/index';
-import { getTokenAddress } from '@/utils/token';
-import QRCode from 'qrcodejs2'
+import ConfirmModal from '@/components/ConfirmModal';
+import LoadingPopup from '@/components/LoadingPopup';
+import InputPswModal from '@/components/InputPswModal'
+import InputSelect from '@/components/InputSelect/index';
+import { ethers, utils } from 'ethers'
+import web3 from 'web3'
+import { walletTransactionRouter, multOperation, securityModuleRouter, lockType, rollupNCRouter } from '@/utils/global';
 import { BigNumber } from "bignumber.js";
-import web3, { utils as web3utils } from 'web3';
-import { getConnectedAddress } from '@/utils/dashBoardTools';
+import { TRANSACTION_TYPE } from '@/api/transaction';
+import { CHAINMAP } from '@/utils/netWorkForToken';
+import { getInfoFromStorageByKey, getFromStorage, saveToStorage } from '@/utils/storage';
+import {
+  generateTokenList, getDefaultETHAssets, getConnectedAddress,
+  getContractWallet, isLogin, getDATACode, getContractAt, 
+  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas, getConnectedUserAddress, addTransHistory, getThisProvider  } from '@/utils/dashBoardTools';
+import WalletTransaction from "@/assets/contractJSON/TransactionModule.json";
+import WalletJson from "@/assets/contractJSON/Wallet.json";
+import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
+import RollupNC from "@/assets/contractJSON/RollupNC.json";
+import proof from "@/assets/contractJSON/proof.json";
+import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey } from '@/utils/relayUtils'
+import { promiseValue, formatErrorContarct } from '@/utils/index'
+import { Account, accountHelper, Transaction } from '@ieigen/zkzru'
+import * as cls from "circomlibjs"
+import * as ffjavascript from "ffjavascript"
 
-const { parseEther } = utils;
-
-
-Vue.use(Tab);
-Vue.use(Tabs);
-Vue.use(Button);
-Vue.use(Col);
-Vue.use(Row);
-Vue.use(Toast);
 Vue.use(Popup);
-Vue.use(CountDown);
-Vue.use(Dialog);
+Vue.use(Toast)
+Vue.use(Loading)
 
 export default {
-  name: "Deposit",
-  components: {
-    'v-exchangeList': ExchangeList,
-    'v-tokenAmount': TokenAmount,
-    'v-statusPop': StatusPop,
-    "v-netTipPopup": NetTipModal,
-    "v-unlockwallet": UnlockWallet,
-  },
+  name: 'SendMenu',
   data() {
     return {
-      DEFAULTIMG,
-      RECHAERGE_TIP,
-      activeName: 'fromL1', // fromL1 | fromL2
-      show: false,
-      tipTxt: 'Confirm On The Wallet',
-      showStatusPop: false,
+      gasPopupVisible: false,
+      addressForRecipient: '',
+      assetsTokenList: [],
+      selectedToken: null,
+      type1Value: '',
+      type2Value: '',
+      showLoading: false,
       popStatus: "success",
-      statusPopTitle: 'Transfer Submitted',
-      // timeTxt: 'It is expected to take effect within 1 minute',
-      // tip: 'You can check the transaction details in the transaction record',
+      statusPopTitle: 'Send Submitted',
       timeTxt: 'Will take effect in one minute',
-      showNetTip: false,
-      bridge: null,
-      addHistoryData: null,
-      showRefresh: false,
-      refreshing: false,
-      defaultAddress: this.$store.state.metamask.accountsArr[0] || "",
-      copyButtonTxt: 'Copy Address',
+      showStatusPop: false,
+      gasPriceInfo: null,
+      selectedGasType: '',
+      loadingGas: false,
+      currentChainInfo: null,
+      defaultNetWork: '',
+    
+      sendType: '', // eth||token
+      sendMetadata: null,
+      showTradeConfirm: false,
+
+
+      transFromType: 1, //1-account address ,2-wallet address
+      transFromAddress: getConnectedAddress(),
+      walletTransactionRouter,
+      
+      multOperation,
+      securityModuleRouter,
+      rollupNCRouter,
+
+      recipientLable: 'Recipient',
+      recipientPlaceholder: 'Address or Google account',
+
+      navTtile: 'Deposit to L2',
+      navDes: 'Pledge the money from main network to L2.',
+      submitTxt: 'Deposit',
+      currentModule: this.$route.query.type,
+      
+      overrides: {
+        gasLimit: 8000000,
+        gasPrice: 20000000000,//wei
+      },
+      
+      // ***************** inputPsw start ***************** //
+      userPsw: '',
+      publicKey: '',
+      aesKey: '', // every decrypt has the same aesKey
+      encryptPsw: '',
+      encryptPrivateKeyPublicKey: '',
+      encryptCr1: '',
+      confirmPswBtnLoading: false,
+      showInputPswModal: false,
+      // ***************** inputPsw end ***************** //
     }
   },
+  components: {
+    "v-navTitle": navTitle,
+    "v-formInput": formInput,
+    "v-selectItem": selectItem,
+    "v-formSelect": formSelect,
+    'v-statusPop': StatusPop,
+    'v-confirmModal': ConfirmModal,
+    'v-loadingPopup': LoadingPopup,
+    'v-inputPsw': InputPswModal,
+    'v-InputSelect': InputSelect,
+  },
   watch: {
-    activeName(newValue, oldValue) {
-      if (newValue === 'fromL2') {
-        window.setTimeout(()=>{
-          this.creatQrCode();
-        },0)
-      }
-    },
-    '$store.state.metamask.walletIsLock': function (res) {
-      if (!this.walletIsLock) {
-        window.setTimeout(()=>{
-          this.creatQrCode();
-        },800)
-      }
+    "$route": function(to, from) {
+      this.currentModule = this.$route.query.type;
+      console.log(this.$route.query.type)
+      this.getCurrentModuleTxt()
     }
   },
   computed: {
-    walletIsLock() {
-      return this.$store.state.metamask.walletIsLock;
+    exchangeUSForSelectedToken() {
+      const selectedToken = this.selectedToken
+      if (!selectedToken) { return 0 }
+      
+      const value = ethers.utils.formatUnits(selectedToken.balance, selectedToken.decimals)
+      return selectedToken && (value * selectedToken.exchangeForUS).toFixed(2)
+      // return selectedToken && (selectedToken.balance * selectedToken.exchangeForUS).toFixed(2)
     },
-    metamaskInstall() {
-      return this.$store.state.metamask.metamaskInstall;
+    // Send for ETH ; Transfer for token
+    transactionType() {
+      return this.sendType === 'eth' ? 'Send' : 'Transfer'
     },
   },
   methods: {
-    copyAddress() {
-      if (this.walletIsLock) { return; }
-      copyTxt(this.defaultAddress)
-      this.copyButtonTxt = 'Address Copied'
-      window.setTimeout(()=>{
-        this.copyButtonTxt = 'Copy Address'
-      },800)
-    },
-    async getWalletBalance() {
-      const testWalletL1EthBalance = await testBridge.getAndUpdateL1EthBalance()
-      const testWalletL2EthBalance = await testBridge.getAndUpdateL2EthBalance()
-      console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString())
-    },
-    depositFailed(error) {
-      this.show = false;
-      if (error.code == '4001') {
-        Toast('Cancel Transaction')
-        return
-      }
-      console.log(error)
-      this.showStatusPop = true;
-      this.statusPopTitle = 'Deposit Failed'
-      this.popStatus = 'fail';
-    },
-    async depositSuccess(depositRes, info) {
-      const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
-      let currentChainId = netInfo && netInfo.id
-      
-      this.tipTxt = 'In progress, waitting';
-      const txHash = depositRes.hash;
-      const transactionWaitRes = await depositRes.wait();
-      const { confirmations, from, to, transactionHash, status } = transactionWaitRes
-      console.log('transaction success! res:',depositRes,'waitRes:',transactionWaitRes)
-      const submitData = {
-        txid: txHash,
-        from: depositRes.from,
-        to: depositRes.to,
-        type: TRANSACTION_TYPE['L1ToL2'],
-        status,
-        value: info.amount,
-        block_num: transactionWaitRes.blockNumber,
-        name: info.tokenInfo.symbol,
-        operation: 'Deposit',
-        network_id: web3.utils.hexToNumber(currentChainId)
-      }
-      this.addHistoryData = _.cloneDeep(submitData);
-      await this.addHistory(submitData);
-    },
-    async ethDeposit(info) {
-      const bridge = initBrideByNetType('l1')['bridge'];
-      const ethToL2DepositAmount = parseEther(info.amount);
-      bridge.depositETH(ethToL2DepositAmount) // bridge.depositETH(ethToL2DepositAmount, {gas: web3utils.toHex('21000')})
-      .then(async res=>{
-        await this.depositSuccess(res, info)
-      })
-      .catch(error => {
-        this.depositFailed(error)
-      })
-    },
-    async tokenDeposit(info) {
-      const connectAddress = getConnectedAddress();
-      const bridge = initBrideByNetType('l1')['bridge'];
-      const { symbol } = info.tokenInfo
-      const tokenAddress = getTokenAddress(symbol)
-      // bridge.deposit(tokenAddress, BigNumber.from('800'))
-      const depositTokenNum = this.web3.utils.toHex(BigNumber(Number(info.amount*1000000000000000000)).toFixed())
-      const l1GasPrice = 1;
-      const gasLimit = 594949;
-      const maxGas = 9646610;
-      console.log('depositTokenNum', depositTokenNum)
-      bridge.deposit(tokenAddress, depositTokenNum,
-      {
-        maxGas: ethBigNumber.from(maxGas),
-        gasPriceBid:ethBigNumber.from(1),
-        maxSubmissionPrice: ethBigNumber.from(1)
-      },
-      connectAddress, // l1TestWallet.address,
-      { gasLimit, gasPrice: l1GasPrice })
-      .then(async res=>{
-        await this.depositSuccess(res, info)
-      })
-      .catch(error => {
-        this.depositFailed(error)
-      })
-    },
-    async submitRecharge(info) {
-      this.showStatusPop = false;
-      this.tipTxt = 'Confirm On The Wallet';
-      this.show = true;
-
-      const connectAddress = getConnectedAddress();
-      if (!utils.isAddress(connectAddress)) {
-        Toast(`Wrong Address`);
-        return;
-      }
-
-      const { symbol, isToken } = info.tokenInfo
-      switch (symbol) {
-        case 'ETH':
-          await this.ethDeposit(info)
+    getCurrentModuleTxt() {
+      switch(this.currentModule) {
+        case 'dp'://Deposit
+          this.navTtile = 'Deposit to L2'
+          this.navDes = 'Pledge the money from main network to L2.'
+          this.submitTxt = 'Deposit'
           break;
-        case 'EIG':
-          await this.tokenDeposit(info)
+        case 'wd'://Withdraw
+          this.navTtile = 'Withdraw to L1'
+          this.navDes = 'Transfer funds from L2 to main network.'
+          this.submitTxt = 'Withdraw'
+          break;
+        case 'sd'://send
+          this.navTtile = 'Send in L2'
+          this.navDes = 'Transfer between L2 networks, support plaintext and ciphertext transfer.'
+          this.submitTxt = 'Send'
+          break;
+        default:
           break;
       }
     },
-    async addHistory(data) {
-      const submitData = data || this.addHistoryData;
-      if (!submitData) {
-        Toast('Params Error');
-        return ;
-      }
-      const res = await this.$store.dispatch('AddTransactionHistory', {...submitData});
-      this.show = false;
-      if (res.hasError) {
-        this.showRefresh = true;
-        this.showStatusPop = false;
-        this.show = false;
-        // this.$router.push({ name: 'home' });
-        console.log('Transaction success，but error when add history')
-      } else {
-        this.showStatusPop = true;
-        this.statusPopTitle = 'Transfer Submitted'
-        this.popStatus = 'success';
-        // prettyLog('transaction is in progress，waiting fro 10s....')
-        await wait();
-        this.showStatusPop = false;
-        // this.$eventBus.$emit('handleUpdateTransactionHistory', {type: 'L1ToL2'});
-        this.$router.push({ name: 'home' });
-      }
-      return { hasError: res.hasError };
+    getDefaultNetWork() {
+      const info = getInfoFromStorageByKey('netInfo')
+      return info && info['id'] || 1
     },
-    async retryAddHistory() {
-      this.refreshing = true;
-      const res = await this.addHistory();
-      if (!res.hasError) {
-        this.showRefresh = false;
-      } else {
-        this.refreshing = false;
-        Toast('Faild, can retry')
-      }
+    gasPriceValue(type) {
+      return this.gasPriceInfo && this.gasPriceInfo[type].gasPrice;
     },
-    async handleChainChanged({netId, showTip}) {
-      if (showTip) {
-        this.showNetTip = false;
-        return
-      }
-      const mode = getNetMode(netId)
-      if (mode !== 'l1') {
-        this.showNetTip = true;
-        await this.$store.dispatch('WalletLockStatus', {isLock: true});
-      } else {
-        this.showNetTip = false;
-      }
+    gasPriceConfirmTime(type) {
+      return `${this.gasPriceInfo && this.gasPriceInfo[type].confirmationTime}sec`
     },
     changeVisible(eventInfo) {
-      if (!eventInfo.submit) { return }
-      if (this.popStatus === 'success') {
-        this.$router.push({ name: 'home' });
+      this.showStatusPop = eventInfo.show;
+      if (this.popStatus == 'success') {
+        this.$router.push({
+          path: `/history`,
+          // query: {tabActive: 1},
+        })
       }
     },
-    creatQrCode() {
-      const refNode = this.$refs.qrCodeUrl  // childNodes(array)  childElementCount(as same as elemnt.children.length)
-      if (this.walletIsLock || !refNode || !this.defaultAddress || refNode && refNode.childElementCount >0) {
-        return;
+    async gasBtn() {
+      this.loadingGas = true;
+      this.gasPopupVisible = true
+      await this.getGasPrice()
+      this.loadingGas = false;
+    },
+    selectChagne(type) {
+      this.gasPopupVisible = false
+      console.log(type)
+      this.selectedGasType = type;
+    },
+    inputGasChange(value) {
+      this.selectedGasType = 'Custom';
+      this.gasPriceInfo['Custom'] = { gasPrice: value.value }
+    },
+    handleAddressInputChange(data) {
+      this.addressForRecipient = data.value
+    },
+    async getTokenAssetsForAccount() {
+      this.assetsTokenList = []
+      const selectedConnectAddress = this.transFromAddress ? this.transFromAddress : getConnectedAddress()
+      console.log(selectedConnectAddress)
+      if (!selectedConnectAddress) { return }
+      const currentChainId = this.currentChainInfo && this.currentChainInfo['id']
+      const hexChainId = currentChainId && web3.utils.numberToHex(currentChainId)
+      const rpcUrl = hexChainId && CHAINMAP[hexChainId]['rpcUrls'][0]
+      const ETHAssets = await getDefaultETHAssets(this, rpcUrl, selectedConnectAddress);
+      const tokenListRes = await this.$store.dispatch('GetAvailableTokenAssets', { selectedConnectAddress, chainInfo: this.currentChainInfo });
+      const { hasError, list } = tokenListRes
+      const tokenList = await generateTokenList(_.cloneDeep(list), this, true, selectedConnectAddress)
+      console.log('tokenList', tokenList)
+      this.assetsTokenList = [].concat([ETHAssets], tokenList)
+    },
+    handleTokenChange(data) {
+      this.selectedToken = data.value;
+      this.type1Value = ''
+      this.type2Value = ''
+    },
+    cancelSend() {
+      this.showTradeConfirm = false
+      Toast('Cancel Transaction')
+    },
+    async confirmSend({ overrides }) {
+      this.showLoading = true
+      this.showTradeConfirm = false
+      const sendType = this.sendType
+      const toSendAddress = this.addressForRecipient
+      if (this.currentModule == 'dp') {
+        this.depositSubmit()
+      } else if (this.currentModule == 'sd') {
+        this.sendSubmit()
+      } else if (this.currentModule == 'wd') {
+        this.withdrawSubmit()
       }
-      new QRCode(this.$refs.qrCodeUrl, {
-        text: this.defaultAddress,
-        width: 120,
-        height: 120,
-        colorDark: '#000000',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H,
+    },
+    checkData(data) {
+      console.log('checkData')
+      if (!utils.isAddress(data.toAddress)
+        && this.currentModule !== 'dp') {
+        Toast(`Invalid Address`);
+        return false;
+      }
+      if (!data.selectedToken) {
+        Toast(`Choose Token`);
+        return false;
+      }
+      if (!data.type1Value) {
+        Toast(`input amount`);
+        return false;
+      }
+      if (new BigNumber(data.selectedToken.balanceNumberString).lt(new BigNumber(data.type1Value)) ||
+      new BigNumber(data.selectedToken.balanceNumberString).eq(new BigNumber(0))) {
+        Toast(`Insufficient Balance`);
+        return false;
+      }
+      return true
+    },
+    async dealDataBeforeSend() {
+      if (this.transFromType == 2) {
+        let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+        let lockStatus = await securityModuleContract.isLocked(this.transFromAddress)
+        console.log('lockstatus:' + lockStatus)
+        if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
+          Toast('Wallet is locked')
+          return
+        }
+      }
+      const sendData = {
+        toAddress: this.addressForRecipient,
+        selectedToken: this.selectedToken,
+        type1Value: this.type1Value,
+        type2Value: this.type2Value,
+      }
+
+      const ETHToken = _.find(this.assetsTokenList, {tokenName: 'ETH'})
+      if (ETHToken && ETHToken.balance.lte(0)) {
+        Toast('Not Enough ETH')
+        return
+      }
+      
+      // if (!this.checkData(sendData)) { return }
+      this.showLoading = true
+      if (this.currentModule == 'sd') {
+        this.sendSubmit()
+        return
+      } else if (this.currentModule == 'wd') {
+        this.withdrawSubmit()
+        return
+      } else {
+        this.showGasModal()
+      }
+    },
+    async showGasModal() {
+      let gasPrice = '20' // 20 Gwei
+      if (this.selectedGasType) {
+        gasPrice = this.gasPriceInfo && this.gasPriceInfo[this.selectedGasType].gasPrice
+      } else {
+        let gasPriceWei = await getEstimateGas('gasPrice')
+        gasPrice = web3.utils.fromWei(gasPriceWei.toString(), 'gwei')
+      }
+
+      const tokenName = this.selectedToken.tokenName
+      this.sendType = tokenName === 'ETH' ? 'eth':'token'
+
+      let datacode = '0x'; // transaction DATA
+      let estimatedGasFee = await getEstimateGas('gasUsed')
+      this.sendMetadata = {
+        from: this.transFromAddress,
+        to: this.rollupNCRouter,
+        gas: 8000000, // gasLimit default is 21000
+        gasPrice,
+        value: this.type1Value,
+        symbolName: tokenName,
+        netInfo: this.currentChainInfo,
+        DATA: datacode,
+        estimatedGasFee: estimatedGasFee
+      }
+      this.showLoading = false
+      this.showTradeConfirm = true
+    },
+    async sendBtnClick() {
+      const selectedConnectAddress = getConnectedAddress()
+      if (!selectedConnectAddress) {
+        Toast('Please Login')
+        return
+      }
+      // check privateKey whether is existed
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      if (!privateKey) {
+        this.showInputPswModal = true;
+        return
+      }
+      await this.dealDataBeforeSend()
+    },
+    getTokenType() {
+      // const tokenName = this.selectedToken.tokenName
+      // console.log(tokenName)
+      // const tokenType = tokenName == 'ETH' ? 1 : 2
+      const tokenType = 1
+      return tokenType
+    },
+    getAmount() {
+      const amountWei = web3.utils.toWei(this.type1Value, 'ether')
+      const aomuntGwei = web3.utils.fromWei(amountWei, 'gwei')//value: aomuntGwei, 
+      console.log(aomuntGwei)
+      return aomuntGwei
+    },
+    async getL2Pubkey() {
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      // const coordinatorPrvkey = this.generatePrvkey(privateKey)
+      const l2Pubkey = await accountHelper.generatePubkey(privateKey)
+      return l2Pubkey
+    },
+    async getNonce(address) {
+      const contractProvider = await getThisProvider()
+      const nonce = await contractProvider.getTransactionCount(address)
+      return nonce
+    },
+    async withdrawSubmit() {
+      this.sendInitTx('withdraw')
+    },
+    async sendSubmit() {
+      this.sendInitTx('send')
+    },
+    async sendInitTx(type) {
+      const selectedConnectAddress = getConnectedAddress()
+      const receiveAddress = this.addressForRecipient
+      const tokenType = this.getTokenType()
+      const aomuntGwei = this.getAmount()
+      const l2Pubkey = await this.getL2Pubkey()
+      const sendInfo = await this.getAccountInfo(selectedConnectAddress)
+      const receiveInfo = await this.getAccountInfo(receiveAddress)
+      const fromPrivateKey = await getDecryptPrivateKeyFromStore(this)
+      
+      console.log(receiveInfo)
+      if (!receiveInfo || receiveInfo.length == 0) {
+        this.showLoading = false
+        this.sendFailed('No Recipient Info')
+        return
+      }
+      if (!sendInfo || sendInfo.length == 0) {
+        this.showLoading = false
+        this.sendFailed('No Send Info')
+        return
+      }
+      const sendIndex = sendInfo[(sendInfo.length-1)].index
+      //todo
+      // const sendNonce = sendInfo[(sendInfo.length-1)].nonce//send nonce
+      const sendNonce = 356
+      
+      const receivePubKey = this.fromHexString(receiveInfo[0].pubkey)
+      let receivePubKeyX = receivePubKey.slice(2, 34)
+      let receivePubKeyY = receivePubKey.slice(34, 66)
+      // const receivePubKey = await accountHelper.generatePubkey('0xbe4d5c448c9f0dda137ea10e78475fe9febcde93c4e75ab4fda41b1fee94de29')
+      console.log("sendpukey1:", l2Pubkey[0])
+      console.log("sendpukey2:", l2Pubkey[1])
+      console.log("sendIndex:", sendIndex)
+      console.log(typeof(sendIndex))
+      console.log("sendNonce:", sendNonce)
+      console.log("aomuntGwei:", aomuntGwei)
+      console.log("tokenType:", tokenType)
+      if (type == 'withdraw') { 
+        receivePubKeyX = 0
+        receivePubKeyY = 0
+      }
+      console.log("receivepubkey1:", receivePubKeyX)
+      console.log("receivepubkey2:", receivePubKeyY)
+      var tx = new Transaction(l2Pubkey[0], l2Pubkey[1], sendIndex, receivePubKeyX, receivePubKeyY, sendNonce, aomuntGwei, tokenType)
+      
+      //SIGN
+      await tx.initialize()
+      tx.hashTx();
+      tx.signTxHash(fromPrivateKey);
+      console.log(tx)
+      console.log("tx hash:", tx.hash)
+      const fdfd = await this.toDecString(tx.hash)
+      console.log("tx hash decString", fdfd)
+      console.log("tx r8x:", tx.R8x)
+      console.log("tx r8x hexString:", this.toHexString(tx.R8x))
+      console.log("tx r8y:", tx.R8y)
+      console.log("tx r8y hexString:", this.toHexString(tx.R8y))
+      console.log("tx sig:", tx.S)
+      console.log("tx sig string", ffjavascript.utils.stringifyBigInts(tx.S))
+      if (type == 'withdraw') {
+        const withdrawData = await this.withDrawSign(fromPrivateKey, sendNonce, receiveAddress)
+        console.log(withdrawData)
+        tx.checkSignature()
+        this.addZkzruTx(tx, type, sendIndex, sendNonce, aomuntGwei, tokenType, withdrawData)
+      } else {//send
+        console.log(tx)
+        tx.checkSignature()
+        console.log(tx)
+        this.addZkzruTx(tx, type, sendIndex, sendNonce, aomuntGwei, tokenType)
+      }
+      
+    },
+    async withDrawSign(fromPrivateKey, sendNonce, receiveAddress) {
+      const buildEddsa = cls.buildEddsa
+      const buildMimc7 = cls.buildMimc7
+      const buildBabyjub = cls.buildBabyjub
+      const mimcjs = await buildMimc7()
+      const eddsa = await buildEddsa()
+      const babyJub = await buildBabyjub()
+      let F = mimcjs.F
+      var pubKey = eddsa.prv2pub(fromPrivateKey)
+      var m = mimcjs.multiHash([sendNonce, receiveAddress])
+      const msg = F.e(m);
+      var signature = eddsa.signMiMC(fromPrivateKey, msg);
+      var verify = eddsa.verifyMiMC(msg, signature, pubKey)
+      const inputs = {
+        Ax: F.toString(pubKey[0]),
+        Ay: F.toString(pubKey[1]),
+        R8x: F.toString(signature.R8[0]),
+        R8y: F.toString(signature.R8[1]),
+        S: signature.S.toString(),
+        M: F.toString(msg)
+      }
+      return inputs
+
+    },
+    async addZkzruTx(tx, type, sendIndex, sendNonce, aomuntGwei, tokenType, withdrawData) {
+      console.log(tx)
+      const r8x = this.toHexString(tx.R8x)
+      const r8y = this.toHexString(tx.R8y)
+      const s = ffjavascript.utils.stringifyBigInts(tx.S)
+      let receiverPubkey
+      let senderPubkey
+      if (tx.toX == 0 && tx.toY == 0 || type == 'withdraw') {
+        receiverPubkey = '0'
+      } else {
+        let toX = this.toHexString(tx.toX)
+        let toY = this.toHexString(tx.toY)
+        receiverPubkey = '0x' + '04' + toX + toY
+      }
+      if (tx.fromX == 0 && tx.fromY == 0) {
+        senderPubkey = '0'
+      } else {
+        let fromX = this.toHexString(tx.fromX)
+        let fromY = this.toHexString(tx.fromY)
+        senderPubkey = '0x' + '04' + fromX + fromY
+      }
+      let submitData = {
+        network_id: this.currentChainInfo['id'].toString(),
+        from_index: sendIndex,
+        senderPubkey: senderPubkey,
+        r8x: r8x,
+        r8y: r8y,
+        s: s,
+        receiverPubkey: receiverPubkey,
+        tokenTypeFrom: tokenType,
+        amount: aomuntGwei,
+        nonce: sendNonce,
+        status: 0,
+      }
+      if (type == 'withdraw') {//txid=9
+        console.log(withdrawData)
+        submitData.withdraw_r8x = withdrawData.R8x
+        submitData.withdraw_r8y = withdrawData.R8y
+        submitData.withdraw_s = withdrawData.S
+        submitData.withdraw_msg = withdrawData.M
+      }
+      console.log("addtx:", submitData)
+      const { hasError, data} = await this.$store.dispatch('zkzruTx', submitData)
+      if (hasError) {
+        this.sendFailed('Add tx failed')
+      } else {
+        this.sendSuccess()
+        if (type == 'withdraw') {
+          this.saveTxInfo(data)
+        }
+      }
+    },
+    saveTxInfo(data) {
+      console.log(data)
+      let withdrawTxList = getInfoFromStorageByKey('withdrawTx') || []
+      withdrawTxList.push(data.tx_id)
+      saveToStorage({'withdrawTx': withdrawTxList})
+      this.listenUpdateState()
+    },
+    async listenUpdateState() {
+      console.log('Deposit')
+      // let rollupNCContract = await getContractAt({ tokenAddress: this.rollupNCRouter, abi: RollupNC.abi }, this)
+      // console.log(rollupNCContract)
+      // let queueNumber = await rollupNCContract.queueNumber()
+      // queueNumber = web3.utils.hexToNumber(queueNumber)
+      // console.log(queueNumber)
+      // rollupNCContract.on('RequestDeposit', (author, oldValue, newValue, event) => {
+      //   console.log(event)
+      // })
+      const withdrawTxList = getInfoFromStorageByKey('withdrawTx') || []
+      withdrawTxList.map(item => {
+        this.getWithdrawTx(item)
       })
     },
+    async getWithdrawTx(txid) {
+      console.log(txid)
+      const { hasError, data} = await this.$store.dispatch('getZkzruTxStatus', txid)
+      console.log(data)
+      const txStatus = data[0] && data[0].status
+      if (txStatus == 1) {//0-confirming 1-confirmed
+        this.getWithdrawInfo(txid)
+      }
+    },
+    async getWithdrawInfo(txid) {
+      const { hasError, data} = await this.$store.dispatch('getWithdrawInfo', {txid})
+      console.log(data)
+      if (data.length == 0) {
+        this.sendFailed('No withdraw info')
+        return
+      }
+      this.withdrawContrant(data)
+    },
+    async withdrawContrant(data) {
+      const withdrawTxInfo = data[0]
+      let rollupNCContract = await getContractAt({ tokenAddress: this.rollupNCRouter, abi: RollupNC.abi }, this)
+      console.log(rollupNCContract)
+      const selectedConnectAddress = getConnectedAddress()
+      const pubkey_from = [
+        "1490516688743074134051356933225925590384196958316705484247698997141718773914",
+        "18202685495984068498143988518836859608946904107634495463490807754016543014696"
+      ]
+      const index = 4;
+      const nonce = 0;
+      const amount = 200;
+      const token_type_from = 2;
+      const position = [1, 0]
+      const txRoot =
+        "11104599065074864544861425585000276813461567861239463907298857663432015403888"
+      const proof1 = [
+        "923732209247106967839161264110052797174320966153955281208442788790069671618",
+        "7964815910787619688596922151009426619451026939393880799897520778748707002824"
+      ]
+      const txInfo = {
+        pubkeyX: pubkey_from[0],
+        pubkeyY: pubkey_from[1],
+        index: withdrawTxInfo.from_index,
+        toX: new BigNumber(0),
+        toY: new BigNumber(0),
+        nonce: withdrawTxInfo.nonce,
+        amount: withdrawTxInfo.amount,
+        token_type_from: withdrawTxInfo.tokenTypeFrom,
+        txRoot: txRoot,
+        position: position,
+        proof: proof1,
+      }
+      rollupNCContract.withdraw(txInfo, this.addressForRecipient, proof, { from: selectedConnectAddress, ...this.overrides }).then(async tx=> {
+          console.log(tx)
+          tx.wait().then(async res => {
+            console.log('withdraw:', res)
+          }).catch(error => {
+          console.log(error)
+          let errorValue = formatErrorContarct(error)
+          this.sendFailed(errorValue)
+         })
+      }).catch(error => {
+        console.log(error)
+        let errorValue = formatErrorContarct(error)
+        this.sendFailed(errorValue)
+      })
+    },
+    async getAccountInfo(address) {
+      const { hasError, data} = await this.$store.dispatch('getZkzruAccountInfo', address)
+      return data
+    },
+    async depositSubmit() {
+      const currentUserAds = getConnectedAddress()
+      let rollupNCContract = await getContractAt({ tokenAddress: this.rollupNCRouter, abi: RollupNC.abi }, this)
+      const privateKey = await getDecryptPrivateKeyFromStore(this)
+      // const coordinatorPrvkey = this.generatePrvkey(privateKey)
+      const l2Pubkey = await accountHelper.generatePubkey(privateKey)
+      console.log('l2Pubkey:', l2Pubkey)
+      const decPubkeyX = await this.toDecString(l2Pubkey[0])
+      const decPubkeyY = await this.toDecString(l2Pubkey[1])
+      let decPubkey = [decPubkeyX, decPubkeyY]
+      console.log("decpubkey:", decPubkey)
+
+      const hexPubkeyX = this.toHexString(l2Pubkey[0])
+      const hexPubkeyY = this.toHexString(l2Pubkey[1])
+      let hexPubkey = [hexPubkeyX, hexPubkeyY]
+      console.log("hexPubkey:", hexPubkey)
+      const tokenType = this.getTokenType()
+      const aomuntGwei = this.getAmount()//value: aomuntGwei, 
+      let transData
+      if (tokenType == 1) {//eth
+        transData = {
+          value: aomuntGwei,
+          from: currentUserAds
+        }
+      } else {//token
+        transData = {
+          from: currentUserAds
+        }
+      }
+      rollupNCContract.deposit(decPubkey, aomuntGwei, tokenType, { ...transData, ...this.overrides }).then(async tx=> {
+          console.log(tx)
+          tx.wait().then(async res => {
+            this.addDeposit(privateKey, hexPubkey, tokenType, aomuntGwei, res)
+            console.log('Deposit:', res)
+          }).catch(error => {
+           console.log(error)
+           let errorValue = formatErrorContarct(error)
+           this.sendFailed(errorValue)
+          })
+      }).catch(error => {
+        console.log(error)
+        let errorValue = formatErrorContarct(error)
+        this.sendFailed(errorValue)
+      })
+    },
+    // async processDepositSubmit() {
+    //   const currentUserAds = getConnectedAddress()
+    //   let rollupNCContract = await getContractAt({ tokenAddress: this.rollupNCRouter, abi: RollupNC.abi }, this)
+    //   let queueNumber = await rollupNCContract.queueNumber()
+    //   queueNumber = web3.utils.hexToNumber(queueNumber)
+    //   console.log(queueNumber)
+    //   let first4Hash = await rollupNCContract.pendingDeposits(0)
+    //   console.log(first4Hash)
+    //   let first4HashPosition
+    //   let first4HashProof
+    //   if (queueNumber/4 == 1) {
+    //     first4HashPosition = [0, 0]
+    //   } else if (queueNumber/4 == 2) {
+    //     first4HashPosition = [1, 0]
+    //   }
+    //   first4HashProof = [
+    //         '10979797660762940206903140898034771814264102460382043487394926534432430816033',
+    //         '4067275915489912528025923491934308489645306370025757488413758815967311850978'
+    //   ]
+    //   rollupNCContract.processDeposits(2, first4HashPosition, first4HashProof, { from: currentUserAds, ...this.overrides }).then(async tx=> {
+    //         console.log(tx)
+    //         tx.wait().then(async res => {
+    //           this.showLoading = false
+    //           console.log('Deposit:', res)
+    //         }).catch(error => {
+    //           console.log(error)
+    //           let errorValue = formatErrorContarct(error)
+    //           this.sendFailed(errorValue)
+    //        })
+    //     }).catch(error => {
+    //       let errorValue = formatErrorContarct(error)
+    //       this.sendFailed(errorValue)
+    //   })
+    // },
+    toHexString(bytes) {
+      // const buildMimc7 = cls.buildMimc7
+      // let mimcjs = await buildMimc7()
+      // let F = mimcjs.F
+      // let pubkey = F.toString(bytes)
+      // return pubkey
+      // return bytes.reduce((str, byte) => str + byte.toString().padStart(2, '0').substr(0,2), '')
+      return bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '')
+    },
+    async toDecString(bytes) {
+      const buildMimc7 = cls.buildMimc7
+      let mimcjs = await buildMimc7()
+      let F = mimcjs.F
+      let pubkey = F.toString(bytes)
+      return pubkey
+    },
+
+    fromHexString(hexString) {
+      return Uint8Array.from(hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)))
+    },
+
+    async addDeposit(privateKey, hexPubkey, tokenType, aomuntGwei, tx) {
+      const selectedConnectAddress = getConnectedAddress()
+      const fromNonce = await this.getNonce(selectedConnectAddress)
+      const coordinatorPubkeyUncompressed = '0x' + '04' + hexPubkey[0] + hexPubkey[1]
+      let submitData = {
+        network_id: this.currentChainInfo['id'].toString(),
+        // index: fromNonce,
+        pubkey: coordinatorPubkeyUncompressed,
+        tokenType: tokenType,
+        balance: aomuntGwei,
+        nonce: fromNonce,
+        // prvkey: privateKey,
+        address: selectedConnectAddress,
+      }
+      const { hasError, data} = await this.$store.dispatch('zkzruAccout', submitData)
+      if (hasError) {
+        this.sendFailed('Add account failed')
+      } else {
+        this.sendSuccess()
+        tx.hash = tx.transactionHash
+        addTransHistory(tx, 'Deposit', this, this.type1Value)
+      }
+    },
+    async confirmPswOk({ show, psw }) {
+      this.userPsw = psw; // password of user input for encrypt privateKey
+      this.confirmPswBtnLoading = true
+      const { hasError, data: publicKey} = await this.$store.dispatch('GetAllPublicKey')
+      if (hasError) {
+        Toast('Get PublickKey Failed! Retry')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      this.publicKey = publicKey;
+      // console.log(`GetPublicKey result is: ${publicKey}`)
+      
+      // const password = ecies.crypto.randomBytes(16).toString("base64");
+      const encryptPsw = generateEncryptPswByPublicKey(publicKey, psw); // generate cc1
+      const { cr1: encryptCr1, aesKey } = generateCR1ByPublicKey(this.publicKey); // generate cr1
+      // console.log('aesKey:', aesKey)
+      this.aesKey = aesKey
+      this.encryptPsw = encryptPsw
+      this.encryptCr1 = encryptCr1
+      // console.log(`encryptPsw: ${encryptPsw}, \n encryptCr1: ${encryptCr1}`)
+
+      // to decrypt privatekey
+      const userId = getInfoFromStorageByKey('gUID')
+      const address = getConnectedUserAddress()
+      const encryptKey = await getEncryptKeyByAddressFromStore(address, this)
+      const decryptInfo = await this.$store.dispatch('DecryptPrivateKeyByEcies', {userId, cr1: this.encryptCr1, c1: this.encryptPsw, cc2: encryptKey })
+      if(decryptInfo.hasError) {
+        Toast('DecryptPrivateKeyByEcies failed! Retry!')
+        this.confirmPswBtnLoading = false
+        return
+      }
+      const decryptedPrivateKey = decryptInfo.data
+      const privateKey = getDecryptPrivateKey(decryptedPrivateKey, this.aesKey)
+      privateKey && (await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey, privateKey }))
+
+      this.confirmPswBtnLoading = false
+      this.showInputPswModal = false
+      await this.dealDataBeforeSend()
+    },
+    
+    sendSuccess() {
+      this.showLoading = false
+      this.showStatusPop = true;
+      this.statusPopTitle = 'Submitted'
+      this.popStatus = 'success';
+    },
+    sendFailed(error) {
+      this.showLoading = false
+      this.showStatusPop = true;
+      this.statusPopTitle = error
+      this.popStatus = 'fail';
+    },
+    async handleExchangeInputChange(data, type) {
+      console.log(type, data)
+      const value = data.value
+      this[`${type}Value`] = value
+      if (type === 'type1') {
+        this.type2Value = !this.selectedToken ? value * this.ETHFORUS : value * this.selectedToken.exchangeForUS
+      }
+      if (type === 'type2') {
+        this.type1Value = !this.selectedToken ? value * this.ETHFORUS : value * this.selectedToken.exchangeForUS
+      }
+    },
+    async getGasPrice() {
+      const { hasError, data } = await this.$store.dispatch('GetGasPriceByEtherscan');
+      console.log(data)
+      if (data) { this.gasPriceInfo = data }
+    },
+    async transFromChange(data) {
+      let dataArray = data.split('-')
+      this.transFromType = dataArray[0]
+      this.transFromAddress = dataArray[1]
+      await this.getTokenAssetsForAccount()
+      console.log(this.transFromAddress)
+    },
+    async handleAccountChange(addressInfo) {
+      this.showLoading = true;
+      this.transFromAddress = getConnectedAddress()
+      await this.getCurrentAccountType()
+      await this.getTokenAssetsForAccount()
+      this.showLoading = false;
+    },
+    _handleNetworkChange({ chainInfo, from }) {
+      if (from === 'sendMenu') { return }
+      this.defaultNetWork = chainInfo.id
+    },
+    getCurrentAccountType() {
+      const userId = getFromStorage('gUID')
+      if (userId) {
+        const userMap = getInfoFromStorageByKey('userMap');
+        const userData = userMap && userMap[userId]
+        if (userData['walletAddress']) {
+          this.transFromType = 2
+        } else {
+          this.transFromType = 1
+        }
+      } else {
+        this.transFromType = 1
+      }
+    },
+    async testcode() {
+      const i='8489afa9c89a871eec3480dfa1d8f28b3720cc8a4bf77370a4fd8b5f090b7af6'
+      let coordinatorPrvkey = Buffer.from(i.toString().padStart(64,'0'), "hex")
+      console.log(coordinatorPrvkey)
+      console.log(coordinatorPrvkey.toString())
+      const coordinatorPubkey = await accountHelper.generatePubkey(coordinatorPrvkey)
+      console.log(coordinatorPubkey)
+      const coordinator = new Account(
+        1, coordinatorPubkey[0], coordinatorPubkey[1],
+        0, 0, 0, coordinatorPrvkey
+      );
+      const coordinatorPubkeyUncompressed = '0x' + '04' + this.toHexString(coordinatorPubkey[0]) + this.toHexString(coordinatorPubkey[1])
+      await coordinator.initialize()
+      console.log(coordinator)
+      console.log(ethers.utils.computeAddress(coordinatorPubkeyUncompressed))
+    },
+    generatePrvkey(privateKey) {
+      let prvkey = Buffer.from(privateKey.toString().padStart(64,'0'), "hex");
+      return prvkey
+    },
   },
-  mounted() {
-    this.$eventBus.$on('chainChanged', this.handleChainChanged);
-    this.$eventBus.$on('updateAddress', (info)=>{ this.defaultAddress = info.address; });
+  async created() {
+    this.defaultNetWork = this.getDefaultNetWork()
+    
+    const { data: netInfo } = await this.$store.dispatch('GetSelectedNetwork')
+    console.log(netInfo)
+    if (netInfo) {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(netInfo['id'])]
+    } else {
+      this.currentChainInfo = CHAINMAP[web3.utils.numberToHex(this.defaultNetWork)]
+    }
+    this.getCurrentAccountType()
+    this.getCurrentModuleTxt()
+    await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
+   // console.log(ethers.utils.computeAddress('0x04fb31711201464adcc4623d4a86cf11a6275f5e4b6fb47541e01420d4bc7cf101e85fab8385dd77e2a27cf8a4dce1f64836d40de13a31c040f1be4b978882aa19'))
+    // const privateKey = await getDecryptPrivateKeyFromStore(this)
+    // console.log(privateKey)
+    // const l2Pubkey = await accountHelper.generatePubkey(privateKey)
+    // console.log(l2Pubkey)
+    // const privateBuffer = Buffer.from(privateKey.toString().padStart(64,'0'), "hex")
+    // const l2Pubkey1 = await accountHelper.generatePubkey(privateBuffer)
+    // console.log(l2Pubkey1)
+    // const hexPubkeyX = this.toHexString(l2Pubkey1[0])
+    // const hexPubkeyY = this.toHexString(l2Pubkey1[1])
+    // const condf = '0x' + '04' + hexPubkeyX + hexPubkeyY
+    // console.log(condf)
+    // console.log(ethers.utils.computeAddress(condf))
   },
-}
+  async mounted() {
+    if (!isLogin()) {
+      Toast('Please Login')
+      return
+    }
+    this.$eventBus.$on('networkChange', this._handleNetworkChange)
+    this.$eventBus.$on('changeAccout', this.handleAccountChange)
+    await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
+    const { hasError, forUsdt } = await this.$store.dispatch('GetTokenAxchangeForUS', { changeType: 'ETH/USDT' });
+    this.ETHFORUS = forUsdt
+    await this.getTokenAssetsForAccount()
+  }
+};
 </script>
 <style lang="scss" scoped>
-  @import 'index';
+  @import "index";
 </style>

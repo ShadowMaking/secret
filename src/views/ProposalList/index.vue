@@ -1,6 +1,6 @@
 <template>
   <div class="proposal-list-page">
-    <v-navTitle title="Proposals" helpUrl="docs/usage/Send"></v-navTitle >
+    <v-navTitle title="Proposals" helpUrl="docs/usage/Governance?id=proposals"></v-navTitle >
     <div class="proposal-list-content">
       <van-tabs color="#4375f1" title-active-color="#4375f1" @click="onTabClick">
         <van-tab  title-style="font-weight: bold;" v-for="(item, index) in allStatusList" :key="index" :title="item"></van-tab>

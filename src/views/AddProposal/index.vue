@@ -1,6 +1,6 @@
 <template>
 	<div class="add-proposal-page content-box">
-		<v-navTitle title="New proposal" helpUrl="docs/usage/Send"></v-navTitle >
+		<v-navTitle title="New proposal" helpUrl="docs/usage/Governance?id=proposals"></v-navTitle >
 		<div class="add-proposal-content content-page">
 			<p class="proposal-des">You need to have a minimum of {{voteThreshold}} governance token in order to submit a proposal.</p>
 			<div class="warnging-tip">

@@ -200,7 +200,7 @@ export default {
       }
       this.showLoading = true
 
-      console.log(val, type)
+      // console.log(val, type)
       let wallet;
       let address;
       let privateKey

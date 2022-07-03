@@ -1,6 +1,6 @@
 <template>
   <div class="proposal-detail-page">
-    <v-navTitle title="Proposal" helpUrl="docs/usage/Send"></v-navTitle >
+    <v-navTitle title="Proposal" helpUrl="docs/usage/Governance?id=queue"></v-navTitle >
     <div class="proposal-detail-content">
       <div class="proposal-detail-left">
         <div class="proposal-row">
