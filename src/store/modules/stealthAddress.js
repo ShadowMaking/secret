@@ -7,6 +7,8 @@ import {
   zkzruTx,
   getZkzruTxStatus,
   getWithdrawInfo,
+  updateAccountNonce,
+  getAccountNonce,
 } from '@/api/stealthAddress'
 
 
@@ -113,6 +115,32 @@ const stealthAddress = {
     getWithdrawInfo({ commit }, params) {
       return new Promise((resolve, reject) => {
         getWithdrawInfo(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false, data: data })
+          }
+          resolve({ hasError: true, data: null, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, data: null, error });
+        })
+      })
+    },
+    updateAccountNonce({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        updateAccountNonce(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false, data: data })
+          }
+          resolve({ hasError: true, data: null, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, data: null, error });
+        })
+      })
+    },
+    getAccountNonce({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        getAccountNonce(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0) {
             resolve({ hasError: false, data: data })

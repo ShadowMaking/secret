@@ -103,3 +103,28 @@ import request from '@/utils/request';
     data: data,
   })
 }
+
+/**
+ * @description: update account nonce
+ * @param 
+ * @return {*}
+ */
+ export const updateAccountNonce = (data) => {
+  return request({
+    url: `/api/zkzru/account/nonce`,
+    method: 'put',
+    data: data,
+  })
+}
+
+/**
+ * @description: get account nonce
+ * @param 
+ * @return {*}
+ */
+ export const getAccountNonce = (address) => {
+  return request({
+    url: `/api/zkzru/account/nonce/${address}`,
+    method: 'get',
+  })
+}
