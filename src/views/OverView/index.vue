@@ -148,11 +148,20 @@ export default {
       const userAddress = getConnectedAddress()
       const { hasError, data} = await this.$store.dispatch('getZkzruAccountInfo', userAddress)
       const lay2Item = data && data[0] || {}
-      lay2Item.balanceNumberString = lay2Item && lay2Item.balance || 0
+      const lay2BalanceEth = await this.getlay2BalanceEth(lay2Item)
+      lay2Item.balanceNumberString = lay2BalanceEth
       lay2Item.tokenName = 'layer2'
       lay2Item.icon = 'https://s3.amazonaws.com/token-icons/eth.png'
       console.log(lay2Item)
       return lay2Item
+    },
+    getlay2BalanceEth(lay2Item) {
+      let banlanceEth = 0
+      if (lay2Item && lay2Item.balance) {
+        const amountWei = web3.utils.toWei(lay2Item.balance, 'gwei')
+        banlanceEth = web3.utils.fromWei(amountWei, 'ether')//value: aomuntGwei
+      }
+      return banlanceEth
     },
     connectedWallet() {
       const userAddress = getConnectedAddress()
