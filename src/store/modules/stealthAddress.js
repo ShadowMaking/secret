@@ -9,6 +9,8 @@ import {
   getWithdrawInfo,
   updateAccountNonce,
   getAccountNonce,
+  getWithdrawList,
+  updateWithdrawStatus
 } from '@/api/stealthAddress'
 
 
@@ -141,6 +143,32 @@ const stealthAddress = {
     getAccountNonce({ commit }, params) {
       return new Promise((resolve, reject) => {
         getAccountNonce(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false, data: data })
+          }
+          resolve({ hasError: true, data: null, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, data: null, error });
+        })
+      })
+    },
+    getWithdrawList({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        getWithdrawList(params).then(response => {
+          const { errno, data, message } = response.data
+          if (errno === 0) {
+            resolve({ hasError: false, data: data })
+          }
+          resolve({ hasError: true, data: null, error: message });
+        }).catch(error => {
+          resolve({ hasError: true, data: null, error });
+        })
+      })
+    },
+    updateWithdrawStatus({ commit }, params) {
+      return new Promise((resolve, reject) => {
+        updateWithdrawStatus(params).then(response => {
           const { errno, data, message } = response.data
           if (errno === 0) {
             resolve({ hasError: false, data: data })

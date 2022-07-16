@@ -77,17 +77,16 @@ import ConfirmModal from '@/components/ConfirmModal';
 import LoadingPopup from '@/components/LoadingPopup';
 import InputPswModal from '@/components/InputPswModal'
 import InputSelect from '@/components/InputSelect/index';
-import { ethers, utils } from 'ethers'
+import { ethers, utils, BigNumber } from 'ethers'
 import web3 from 'web3'
 import { walletTransactionRouter, multOperation, securityModuleRouter, lockType, rollupNCRouter } from '@/utils/global';
-import { BigNumber } from "bignumber.js";
 import { TRANSACTION_TYPE } from '@/api/transaction';
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import { getInfoFromStorageByKey, getFromStorage, saveToStorage } from '@/utils/storage';
 import {
   generateTokenList, getDefaultETHAssets, getConnectedAddress,
   getContractWallet, isLogin, getDATACode, getContractAt, 
-  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas, getConnectedUserAddress, addTransHistory, getThisProvider  } from '@/utils/dashBoardTools';
+  getDecryptPrivateKeyFromStore, getEncryptKeyByAddressFromStore, getEstimateGas, getConnectedUserAddress, addTransHistory, getThisProvider, getL2DefaultETHAssets  } from '@/utils/dashBoardTools';
 import WalletTransaction from "@/assets/contractJSON/TransactionModule.json";
 import WalletJson from "@/assets/contractJSON/Wallet.json";
 import SecurityModule from "@/assets/contractJSON/SecurityModule.json";
@@ -177,6 +176,7 @@ export default {
       this.currentModule = this.$route.query.type;
       console.log(this.$route.query.type)
       this.getCurrentModuleTxt()
+      this.getTokenAssetsForAccount()
     }
   },
   computed: {
@@ -252,7 +252,14 @@ export default {
     handleAddressInputChange(data) {
       this.addressForRecipient = data.value
     },
-    async getTokenAssetsForAccount() {
+    getTokenAssetsForAccount() {
+      if (this.currentModule == 'dp') {
+        this.getL1assets()
+      } else {
+        this.getL2Assets()
+      }
+    },
+    async getL1assets() {
       this.assetsTokenList = []
       const selectedConnectAddress = this.transFromAddress ? this.transFromAddress : getConnectedAddress()
       console.log(selectedConnectAddress)
@@ -266,6 +273,14 @@ export default {
       const tokenList = await generateTokenList(_.cloneDeep(list), this, true, selectedConnectAddress)
       console.log('tokenList', tokenList)
       this.assetsTokenList = [].concat([ETHAssets], tokenList)
+      console.log(this.assetsTokenList)
+    },
+    async getL2Assets() {
+      this.assetsTokenList = []
+      const selectedConnectAddress = this.transFromAddress ? this.transFromAddress : getConnectedAddress()
+      const ETHAssets = await getL2DefaultETHAssets(this, selectedConnectAddress)
+      this.assetsTokenList = [ETHAssets]
+      console.log(this.assetsTokenList)
     },
     handleTokenChange(data) {
       this.selectedToken = data.value;
@@ -304,8 +319,7 @@ export default {
         Toast(`input amount`);
         return false;
       }
-      if (new BigNumber(data.selectedToken.balanceNumberString).lt(new BigNumber(data.type1Value)) ||
-      new BigNumber(data.selectedToken.balanceNumberString).eq(new BigNumber(0))) {
+      if (data.selectedToken.balanceNumberString < data.type1Value) {
         Toast(`Insufficient Balance`);
         return false;
       }
@@ -329,22 +343,15 @@ export default {
       }
 
       const ETHToken = _.find(this.assetsTokenList, {tokenName: 'ETH'})
-      if (ETHToken && ETHToken.balance.lte(0)) {
+      console.log(ETHToken.balance)
+      if (ETHToken && ETHToken.balance == 0) {
         Toast('Not Enough ETH')
         return
       }
       
       // if (!this.checkData(sendData)) { return }
       this.showLoading = true
-      if (this.currentModule == 'sd') {
-        this.sendSubmit()
-        return
-      } else if (this.currentModule == 'wd') {
-        this.withdrawSubmit()
-        return
-      } else {
-        this.showGasModal()
-      }
+      this.showGasModal()
     },
     async showGasModal() {
       let gasPrice = '20' // 20 Gwei
@@ -391,13 +398,11 @@ export default {
     },
     getAmount() {
       const amountWei = web3.utils.toWei(this.type1Value, 'ether')
-      const aomuntGwei = web3.utils.fromWei(amountWei, 'gwei')//value: aomuntGwei, 
-      console.log(aomuntGwei)
-      return aomuntGwei
+      // const aomuntGwei = web3.utils.fromWei(amountWei, 'gwei') 
+      return amountWei
     },
     async getL2Pubkey() {
       const privateKey = await getDecryptPrivateKeyFromStore(this)
-      // const coordinatorPrvkey = this.generatePrvkey(privateKey)
       const l2Pubkey = await accountHelper.generatePubkey(privateKey)
       return l2Pubkey
     },
@@ -425,14 +430,14 @@ export default {
         this.sendFailed('No Send Info')
         return
       }
-      let receivePubKeyX, receivePubKeyY, aomuntGwei;
-      aomuntGwei = this.getAmount()
+      let receivePubKeyX, receivePubKeyY, amountWei;
+      amountWei = this.getAmount()
       if (type == 'withdraw') {
-        // aomuntGwei = ethers.utils.parseEther(this.type1Value) //eth
+        // amountWei = ethers.utils.parseEther(this.type1Value) //eth
         receivePubKeyX = 0
         receivePubKeyY = 0
       } else {
-        // aomuntGwei = this.getAmount() //gwei
+        // amountWei = this.getAmount() //gwei
         const receiveInfo = await this.getAccountInfo(receiveAddress)
         console.log('receiveInfo:', receiveInfo)
         if (!receiveInfo || receiveInfo.length == 0) {
@@ -450,39 +455,27 @@ export default {
       const sendNonce = await this.getNonce(selectedConnectAddress)
       
       
-      console.log("sendpukey1:", l2Pubkey[0])
-      console.log("sendpukey2:", l2Pubkey[1])
       console.log("sendIndex:", sendIndex)
       console.log(typeof(sendIndex))
       console.log("sendNonce:", sendNonce)
-      console.log("aomuntGwei:", aomuntGwei)
+      console.log("amountWei:", amountWei)
       console.log("tokenType:", tokenType)
-      console.log("receivepubkey1:", receivePubKeyX)
-      console.log("receivepubkey2:", receivePubKeyY)
-      var tx = new Transaction(l2Pubkey[0], l2Pubkey[1], sendIndex, receivePubKeyX, receivePubKeyY, sendNonce, aomuntGwei, tokenType)
+      var tx = new Transaction(l2Pubkey[0], l2Pubkey[1], sendIndex, receivePubKeyX, receivePubKeyY, sendNonce, amountWei, tokenType)
       
       //SIGN
       await tx.initialize()
       tx.hashTx();
       tx.signTxHash(fromPrivateKey);
       console.log(tx)
-      console.log("tx hash:", tx.hash)
       const fdfd = await this.toDecString(tx.hash)
-      console.log("tx hash decString", fdfd)
-      console.log("tx r8x:", tx.R8x)
-      console.log("tx r8x hexString:", this.toHexString(tx.R8x))
-      console.log("tx r8y:", tx.R8y)
-      console.log("tx r8y hexString:", this.toHexString(tx.R8y))
-      console.log("tx sig:", tx.S)
-      console.log("tx sig string", ffjavascript.utils.stringifyBigInts(tx.S))
       tx.checkSignature()
       if (type == 'withdraw') {
         const withdrawData = await this.withDrawSign(fromPrivateKey, sendNonce, receiveAddress)
         console.log(withdrawData)
-        this.addZkzruTx(tx, type, sendIndex, sendNonce, aomuntGwei, tokenType, withdrawData, receiveAddress)
+        this.addZkzruTx(tx, type, sendIndex, sendNonce, amountWei, tokenType, withdrawData, receiveAddress)
       } else {//send
         console.log(tx)
-        this.addZkzruTx(tx, type, sendIndex, sendNonce, aomuntGwei, tokenType)
+        this.addZkzruTx(tx, type, sendIndex, sendNonce, amountWei, tokenType)
       }
       this.updateNonce(selectedConnectAddress, sendNonce)
       
@@ -519,7 +512,7 @@ export default {
       return inputs
 
     },
-    async addZkzruTx(tx, type, sendIndex, sendNonce, aomuntGwei, tokenType, withdrawData, receiveAddress) {
+    async addZkzruTx(tx, type, sendIndex, sendNonce, amountWei, tokenType, withdrawData, receiveAddress) {
       console.log(tx)
       const r8x = this.toHexString(tx.R8x)
       const r8y = this.toHexString(tx.R8y)
@@ -549,7 +542,7 @@ export default {
         s: s,
         receiverPubkey: receiverPubkey,
         tokenTypeFrom: tokenType,
-        amount: aomuntGwei,
+        amount: amountWei,
         nonce: sendNonce,
         status: 0,
       }
@@ -574,41 +567,49 @@ export default {
     },
     saveTxInfo(data) {
       console.log(data)
-      let withdrawTxList = getInfoFromStorageByKey('withdrawTx') || []
-      withdrawTxList.push(data.tx_id)
-      saveToStorage({'withdrawTx': withdrawTxList})
+      // let withdrawTxList = getInfoFromStorageByKey('withdrawTx') || []
+      // withdrawTxList.push(data.tx_id)
+      // saveToStorage({'withdrawTx': withdrawTxList})
       this.listenUpdateState()
     },
-    listenUpdateState() {
+    async listenUpdateState() {
       // rollupNCContract.on('RequestDeposit', (author, oldValue, newValue, event) => {
       //   console.log(event)
       // })
-      const withdrawTxList = getInfoFromStorageByKey('withdrawTx') || []
-      withdrawTxList.map(item => {
-        this.getWithdrawTx(item)
-      })
+      const l2Pubkey = await this.getL2Pubkey()
+      const hexPubkeyX = this.toHexString(l2Pubkey[0])
+      const hexPubkeyY = this.toHexString(l2Pubkey[1])
+      let hexPubkey = [hexPubkeyX, hexPubkeyY]
+      const l2PubkeyUncompressed = '0x' + '04' + hexPubkey[0] + hexPubkey[1]
+      const { hasError, data} = await this.$store.dispatch('getWithdrawList', l2PubkeyUncompressed)
+      console.log(data)
+      // const withdrawTxList = getInfoFromStorageByKey('withdrawTx') || []
+      for (var i = 0; i < data.length; i++) {
+        const item = data[i]
+        await this.getWithdrawTx(item.tx_id)
+      }
     },
     async getWithdrawTx(txid) {
       const { hasError, data} = await this.$store.dispatch('getZkzruTxStatus', txid)
       const txStatus = data[0] && data[0].status
       if (txStatus == 1) {//0-confirming 1-confirmed
-        this.getWithdrawInfo(txid)
+        await this.getWithdrawInfo(txid)
       }
     },
     async getWithdrawInfo(txid) {
       const { hasError, data} = await this.$store.dispatch('getWithdrawInfo', {tx_id: txid})
       console.log(data)
-      if (!data || data.length == 0) {
-        this.sendFailed('No withdraw info')
+      if (!data) {
         return
       }
-      this.withdrawContrant(data, txid)
+      await this.withdrawContrant(data, txid)
     },
     async withdrawContrant(data, txid) {
       const withdrawTxInfo = data
       const txInfo = withdrawTxInfo.txInfo
       let rollupNCContract = await getContractAt({ tokenAddress: this.rollupNCRouter, abi: RollupNC.abi }, this)
       const selectedConnectAddress = getConnectedAddress()
+      txInfo.amount = BigNumber.from(txInfo.amount)
       rollupNCContract.withdraw(txInfo, withdrawTxInfo.recipient, withdrawTxInfo.withdrawProof, { from: selectedConnectAddress, ...this.overrides }).then(async tx=> {
           console.log(tx)
           tx.wait().then(async res => {
@@ -621,14 +622,16 @@ export default {
         console.log(error)
       })
     },
-    deleteWithTx(txid) {
-      let withdrawTxList = getInfoFromStorageByKey('withdrawTx')
-      for (var i = 0; i < withdrawTxList.length; i++) {
-        if (withdrawTxList[i] == txid) {
-          withdrawTxList.splice(i, 1)
-        }
-      }
-      saveToStorage({'withdrawTx': withdrawTxList})
+    async deleteWithTx(txid) {
+      const { hasError, data} = await this.$store.dispatch('updateWithdrawStatus', {tx_id: txid})
+      console.log(data)
+      // let withdrawTxList = getInfoFromStorageByKey('withdrawTx')
+      // for (var i = 0; i < withdrawTxList.length; i++) {
+      //   if (withdrawTxList[i] == txid) {
+      //     withdrawTxList.splice(i, 1)
+      //   }
+      // }
+      // saveToStorage({'withdrawTx': withdrawTxList})
     },
     async getAccountInfo(address) {
       const { hasError, data} = await this.$store.dispatch('getZkzruAccountInfo', address)
@@ -651,7 +654,7 @@ export default {
       let hexPubkey = [hexPubkeyX, hexPubkeyY]
       console.log("hexPubkey:", hexPubkey)
       const tokenType = this.getTokenType()
-      const aomuntGwei = this.getAmount()
+      const aomuntWei = this.getAmount()
       const aomuntEth = ethers.utils.parseEther(this.type1Value)//eth 
       let transData
       if (tokenType == 1) {//eth
@@ -664,10 +667,10 @@ export default {
           from: currentUserAds
         }
       }
-      rollupNCContract.deposit(decPubkey, aomuntGwei, tokenType, { ...transData, ...this.overrides }).then(async tx=> {
+      rollupNCContract.deposit(decPubkey, aomuntWei, tokenType, { ...transData, ...this.overrides }).then(async tx=> {
           console.log(tx)
           tx.wait().then(async res => {
-            this.addDeposit(privateKey, hexPubkey, tokenType, aomuntGwei, res)
+            this.addDeposit(privateKey, hexPubkey, tokenType, aomuntWei, res)
             console.log('Deposit:', res)
           }).catch(error => {
            console.log(error)
@@ -695,7 +698,7 @@ export default {
       return Uint8Array.from(hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16)))
     },
 
-    async addDeposit(privateKey, hexPubkey, tokenType, aomuntGwei, tx) {
+    async addDeposit(privateKey, hexPubkey, tokenType, aomuntWei, tx) {
       const selectedConnectAddress = getConnectedAddress()
       const fromNonce = 0
       const coordinatorPubkeyUncompressed = '0x' + '04' + hexPubkey[0] + hexPubkey[1]
@@ -704,7 +707,7 @@ export default {
         // index: fromNonce,
         pubkey: coordinatorPubkeyUncompressed,
         tokenType: tokenType,
-        balance: aomuntGwei,
+        balance: aomuntWei,
         nonce: fromNonce,
         // prvkey: privateKey,
         address: selectedConnectAddress,
@@ -840,7 +843,6 @@ export default {
     this.getCurrentAccountType()//get account type ;normal,wallet
     this.getCurrentModuleTxt()//get show text
     await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
-    // saveToStorage({'withdrawTx': [4]})
     this.isShowInputPwd()//is has privatekey
     // this.updateNonce('0x28ef362ba842842df918bae66ee02ab47185e358', 1)
     // const nonce = this.getNonce('0x28ef362ba842842df918bae66ee02ab47185e358')

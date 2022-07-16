@@ -150,16 +150,18 @@ export default {
       const lay2Item = data && data[0] || {}
       const lay2BalanceEth = await this.getlay2BalanceEth(lay2Item)
       lay2Item.balanceNumberString = lay2BalanceEth
-      lay2Item.tokenName = 'layer2'
+      lay2Item.tokenName = 'zkzru'
       lay2Item.icon = 'https://s3.amazonaws.com/token-icons/eth.png'
       console.log(lay2Item)
       return lay2Item
     },
     getlay2BalanceEth(lay2Item) {
+      console.log(lay2Item)
+      console.log(typeof(lay2Item.balance))
       let banlanceEth = 0
       if (lay2Item && lay2Item.balance) {
-        const amountWei = web3.utils.toWei(lay2Item.balance, 'gwei')
-        banlanceEth = web3.utils.fromWei(amountWei, 'ether')//value: aomuntGwei
+        // const amountWei = web3.utils.toWei(lay2Item.balance, 'gwei')
+        banlanceEth = web3.utils.fromWei(lay2Item.balance, 'ether')//value: aomuntGwei
       }
       return banlanceEth
     },
