@@ -128,3 +128,28 @@ import request from '@/utils/request';
     method: 'get',
   })
 }
+
+/**
+ * @description: get withdrawstatus =1  by l2Pubkey
+ * @param 
+ * @return {*}
+ */
+ export const getWithdrawList = (senderPubkey) => {
+  return request({
+    url: `/api/zkzru/account/withdraw_status/${senderPubkey}`,
+    method: 'get',
+  })
+}
+
+/**
+ * @description: update withdrawstatus when withdraw success
+ * @param 
+ * @return {*}
+ */
+ export const updateWithdrawStatus = (data) => {
+  return request({
+    url: `/api/zkzru/account/withdraw_status`,
+    method: 'put',
+    data: data,
+  })
+}

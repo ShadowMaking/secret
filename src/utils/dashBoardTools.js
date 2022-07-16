@@ -88,6 +88,31 @@ export const getDefaultETHAssets = async (self, rpcUrl, accountAddress) => {
   return ethInfo
 }
 
+export const getL2DefaultETHAssets = async (self, accountAddress) => {
+  const selectedConnectAddress = accountAddress ? accountAddress : getConnectedAddress()
+  const { hasError, data } = await self.$store.dispatch('getZkzruAccountInfo', selectedConnectAddress);
+  const balance = data.length>0 && data[0].balance || '0.0'
+  const decimalsNumber = BigNumber(10).pow(18) // .toNumber() 1000000000000000000
+  const balanceNumber = BigNumber(Number(balance))
+  const balanceFormatString = balanceNumber.div(decimalsNumber).toFixed(4,1)
+  const { forUsdt } = await self.$store.dispatch('GetTokenAxchangeForUS', {changeType: 'ETH/USDT'});
+  const exchangeForUS = forUsdt;
+  const ethInfo = {
+    id: 'ETH',
+    tokenName: 'ETH',
+    balance,
+    balanceNumberString: balanceFormatString,
+    exchangeForUS,
+
+    rightVal: `US$${(balanceFormatString*exchangeForUS).toFixed(2)}`,
+    leftTitle: 'ETH',
+    // leftDes: `${balanceFormatString}ETH US$${exchangeForUS}`,
+    leftDes: `${balanceFormatString} US$${exchangeForUS}`,
+    icon: 'https://s3.amazonaws.com/token-icons/eth.png'
+  }
+  return ethInfo
+}
+
 export const metamaskNetworkChange = (data, callback) => {
   const paramsValue = _.cloneDeep(data.value)
   delete paramsValue.leftTitle
