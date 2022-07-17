@@ -157,9 +157,9 @@ export default {
         },
         {icon: 'el-icon-c-scale-to-original', name: 'Privacy', subMenu: [
           {icon: 'el-icon-s-custom', name: 'Stealth Address', route: '/stealthAddress',showType: 1,},
-          {icon: 'el-icon-s-custom', name: 'Deposit to L2', route: '',showType: 0,},
-          {icon: 'el-icon-s-custom', name: 'Withdraw to L1', route: '',showType: 0,},
-          {icon: 'el-icon-s-custom', name: 'Send in L2', route: '',showType: 0,},
+          {icon: 'el-icon-s-custom', name: 'Deposit to L2', route: '/deposit?type=dp',showType: 0,},
+          {icon: 'el-icon-s-custom', name: 'Withdraw to L1', route: '/deposit?type=wd',showType: 0,},
+          {icon: 'el-icon-s-custom', name: 'Send in L2', route: '/deposit?type=sd',showType: 0,},
         ]},
         {icon: 'el-icon-odometer', name: 'Governance', subMenu: [
           // {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},

@@ -1,6 +1,6 @@
 <template>
   <div class="delegate-proposal-page content-box">
-    <v-navTitle title="Delegate" helpUrl="docs/usage/Send"></v-navTitle >
+    <v-navTitle title="Delegate" helpUrl="docs/usage/Governance?id=delegate"></v-navTitle >
     <div class="delegate-proposal-content content-page">
       <div class="proposal-title">Governance token</div>
       <p class="proposal-des">Governance tokens represent voting shares in Eigen governance. You can vote on each proposal yourself or delegate your votes to other address or cancel delegation.</p>

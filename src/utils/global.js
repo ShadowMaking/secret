@@ -30,6 +30,8 @@ const supportNetContractRouter = [
     walletTransactionRouter: '0xaE7f9267632e24294fAD4E4DC32173309Edb0Ee0',//0xa0861f705Cf3996fB6993810A82D5053de8ED3a9
     GovernanceTokenRouter: '0xC91ecf9581701707658e21D3b04dc5E6c67575bD',
     GovernorAlphaRouter: '0xb9e341Fb309A6E642e3630E47bE5A26159c648C4',
+    rollupNCRouter: '0x152078fef5df00EF11c455Cab8963F7b0847D680',//0x1bfe8DFFA13286981b6Df3D32E9bBE491f8C3476-test
+  //preview-0x152078fef5df00EF11c455Cab8963F7b0847D680
   },
   {
     chainId: 588,
@@ -67,6 +69,7 @@ let proxyRouter = supportNetContractRouter[0].proxyRouter;
 let walletTransactionRouter = supportNetContractRouter[0].walletTransactionRouter;
 let GovernanceTokenRouter = supportNetContractRouter[0].GovernanceTokenRouter;
 let GovernorAlphaRouter = supportNetContractRouter[0].GovernorAlphaRouter;
+let rollupNCRouter = supportNetContractRouter[0].rollupNCRouter;
 
 let currentChainId = getConnectedNet().id
 for (let i = 0; i < supportNetContractRouter.length; i++) {
@@ -76,6 +79,7 @@ for (let i = 0; i < supportNetContractRouter.length; i++) {
     walletTransactionRouter = supportNetContractRouter[i].walletTransactionRouter
     GovernanceTokenRouter = supportNetContractRouter[i].GovernanceTokenRouter
     GovernorAlphaRouter = supportNetContractRouter[i].GovernorAlphaRouter
+    rollupNCRouter = supportNetContractRouter[i].rollupNCRouter
   }
 }
 
@@ -151,4 +155,5 @@ export {
   GovernanceTokenRouter,
   GovernorAlphaRouter,
   proposalStatus,
+  rollupNCRouter,
 }

@@ -40,3 +40,116 @@ import request from '@/utils/request';
     data: data,
   })
 }
+
+/**
+ * @description: deposit
+ * @param 
+ * @return {*}
+ */
+ export const zkzruAccout = (data) => {
+  return request({
+    url: `/api/zkzru/account`,
+    method: 'post',
+    data: data,
+  })
+}
+
+/**
+ * @description: withdraw add tx history
+ * @param 
+ * @return {*}
+ */
+ export const zkzruTx = (data) => {
+  return request({
+    url: `/api/zkzru/tx`,
+    method: 'post',
+    data: data,
+  })
+}
+
+/**
+ * @description: Get account info
+ * @param 
+ * @return {*}
+ */
+ export const getZkzruAccountInfo = (address) => {
+  return request({
+    url: `/api/zkzru/account/${address}`,
+    method: 'get',
+  })
+}
+
+/**
+ * @description: Get tx info
+ * @param 
+ * @return {*}
+ */
+ export const getZkzruTxStatus = (txid) => {
+  return request({
+    url: `/api/zkzru/tx/${txid}`,
+    method: 'get',
+  })
+}
+
+/**
+ * @description: Get withdraw info
+ * @param 
+ * @return {*}
+ */
+ export const getWithdrawInfo = (data) => {
+  return request({
+    url: `/api/zkzru/proveWithdraw`,
+    method: 'post',
+    data: data,
+  })
+}
+
+/**
+ * @description: update account nonce
+ * @param 
+ * @return {*}
+ */
+ export const updateAccountNonce = (data) => {
+  return request({
+    url: `/api/zkzru/account/nonce`,
+    method: 'put',
+    data: data,
+  })
+}
+
+/**
+ * @description: get account nonce
+ * @param 
+ * @return {*}
+ */
+ export const getAccountNonce = (address) => {
+  return request({
+    url: `/api/zkzru/account/nonce/${address}`,
+    method: 'get',
+  })
+}
+
+/**
+ * @description: get withdrawstatus =1  by l2Pubkey
+ * @param 
+ * @return {*}
+ */
+ export const getWithdrawList = (senderPubkey) => {
+  return request({
+    url: `/api/zkzru/account/withdraw_status/${senderPubkey}`,
+    method: 'get',
+  })
+}
+
+/**
+ * @description: update withdrawstatus when withdraw success
+ * @param 
+ * @return {*}
+ */
+ export const updateWithdrawStatus = (data) => {
+  return request({
+    url: `/api/zkzru/account/withdraw_status`,
+    method: 'put',
+    data: data,
+  })
+}

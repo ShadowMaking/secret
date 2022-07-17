@@ -31,13 +31,15 @@ const AddProposal = () => import('../views/AddProposal/index')
 const ProposalDetail = () => import('../views/ProposalDetail/index')
 const ProposalDelegate = () => import('../views/ProposalDelegate/index')
 const StealthAddress = () => import('../views/StealthAddress/index')
+const Deposit = () => import('../views/Deposit/index')
+
 
 //old page not use
 const Test = () => import('../views/Test')
 const NcWalletList = () => import('../views/NcWalletList/index')
 const SignManage = () => import('../views/NcWalletList/signManage/index')
-const Deposit = () => import('../views/Deposit/index')
 const Withdraw = () => import('../views/Withdraw/index')
+
 // cache origin push method
 const originalPush = VueRouter.prototype.push
 const originalReplace = VueRouter.prototype.replace

@@ -127,7 +127,8 @@ export default {
       // tokenList.filter(item => {
       //    return item.icon = require("@/assets/" + item.icon)
       // })
-      this.assetsData = [].concat([ETHAssets], tokenList)
+      const layer2Assets = await this.getLayer2Assets()
+      this.assetsData = [].concat(layer2Assets, [ETHAssets], tokenList)
       console.log(this.assetsData)
       this.showLoading = false
 
@@ -142,6 +143,27 @@ export default {
       // this.assetsData = []
       // this.assetsData.push(ethData)
       
+    },
+    async getLayer2Assets() {
+      const userAddress = getConnectedAddress()
+      const { hasError, data} = await this.$store.dispatch('getZkzruAccountInfo', userAddress)
+      const lay2Item = data && data[0] || {}
+      const lay2BalanceEth = await this.getlay2BalanceEth(lay2Item)
+      lay2Item.balanceNumberString = lay2BalanceEth
+      lay2Item.tokenName = 'zkzru'
+      lay2Item.icon = 'https://s3.amazonaws.com/token-icons/eth.png'
+      console.log(lay2Item)
+      return lay2Item
+    },
+    getlay2BalanceEth(lay2Item) {
+      console.log(lay2Item)
+      console.log(typeof(lay2Item.balance))
+      let banlanceEth = 0
+      if (lay2Item && lay2Item.balance) {
+        // const amountWei = web3.utils.toWei(lay2Item.balance, 'gwei')
+        banlanceEth = web3.utils.fromWei(lay2Item.balance, 'ether')//value: aomuntGwei
+      }
+      return banlanceEth
     },
     connectedWallet() {
       const userAddress = getConnectedAddress()
