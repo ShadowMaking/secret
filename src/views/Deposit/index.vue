@@ -304,7 +304,7 @@ export default {
         this.withdrawSubmit()
       }
     },
-    checkData(data) {
+    async checkData(data) {
       console.log('checkData')
       if (!utils.isAddress(data.toAddress)
         && this.currentModule !== 'dp') {
@@ -322,6 +322,24 @@ export default {
       if (data.selectedToken.balanceNumberString < data.type1Value) {
         Toast(`Insufficient Balance`);
         return false;
+      }
+      const selectedConnectAddress = getConnectedAddress()
+      const currentInfo = await this.getAccountInfo(selectedConnectAddress)
+      if (this.currentModule == 'dp') {
+        if (currentInfo && currentInfo.length > 0) {
+          Toast('You has depositd')
+          return false
+        }
+      } else {
+        if (!currentInfo || currentInfo.length == 0) {
+          Toast('You need to deposit first')
+          return false
+        }
+        const receiveInfo = await this.getAccountInfo(this.addressForRecipient)
+        if (!receiveInfo || receiveInfo.length == 0) {
+          Toast('Recipient need to deposit first')
+          return false
+        }
       }
       return true
     },
@@ -345,11 +363,12 @@ export default {
       const ETHToken = _.find(this.assetsTokenList, {tokenName: 'ETH'})
       console.log(ETHToken.balance)
       if (ETHToken && ETHToken.balance == 0) {
-        Toast('Not Enough ETH')
+        Toast('You need to deposit first')
         return
       }
+      const isChecked = await this.checkData(sendData)
       
-      // if (!this.checkData(sendData)) { return }
+      if (!isChecked) { return }
       this.showLoading = true
       this.showGasModal()
     },
@@ -640,12 +659,6 @@ export default {
     async depositSubmit() {
 
       const currentUserAds = getConnectedAddress()
-      const depositInfo = await this.getAccountInfo(currentUserAds)
-      if (depositInfo && depositInfo.length > 0) {
-        this.showLoading = false
-        this.sendFailed('You has depositd')
-        return
-      }
       let rollupNCContract = await getContractAt({ tokenAddress: this.rollupNCRouter, abi: RollupNC.abi }, this)
       const privateKey = await getDecryptPrivateKeyFromStore(this)
       // const coordinatorPrvkey = this.generatePrvkey(privateKey)
