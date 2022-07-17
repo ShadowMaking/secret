@@ -427,7 +427,7 @@ export default {
       
       if (!sendInfo || sendInfo.length == 0) {
         this.showLoading = false
-        this.sendFailed('No Send Info')
+        this.sendFailed('You need to deposit first')
         return
       }
       let receivePubKeyX, receivePubKeyY, amountWei;
@@ -442,7 +442,7 @@ export default {
         console.log('receiveInfo:', receiveInfo)
         if (!receiveInfo || receiveInfo.length == 0) {
           this.showLoading = false
-          this.sendFailed('No Recipient Info')
+          this.sendFailed('Recipient need to deposit first')
           return
         }
         const receivePubKey = this.fromHexString(receiveInfo[0].pubkey)
@@ -638,7 +638,14 @@ export default {
       return data
     },
     async depositSubmit() {
+
       const currentUserAds = getConnectedAddress()
+      const depositInfo = await this.getAccountInfo(currentUserAds)
+      if (depositInfo && depositInfo.length > 0) {
+        this.showLoading = false
+        this.sendFailed('You has depositd')
+        return
+      }
       let rollupNCContract = await getContractAt({ tokenAddress: this.rollupNCRouter, abi: RollupNC.abi }, this)
       const privateKey = await getDecryptPrivateKeyFromStore(this)
       // const coordinatorPrvkey = this.generatePrvkey(privateKey)
