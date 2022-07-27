@@ -379,14 +379,14 @@ export function getBalanceByAddress(address) {
   })
 }
 
-export const addTransHistory = async (txInfo, taransType, self, value, name, isWallet) => {
+export const addTransHistory = async (txInfo, taransType, self, value, name, isWallet, type) => {
   const currentChainInfo = getConnectedNet()
   const chainId = currentChainInfo && currentChainInfo['id']
   const submitData = {
     txid: txInfo.hash,
     from: getConnectedAddress(),
     to: (txInfo.to).toLocaleLowerCase(),
-    type: TRANSACTION_TYPE['L2ToL2'],
+    type: type ? type : TRANSACTION_TYPE['L1ToL1'],
     status: 0,//0-tobeconfirm 1-success 2-confirming -1-fail 3-cancel
     value: value ? value : 0,
     operation: taransType,
