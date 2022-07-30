@@ -864,6 +864,7 @@ export default {
     this.getCurrentModuleTxt()//get show text
     await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
     this.isShowInputPwd()//is has privatekey
+    console.log(this.rollupNCRouter)
     // this.updateNonce('0x28ef362ba842842df918bae66ee02ab47185e358', 1)
     // const nonce = this.getNonce('0x28ef362ba842842df918bae66ee02ab47185e358')
     // let rollupNCContract = await getContractAt({ tokenAddress: this.rollupNCRouter, abi: RollupNC.abi }, this)
