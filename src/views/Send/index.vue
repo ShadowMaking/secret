@@ -168,7 +168,7 @@ export default {
         txid: symbolName === 'ETH' ? res : res.hash,
         from: selectedConnectAddress,
         to: toAddress,
-        type: TRANSACTION_TYPE['L2ToL2'],
+        type: TRANSACTION_TYPE['L1ToL1'],
         status: 1,
         value: info.amount,
         name: symbolName,

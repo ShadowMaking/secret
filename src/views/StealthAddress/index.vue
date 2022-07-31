@@ -59,7 +59,6 @@ import VLoading from '@/components/Loading'
 import InputPswModal from '@/components/InputPswModal'
 import navTitle from '@/components/NavTitle/index'
 import { Popup, Toast, Loading } from 'vant';
-import { TRANSACTION_TYPE } from '@/api/transaction'
 import { generateTokenList, getConnectedAddress, getContractAt, getEncryptKeyByAddressFromStore, getDecryptPrivateKeyFromStore,addTransHistory, getIsCanTransaction, getEstimateGas, getConnectedUserAddress, getContractWallet  } from '@/utils/dashBoardTools';
 import { generateEncryptPswByPublicKey, generateCR1ByPublicKey, getDecryptPrivateKey, generateEncryptPrivateKeyByPublicKey } from '@/utils/relayUtils'
 import { copyTxt, formatErrorContarct } from '@/utils/index'
