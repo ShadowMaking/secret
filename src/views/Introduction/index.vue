@@ -30,8 +30,7 @@
     </div> -->
     <div class="welcome-tip">
       <span>Welcome to Eigen Network...</span>
-      <span>Just a moment, please! We are initializing data. </span>
-    </div>
+     </div>
     <v-inputPsw :show="showInputPswModal" @cancel="showInputPswModal=false" @ok="confirmPswOk" :btnLoading="confirmPswBtnLoading" />
   </div>
 </template>

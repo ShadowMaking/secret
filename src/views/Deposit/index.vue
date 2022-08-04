@@ -80,7 +80,6 @@ import InputSelect from '@/components/InputSelect/index';
 import { ethers, utils, BigNumber } from 'ethers'
 import web3 from 'web3'
 import { walletTransactionRouter, multOperation, securityModuleRouter, lockType, rollupNCRouter } from '@/utils/global';
-import { TRANSACTION_TYPE } from '@/api/transaction';
 import { CHAINMAP } from '@/utils/netWorkForToken';
 import { getInfoFromStorageByKey, getFromStorage, saveToStorage } from '@/utils/storage';
 import {
@@ -96,6 +95,7 @@ import { promiseValue, formatErrorContarct } from '@/utils/index'
 import { Account, accountHelper, Transaction } from '@ieigen/zkzru'
 import * as cls from "circomlibjs"
 import * as ffjavascript from "ffjavascript"
+import { TRANSACTION_TYPE } from '@/api/transaction';
 
 Vue.use(Popup);
 Vue.use(Toast)
@@ -330,14 +330,20 @@ export default {
           Toast('You has depositd')
           return false
         }
-      } else {
+      } else if (this.currentModule == 'sd') {
         if (!currentInfo || currentInfo.length == 0) {
           Toast('You need to deposit first')
           return false
         }
+
         const receiveInfo = await this.getAccountInfo(this.addressForRecipient)
         if (!receiveInfo || receiveInfo.length == 0) {
           Toast('Recipient need to deposit first')
+          return false
+        }
+      } else {
+        if (!currentInfo || currentInfo.length == 0) {
+          Toast('You need to deposit first')
           return false
         }
       }
@@ -738,7 +744,7 @@ export default {
       } else {
         this.sendSuccess()
         tx.hash = tx.transactionHash
-        addTransHistory(tx, 'Deposit', this, this.type1Value)
+        addTransHistory(tx, 'Deposit', this, this.type1Value, null, null, TRANSACTION_TYPE['L1ToL2'])
       }
     },
     async confirmPswOk({ show, psw }) {
