@@ -330,14 +330,20 @@ export default {
           Toast('You has depositd')
           return false
         }
-      } else {
+      } else if (this.currentModule == 'sd') {
         if (!currentInfo || currentInfo.length == 0) {
           Toast('You need to deposit first')
           return false
         }
+
         const receiveInfo = await this.getAccountInfo(this.addressForRecipient)
         if (!receiveInfo || receiveInfo.length == 0) {
           Toast('Recipient need to deposit first')
+          return false
+        }
+      } else {
+        if (!currentInfo || currentInfo.length == 0) {
+          Toast('You need to deposit first')
           return false
         }
       }
