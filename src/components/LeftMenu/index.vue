@@ -22,7 +22,7 @@
       </div>
       <div class="left-menu-item-for-hasSub">
         <van-collapse v-model="activeNames" v-for="(item, index) in multiMenuData" :key="index">
-          <van-collapse-item :name="item.name" class="item" v-if="!(currentAccountType == 2 && item.name == 'Tools')">
+          <van-collapse-item :name="item.name" class="item" v-if="!(currentAccountType == 2 && (item.name == 'Tools' || item.name == 'Privacy'))">
             <template #title><div><label style="font-size: 20px"><i :class="item.icon" size="60px"></i></label>{{ item.name }}</div></template>
             <div v-for="(_item, index) in item.subMenu" :key="index" :class="['item-menu', {'active': `${index}-${_item.route}` == activeKey}]"  @click="_changeMenu(index, _item.route, 'activeKey')">
               <router-link :to="_item.route" v-if="(_item.showType == 0 || _item.showType == currentAccountType)"><span>{{ _item.name }}</span></router-link>
@@ -157,9 +157,9 @@ export default {
         },
         {icon: 'el-icon-c-scale-to-original', name: 'Privacy', subMenu: [
           {icon: 'el-icon-s-custom', name: 'Stealth Address', route: '/stealthAddress',showType: 1,},
-          {icon: 'el-icon-s-custom', name: 'Deposit to L2', route: '/deposit?type=dp',showType: 0,},
-          {icon: 'el-icon-s-custom', name: 'Withdraw to L1', route: '/deposit?type=wd',showType: 0,},
-          {icon: 'el-icon-s-custom', name: 'Send in L2', route: '/deposit?type=sd',showType: 0,},
+          {icon: 'el-icon-s-custom', name: 'Deposit to L2', route: '/deposit?type=dp',showType: 1,},
+          {icon: 'el-icon-s-custom', name: 'Withdraw to L1', route: '/deposit?type=wd',showType: 1,},
+          {icon: 'el-icon-s-custom', name: 'Send in L2', route: '/deposit?type=sd',showType: 1,},
         ]},
         {icon: 'el-icon-odometer', name: 'Governance', subMenu: [
           // {icon: 'el-icon-plus', name: 'Create Secret', route: '/backup?type=create'},

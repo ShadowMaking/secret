@@ -350,15 +350,16 @@ export default {
       return true
     },
     async dealDataBeforeSend() {
-      if (this.transFromType == 2) {
-        let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-        let lockStatus = await securityModuleContract.isLocked(this.transFromAddress)
-        console.log('lockstatus:' + lockStatus)
-        if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
-          Toast('Wallet is locked')
-          return
-        }
-      }
+      console.log(this.transFromType)
+      // if (this.transFromType == 2) {
+      //   let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
+      //   let lockStatus = await securityModuleContract.isLocked(this.transFromAddress)
+      //   console.log('lockstatus:' + lockStatus)
+      //   if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
+      //     Toast('Wallet is locked')
+      //     return
+      //   }
+      // }
       const sendData = {
         toAddress: this.addressForRecipient,
         selectedToken: this.selectedToken,
@@ -369,7 +370,7 @@ export default {
       const ETHToken = _.find(this.assetsTokenList, {tokenName: 'ETH'})
       console.log(ETHToken.balance)
       if (ETHToken && ETHToken.balance == 0) {
-        Toast('You need to deposit first')
+        Toast('Insufficient Balance')
         return
       }
       const isChecked = await this.checkData(sendData)

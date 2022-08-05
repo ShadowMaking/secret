@@ -63,7 +63,7 @@ module.exports = {
         minRatio: 0.8
       }))
       // separate js
-      /* config.optimization = {
+       config.optimization = {
         runtimeChunk: 'single',
         splitChunks: {
           chunks: 'all',
@@ -82,42 +82,51 @@ module.exports = {
             }
           }
         }
-      } */
+      } 
 
-      config.optimization = {
-        splitChunks: {
-          chunks: 'async',
-          minSize: 30000,
-          maxSize: 0,
-          minChunks: 1,
-          maxAsyncRequests: 6,
-          maxInitialRequests: 4,
-          automaticNameDelimiter: '~',
-          cacheGroups: {
-            vendors: {
-              name: `chunk-vendors`,
-              test: /[\\/]node_modules[\\/]/,
-              priority: -10,
-              chunks: 'initial',
-              // minChunks: 2,
-              chunks: 'all',
-            },
-            common: {
-              name: `chunk-common`,
-              minChunks: 2,
-              priority: -20,
-              minSize: 60000, // deal modules about size >60kb, avoid generate a lots of litter chunck
-              chunks: 'initial',
-              reuseExistingChunk: true
-            }
-          }
-        }
-      }
+      // config.optimization = {
+      //   splitChunks: {
+      //     chunks: 'all',
+      //     minSize: 30000,
+      //     maxSize: 0,
+      //     minChunks: 1,
+      //     maxAsyncRequests: 6,
+      //     maxInitialRequests: 4,
+      //     automaticNameDelimiter: '~',
+      //     cacheGroups: {
+      //       vendors: {
+      //         name: `chunk-vendors`,
+      //         test: /[\\/]node_modules[\\/]/,
+      //         priority: -10,
+      //         chunks: 'initial',
+      //         // minChunks: 2,
+      //         chunks: 'all',
+      //       },
+      //       common: {
+      //         name: `chunk-common`,
+      //         minChunks: 2,
+      //         priority: -20,
+      //         minSize: 60000, // deal modules about size >60kb, avoid generate a lots of litter chunck
+      //         chunks: 'initial',
+      //         reuseExistingChunk: true
+      //       }
+      //     }
+      //   }
+      // }
       config.externals = {
         // 'vue': 'Vue',
         // 'vue-router': 'VueRouter',
         // 'moment': 'moment',
         // 'lodash': 'lodash',
+      }
+      // cancel webpack warning
+      config.performance = {
+        hints:'warning',
+        maxEntrypointSize: 50000000,//entry maxsize
+        maxAssetSize: 30000000, //build maxfilesize
+        assetFilter: function(assetFilename) {
+          return assetFilename.endsWith('.js');
+        }
       }
     } else {
       config.mode = "development";
