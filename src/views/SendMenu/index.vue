@@ -341,7 +341,12 @@ export default {
     async dealDataBeforeSend() {
       if (this.transFromType == 2) {
         let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
-        let lockStatus = await securityModuleContract.isLocked(this.transFromAddress)
+        let lockStatus
+        try {
+          lockStatus = await securityModuleContract.isLocked(this.transFromAddress)
+        } catch(error) {
+          console.log(error)
+        }
         console.log('lockstatus:' + lockStatus)
         if (lockStatus == lockType['GlobalLock'] || lockStatus == lockType['GlobalAndSigner']) {
           Toast('Wallet is locked')
@@ -562,7 +567,8 @@ export default {
           this.walletSamllTrans(data)
         }
       }).catch(error => {
-        console.log(error)
+        this.sendFailed(error)
+        this.showLoading = false
       }) 
     },
     async walletSamllTrans(data) {
