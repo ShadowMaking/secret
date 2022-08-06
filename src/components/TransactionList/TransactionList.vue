@@ -5,7 +5,7 @@
         <el-col
           class="list-header-item"
           v-for="(item,index) in headerList" :key="index"
-          :span="(index==1 || index==3|| index==4) ? 4 : 3">
+          :span="(index==1) ? 4 : (index==5||index==6) ? 2 : 3">
           {{ item }}
         </el-col>
       </el-row>
@@ -31,7 +31,7 @@
               <a @click="toPageDetail(item, 'hash')">{{ showAddress(item.hash) }}</a>
             </el-tooltip>
           </el-col>
-          <el-col :span="4" :class="['transaction-list-item', `address`]" v-if="!hideFrom">
+          <el-col :span="3" :class="['transaction-list-item', `address`]" v-if="!hideFrom">
             <el-tooltip effect="dark" placement="top-start">
               <div slot="content" class="table-item-tip-tooltip" @click="copyAddress(item.from)">{{ item.from }}</div>
               <a @click="toPageDetail(item, 'from')">
@@ -39,7 +39,7 @@
               </a>
             </el-tooltip>
           </el-col>
-          <el-col :span="4" :class="['transaction-list-item', `address`]" v-if="!hideTo">
+          <el-col :span="3" :class="['transaction-list-item', `address`]" v-if="!hideTo">
             <el-tooltip effect="dark" placement="top-start">
               <div slot="content" class="table-item-tip-tooltip" @click="copyAddress(item.to)">{{ item.to }}</div>
               <a @click="toPageDetail(item, 'to')">
@@ -47,7 +47,10 @@
               </a>
             </el-tooltip>
           </el-col>
-          <el-col :span="3" class="transaction-list-item">
+          <el-col :span="2" class="transaction-list-item">
+            <a @click="toPageDetail(item, 'block')">{{ dealValue(item) }}</a>
+          </el-col>
+          <el-col :span="2" class="transaction-list-item">
             <a @click="toPageDetail(item, 'block')">{{ item.blockNumber }}</a>
           </el-col>
           <el-col :span="3" class="transaction-list-item">
@@ -79,6 +82,7 @@
             </a>
           </div>
         </div>
+
         <div class="grid grid-2">
           <div class="header">
             <span>STATUS</span>
@@ -147,6 +151,7 @@ import { ethers, utils } from 'ethers'
 import StatusPop from '@/components/StatusPop';
 import { formatErrorContarct } from '@/utils/index'
 import SpeedModal from '@/components/SpeedModal';
+import { TRANSACTION_TYPE } from '@/api/transaction'
 
 Vue.use(Toast)
 Vue.use(Dialog)
@@ -181,6 +186,7 @@ export default {
   },
   data() {
     return {
+      TRANSACTION_TYPE,
       newtransactionList: this.transactionList,
 
       sendMetadata: null,
@@ -245,6 +251,15 @@ export default {
       }
     },
     showAddress(txt) { return subStrAddress(txt)},
+    dealValue(item) {
+      let viewValue
+      if (item.type == this.TRANSACTION_TYPE['L1ToL1'] || item.type == this.TRANSACTION_TYPE['L1ToL2']) {
+        viewValue = item.value
+      } else {
+        viewValue = web3.utils.fromWei((item.value).toString(), 'ether')
+      }
+      return viewValue
+    },
     toPageDetail(record, type) {
       let currentNetInfo = getConnectedNet()
       let blockExplorerUrls = currentNetInfo.blockExplorerUrls[0]
