@@ -1,7 +1,7 @@
 FROM nginx:latest
 
-
 MAINTAINER EigenLabs
+#RUN npm run build-preview
 
 COPY default.conf /etc/nginx/conf.d/default.conf
 
