@@ -297,7 +297,7 @@ export default {
       const sendType = this.sendType
       const toSendAddress = this.addressForRecipient
       if (this.currentModule == 'dp') {
-        this.depositSubmit()
+        this.isShowInputPwd()
       } else if (this.currentModule == 'sd') {
         this.sendSubmit()
       } else if (this.currentModule == 'wd') {
@@ -664,7 +664,6 @@ export default {
       return data
     },
     async depositSubmit() {
-
       const currentUserAds = getConnectedAddress()
       let rollupNCContract = await getContractAt({ tokenAddress: this.rollupNCRouter, abi: RollupNC.abi }, this)
       const privateKey = await getDecryptPrivateKeyFromStore(this)
@@ -785,7 +784,9 @@ export default {
 
       this.confirmPswBtnLoading = false
       this.showInputPswModal = false
-      await this.listenUpdateState()
+      if (this.currentModule == 'dp') {
+        await this.depositSubmit()
+      }
     },
     
     sendSuccess() {
@@ -854,7 +855,7 @@ export default {
         this.showInputPswModal = true;
         return
       }
-      this.listenUpdateState()
+      this.depositSubmit()
     },
   },
   async created() {
@@ -870,7 +871,7 @@ export default {
     this.getCurrentAccountType()//get account type ;normal,wallet
     this.getCurrentModuleTxt()//get show text
     await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
-    this.isShowInputPwd()//is has privatekey
+    // this.isShowInputPwd()//is has privatekey
     console.log(this.rollupNCRouter)
     // this.updateNonce('0x28ef362ba842842df918bae66ee02ab47185e358', 1)
     // const nonce = this.getNonce('0x28ef362ba842842df918bae66ee02ab47185e358')
