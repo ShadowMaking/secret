@@ -296,13 +296,7 @@ export default {
       this.showTradeConfirm = false
       const sendType = this.sendType
       const toSendAddress = this.addressForRecipient
-      if (this.currentModule == 'dp') {
-        this.isShowInputPwd()
-      } else if (this.currentModule == 'sd') {
-        this.sendSubmit()
-      } else if (this.currentModule == 'wd') {
-        this.withdrawSubmit()
-      }
+      this.isShowInputPwd()
     },
     async checkData(data) {
       console.log('checkData')
@@ -784,9 +778,7 @@ export default {
 
       this.confirmPswBtnLoading = false
       this.showInputPswModal = false
-      if (this.currentModule == 'dp') {
-        await this.depositSubmit()
-      }
+      this.isShowInputPwd()
     },
     
     sendSuccess() {
@@ -855,7 +847,13 @@ export default {
         this.showInputPswModal = true;
         return
       }
-      this.depositSubmit()
+      if (this.currentModule == 'dp') {
+        this.depositSubmit()
+      } else if (this.currentModule == 'sd') {
+        this.sendSubmit()
+      } else if (this.currentModule == 'wd') {
+        this.withdrawSubmit()
+      }
     },
   },
   async created() {
