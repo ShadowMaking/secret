@@ -575,9 +575,10 @@ export default {
         submitData.recipient = receiveAddress
       }
       console.log("addtx:", submitData)
-      const { hasError, data} = await this.$store.dispatch('zkzruTx', submitData)
+      const { hasError, data, error} = await this.$store.dispatch('zkzruTx', submitData)
       if (hasError) {
-        this.sendFailed('Add tx failed')
+        let tip = error || 'Add tx failed'
+        this.sendFailed(tip)
       } else {
         this.sendSuccess()
         if (type == 'withdraw') {
