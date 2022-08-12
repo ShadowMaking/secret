@@ -497,8 +497,6 @@ export default {
         console.log(tx)
         this.addZkzruTx(tx, type, sendIndex, sendNonce, amountWei, tokenType)
       }
-      this.updateNonce(selectedConnectAddress, sendNonce)
-      
     },
     async updateNonce(address, nonce) {
       const upNonce = {
@@ -580,6 +578,8 @@ export default {
         let tip = error || 'Add tx failed'
         this.sendFailed(tip)
       } else {
+        const selectedConnectAddress = getConnectedAddress()
+        this.updateNonce(selectedConnectAddress, sendNonce)
         this.sendSuccess()
         if (type == 'withdraw') {
           this.saveTxInfo(data)
@@ -779,7 +779,7 @@ export default {
 
       this.confirmPswBtnLoading = false
       this.showInputPswModal = false
-      this.isShowInputPwd()
+      this.contractSubmit()
     },
     
     sendSuccess() {
@@ -848,6 +848,9 @@ export default {
         this.showInputPswModal = true;
         return
       }
+      this.contractSubmit()
+    },
+    contractSubmit() {
       if (this.currentModule == 'dp') {
         this.depositSubmit()
       } else if (this.currentModule == 'sd') {
