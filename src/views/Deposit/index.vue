@@ -296,13 +296,7 @@ export default {
       this.showTradeConfirm = false
       const sendType = this.sendType
       const toSendAddress = this.addressForRecipient
-      if (this.currentModule == 'dp') {
-        this.depositSubmit()
-      } else if (this.currentModule == 'sd') {
-        this.sendSubmit()
-      } else if (this.currentModule == 'wd') {
-        this.withdrawSubmit()
-      }
+      this.isShowInputPwd()
     },
     async checkData(data) {
       console.log('checkData')
@@ -503,8 +497,6 @@ export default {
         console.log(tx)
         this.addZkzruTx(tx, type, sendIndex, sendNonce, amountWei, tokenType)
       }
-      this.updateNonce(selectedConnectAddress, sendNonce)
-      
     },
     async updateNonce(address, nonce) {
       const upNonce = {
@@ -581,10 +573,13 @@ export default {
         submitData.recipient = receiveAddress
       }
       console.log("addtx:", submitData)
-      const { hasError, data} = await this.$store.dispatch('zkzruTx', submitData)
+      const { hasError, data, error} = await this.$store.dispatch('zkzruTx', submitData)
       if (hasError) {
-        this.sendFailed('Add tx failed')
+        let tip = error || 'Add tx failed'
+        this.sendFailed(tip)
       } else {
+        const selectedConnectAddress = getConnectedAddress()
+        this.updateNonce(selectedConnectAddress, sendNonce)
         this.sendSuccess()
         if (type == 'withdraw') {
           this.saveTxInfo(data)
@@ -664,7 +659,6 @@ export default {
       return data
     },
     async depositSubmit() {
-
       const currentUserAds = getConnectedAddress()
       let rollupNCContract = await getContractAt({ tokenAddress: this.rollupNCRouter, abi: RollupNC.abi }, this)
       const privateKey = await getDecryptPrivateKeyFromStore(this)
@@ -785,7 +779,7 @@ export default {
 
       this.confirmPswBtnLoading = false
       this.showInputPswModal = false
-      await this.listenUpdateState()
+      this.contractSubmit()
     },
     
     sendSuccess() {
@@ -854,7 +848,16 @@ export default {
         this.showInputPswModal = true;
         return
       }
-      this.listenUpdateState()
+      this.contractSubmit()
+    },
+    contractSubmit() {
+      if (this.currentModule == 'dp') {
+        this.depositSubmit()
+      } else if (this.currentModule == 'sd') {
+        this.sendSubmit()
+      } else if (this.currentModule == 'wd') {
+        this.withdrawSubmit()
+      }
     },
   },
   async created() {
@@ -870,7 +873,7 @@ export default {
     this.getCurrentAccountType()//get account type ;normal,wallet
     this.getCurrentModuleTxt()//get show text
     await this.$store.dispatch('StoreSelectedNetwork', { netInfo: this.currentChainInfo })
-    this.isShowInputPwd()//is has privatekey
+    // this.isShowInputPwd()//is has privatekey
     console.log(this.rollupNCRouter)
     // this.updateNonce('0x28ef362ba842842df918bae66ee02ab47185e358', 1)
     // const nonce = this.getNonce('0x28ef362ba842842df918bae66ee02ab47185e358')
