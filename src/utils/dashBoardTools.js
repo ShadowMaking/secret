@@ -91,7 +91,7 @@ export const getDefaultETHAssets = async (self, rpcUrl, accountAddress) => {
 export const getL2DefaultETHAssets = async (self, accountAddress) => {
   const selectedConnectAddress = accountAddress ? accountAddress : getConnectedAddress()
   const { hasError, data } = await self.$store.dispatch('getZkzruAccountInfo', selectedConnectAddress);
-  const balance = data.length>0 && data[0].balance || '0'
+  const balance = data.length>0 && data[0].virtual_balance || '0'
   const decimalsNumber = BigNumber(10).pow(18) // .toNumber() 1000000000000000000
   const balanceNumber = BigNumber(Number(balance))
   const balanceFormatString = balanceNumber.div(decimalsNumber).toFixed(4,1)
