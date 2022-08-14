@@ -157,11 +157,11 @@ export default {
     },
     getlay2BalanceEth(lay2Item) {
       console.log(lay2Item)
-      console.log(typeof(lay2Item.balance))
+      console.log(typeof(lay2Item.virtual_balance))
       let banlanceEth = 0
-      if (lay2Item && lay2Item.balance) {
+      if (lay2Item && lay2Item.virtual_balance) {
         // const amountWei = web3.utils.toWei(lay2Item.balance, 'gwei')
-        banlanceEth = web3.utils.fromWei(lay2Item.balance, 'ether')//value: aomuntGwei
+        banlanceEth = web3.utils.fromWei(lay2Item.virtual_balance, 'ether')//value: aomuntGwei
       }
       return banlanceEth
     },
