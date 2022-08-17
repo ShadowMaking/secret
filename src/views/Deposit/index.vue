@@ -310,7 +310,7 @@ export default {
         return false;
       }
       if (!data.type1Value) {
-        Toast(`input amount`);
+        Toast(`Please enter the amount`);
         return false;
       }
       if (data.selectedToken.balanceNumberString < data.type1Value) {
@@ -321,7 +321,7 @@ export default {
       const currentInfo = await this.getAccountInfo(selectedConnectAddress)
       if (this.currentModule == 'dp') {
         if (currentInfo && currentInfo.length > 0) {
-          Toast('You has depositd')
+          Toast('You have deposited')
           return false
         }
       } else if (this.currentModule == 'sd') {
@@ -735,7 +735,7 @@ export default {
       }
       const { hasError, data} = await this.$store.dispatch('zkzruAccout', submitData)
       if (hasError) {
-        this.sendFailed('Add account failed')
+        this.sendFailed('Failed to add account')
       } else {
         this.sendSuccess()
         tx.hash = tx.transactionHash
