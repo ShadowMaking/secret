@@ -123,13 +123,20 @@ export default {
       const ETHAssets = await getDefaultETHAssets(this, rpcUrl);
       const tokenListRes = await this.$store.dispatch('GetAvailableTokenAssets', { selectedConnectAddress, chainInfo: connectedNetInfo });
       const { hasError, list } = tokenListRes
+      console.log(list)
+      console.log(new Date())
       const tokenList = await generateTokenList(_.cloneDeep(list), this, true)
+      console.log(tokenList)
+      console.log(new Date())
       // tokenList.filter(item => {
       //    return item.icon = require("@/assets/" + item.icon)
       // })
       const layer2Assets = await this.getLayer2Assets()
+      console.log(layer2Assets)
+      console.log(new Date())
       this.assetsData = [].concat(layer2Assets, [ETHAssets], tokenList)
       console.log(this.assetsData)
+      console.log(new Date())
       this.showLoading = false
 
 

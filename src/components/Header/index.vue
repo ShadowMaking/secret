@@ -35,7 +35,7 @@
               </div>
               <template #reference>
                 <span @click="showAccoutAddress" class="header-address" id="header-address-popup" v-if="address!==''" >
-                  {{ `${address.slice(0,6)}...${address.slice(-4)}` }}
+                  {{ `${address.slice(0,12)}...${address.slice(-3)}` }}
                   <i class="link-icon"></i>
                 </span>
               </template>
