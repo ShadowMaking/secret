@@ -129,7 +129,6 @@ export default {
       // })
       const layer2Assets = await this.getLayer2Assets()
       this.assetsData = [].concat(layer2Assets, [ETHAssets], tokenList)
-      console.log(this.assetsData)
       this.showLoading = false
 
 

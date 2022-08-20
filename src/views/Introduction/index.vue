@@ -165,8 +165,8 @@ export default {
           privateKey && (await this.$store.dispatch('SaveDecryptPrivateKeyInStore', { userId, address, encryptKey, privateKey }))
         }
         await this.$store.dispatch('StoreBindingGoogleUserInfoList', { userId, encryptPrivateKey:encryptKey, address })
-        this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });        
       }
+      this.$eventBus.$emit('BindingUserInfoAferThirdLogin', { thirdUserId: userId });
       return { hasError: false }
     },
     async getUserBindingInfo(isNewUser) {

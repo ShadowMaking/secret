@@ -302,48 +302,51 @@ export default {
       console.log('checkData')
       if (!utils.isAddress(data.toAddress)
         && this.currentModule !== 'dp') {
-        Toast(`Invalid Address`);
-        return false;
+        return this.checkFalsed(`Invalid Address`)
       }
       if (!data.selectedToken) {
-        Toast(`Choose Token`);
-        return false;
+        return this.checkFalsed(`Choose Token`)
       }
       if (!data.type1Value) {
-        Toast(`Please enter the amount`);
-        return false;
+        return this.checkFalsed(`Please enter the amount`)
       }
       if (data.selectedToken.balanceNumberString < data.type1Value) {
-        Toast(`Insufficient Balance`);
-        return false;
+        return this.checkFalsed(`Insufficient Balance`)
       }
       const selectedConnectAddress = getConnectedAddress()
       const currentInfo = await this.getAccountInfo(selectedConnectAddress)
+      console.log(currentInfo)
+      if (!currentInfo) {
+        return this.checkFalsed(`Failed to get current user information`)
+      }
       if (this.currentModule == 'dp') {
         if (currentInfo && currentInfo.length > 0) {
-          Toast('You have deposited')
-          return false
+          return this.checkFalsed(`You have deposited`)
         }
       } else if (this.currentModule == 'sd') {
         if (!currentInfo || currentInfo.length == 0) {
-          Toast('You need to deposit first')
-          return false
+          return this.checkFalsed(`You need to deposit first`)
         }
 
         const receiveInfo = await this.getAccountInfo(this.addressForRecipient)
+        console.log(receiveInfo)
         if (!receiveInfo || receiveInfo.length == 0) {
-          Toast('Recipient need to deposit first')
-          return false
+          return this.checkFalsed(`Recipient need to deposit first`)
         }
       } else {
         if (!currentInfo || currentInfo.length == 0) {
-          Toast('You need to deposit first')
-          return false
+          return this.checkFalsed(`You need to deposit first`)
         }
       }
       return true
     },
+    checkFalsed(tip) {
+      this.showLoading = false
+      Toast(tip)
+      return false
+    },
     async dealDataBeforeSend() {
+      this.showLoading = true
       console.log(this.transFromType)
       // if (this.transFromType == 2) {
       //   let securityModuleContract = await getContractAt({ tokenAddress: this.securityModuleRouter, abi: SecurityModule.abi }, this)
@@ -361,16 +364,18 @@ export default {
         type2Value: this.type2Value,
       }
 
+      const isChecked = await this.checkData(sendData)
+      console.log(isChecked)
+      
+      if (!isChecked) { return }
+
       const ETHToken = _.find(this.assetsTokenList, {tokenName: 'ETH'})
       console.log(ETHToken.balance)
       if (ETHToken && ETHToken.balance == 0) {
         Toast('Insufficient Balance')
         return
       }
-      const isChecked = await this.checkData(sendData)
       
-      if (!isChecked) { return }
-      this.showLoading = true
       this.showGasModal()
     },
     async showGasModal() {
