@@ -50,7 +50,8 @@
           network_id: this.defaultNetWork, 
           from: this.currentAccount, 
           token: getAuthToken('gtoken'), 
-          confirmed_txlist: list
+          confirmed_txlist: list,
+          source: 'wallet',
         });
         // if (this.itemIsSuccess) {
         //   let _this = this
