@@ -586,16 +586,13 @@ export default {
         const selectedConnectAddress = getConnectedAddress()
         this.updateNonce(selectedConnectAddress, sendNonce)
         this.sendSuccess()
-        if (type == 'withdraw') {
-          this.saveTxInfo(data)
-        }
+        // if (type == 'withdraw') {
+          // this.saveTxInfo(data)
+        // }
       }
     },
+    /**
     saveTxInfo(data) {
-      console.log(data)
-      // let withdrawTxList = getInfoFromStorageByKey('withdrawTx') || []
-      // withdrawTxList.push(data.tx_id)
-      // saveToStorage({'withdrawTx': withdrawTxList})
       this.listenUpdateState()
     },
     async listenUpdateState() {
@@ -659,6 +656,7 @@ export default {
       // }
       // saveToStorage({'withdrawTx': withdrawTxList})
     },
+    */
     async getAccountInfo(address) {
       const { hasError, data} = await this.$store.dispatch('getZkzruAccountInfo', address)
       return data
