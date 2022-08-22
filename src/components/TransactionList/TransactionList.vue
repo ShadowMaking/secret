@@ -262,7 +262,13 @@ export default {
     },
     toPageDetail(record, type) {
       let currentNetInfo = getConnectedNet()
-      let blockExplorerUrls = currentNetInfo.blockExplorerUrls[0]
+      let blockExplorerUrls
+      blockExplorerUrls = currentNetInfo.blockExplorerUrls[0]
+      if (type == 'hash') {
+        if (record.type == this.TRANSACTION_TYPE['L2ToL1'] || record.type == this.TRANSACTION_TYPE['L2ToL2']) {
+           blockExplorerUrls = 'https://explorer.eigen.cash/#'
+        }
+      }
       const { routeName, query } = getRouteNameAndQuery(record, type);
       let routerInfo = { name: routeName };
       query && (routerInfo['query'] = query);
