@@ -190,7 +190,6 @@ export const getDecryptPrivateKeyFromStore = async (self) => {
     self.$eventBus.$emit('hasNoPrivateKey')
     return null
   }
-  console.log('privateKey:', privateKey)
   return privateKey
 }
 
