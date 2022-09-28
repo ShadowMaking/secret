@@ -208,7 +208,7 @@ export default {
           break;
         case 'sd'://send
           this.navTtile = 'Send in L2'
-          this.navDes = 'Transfer between L2 networks, support plaintext and ciphertext transfer.'
+          this.navDes = 'Transfer in L2 with encrypted amount or private smart contract.'
           this.submitTxt = 'Send'
           break;
         default:
